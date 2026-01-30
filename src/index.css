@@ -1,0 +1,309 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Apice Design System - Premium Fintech */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Light mode - clean and minimal */
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    
+    --primary: 222 89% 55%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    
+    --accent: 45 93% 47%;
+    --accent-foreground: 222 47% 11%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 222 89% 55%;
+    
+    --radius: 1rem;
+    
+    /* Apice custom tokens */
+    --apice-gold: 45 93% 47%;
+    --apice-gold-soft: 45 80% 60%;
+    --apice-success: 152 69% 40%;
+    --apice-warning: 38 92% 50%;
+    --apice-surface: 210 20% 98%;
+    --apice-surface-elevated: 0 0% 100%;
+    --apice-gradient-start: 222 89% 55%;
+    --apice-gradient-end: 250 84% 54%;
+    --apice-text-primary: 222 47% 11%;
+    --apice-text-secondary: 215 16% 47%;
+    --apice-text-tertiary: 215 16% 67%;
+    
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Dark mode - premium fintech */
+    --background: 225 25% 6%;
+    --foreground: 210 40% 98%;
+    
+    --card: 225 25% 9%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 225 25% 9%;
+    --popover-foreground: 210 40% 98%;
+    
+    --primary: 222 89% 60%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 225 25% 14%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 225 25% 14%;
+    --muted-foreground: 215 20% 65%;
+    
+    --accent: 45 93% 52%;
+    --accent-foreground: 222 47% 11%;
+    
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 225 25% 18%;
+    --input: 225 25% 18%;
+    --ring: 222 89% 60%;
+    
+    /* Apice custom tokens - dark */
+    --apice-gold: 45 93% 52%;
+    --apice-gold-soft: 45 70% 45%;
+    --apice-success: 152 69% 45%;
+    --apice-warning: 38 92% 55%;
+    --apice-surface: 225 25% 8%;
+    --apice-surface-elevated: 225 25% 12%;
+    --apice-gradient-start: 222 89% 60%;
+    --apice-gradient-end: 250 84% 58%;
+    --apice-text-primary: 210 40% 98%;
+    --apice-text-secondary: 215 20% 65%;
+    --apice-text-tertiary: 215 20% 45%;
+    
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Apice gradients */
+  .apice-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--apice-gradient-start)), hsl(var(--apice-gradient-end)));
+  }
+  
+  .apice-gradient-gold {
+    background: linear-gradient(135deg, hsl(var(--apice-gold)), hsl(45 93% 62%));
+  }
+  
+  .apice-gradient-surface {
+    background: linear-gradient(180deg, hsl(var(--apice-surface-elevated)), hsl(var(--apice-surface)));
+  }
+  
+  .apice-glass {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  
+  .apice-shadow-soft {
+    box-shadow: 0 4px 24px -4px hsl(222 89% 55% / 0.15);
+  }
+  
+  .apice-shadow-gold {
+    box-shadow: 0 4px 24px -4px hsl(45 93% 52% / 0.25);
+  }
+  
+  .apice-shadow-card {
+    box-shadow: 0 2px 16px -2px hsl(225 25% 6% / 0.08);
+  }
+  
+  /* Safe area padding for mobile */
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .safe-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  /* Smooth scrolling */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Hide scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Text gradient */
+  .text-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--apice-gradient-start)), hsl(var(--apice-gradient-end)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(var(--apice-gold)), hsl(45 93% 65%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-up {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from { 
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up {
+  from { 
+    transform: translateY(100%);
+  }
+  to { 
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% { 
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes progress-ring {
+  0% { stroke-dashoffset: 100; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-fade-up {
+  animation: fade-up 0.4s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Stagger children animations */
+.stagger-children > * {
+  animation: fade-up 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 350ms; }
+
+/* Progress ring animation */
+.progress-ring-circle {
+  transition: stroke-dashoffset 0.5s ease-out;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
