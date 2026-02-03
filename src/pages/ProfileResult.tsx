@@ -3,26 +3,43 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useAppStore, investorTypeTraits, recommendedStrategy } from '@/store/appStore';
-import { ArrowRight, Check, Shield, Target, Zap } from 'lucide-react';
+import { useAppStore, investorTypeDescriptions, recommendedPath } from '@/store/appStore';
+import { ArrowRight, Check, Shield, Target, Zap, ExternalLink, Wallet, PieChart } from 'lucide-react';
 
 export default function ProfileResult() {
   const navigate = useNavigate();
   const investorType = useAppStore((s) => s.investorType);
-  const userProfile = useAppStore((s) => s.userProfile);
+  const setupProgress = useAppStore((s) => s.setupProgress);
 
-  const traits = investorType ? investorTypeTraits[investorType] : [];
-  const recommended = investorType ? recommendedStrategy[investorType] : 'balanced';
+  const description = investorType ? investorTypeDescriptions[investorType] : null;
+  const recommended = investorType ? recommendedPath[investorType] : 'balanced';
 
   const setupSteps = [
-    { label: 'Connect exchange', done: false },
-    { label: 'Security setup', done: false },
-    { label: 'Activate strategy', done: false },
-    { label: 'Go live', done: false },
+    { 
+      id: 'exchange',
+      label: 'Create Exchange Account', 
+      sublabel: 'Via Bybit referral link',
+      done: setupProgress.exchangeAccountCreated,
+      icon: ExternalLink,
+    },
+    { 
+      id: 'portfolio',
+      label: 'Choose Core Portfolio', 
+      sublabel: 'One-tap selection',
+      done: setupProgress.corePortfolioSelected,
+      icon: PieChart,
+    },
+    { 
+      id: 'dca',
+      label: 'Activate DCA Plan', 
+      sublabel: 'Simple schedule setup',
+      done: setupProgress.dcaPlanConfigured,
+      icon: Zap,
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-background px-6 py-8 safe-top">
+    <div className="min-h-screen bg-background px-6 py-8 safe-top safe-bottom">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -35,99 +52,112 @@ export default function ProfileResult() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="w-20 h-20 mx-auto mb-6 rounded-full apice-gradient-primary flex items-center justify-center shadow-lg"
+            className="w-20 h-20 mx-auto mb-6 rounded-2xl apice-gradient-primary flex items-center justify-center shadow-lg"
           >
             <Target className="w-10 h-10 text-white" />
           </motion.div>
           
-          <Badge variant="default" className="mb-3">Your Profile</Badge>
+          <Badge variant="default" className="mb-3">Your Investor Profile</Badge>
           
-          <h1 className="text-title mb-2">{investorType}</h1>
-          <p className="text-muted-foreground text-caption">
-            Based on your answers, we've created your personalized path
+          <h1 className="text-2xl font-bold mb-2">{investorType}</h1>
+          <p className="text-muted-foreground text-sm">
+            Based on your answers, here's your personalized path
           </p>
         </div>
 
-        {/* Traits */}
-        <Card variant="elevated">
+        {/* Profile Card */}
+        {description && (
+          <Card className="bg-card border-border">
+            <CardContent className="pt-5 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-apice-success/10 flex items-center justify-center shrink-0">
+                  <Check className="w-4 h-4 text-apice-success" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">What you want</p>
+                  <p className="text-sm">{description.wants}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+                  <Shield className="w-4 h-4 text-destructive" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">What to avoid</p>
+                  <p className="text-sm">{description.avoids}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Zap className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Your first step</p>
+                  <p className="text-sm">{description.firstStep}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recommended Setup Path */}
+        <Card className="border-primary/20 bg-primary/5">
           <CardContent className="pt-5">
-            <h3 className="font-medium mb-4 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-primary" />
-              Your Investor Traits
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-primary" />
+                Recommended Setup Path
+              </h3>
+              <Badge variant="recommended" size="sm">3 Steps</Badge>
+            </div>
+            
+            <p className="text-sm text-muted-foreground mb-5">
+              Complete these to activate your {recommended} strategy
+            </p>
+
+            {/* Setup Checklist */}
             <div className="space-y-3">
-              {traits.map((trait, i) => (
+              {setupSteps.map((step, i) => (
                 <motion.div
-                  key={trait}
+                  key={step.id}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + i * 0.1 }}
-                  className="flex items-start gap-3"
+                  transition={{ delay: 0.5 + i * 0.1 }}
+                  className="flex items-center gap-3"
                 >
-                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-primary" />
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                    step.done 
+                      ? 'bg-apice-success text-white' 
+                      : 'bg-secondary text-muted-foreground'
+                  }`}>
+                    {step.done ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <span className="text-xs font-semibold">{i + 1}</span>
+                    )}
                   </div>
-                  <p className="text-caption text-foreground">{trait}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium ${step.done ? 'text-muted-foreground' : 'text-foreground'}`}>
+                      {step.label}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{step.sublabel}</p>
+                  </div>
+                  <step.icon className="w-4 h-4 text-muted-foreground/50" />
                 </motion.div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Recommended Path */}
-        <Card variant="premium">
-          <CardContent className="pt-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium flex items-center gap-2">
-                <Zap className="w-4 h-4 text-primary" />
-                Recommended Path
-              </h3>
-              <Badge variant="recommended" size="sm">Best Match</Badge>
-            </div>
-            
-            <p className="text-caption text-muted-foreground mb-5">
-              Based on your {userProfile.riskTolerance || 'medium'} risk tolerance and{' '}
-              {userProfile.goal || 'balanced'} goal
-            </p>
-
-            <div className="p-4 rounded-xl bg-secondary/50 mb-5">
-              <p className="font-medium capitalize mb-1">
-                {recommended} Strategy
-              </p>
-              <p className="text-micro text-muted-foreground">
-                Optimized for your profile • Activate in minutes
-              </p>
-            </div>
-
-            {/* Setup Checklist */}
-            <div className="space-y-2">
-              {setupSteps.map((step, i) => (
-                <div
-                  key={step.label}
-                  className="flex items-center gap-3 text-caption"
-                >
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    step.done 
-                      ? 'bg-primary border-primary' 
-                      : 'border-muted-foreground/30'
-                  }`}>
-                    {step.done && <Check className="w-3 h-3 text-primary-foreground" />}
-                    {!step.done && <span className="text-micro text-muted-foreground">{i + 1}</span>}
-                  </div>
-                  <span className={step.done ? 'text-foreground' : 'text-muted-foreground'}>
-                    {step.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Trust Message */}
-        <p className="text-center text-micro text-muted-foreground px-4">
-          Your funds remain under your control at all times.<br />
-          You can stop or adjust settings whenever you want.
-        </p>
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50">
+          <Shield className="w-5 h-5 text-muted-foreground shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            Your funds remain under your control at all times. You can stop or adjust settings whenever you want.
+          </p>
+        </div>
 
         {/* CTA */}
         <Button
