@@ -13,9 +13,13 @@ import Welcome from "./pages/Welcome";
 import Quiz from "./pages/Quiz";
 import ProfileResult from "./pages/ProfileResult";
 import Home from "./pages/Home";
-import Strategies from "./pages/Strategies";
-import StrategyDetail from "./pages/StrategyDetail";
-import Automate from "./pages/Automate";
+import Portfolio from "./pages/Portfolio";
+import PortfolioDetail from "./pages/PortfolioDetail";
+import PortfolioBuilder from "./pages/PortfolioBuilder";
+import Automations from "./pages/Automations";
+import DCAPlanner from "./pages/DCAPlanner";
+import Learn from "./pages/Learn";
+import LessonDetail from "./pages/LessonDetail";
 import Insights from "./pages/Insights";
 import Profile from "./pages/Profile";
 import Upgrade from "./pages/Upgrade";
@@ -41,15 +45,17 @@ function AppContent() {
       
       <Route element={<AppLayout />}>
         <Route path="/home" element={<Home />} />
-        <Route path="/strategies" element={<Strategies />} />
-        <Route path="/strategies/:id" element={<StrategyDetail />} />
-        <Route path="/automate" element={<Automate />} />
+        <Route path="/portfolio" element={<Portfolio />} />
+        <Route path="/portfolio/:id" element={<PortfolioDetail />} />
+        <Route path="/portfolio/builder" element={<PortfolioBuilder />} />
+        <Route path="/automations" element={<Automations />} />
+        <Route path="/automations/dca" element={<DCAPlanner />} />
+        <Route path="/learn" element={<Learn />} />
+        <Route path="/learn/:trackId/:lessonId" element={<LessonDetail />} />
         <Route path="/insights" element={<Insights />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/upgrade" element={<Upgrade />} />
         <Route path="/support" element={<Support />} />
-        <Route path="/security" element={<Support />} />
-        <Route path="/legal" element={<Support />} />
       </Route>
       
       <Route path="/" element={<Navigate to="/splash" replace />} />

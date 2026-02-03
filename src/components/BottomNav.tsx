@@ -1,13 +1,13 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, TrendingUp, Zap, Lightbulb, User } from 'lucide-react';
+import { Home, PieChart, Zap, BookOpen, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/home', icon: Home, label: 'Home' },
-  { to: '/strategies', icon: TrendingUp, label: 'Strategies' },
-  { to: '/automate', icon: Zap, label: 'Automate' },
-  { to: '/insights', icon: Lightbulb, label: 'Insights' },
+  { to: '/portfolio', icon: PieChart, label: 'Portfolio' },
+  { to: '/automations', icon: Zap, label: 'Automate' },
+  { to: '/learn', icon: BookOpen, label: 'Learn' },
   { to: '/profile', icon: User, label: 'Profile' },
 ];
 
@@ -19,6 +19,7 @@ export function BottomNav() {
       <div className="flex items-center justify-around px-2 py-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.to || 
+            location.pathname.startsWith(item.to + '/') ||
             (item.to === '/home' && location.pathname === '/');
           
           return (
