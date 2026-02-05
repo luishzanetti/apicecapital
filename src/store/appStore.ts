@@ -19,12 +19,32 @@ export interface SetupProgress {
 
 export interface DCAPlan {
   id: string;
-  assets: string[];
+  assets: { symbol: string; allocation: number }[];
   amountPerInterval: number;
   frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly';
-  durationDays: number;
+  durationDays: number | null; // null = indefinite/forever
   startDate: string;
   isActive: boolean;
+  totalInvested: number;
+  nextExecutionDate: string;
+}
+
+export interface DCAGamification {
+  totalPlansCreated: number;
+  totalAmountCommitted: number;
+  longestActivePlan: number;
+  badges: string[];
+  dcaStreak: number;
+  lastDcaAction: string | null;
+}
+
+export interface DCABadge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  requirement: string;
+  unlockedAt: string | null;
 }
 
 export interface SelectedPortfolio {
@@ -99,6 +119,7 @@ export interface AppState {
   
   // DCA Plans
   dcaPlans: DCAPlan[];
+  dcaGamification: DCAGamification;
   
   // Link tracking
   linkClicks: LinkClick;
@@ -129,6 +150,8 @@ export interface AppState {
   addDcaPlan: (plan: Omit<DCAPlan, 'id'>) => void;
   updateDcaPlan: (id: string, updates: Partial<DCAPlan>) => void;
   deleteDcaPlan: (id: string) => void;
+  updateDcaGamification: (updates: Partial<DCAGamification>) => void;
+  unlockDcaBadge: (badgeId: string) => void;
   trackLinkClick: (link: 'bybit' | 'aiBot' | 'aiTrade') => void;
   completeLesson: (lessonId: string) => void;
   unlockTrack: (trackId: string) => void;
@@ -220,6 +243,14 @@ export const useAppStore = create<AppState>()(
       currentInsightIndex: 0,
       aiTradeWizard: {},
       aiBotWizard: {},
+      dcaGamification: {
+        totalPlansCreated: 0,
+        totalAmountCommitted: 0,
+        longestActivePlan: 0,
+        badges: [],
+        dcaStreak: 0,
+        lastDcaAction: null,
+      },
 
       setQuizStep: (step) => set({ currentQuizStep: step }),
 
@@ -274,14 +305,46 @@ export const useAppStore = create<AppState>()(
 
       addDcaPlan: (plan) =>
         set((state) => {
-          const newPlan = { ...plan, id: Date.now().toString() };
+          const newPlan: DCAPlan = { 
+            ...plan, 
+            id: Date.now().toString(),
+            totalInvested: 0,
+            nextExecutionDate: new Date().toISOString(),
+          };
           const newSetup = { ...state.setupProgress, dcaPlanConfigured: true };
           const completed = Object.values(newSetup).filter(Boolean).length;
           const total = Object.keys(newSetup).length;
+          
+          // Update gamification
+          const totalAmount = plan.durationDays 
+            ? plan.amountPerInterval * Math.ceil(plan.durationDays / (plan.frequency === 'daily' ? 1 : plan.frequency === 'weekly' ? 7 : plan.frequency === 'biweekly' ? 14 : 30))
+            : plan.amountPerInterval * 52; // Assume 1 year for indefinite
+          
+          const newBadges = [...state.dcaGamification.badges];
+          if (!newBadges.includes('first-step')) {
+            newBadges.push('first-step');
+          }
+          if (plan.assets.length >= 3 && !newBadges.includes('diversifier')) {
+            newBadges.push('diversifier');
+          }
+          if (plan.durationDays && plan.durationDays >= 90 && !newBadges.includes('long-game')) {
+            newBadges.push('long-game');
+          }
+          if (plan.durationDays === null && !newBadges.includes('diamond-hands')) {
+            newBadges.push('diamond-hands');
+          }
+          
           return {
             dcaPlans: [...state.dcaPlans, newPlan],
             setupProgress: newSetup,
             setupProgressPercent: Math.round((completed / total) * 100),
+            dcaGamification: {
+              ...state.dcaGamification,
+              totalPlansCreated: state.dcaGamification.totalPlansCreated + 1,
+              totalAmountCommitted: state.dcaGamification.totalAmountCommitted + totalAmount,
+              badges: newBadges,
+              lastDcaAction: new Date().toISOString(),
+            },
           };
         }),
 
@@ -295,6 +358,19 @@ export const useAppStore = create<AppState>()(
       deleteDcaPlan: (id) =>
         set((state) => ({
           dcaPlans: state.dcaPlans.filter((p) => p.id !== id),
+        })),
+
+      updateDcaGamification: (updates) =>
+        set((state) => ({
+          dcaGamification: { ...state.dcaGamification, ...updates },
+        })),
+
+      unlockDcaBadge: (badgeId) =>
+        set((state) => ({
+          dcaGamification: {
+            ...state.dcaGamification,
+            badges: [...new Set([...state.dcaGamification.badges, badgeId])],
+          },
         })),
 
       trackLinkClick: (link) =>
@@ -429,6 +505,14 @@ export const useAppStore = create<AppState>()(
           setupProgressPercent: 0,
           selectedPortfolio: { portfolioId: null, allocations: [], selectedAt: null },
           dcaPlans: [],
+          dcaGamification: {
+            totalPlansCreated: 0,
+            totalAmountCommitted: 0,
+            longestActivePlan: 0,
+            badges: [],
+            dcaStreak: 0,
+            lastDcaAction: null,
+          },
           linkClicks: defaultLinkClicks,
           learnProgress: defaultLearnProgress,
           unlockState: defaultUnlockState,

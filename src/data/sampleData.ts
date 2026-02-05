@@ -1,5 +1,133 @@
 // Complete sample data for the Apice MVP
 
+// ============== DCA ASSETS ==============
+
+export interface DCAAsset {
+  symbol: string;
+  name: string;
+  category: 'blueChips' | 'layer1' | 'layer2' | 'defi' | 'stablecoins' | 'emerging';
+  categoryLabel: string;
+  color: string;
+  isRecommended?: boolean;
+  riskLevel: 'low' | 'medium' | 'high';
+}
+
+export const dcaAssets: DCAAsset[] = [
+  // Blue Chips
+  { symbol: 'BTC', name: 'Bitcoin', category: 'blueChips', categoryLabel: 'Blue Chips', color: 'hsl(33, 100%, 50%)', isRecommended: true, riskLevel: 'low' },
+  { symbol: 'ETH', name: 'Ethereum', category: 'blueChips', categoryLabel: 'Blue Chips', color: 'hsl(217, 100%, 60%)', isRecommended: true, riskLevel: 'low' },
+  // Layer 1s
+  { symbol: 'SOL', name: 'Solana', category: 'layer1', categoryLabel: 'Layer 1', color: 'hsl(280, 100%, 60%)', isRecommended: true, riskLevel: 'medium' },
+  { symbol: 'AVAX', name: 'Avalanche', category: 'layer1', categoryLabel: 'Layer 1', color: 'hsl(0, 100%, 60%)', riskLevel: 'medium' },
+  { symbol: 'ADA', name: 'Cardano', category: 'layer1', categoryLabel: 'Layer 1', color: 'hsl(210, 100%, 50%)', riskLevel: 'medium' },
+  { symbol: 'NEAR', name: 'NEAR Protocol', category: 'layer1', categoryLabel: 'Layer 1', color: 'hsl(160, 100%, 45%)', riskLevel: 'medium' },
+  { symbol: 'SUI', name: 'Sui', category: 'layer1', categoryLabel: 'Layer 1', color: 'hsl(200, 100%, 55%)', riskLevel: 'high' },
+  // Layer 2s
+  { symbol: 'ARB', name: 'Arbitrum', category: 'layer2', categoryLabel: 'Layer 2', color: 'hsl(210, 100%, 55%)', riskLevel: 'medium' },
+  { symbol: 'OP', name: 'Optimism', category: 'layer2', categoryLabel: 'Layer 2', color: 'hsl(0, 100%, 55%)', riskLevel: 'medium' },
+  { symbol: 'MATIC', name: 'Polygon', category: 'layer2', categoryLabel: 'Layer 2', color: 'hsl(270, 100%, 60%)', riskLevel: 'medium' },
+  // DeFi
+  { symbol: 'LINK', name: 'Chainlink', category: 'defi', categoryLabel: 'DeFi', color: 'hsl(220, 100%, 55%)', riskLevel: 'medium' },
+  { symbol: 'UNI', name: 'Uniswap', category: 'defi', categoryLabel: 'DeFi', color: 'hsl(330, 100%, 60%)', riskLevel: 'medium' },
+  { symbol: 'AAVE', name: 'Aave', category: 'defi', categoryLabel: 'DeFi', color: 'hsl(280, 80%, 55%)', riskLevel: 'medium' },
+  // Stablecoins
+  { symbol: 'USDT', name: 'Tether', category: 'stablecoins', categoryLabel: 'Stablecoins', color: 'hsl(152, 70%, 50%)', riskLevel: 'low' },
+  { symbol: 'USDC', name: 'USD Coin', category: 'stablecoins', categoryLabel: 'Stablecoins', color: 'hsl(210, 100%, 55%)', riskLevel: 'low' },
+  // Emerging
+  { symbol: 'TIA', name: 'Celestia', category: 'emerging', categoryLabel: 'Emerging', color: 'hsl(270, 100%, 65%)', riskLevel: 'high' },
+  { symbol: 'INJ', name: 'Injective', category: 'emerging', categoryLabel: 'Emerging', color: 'hsl(200, 100%, 55%)', riskLevel: 'high' },
+  { symbol: 'JUP', name: 'Jupiter', category: 'emerging', categoryLabel: 'Emerging', color: 'hsl(30, 100%, 55%)', riskLevel: 'high' },
+];
+
+// ============== DCA HISTORICAL DATA ==============
+
+export interface DCAHistoricalReturn {
+  period: string;
+  weeklyAmount: number;
+  totalInvested: number;
+  currentValue: number;
+  returnPercent: number;
+}
+
+export const dcaHistoricalData: Record<string, DCAHistoricalReturn[]> = {
+  BTC: [
+    { period: '1 year', weeklyAmount: 25, totalInvested: 1300, currentValue: 1850, returnPercent: 42.3 },
+    { period: '2 years', weeklyAmount: 25, totalInvested: 2600, currentValue: 4200, returnPercent: 61.5 },
+    { period: '4 years', weeklyAmount: 25, totalInvested: 5200, currentValue: 12400, returnPercent: 138.5 },
+  ],
+  ETH: [
+    { period: '1 year', weeklyAmount: 25, totalInvested: 1300, currentValue: 1680, returnPercent: 29.2 },
+    { period: '2 years', weeklyAmount: 25, totalInvested: 2600, currentValue: 3900, returnPercent: 50.0 },
+    { period: '4 years', weeklyAmount: 25, totalInvested: 5200, currentValue: 9800, returnPercent: 88.5 },
+  ],
+};
+
+// ============== DCA QUOTES ==============
+
+export interface DCAQuote {
+  author: string;
+  quote: string;
+  role?: string;
+}
+
+export const dcaQuotes: DCAQuote[] = [
+  { author: 'Warren Buffett', quote: 'The stock market transfers money from the impatient to the patient.', role: 'Legendary Investor' },
+  { author: 'Benjamin Graham', quote: 'The essence of investment management is the management of risks, not returns.', role: 'Father of Value Investing' },
+  { author: 'Jack Bogle', quote: 'Time is your friend; impulse is your enemy.', role: 'Vanguard Founder' },
+  { author: 'Peter Lynch', quote: 'The key to making money in stocks is not to get scared out of them.', role: 'Fidelity Legend' },
+];
+
+// ============== DCA BADGES ==============
+
+export interface DCABadge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  requirement: string;
+  category: 'beginner' | 'consistency' | 'diversification' | 'commitment';
+}
+
+export const dcaBadges: DCABadge[] = [
+  { id: 'first-step', name: 'First Step', description: 'Created your first DCA plan', icon: '🚀', requirement: 'Create 1 DCA plan', category: 'beginner' },
+  { id: 'consistency-king', name: 'Consistency King', description: '30 days with an active DCA plan', icon: '👑', requirement: '30-day active plan', category: 'consistency' },
+  { id: 'diversifier', name: 'Diversifier', description: 'DCA into 3+ different assets', icon: '🎯', requirement: '3+ assets in DCA', category: 'diversification' },
+  { id: 'long-game', name: 'Long Game', description: 'Created a 90+ day DCA plan', icon: '🏆', requirement: '90+ day plan', category: 'commitment' },
+  { id: 'committed', name: 'Committed', description: 'Committed $1,000+ to DCA', icon: '💎', requirement: '$1,000+ committed', category: 'commitment' },
+  { id: 'diamond-hands', name: 'Diamond Hands', description: 'Started an indefinite DCA plan', icon: '💪', requirement: 'Forever mode DCA', category: 'commitment' },
+];
+
+// ============== DCA RECOMMENDATIONS ==============
+
+export interface DCARecommendation {
+  id: string;
+  profileType: 'Conservative Builder' | 'Balanced Optimizer' | 'Growth Seeker';
+  capitalRange: 'under-200' | '200-1k' | '1k-5k' | '5k-plus';
+  suggestedAmount: number;
+  frequency: 'weekly' | 'biweekly' | 'monthly';
+  assets: { symbol: string; allocation: number }[];
+  rationale: string;
+  marketContext: string;
+}
+
+export const dcaRecommendations: DCARecommendation[] = [
+  // Conservative
+  { id: 'rec-cons-1', profileType: 'Conservative Builder', capitalRange: 'under-200', suggestedAmount: 10, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 60 }, { symbol: 'ETH', allocation: 40 }], rationale: 'Focus on blue-chip stability with maximum capital preservation.', marketContext: 'Current market conditions favor disciplined accumulation.' },
+  { id: 'rec-cons-2', profileType: 'Conservative Builder', capitalRange: '200-1k', suggestedAmount: 25, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 60 }, { symbol: 'ETH', allocation: 40 }], rationale: 'Steady accumulation of proven assets builds a solid foundation.', marketContext: 'Blue-chip dominance protects against volatility.' },
+  { id: 'rec-cons-3', profileType: 'Conservative Builder', capitalRange: '1k-5k', suggestedAmount: 50, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 55 }, { symbol: 'ETH', allocation: 35 }, { symbol: 'USDT', allocation: 10 }], rationale: 'Maintain stablecoin buffer for opportunistic buying.', marketContext: 'Dry powder strategy enhances long-term returns.' },
+  { id: 'rec-cons-4', profileType: 'Conservative Builder', capitalRange: '5k-plus', suggestedAmount: 100, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 50 }, { symbol: 'ETH', allocation: 35 }, { symbol: 'USDC', allocation: 15 }], rationale: 'Institutional-grade allocation with strategic reserves.', marketContext: 'Professional approach to systematic accumulation.' },
+  // Balanced
+  { id: 'rec-bal-1', profileType: 'Balanced Optimizer', capitalRange: 'under-200', suggestedAmount: 15, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 45 }, { symbol: 'ETH', allocation: 35 }, { symbol: 'SOL', allocation: 20 }], rationale: 'Core + growth allocation for optimized risk-reward.', marketContext: 'Diversification across top assets reduces concentration risk.' },
+  { id: 'rec-bal-2', profileType: 'Balanced Optimizer', capitalRange: '200-1k', suggestedAmount: 35, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 40 }, { symbol: 'ETH', allocation: 30 }, { symbol: 'SOL', allocation: 20 }, { symbol: 'USDT', allocation: 10 }], rationale: 'Balanced exposure with tactical stablecoin position.', marketContext: 'Multi-asset approach captures broader market growth.' },
+  { id: 'rec-bal-3', profileType: 'Balanced Optimizer', capitalRange: '1k-5k', suggestedAmount: 75, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 35 }, { symbol: 'ETH', allocation: 30 }, { symbol: 'SOL', allocation: 20 }, { symbol: 'LINK', allocation: 15 }], rationale: 'Add DeFi exposure for yield potential.', marketContext: 'Infrastructure plays offer asymmetric upside.' },
+  { id: 'rec-bal-4', profileType: 'Balanced Optimizer', capitalRange: '5k-plus', suggestedAmount: 150, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 35 }, { symbol: 'ETH', allocation: 25 }, { symbol: 'SOL', allocation: 20 }, { symbol: 'AVAX', allocation: 10 }, { symbol: 'USDC', allocation: 10 }], rationale: 'Diversified core with L1 basket and reserves.', marketContext: 'Broad exposure to capture ecosystem growth.' },
+  // Growth
+  { id: 'rec-gro-1', profileType: 'Growth Seeker', capitalRange: 'under-200', suggestedAmount: 20, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 35 }, { symbol: 'ETH', allocation: 30 }, { symbol: 'SOL', allocation: 35 }], rationale: 'Higher beta allocation for growth potential.', marketContext: 'Early accumulation benefits from higher volatility exposure.' },
+  { id: 'rec-gro-2', profileType: 'Growth Seeker', capitalRange: '200-1k', suggestedAmount: 50, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 30 }, { symbol: 'ETH', allocation: 25 }, { symbol: 'SOL', allocation: 25 }, { symbol: 'ARB', allocation: 20 }], rationale: 'L2 exposure adds growth potential with managed risk.', marketContext: 'Layer 2 adoption is accelerating.' },
+  { id: 'rec-gro-3', profileType: 'Growth Seeker', capitalRange: '1k-5k', suggestedAmount: 100, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 25 }, { symbol: 'ETH', allocation: 25 }, { symbol: 'SOL', allocation: 20 }, { symbol: 'ARB', allocation: 15 }, { symbol: 'TIA', allocation: 15 }], rationale: 'Emerging asset allocation for asymmetric returns.', marketContext: 'Modular blockchain thesis gaining traction.' },
+  { id: 'rec-gro-4', profileType: 'Growth Seeker', capitalRange: '5k-plus', suggestedAmount: 200, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 25 }, { symbol: 'ETH', allocation: 20 }, { symbol: 'SOL', allocation: 20 }, { symbol: 'ARB', allocation: 15 }, { symbol: 'INJ', allocation: 10 }, { symbol: 'JUP', allocation: 10 }], rationale: 'Aggressive diversification across high-conviction plays.', marketContext: 'Multi-ecosystem approach maximizes opportunity capture.' },
+];
+
 // ============== PORTFOLIOS ==============
 
 export interface PortfolioAllocation {
@@ -303,6 +431,69 @@ export const learningTracks: Track[] = [
         summary: ['Never bet too big on one asset', 'Protect your capital first', 'Small positions = big protection'],
         content: 'Position sizing determines how much of your portfolio goes into each asset. The rule: the riskier the asset, the smaller the position. This simple principle protects your downside.',
         doThisNow: 'Check if your current allocation follows position sizing principles.',
+        readingTime: 4,
+        isLocked: false,
+      },
+    ],
+  },
+  {
+    id: 'dca-mastery',
+    name: 'DCA Mastery',
+    description: 'Complete guide to Dollar-Cost Averaging strategy.',
+    isLocked: false,
+    requiredTier: 'free',
+    lessons: [
+      {
+        id: 'dca-intro',
+        title: 'Introduction to DCA',
+        summary: ['What is Dollar-Cost Averaging', 'How it reduces risk', 'Perfect for beginners'],
+        content: 'Dollar-Cost Averaging (DCA) is an investment strategy where you invest a fixed amount of money at regular intervals, regardless of the asset price. This removes the stress of timing the market and smooths your entry price over time. Studies show DCA outperforms lump-sum investing for most retail investors due to reduced emotional decision-making.',
+        doThisNow: 'Create your first DCA plan in the Automations tab.',
+        readingTime: 3,
+        isLocked: false,
+      },
+      {
+        id: 'dca-psychology',
+        title: 'The Psychology of DCA',
+        summary: ['Removing emotional decisions', 'Discipline over timing', 'Sleep well at night'],
+        content: 'The biggest enemy of investment returns is emotional decision-making. DCA removes this by automating your investment schedule. You buy when prices are high, and you buy when prices are low - averaging your cost. This disciplined approach means you sleep well at night knowing your strategy is working regardless of daily price movements.',
+        doThisNow: 'Reflect on past investment decisions driven by emotion.',
+        readingTime: 4,
+        isLocked: false,
+      },
+      {
+        id: 'dca-vs-lumpsum',
+        title: 'DCA vs Lump Sum: The Data',
+        summary: ['Historical comparisons', 'When each works best', 'Risk-adjusted returns'],
+        content: 'While lump-sum investing has higher expected returns in trending markets, DCA provides superior risk-adjusted returns for most investors. Historical data shows that DCA into BTC and ETH over 4-year periods has generated positive returns 94% of the time, regardless of entry point. The key advantage: DCA protects against catastrophic timing mistakes.',
+        doThisNow: 'Check the Historical Proof section for real data.',
+        readingTime: 5,
+        isLocked: false,
+      },
+      {
+        id: 'dca-building-plan',
+        title: 'Building Your DCA Plan',
+        summary: ['Choosing the right amount', 'Selecting assets', 'Setting frequency'],
+        content: 'A good DCA plan starts with an amount you can commit to consistently - consistency beats size. Choose 2-5 assets maximum to maintain focus. Weekly frequency provides optimal averaging, but biweekly or monthly works too. The key: pick a plan you can sustain for at least 6-12 months without interruption.',
+        doThisNow: 'Use the AI Recommendation feature to get a personalized plan.',
+        readingTime: 4,
+        isLocked: false,
+      },
+      {
+        id: 'dca-advanced',
+        title: 'Advanced DCA Strategies',
+        summary: ['Value averaging', 'Dynamic DCA', 'Rebalancing with DCA'],
+        content: 'Advanced DCA techniques include value averaging (adjusting contribution based on portfolio performance), dynamic DCA (increasing purchases during drawdowns), and using DCA contributions to rebalance your portfolio. These strategies can enhance returns but require more active management.',
+        doThisNow: 'Consider upgrading to Pro for advanced DCA templates.',
+        readingTime: 5,
+        isLocked: true,
+      },
+      {
+        id: 'dca-success-stories',
+        title: 'DCA Success Stories',
+        summary: ['Real investor examples', 'Long-term results', 'Consistency wins'],
+        content: 'The most successful crypto investors share one trait: consistency. Investors who DCA\'d $100/week into BTC since 2020 saw their portfolio grow to over 3x their total investment. The key lesson: time in market beats timing the market. Start small, stay consistent, and let compound growth work.',
+        doThisNow: 'Start your DCA journey today - even $5/week matters.',
         readingTime: 4,
         isLocked: false,
       },
