@@ -1,12 +1,12 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, PieChart, Zap, BookOpen, User } from 'lucide-react';
+import { Home, PieChart, Compass, BookOpen, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/home', icon: Home, label: 'Home' },
   { to: '/portfolio', icon: PieChart, label: 'Portfolio' },
-  { to: '/automations', icon: Zap, label: 'Automate' },
+  { to: '/strategies', icon: Compass, label: 'Strategies' },
   { to: '/learn', icon: BookOpen, label: 'Learn' },
   { to: '/profile', icon: User, label: 'Profile' },
 ];

@@ -16,8 +16,9 @@ import Home from "./pages/Home";
 import Portfolio from "./pages/Portfolio";
 import PortfolioDetail from "./pages/PortfolioDetail";
 import PortfolioBuilder from "./pages/PortfolioBuilder";
-import Automations from "./pages/Automations";
+import Strategies from "./pages/Strategies";
 import DCAPlanner from "./pages/DCAPlanner";
+import CashbackMachine from "./pages/CashbackMachine";
 import Learn from "./pages/Learn";
 import LessonDetail from "./pages/LessonDetail";
 import Insights from "./pages/Insights";
@@ -48,8 +49,9 @@ function AppContent() {
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/portfolio/:id" element={<PortfolioDetail />} />
         <Route path="/portfolio/builder" element={<PortfolioBuilder />} />
-        <Route path="/automations" element={<Automations />} />
-        <Route path="/automations/dca" element={<DCAPlanner />} />
+        <Route path="/strategies" element={<Strategies />} />
+        <Route path="/strategies/dca" element={<DCAPlanner />} />
+        <Route path="/strategies/cashback" element={<CashbackMachine />} />
         <Route path="/learn" element={<Learn />} />
         <Route path="/learn/:trackId/:lessonId" element={<LessonDetail />} />
         <Route path="/insights" element={<Insights />} />
