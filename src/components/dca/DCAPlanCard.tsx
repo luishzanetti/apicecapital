@@ -136,7 +136,7 @@
              </div>
              <div className="flex items-center gap-1.5 text-muted-foreground">
                <DollarSign className="w-3.5 h-3.5" />
-               <span>${plan.totalInvested.toLocaleString()} invested</span>
+               <span>${(plan.totalInvested ?? 0).toLocaleString()} invested</span>
              </div>
              <div className="flex items-center gap-1.5 text-primary">
                <TrendingUp className="w-3.5 h-3.5" />
