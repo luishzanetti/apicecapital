@@ -43,7 +43,7 @@ function AppContent() {
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/quiz" element={<Quiz />} />
       <Route path="/profile-result" element={<ProfileResult />} />
-      
+
       <Route element={<AppLayout />}>
         <Route path="/home" element={<Home />} />
         <Route path="/portfolio" element={<Portfolio />} />
@@ -59,7 +59,7 @@ function AppContent() {
         <Route path="/upgrade" element={<Upgrade />} />
         <Route path="/support" element={<Support />} />
       </Route>
-      
+
       <Route path="/" element={<Navigate to="/splash" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
