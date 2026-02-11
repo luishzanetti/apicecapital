@@ -573,6 +573,29 @@ export const learningTracks: Track[] = [
   },
 ];
 
+// ============== LEARNING BADGES ==============
+
+export interface LearnBadge {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  requirement: string;
+  type: 'track' | 'streak' | 'milestone';
+  unlockCondition: { type: 'lessons' | 'streak' | 'tracks'; count: number };
+}
+
+export const learnBadges: LearnBadge[] = [
+  { id: 'first-lesson', name: 'First Light', icon: '💡', description: 'Completed your first lesson', requirement: 'Complete 1 lesson', type: 'milestone', unlockCondition: { type: 'lessons', count: 1 } },
+  { id: 'curious-mind', name: 'Curious Mind', icon: '🧠', description: 'Completed 5 lessons', requirement: 'Complete 5 lessons', type: 'milestone', unlockCondition: { type: 'lessons', count: 5 } },
+  { id: 'knowledge-seeker', name: 'Knowledge Seeker', icon: '📚', description: 'Completed 10 lessons', requirement: 'Complete 10 lessons', type: 'milestone', unlockCondition: { type: 'lessons', count: 10 } },
+  { id: 'scholar', name: 'Scholar', icon: '🎓', description: 'Completed 15 lessons', requirement: 'Complete 15 lessons', type: 'milestone', unlockCondition: { type: 'lessons', count: 15 } },
+  { id: 'streak-3', name: 'On Fire', icon: '🔥', description: '3-day learning streak', requirement: '3-day streak', type: 'streak', unlockCondition: { type: 'streak', count: 3 } },
+  { id: 'streak-7', name: 'Unstoppable', icon: '⚡', description: '7-day learning streak', requirement: '7-day streak', type: 'streak', unlockCondition: { type: 'streak', count: 7 } },
+  { id: 'track-complete', name: 'Track Master', icon: '🏆', description: 'Completed an entire track', requirement: 'Finish 1 track', type: 'track', unlockCondition: { type: 'tracks', count: 1 } },
+  { id: 'multi-track', name: 'Polymath', icon: '🌟', description: 'Completed 2 tracks', requirement: 'Finish 2 tracks', type: 'track', unlockCondition: { type: 'tracks', count: 2 } },
+];
+
 // ============== COPY PORTFOLIOS ==============
 
 export interface CopyPortfolio {
