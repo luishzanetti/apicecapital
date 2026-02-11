@@ -2,14 +2,20 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/appStore';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Splash() {
   const navigate = useNavigate();
   const hasCompletedOnboarding = useAppStore((s) => s.hasCompletedOnboarding);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
+    if (loading) return;
+
     const timer = setTimeout(() => {
-      if (hasCompletedOnboarding) {
+      if (!user) {
+        navigate('/auth', { replace: true });
+      } else if (hasCompletedOnboarding) {
         navigate('/home', { replace: true });
       } else {
         navigate('/welcome', { replace: true });
@@ -17,13 +23,13 @@ export default function Splash() {
     }, 2800);
 
     return () => clearTimeout(timer);
-  }, [navigate, hasCompletedOnboarding]);
+  }, [navigate, hasCompletedOnboarding, user, loading]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center relative overflow-hidden">
       {/* Subtle gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/3 via-transparent to-transparent" />
-      
+
       {/* Animated rings */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <motion.div
@@ -54,7 +60,7 @@ export default function Splash() {
         className="relative z-10 flex flex-col items-center gap-8"
       >
         {/* Logo mark */}
-        <motion.div 
+        <motion.div
           className="w-20 h-20 rounded-2xl apice-gradient-primary flex items-center justify-center shadow-lg"
           initial={{ rotate: -10 }}
           animate={{ rotate: 0 }}

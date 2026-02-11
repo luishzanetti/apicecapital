@@ -4,11 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAppStore } from "@/store/appStore";
 import { useEffect } from "react";
 
 // Pages
 import Splash from "./pages/Splash";
+import Auth from "./pages/Auth";
 import Welcome from "./pages/Welcome";
 import Quiz from "./pages/Quiz";
 import ProfileResult from "./pages/ProfileResult";
@@ -39,12 +42,17 @@ function AppContent() {
 
   return (
     <Routes>
+      {/* Public routes */}
+      <Route path="/auth" element={<Auth />} />
       <Route path="/splash" element={<Splash />} />
-      <Route path="/welcome" element={<Welcome />} />
-      <Route path="/quiz" element={<Quiz />} />
-      <Route path="/profile-result" element={<ProfileResult />} />
-      
-      <Route element={<AppLayout />}>
+
+      {/* Protected onboarding routes */}
+      <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
+      <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
+      <Route path="/profile-result" element={<ProtectedRoute><ProfileResult /></ProtectedRoute>} />
+
+      {/* Protected app routes */}
+      <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/home" element={<Home />} />
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/portfolio/:id" element={<PortfolioDetail />} />
@@ -59,7 +67,7 @@ function AppContent() {
         <Route path="/upgrade" element={<Upgrade />} />
         <Route path="/support" element={<Support />} />
       </Route>
-      
+
       <Route path="/" element={<Navigate to="/splash" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -72,7 +80,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppContent />
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

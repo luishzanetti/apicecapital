@@ -4,12 +4,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAppStore, investorTypeDescriptions } from '@/store/appStore';
-import { 
-  User, 
-  CreditCard, 
-  Shield, 
-  HelpCircle, 
-  FileText, 
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  User,
+  CreditCard,
+  Shield,
+  HelpCircle,
+  FileText,
   ChevronRight,
   Moon,
   Bell,
@@ -23,12 +24,19 @@ import { referralLinks } from '@/data/sampleData';
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { signOut, user } = useAuth();
   const investorType = useAppStore((s) => s.investorType);
   const subscription = useAppStore((s) => s.subscription);
   const unlockState = useAppStore((s) => s.unlockState);
   const linkClicks = useAppStore((s) => s.linkClicks);
   const resetApp = useAppStore((s) => s.resetApp);
   const trackLinkClick = useAppStore((s) => s.trackLinkClick);
+
+  const handleLogout = async () => {
+    await signOut();
+    resetApp();
+    navigate('/auth', { replace: true });
+  };
 
   const description = investorType ? investorTypeDescriptions[investorType] : null;
 
@@ -68,8 +76,11 @@ export default function Profile() {
           </div>
           <div className="flex-1">
             <h1 className="text-xl font-bold">{investorType || 'Investor'}</h1>
-            <Badge 
-              variant={subscription.tier === 'free' ? 'outline' : 'premium'} 
+            {user?.email && (
+              <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
+            )}
+            <Badge
+              variant={subscription.tier === 'free' ? 'outline' : 'premium'}
               size="sm"
               className="mt-1"
             >
@@ -212,17 +223,14 @@ export default function Profile() {
           </Card>
         </div>
 
-        {/* Logout / Reset */}
+        {/* Logout */}
         <Button
           variant="ghost"
           className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={() => {
-            resetApp();
-            navigate('/splash');
-          }}
+          onClick={handleLogout}
         >
           <LogOut className="w-4 h-4 mr-2" />
-          Reset App
+          Sair da conta
         </Button>
 
         {/* Version */}

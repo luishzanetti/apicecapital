@@ -102,10 +102,13 @@ export type InvestorType =
   | 'Growth Seeker';
 
 export interface AppState {
+  // Auth
+  userId: string | null;
+
   // Onboarding
   hasCompletedOnboarding: boolean;
   currentQuizStep: number;
-  
+
   // User profile
   userProfile: UserProfile;
   investorType: InvestorType | null;
@@ -158,6 +161,7 @@ export interface AppState {
   completeWizardStep: (wizard: 'aiTrade' | 'aiBot', step: string) => void;
   unlockFeature: (feature: keyof UnlockState) => void;
   setSubscription: (tier: 'free' | 'pro' | 'club') => void;
+  setUserId: (userId: string | null) => void;
   incrementDaysActive: () => void;
   advanceInsight: () => void;
   resetApp: () => void;
@@ -218,6 +222,7 @@ const defaultLinkClicks: LinkClick = {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      userId: null,
       hasCompletedOnboarding: false,
       currentQuizStep: 0,
       userProfile: defaultUserProfile,
@@ -490,6 +495,8 @@ export const useAppStore = create<AppState>()(
           return {};
         }),
 
+      setUserId: (userId) => set({ userId }),
+
       advanceInsight: () =>
         set((state) => ({
           currentInsightIndex: state.currentInsightIndex + 1,
@@ -497,6 +504,7 @@ export const useAppStore = create<AppState>()(
 
       resetApp: () =>
         set({
+          userId: null,
           hasCompletedOnboarding: false,
           currentQuizStep: 0,
           userProfile: defaultUserProfile,
