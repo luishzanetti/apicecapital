@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "git pull origin main --rebase && vite",
+    "salvar": "bash salvar.sh",
+    "atualizar": "bash atualizar.sh",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
