@@ -31,7 +31,7 @@ export default function Home() {
   const userName = user?.email?.split('@')[0] || 'Investor';
 
   const userProfile = useAppStore((state) => state.userProfile);
-  const setupProgress = useAppStore((state) => state.setupProgress) || {};
+  const setupProgress = useAppStore((state) => state.setupProgress);
   const subscription = useAppStore((state) => state.subscription);
   const daysActive = useAppStore((state) => state.daysActive);
 
@@ -53,10 +53,9 @@ export default function Home() {
 
   // Calculate setup progress percentage by counting true values
   const progressSteps = [
-    setupProgress?.profileCompleted,
-    setupProgress?.riskAnalyzed,
-    setupProgress?.firstInvestment,
-    setupProgress?.strategySelected
+    setupProgress?.exchangeAccountCreated,
+    setupProgress?.corePortfolioSelected,
+    setupProgress?.dcaPlanConfigured,
   ];
   const completedSteps = progressSteps.filter(Boolean).length;
   const progressPercentage = (completedSteps / progressSteps.length) * 100;
@@ -121,7 +120,7 @@ export default function Home() {
               </p>
 
               <div className="grid grid-cols-2 gap-3 mt-6">
-                <AddTransactionModal />
+                <AddTransactionModal onTransactionAdded={() => {}} />
                 <Button variant="outline" className="w-full bg-background/50 hover:bg-background/80" onClick={() => navigate('/portfolio')}>
                   View Details
                 </Button>

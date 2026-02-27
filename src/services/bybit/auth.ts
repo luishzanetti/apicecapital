@@ -1,13 +1,6 @@
 import crypto from 'crypto-js';
 
-export interface BybitAuthHeaders {
-    'X-BAPI-API-KEY': string;
-    'X-BAPI-TIMESTAMP': string;
-    'X-BAPI-SIGN': string;
-    'X-BAPI-SIGN-TYPE': string;
-    'X-BAPI-RECV-WINDOW': string;
-    'Content-Type': string;
-}
+export type BybitAuthHeaders = Record<string, string>;
 
 export class BybitAuth {
     private apiKey: string;

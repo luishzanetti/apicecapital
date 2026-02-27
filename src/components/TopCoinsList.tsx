@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { getTopMarketCoins, CoinData } from "@/services/marketData";
+import { getTopMarketCoins, type CoinData } from "@/services/marketData";
 import { TrendingUp, TrendingDown, Loader2, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";

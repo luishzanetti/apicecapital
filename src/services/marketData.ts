@@ -1,5 +1,5 @@
 
-interface CoinData {
+export interface CoinData {
     id: string;
     symbol: string;
     name: string;
