@@ -405,20 +405,48 @@ export const dailyInsights = generateDailyInsights();
 
 // ============== LEARNING TRACKS ==============
 
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface LessonChallenge {
+  title: string;
+  description: string;
+  steps: string[];
+  reward: string;
+}
+
+export interface ContentBlock {
+  type: 'paragraph' | 'highlight' | 'stat' | 'quote';
+  content: string;
+  label?: string;
+  value?: string;
+  author?: string;
+  role?: string;
+}
+
 export interface Lesson {
   id: string;
   title: string;
   summary: string[];
   content: string;
+  contentBlocks?: ContentBlock[];
   doThisNow: string;
   readingTime: number;
   isLocked: boolean;
+  quiz?: QuizQuestion[];
+  challenge?: LessonChallenge;
 }
 
 export interface Track {
   id: string;
   name: string;
   description: string;
+  icon?: string;
   lessons: Lesson[];
   isLocked: boolean;
   requiredTier: 'free' | 'pro' | 'club';
@@ -428,6 +456,7 @@ export const learningTracks: Track[] = [
   {
     id: 'foundations',
     name: 'Foundations',
+    icon: '🏛️',
     description: 'Essential concepts every crypto investor must understand.',
     isLocked: false,
     requiredTier: 'free',
@@ -436,43 +465,97 @@ export const learningTracks: Track[] = [
         id: 'intro-portfolio',
         title: 'What is a Crypto Portfolio?',
         summary: ['Collection of crypto assets', 'Diversification reduces risk', 'Balance between growth and stability'],
-        content: 'A crypto portfolio is your collection of cryptocurrency holdings, strategically allocated to balance risk and return. Unlike picking a single asset, a portfolio approach spreads risk across multiple positions.',
-        doThisNow: 'Review the Core Portfolios section to see example allocations.',
-        readingTime: 3,
+        content: 'A crypto portfolio is your collection of cryptocurrency holdings, strategically allocated to balance risk and return.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'A crypto portfolio is your collection of cryptocurrency holdings, strategically allocated to balance risk and return. Unlike picking a single asset, a portfolio approach spreads risk across multiple positions, protecting you when any single asset drops.' },
+          { type: 'highlight', content: 'The Apice framework divides portfolios into three tiers: Blue Chips (BTC/ETH) for stability, Layer-1s for growth, and Stablecoins for dry powder to buy dips.' },
+          { type: 'stat', label: 'Blue Chip allocation', value: '50-70%', content: 'of most safe portfolios should be BTC + ETH' },
+          { type: 'quote', content: 'Diversification is the only free lunch in investing.', author: 'Harry Markowitz', role: 'Nobel Prize in Economics' },
+          { type: 'paragraph', content: 'The key insight: you don\'t need to pick the winner. By holding a basket of high-quality assets, you capture the upside of the entire market cycle without betting everything on one coin.' },
+        ],
+        doThisNow: 'Go to Portfolio and review the Classic Core allocation — notice how it distributes across asset classes.',
+        readingTime: 4,
         isLocked: false,
+        quiz: [
+          { id: 'q1', question: 'What is the main advantage of a crypto portfolio vs. holding a single asset?', options: ['Higher returns guaranteed', 'Risk is spread across multiple assets', 'You pay lower fees', 'The market moves faster'], correctIndex: 1, explanation: 'Diversification spreads risk so that a crash in one asset doesn\'t wipe you out.' },
+          { id: 'q2', question: 'In the Apice framework, what role do stablecoins (USDT/USDC) play?', options: ['Maximum growth potential', 'Dry powder to buy market dips', 'The riskiest bet', 'Replace Bitcoin'], correctIndex: 1, explanation: 'Stablecoins act as reserves so you can buy aggressively during market crashes.' },
+          { id: 'q3', question: 'Which allocation is typically considered the "foundation" of a safe crypto portfolio?', options: ['Memecoins 80%', 'BTC + ETH 50-70%', 'Only stablecoins', 'Equal split of 100 coins'], correctIndex: 1, explanation: 'BTC and ETH have the longest track record, deepest liquidity, and are the base of most institutional portfolios.' },
+        ],
+        challenge: { title: 'Portfolio Analysis Challenge', description: 'Look at your current or desired crypto holdings and classify each asset.', steps: ['List every asset you hold or want to hold', 'Categorize each: Blue Chip / Layer-1 / DeFi / Stablecoin', 'Calculate what % each category represents', 'Compare to the Classic Core (40% BTC, 30% ETH, 20% SOL, 10% USDT)'], reward: '+25 Bonus XP if shared in community' },
       },
       {
         id: 'why-dca',
         title: 'Why DCA Works',
         summary: ['Removes emotional timing', 'Averages your entry price', 'Proven institutional strategy'],
-        content: 'Dollar-Cost Averaging (DCA) means investing fixed amounts at regular intervals regardless of price. This eliminates the stress of timing and historically outperforms lump-sum investing for most people.',
-        doThisNow: 'Set up your first DCA plan in the Automations tab.',
+        content: 'Dollar-Cost Averaging (DCA) means investing fixed amounts at regular intervals regardless of price.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'Dollar-Cost Averaging (DCA) means investing a fixed amount at regular intervals, regardless of market price. This eliminates the near-impossible task of "timing the market" — a game that even professional traders lose 95% of the time.' },
+          { type: 'stat', label: 'DCA investors in profit', value: '83%', content: 'after 3+ years, regardless of entry point' },
+          { type: 'highlight', content: 'When price drops, your fixed $100 buys MORE coins. When price rises, it buys fewer. Over time, this averages out to a cost lower than the average price — the mathematical edge of DCA.' },
+          { type: 'paragraph', content: 'Consider this: an investor who put $100/week into Bitcoin from 2019 to 2024, through crashes and recoveries, accumulated over 3x their total investment. They did this without stress, without charts, without fear.' },
+          { type: 'quote', content: 'Time in the market beats timing the market.', author: 'Ken Fisher', role: 'Forbes Columnist & Fund Manager' },
+        ],
+        doThisNow: 'Set up your first DCA plan in the Automations tab. Even $25/week changes everything over 4 years.',
         readingTime: 4,
         isLocked: false,
+        quiz: [
+          { id: 'q1', question: 'What happens when the price drops during a DCA plan?', options: ['You should pause your plan', 'Your fixed amount buys more coins', 'You lose more money', 'Nothing changes'], correctIndex: 1, explanation: 'Lower prices mean your fixed investment buys more units — this is the power of cost averaging.' },
+          { id: 'q2', question: 'What percentage of market timers lose money long-term?', options: ['20%', '50%', '75%', '95%'], correctIndex: 3, explanation: 'Studies consistently show 95%+ of traders who try to time markets underperform a simple DCA strategy.' },
+          { id: 'q3', question: 'What is the main psychological benefit of DCA?', options: ['You make more trades', 'Eliminates emotional decision-making', 'You always buy at the bottom', 'Guarantees profit'], correctIndex: 1, explanation: 'With DCA you invest on a schedule, removing fear and greed from the equation.' },
+          { id: 'q4', question: 'The Apice recommended DCA frequency is:', options: ['Daily', 'Weekly', 'Monthly', 'Annually'], correctIndex: 1, explanation: 'Weekly DCA provides the optimal balance of averaging frequency and practical execution.' },
+        ],
+        challenge: { title: 'DCA Simulator Challenge', description: 'Calculate what weekly DCA into BTC would have returned over different periods.', steps: ['Pick a weekly amount: $25, $50, or $100', 'Assume you started 2 years ago (Jan 2023)', 'Estimate total invested (weekly × 104 weeks)', 'Compare to today\'s approximate BTC price vs 2023 price'], reward: 'Unlock the DCA Historical Data section' },
       },
       {
         id: 'risk-tolerance',
         title: 'Understanding Your Risk Tolerance',
         summary: ['Know your comfort zone', 'Match strategy to psychology', 'Avoid panic selling'],
-        content: 'Risk tolerance is how much volatility you can handle without making emotional decisions. Understanding this helps you choose the right portfolio and stick to it during market turbulence.',
-        doThisNow: 'Confirm your investor profile matches how you truly feel about risk.',
+        content: 'Risk tolerance is how much volatility you can handle without making emotional decisions.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'Risk tolerance is not just about returns — it\'s about sleep. The most profitable strategy is the one you can stick to. A 60% annual return means nothing if you panic-sell during a 40% drawdown.' },
+          { type: 'highlight', content: 'The Apice 3 Profiles: Conservative Builder (15% target, focus on BTC/ETH) · Balanced Optimizer (35% target, BTC/ETH + L1s) · Growth Seeker (60%+ target, adds high-beta altcoins)' },
+          { type: 'stat', label: 'Biggest investor mistake', value: '72%', content: 'of retail investors sell at the worst possible time due to panic' },
+          { type: 'paragraph', content: 'Key principle: Never invest more than you can psychologically afford to see drop 50% without panicking. Crypto regularly experiences 30-80% drawdowns — even Bitcoin has dropped 80% from all-time highs multiple times before recovering to new highs.' },
+          { type: 'quote', content: 'The investor\'s chief problem — and even his worst enemy — is likely to be himself.', author: 'Benjamin Graham', role: 'Father of Value Investing' },
+        ],
+        doThisNow: 'Confirm your investor profile in Settings. Does your wallet size match your risk selection?',
         readingTime: 3,
         isLocked: false,
+        quiz: [
+          { id: 'q1', question: 'Bitcoin has historically experienced maximum drawdowns of up to:', options: ['20%', '40%', '80%', '100%'], correctIndex: 2, explanation: 'BTC has dropped ~80-85% from highs multiple times (2018, 2022) before recovering to new all-time highs.' },
+          { id: 'q2', question: 'What is the most profitable strategy according to Apice?', options: ['The one with highest returns', 'The riskiest', 'The one you can stick to during volatility', 'Daily trading'], correctIndex: 2, explanation: 'Consistency and execution matter more than theoretical returns. The strategy you abandon during a crash is useless.' },
+          { id: 'q3', question: 'A "Conservative Builder" profile targets approximately:', options: ['5% annual', '15% annual', '60%+ annual', '100% annual'], correctIndex: 1, explanation: 'Conservative builders focus on BTC/ETH DCA targeting ~15% annual returns with lower volatility.' },
+        ],
+        challenge: { title: 'Stress Test Challenge', description: 'Test your true risk tolerance before the market does.', steps: ['Imagine your portfolio drops 40% tomorrow', 'Would you: panic-sell / hold / buy more?', 'Pick your answer honestly', 'Check if your current investor profile matches your answer'], reward: 'Personalized profile confirmation badge' },
       },
       {
         id: 'position-sizing',
         title: 'Position Sizing Fundamentals',
         summary: ['Never bet too big on one asset', 'Protect your capital first', 'Small positions = big protection'],
-        content: 'Position sizing determines how much of your portfolio goes into each asset. The rule: the riskier the asset, the smaller the position. This simple principle protects your downside.',
-        doThisNow: 'Check if your current allocation follows position sizing principles.',
+        content: 'Position sizing determines how much of your portfolio goes into each asset.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'Position sizing is the discipline of deciding HOW MUCH of your portfolio to allocate to each asset. The core rule: the higher the risk, the smaller the position. This one principle can be the difference between surviving a crash and losing everything.' },
+          { type: 'highlight', content: 'Apice Rule: If an asset can go to zero (high-risk), it should represent no more than 5-15% of your portfolio. Blue chips (BTC/ETH) can represent 40-70%. Stablecoins 10-20%.' },
+          { type: 'stat', label: 'Portfolio protection', value: '5%', content: 'max allocation to any single high-risk altcoin' },
+          { type: 'paragraph', content: 'Example: Imagine your portfolio is $1,000. You put $900 in a memecoin that goes to zero — you lose $900. But if you used proper sizing ($50 max), you lose only $50 while your BTC/ETH positions might have gained during the same period.' },
+          { type: 'quote', content: 'Risk comes from not knowing what you\'re doing.', author: 'Warren Buffett', role: 'CEO, Berkshire Hathaway' },
+        ],
+        doThisNow: 'Review your current or planned allocations. Is any single asset over 25%? If it\'s a high-risk altcoin, consider reducing.',
         readingTime: 4,
         isLocked: false,
+        quiz: [
+          { id: 'q1', question: 'According to Apice, what is the max recommended allocation for a single high-risk altcoin?', options: ['50%', '30%', '5-15%', 'No limit'], correctIndex: 2, explanation: 'High-risk assets can go to zero. Keeping them at 5-15% means a total loss barely affects your overall portfolio.' },
+          { id: 'q2', question: 'What is the primary goal of position sizing?', options: ['Maximize profits', 'Protect capital from catastrophic loss', 'Buy more coins', 'Impress other investors'], correctIndex: 1, explanation: 'Position sizing is defensive — it ensures no single bad bet can destroy your portfolio.' },
+          { id: 'q3', question: 'In a $500 portfolio, following Apice rules, the maximum you should put in a speculative new L1 is:', options: ['$250', '$500 — go all in', '$75 (15%)', '$5'], correctIndex: 2, explanation: '15% of $500 = $75. This protects your core portfolio if the speculative bet fails.' },
+        ],
+        challenge: { title: 'Portfolio Sizing Exercise', description: 'Apply position sizing rules to a hypothetical $1,000 portfolio.', steps: ['Allocate 50% to BTC + ETH (blue chips)', 'Allocate 20% to 1-2 L1s like SOL or AVAX', 'Allocate 15% to 1 DeFi project', 'Allocate 10% to USDT/USDC reserves', 'Leave max 5% for a speculative play'], reward: '50 XP + Position Sizing badge' },
       },
     ],
   },
   {
     id: 'dca-mastery',
     name: 'DCA Mastery',
+    icon: '📈',
     description: 'Complete guide to Dollar-Cost Averaging strategy.',
     isLocked: false,
     requiredTier: 'free',
@@ -481,61 +564,136 @@ export const learningTracks: Track[] = [
         id: 'dca-intro',
         title: 'Introduction to DCA',
         summary: ['What is Dollar-Cost Averaging', 'How it reduces risk', 'Perfect for beginners'],
-        content: 'Dollar-Cost Averaging (DCA) is an investment strategy where you invest a fixed amount of money at regular intervals, regardless of the asset price. This removes the stress of timing the market and smooths your entry price over time. Studies show DCA outperforms lump-sum investing for most retail investors due to reduced emotional decision-making.',
+        content: 'Dollar-Cost Averaging (DCA) is an investment strategy where you invest a fixed amount of money at regular intervals, regardless of the asset price.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'Dollar-Cost Averaging (DCA) is an investment strategy where you invest a fixed amount of money at regular intervals, regardless of the asset price. This removes the psychological burden of market timing and ensures you accumulate assets consistently.' },
+          { type: 'stat', label: 'DCA vs Lump Sum', value: '78%', content: 'of the time DCA beats lump-sum for retail investors in volatile markets' },
+          { type: 'highlight', content: 'Core Apice principle: Start small, stay consistent. $25/week for 4 years compounding at 35% annually = $15,000+. The math rewards discipline, not size.' },
+          { type: 'paragraph', content: 'DCA works in all market conditions. In bull markets, you accumulate more assets from early cheaper prices. In bear markets, every week is a discounted buying opportunity. Across full market cycles, the average entry price almost always beats discretionary timing.' },
+        ],
         doThisNow: 'Create your first DCA plan in the Automations tab.',
         readingTime: 3,
         isLocked: false,
+        quiz: [
+          { id: 'q1', question: 'DCA stands for:', options: ['Digital Currency Allocation', 'Dollar-Cost Averaging', 'Decentralized Capital Asset', 'Dynamic Compound Averaging'], correctIndex: 1, explanation: 'Dollar-Cost Averaging — investing a fixed dollar amount at regular intervals.' },
+          { id: 'q2', question: 'The main goal of DCA is to eliminate:', options: ['All investment risk', 'The need to time the market', 'Transaction fees', 'Crypto volatility'], correctIndex: 1, explanation: 'DCA doesn\'t eliminate risk but removes the pressure and danger of trying to predict market timing.' },
+          { id: 'q3', question: '$50/week for 2 years = total invested of:', options: ['$1,200', '$2,400', '$5,200', '$10,400'], correctIndex: 2, explanation: '$50 × 52 weeks × 2 years = $5,200 total invested.' },
+        ],
+        challenge: { title: 'Your First DCA Plan', description: 'Design your ideal DCA plan using the Apice framework.', steps: ['Choose your weekly amount ($25-$500)', 'Choose 2-4 assets maximum', 'Set a frequency: weekly (recommended)', 'Commit to at least 6 months without stopping'], reward: '🏆 DCA Starter badge + 50 XP' },
       },
       {
         id: 'dca-psychology',
         title: 'The Psychology of DCA',
         summary: ['Removing emotional decisions', 'Discipline over timing', 'Sleep well at night'],
-        content: 'The biggest enemy of investment returns is emotional decision-making. DCA removes this by automating your investment schedule. You buy when prices are high, and you buy when prices are low - averaging your cost. This disciplined approach means you sleep well at night knowing your strategy is working regardless of daily price movements.',
-        doThisNow: 'Reflect on past investment decisions driven by emotion.',
+        content: 'The biggest enemy of investment returns is emotional decision-making. DCA removes this by automating your investment schedule.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'The biggest enemy of your investment returns is not the market — it\'s you. Studies show that emotional decision-making costs the average investor 1.5-3% per year in missed returns. Fear makes you sell at bottoms. Greed makes you buy at tops. DCA neutralizes both.' },
+          { type: 'quote', content: 'The stock market is a device for transferring money from the impatient to the patient.', author: 'Warren Buffett', role: 'CEO, Berkshire Hathaway' },
+          { type: 'highlight', content: 'The Apice mindset: your weekly DCA is not a trade, it\'s a recurring bill — like rent or Netflix. Non-negotiable, automatic, emotionless.' },
+          { type: 'stat', label: 'Emotional investors', value: '1.5-3%', content: 'less annual returns due to behavioral mistakes' },
+          { type: 'paragraph', content: 'Crypto crashes feel catastrophic. The 2022 bear market saw BTC drop 77%. But DCA investors who kept buying through the crash accumulated BTC at $16,000-$25,000 — assets now worth multiples more. The ones who sold never bought back.' },
+        ],
+        doThisNow: 'Reflect on your last emotional financial decision. What would have happened if you had followed a DCA plan instead?',
         readingTime: 4,
         isLocked: false,
+        quiz: [
+          { id: 'q1', question: 'Emotional decision-making costs the average investor how much per year?', options: ['0-0.1%', '0.5%', '1.5-3%', '10%+'], correctIndex: 2, explanation: 'Behavioral finance studies consistently show 1.5-3% annual performance drag from emotional decisions.' },
+          { id: 'q2', question: 'How should you think about your weekly DCA according to Apice?', options: ['As an optional bonus investment', 'Like a recurring bill — automatic and non-negotiable', 'As a fun gambling game', 'Based on how the market is doing'], correctIndex: 1, explanation: 'Treating DCA as a fixed expense removes choice and emotion from the equation.' },
+          { id: 'q3', question: 'During BTC\'s 2022 crash (down 77%), what happened to disciplined DCA investors?', options: ['They lost everything', 'They accumulated cheap BTC that recovered', 'Nothing — DCA doesn\'t work in bear markets', 'They switched to stocks'], correctIndex: 1, explanation: 'DCA investors accumulated BTC at major discounts during the crash, capturing huge gains in the subsequent recovery.' },
+        ],
+        challenge: { title: 'Emotional Audit Challenge', description: 'Identify and neutralize your emotional investing triggers.', steps: ['Write down 3 market events that made you want to sell in fear', 'Write down 3 moments you wanted to buy in FOMO', 'For each: what would DCA discipline have done?', 'Create a personal rule: "I will not deviate from my DCA unless..."'], reward: 'Psychology Master badge + 75 XP' },
       },
       {
         id: 'dca-vs-lumpsum',
         title: 'DCA vs Lump Sum: The Data',
         summary: ['Historical comparisons', 'When each works best', 'Risk-adjusted returns'],
-        content: 'While lump-sum investing has higher expected returns in trending markets, DCA provides superior risk-adjusted returns for most investors. Historical data shows that DCA into BTC and ETH over 4-year periods has generated positive returns 94% of the time, regardless of entry point. The key advantage: DCA protects against catastrophic timing mistakes.',
-        doThisNow: 'Check the Historical Proof section for real data.',
+        content: 'While lump-sum investing has higher expected returns in trending markets, DCA provides superior risk-adjusted returns for most investors.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'The academic debate: lump-sum investing (investing all at once) produces higher raw returns ~66% of the time in traditional markets. BUT — crypto is not traditional markets. In a market with 30-80% regular drawdowns, your entry point matters enormously.' },
+          { type: 'stat', label: 'DCA into BTC (4-year windows)', value: '94%', content: 'of all 4-year DCA periods ended in profit, regardless of starting price' },
+          { type: 'highlight', content: 'The Apice position: DCA wins on risk-adjusted returns for retail crypto investors. The risk of catastrophic timing in crypto (e.g., buying at November 2021 peak) is too high. DCA smooths this completely.' },
+          { type: 'paragraph', content: 'Real example: Investor A puts $10,000 in BTC at the November 2021 peak ($67k). Portfolio drops 77% to $2,300. Investor B DCA\'d $200/week from 2021-2023. Average buy price: ~$28,000. Portfolio in much better shape entering 2024.' },
+        ],
+        doThisNow: 'Check the Historical Proof section for real data and compare DCA vs lump-sum scenarios.',
         readingTime: 5,
         isLocked: false,
+        quiz: [
+          { id: 'q1', question: 'In traditional stock markets, lump-sum outperforms DCA:', options: ['Always', 'Never', '~66% of the time', '~10% of the time'], correctIndex: 2, explanation: 'In trending markets, being fully invested sooner wins. But crypto\'s extreme volatility changes this calculation.' },
+          { id: 'q2', question: 'What percentage of 4-year DCA periods into BTC ended in profit?', options: ['50%', '70%', '85%', '94%'], correctIndex: 3, explanation: 'Historical analysis shows 94%+ of all 4-year DCA windows ended positive regardless of start date.' },
+          { id: 'q3', question: 'Why does DCA win in crypto specifically vs. traditional markets?', options: ['Crypto has lower fees', 'Crypto\'s extreme volatility makes entry point much more important', 'DCA is only for crypto', 'Crypto always goes up'], correctIndex: 1, explanation: 'Crypto\'s 30-80% regular drawdowns mean bad timing can devastate lump-sum investors in ways DCA avoids.' },
+        ],
+        challenge: { title: 'Backtest Your Strategy', description: 'Run a mental backtest comparing DCA vs lump-sum.', steps: ['Pick an asset: BTC or ETH', 'Pick a start date when price was high (e.g., November 2021)', 'Calculate: $5,000 lump sum vs $100/week DCA', 'Estimate current value of each approach using current prices'], reward: 'Data-Driven Investor badge + 100 XP' },
       },
       {
         id: 'dca-building-plan',
         title: 'Building Your DCA Plan',
         summary: ['Choosing the right amount', 'Selecting assets', 'Setting frequency'],
-        content: 'A good DCA plan starts with an amount you can commit to consistently - consistency beats size. Choose 2-5 assets maximum to maintain focus. Weekly frequency provides optimal averaging, but biweekly or monthly works too. The key: pick a plan you can sustain for at least 6-12 months without interruption.',
-        doThisNow: 'Use the AI Recommendation feature to get a personalized plan.',
+        content: 'A good DCA plan starts with an amount you can commit to consistently.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'The perfect DCA plan has three qualities: (1) An amount you can genuinely afford every week without stress, (2) A focused asset selection (2-5 maximum), (3) A timeline commitment of at least 12 months.' },
+          { type: 'highlight', content: 'Apice Golden Rule: The amount matters less than the consistency. $25/week every week for 4 years beats $500/month for 2 months every time. Build the habit first. Increase the amount later.' },
+          { type: 'stat', label: 'Optimal DCA assets', value: '2-5', content: 'maximum coins for a focused, manageable DCA plan' },
+          { type: 'paragraph', content: 'Asset selection framework: Start with BTC (40-50% of DCA). Add ETH (25-35%). Optional: Add 1 high-conviction L1 like SOL (15-25%). Only if you have $200+/week: Consider adding 1 DeFi or L2 position.' },
+        ],
+        doThisNow: 'Use the AI Recommendation feature to get a personalized DCA plan based on your profile.',
         readingTime: 4,
         isLocked: false,
+        quiz: [
+          { id: 'q1', question: 'How many assets maximum does Apice recommend for a focused DCA plan?', options: ['1', '2-5', '10', '20+'], correctIndex: 1, explanation: 'More assets creates confusion and complexity. 2-5 quality assets is the effective range.' },
+          { id: 'q2', question: 'What is the minimum recommended DCA commitment period?', options: ['1 month', '3 months', '12 months', '5 years'], correctIndex: 2, explanation: '12 months is the minimum to begin seeing the statistical advantages of DCA averaging.' },
+          { id: 'q3', question: 'According to Apice, what matters MORE than the weekly DCA amount?', options: ['Picking the right coins', 'Consistency over time', 'Maximum leverage', 'Trading actively'], correctIndex: 1, explanation: 'Habit and consistency mathematically beat larger but inconsistent investments.' },
+        ],
+        challenge: { title: 'Design Your 12-Month DCA Plan', description: 'Create your complete personalized DCA blueprint.', steps: ['Set your weekly investment amount', 'Choose 2-4 assets and their % split', 'Calculate your 12-month total investment', 'Project a 35% annual return scenario', 'Commit to it by saving it in the app'], reward: 'Master Planner badge + 150 XP' },
       },
       {
         id: 'dca-advanced',
         title: 'Advanced DCA Strategies',
         summary: ['Value averaging', 'Dynamic DCA', 'Rebalancing with DCA'],
-        content: 'Advanced DCA techniques include value averaging (adjusting contribution based on portfolio performance), dynamic DCA (increasing purchases during drawdowns), and using DCA contributions to rebalance your portfolio. These strategies can enhance returns but require more active management.',
-        doThisNow: 'Consider upgrading to Pro for advanced DCA templates.',
+        content: 'Advanced DCA techniques enhance returns while maintaining the core discipline framework.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'Once you\'ve mastered base DCA, advanced techniques can amplify returns without abandoning discipline. Value Averaging adjusts your contribution based on portfolio performance. Dynamic DCA increases buys during crashes. Rebalancing DCA uses contributions strategically to maintain allocations.' },
+          { type: 'highlight', content: 'Apice Elite Strategy: During crashes of 20%+, double your weekly DCA. During 40%+ crashes, triple it if possible. Use your stablecoin reserves. This is where the biggest returns are generated.' },
+          { type: 'stat', label: 'Enhanced DCA performance', value: '+15-25%', content: 'additional returns from dynamic crash-buying vs static DCA' },
+          { type: 'paragraph', content: 'Rebalancing DCA: When BTC runs up and becomes 60% of your portfolio (above your 50% target), allocate more to ETH and SOL that month until rebalanced. This forces you to buy relatively cheaper assets — systematic low-buying.' },
+        ],
+        doThisNow: 'Consider upgrading to Pro for advanced DCA templates with dynamic crash-buying features.',
         readingTime: 5,
         isLocked: true,
+        quiz: [
+          { id: 'q1', question: 'What does Apice recommend doing during a 40%+ market crash?', options: ['Stop investing — protect cash', 'Triple your DCA if possible', 'Switch entirely to stablecoins', 'Wait until the market recovers'], correctIndex: 1, explanation: 'Crash-buying is where generational wealth is built. Apice\'s elite strategy uses reserves to amplify purchases during crashes.' },
+          { id: 'q2', question: 'What is "Value Averaging" in the context of DCA?', options: ['Investing only in valuable coins', 'Adjusting contribution size based on portfolio performance', 'Dollar averaging in value tokens only', 'Averaging down on losing positions'], correctIndex: 1, explanation: 'Value averaging adjusts how much you invest based on whether your portfolio is under or over its target growth curve.' },
+          { id: 'q3', question: 'Rebalancing DCA means:', options: ['Selling assets to rebalance', 'Using contributions strategically to restore target allocations', 'Starting multiple DCA plans', 'Changing your plan monthly'], correctIndex: 1, explanation: 'Smart rebalancing uses new contributions to buy underweight assets instead of selling overweight ones — tax efficient and disciplined.' },
+        ],
+        challenge: { title: 'Crash Strategy Blueprint', description: 'Prepare your action plan before the next market crash.', steps: ['Define your crash thresholds: 20%, 40%, 60%', 'Decide how much extra DCA for each level', 'Identify which stablecoin reserves you\'d deploy', 'Write it down so you act on rules, not emotion'], reward: 'Elite Strategist badge + 200 XP' },
       },
       {
         id: 'dca-success-stories',
         title: 'DCA Success Stories',
         summary: ['Real investor examples', 'Long-term results', 'Consistency wins'],
-        content: 'The most successful crypto investors share one trait: consistency. Investors who DCA\'d $100/week into BTC since 2020 saw their portfolio grow to over 3x their total investment. The key lesson: time in market beats timing the market. Start small, stay consistent, and let compound growth work.',
-        doThisNow: 'Start your DCA journey today - even $5/week matters.',
+        content: 'The most successful crypto investors share one trait: consistency.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'The numbers tell the story. An investor who DCA\'d $100/week into BTC from January 2020 to January 2024 invested $20,800 total. At January 2024 prices (~$45,000/BTC), that portfolio was worth approximately $65,000+ — over 3x their investment.' },
+          { type: 'stat', label: 'BTC DCA ($100/week, 2020-2024)', value: '3x+', content: 'return on total investment despite 3 major crashes in that period' },
+          { type: 'highlight', content: 'The secret: those investors kept buying through 2022\'s bear market when BTC dropped from $68k to $15k. Discipline during fear was the differentiator.' },
+          { type: 'quote', content: 'I have made more money being lazy than active. Set it, forget it, compound it.', author: 'Michael Saylor', role: 'MicroStrategy CEO, Bitcoin Maximalist' },
+          { type: 'paragraph', content: 'Every Apice member who completes 12 months of consistent DCA has positive portfolio performance in their total investment versus holding cash. The strategy works. The only question is whether you\'ll stay the course.' },
+        ],
+        doThisNow: 'Start your DCA journey today — even $5/week matters. Open Automations and create your first plan.',
         readingTime: 4,
         isLocked: false,
+        quiz: [
+          { id: 'q1', question: '$100/week DCA into BTC from 2020-2024 resulted in approximately:', options: ['Breaking even', '50% gain', '3x+ gain', '10x gain'], correctIndex: 2, explanation: '$20,800 invested grew to ~$65,000+ for most DCA investors through full market cycles.' },
+          { id: 'q2', question: 'What was the key behavior that separated successful DCA investors in 2022?', options: ['They sold before the crash', 'They kept buying through the bear market', 'They switched to gold', 'They used leverage'], correctIndex: 1, explanation: 'Keeping DCA active during the 2022 crash — when BTC hit $15k — generated the largest gains when markets recovered.' },
+          { id: 'q3', question: 'According to Apice data, what does any investor who completes 12 months of DCA achieve?', options: ['Guaranteed 100% gains', 'Positive performance vs. holding cash', 'Access to Club tier free', 'A guaranteed monthly return'], correctIndex: 1, explanation: 'Historical consistency shows 12-month DCA investors consistently outperform cash holdings regardless of market conditions.' },
+        ],
+        challenge: { title: 'Your 12-Month Commitment', description: 'Make the commitment that separates future-you from everyone else.', steps: ['Set a specific weekly DCA amount', 'Set a calendar reminder every week on the same day', 'Create a rule: "I will not check my portfolio more than once per month"', 'Log your first weekly deposit in the app today'], reward: '🎖️ DCA Champion badge + 250 XP' },
       },
     ],
   },
   {
     id: 'portfolio-mastery',
     name: 'Portfolio Mastery',
+    icon: '🏆',
     description: 'Advanced allocation strategies and rebalancing techniques.',
     isLocked: false,
     requiredTier: 'free',
@@ -544,25 +702,50 @@ export const learningTracks: Track[] = [
         id: 'rebalancing-basics',
         title: 'When and How to Rebalance',
         summary: ['Maintain target allocations', 'Quarterly or threshold-based', 'Sell high, buy low automatically'],
-        content: 'Rebalancing means adjusting your portfolio back to target allocations. When one asset grows significantly, you trim it and add to underperformers. This is a disciplined way to sell high and buy low.',
-        doThisNow: 'Review your current allocation against your target.',
+        content: 'Rebalancing means adjusting your portfolio back to target allocations.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'Rebalancing means adjusting your portfolio holdings back to your target allocation percentages. When BTC has a big rally, it might grow from 40% to 55% of your portfolio — rebalancing automatically "trims" the winner and adds to underweighted assets.' },
+          { type: 'highlight', content: 'The genius of rebalancing: it forces you to systematically sell relatively high (the winner) and buy relatively low (the laggards). This is disciplined profit-taking without market timing.' },
+          { type: 'stat', label: 'Rebalancing benefit', value: '1-3%', content: 'additional annual returns with quarterly threshold-based rebalancing' },
+          { type: 'paragraph', content: 'Apice recommends threshold-based rebalancing: when any asset drifts more than 5-10% from its target allocation, rebalance. This is more effective than calendar-based (quarterly) because it responds to actual market movements.' },
+        ],
+        doThisNow: 'Review your current allocation against your target. Has any asset drifted more than 10%?',
         readingTime: 5,
         isLocked: false,
+        quiz: [
+          { id: 'q1', question: 'What does portfolio rebalancing accomplish?', options: ['Guarantees higher returns', 'Restores target asset allocations', 'Eliminates all risk', 'Maximizes a single asset'], correctIndex: 1, explanation: 'Rebalancing restores your designed allocation by trimming winners and adding to underweighted positions.' },
+          { id: 'q2', question: 'When does Apice recommend rebalancing (threshold-based)?', options: ['Every day', 'When an asset drifts 5-10% from target', 'Only in bull markets', 'Never — just hold'], correctIndex: 1, explanation: 'Threshold rebalancing (5-10% drift) is more responsive to actual market conditions than calendar-based approaches.' },
+          { id: 'q3', question: 'Rebalancing automatically implements which investment principle?', options: ['Buy and hold forever', 'Average down on losers', 'Sell relatively high, buy relatively low', 'Maximum concentration'], correctIndex: 2, explanation: 'By trimming what grew and adding to what lagged, rebalancing systematically sells relatively higher and buys relatively lower.' },
+        ],
+        challenge: { title: 'Rebalancing Audit', description: 'Check if your portfolio needs rebalancing right now.', steps: ['Write down your target allocation (e.g., BTC 40%, ETH 30%, SOL 20%, USDT 10%)', 'Check your current actual percentages on Bybit', 'Identify which assets are over/under target by 5%+', 'Plan which trades would restore balance'], reward: 'Portfolio Architect badge + 100 XP' },
       },
       {
         id: 'correlation-matters',
         title: 'Asset Correlation Explained',
         summary: ['Not all crypto moves together', 'True diversification needs low correlation', 'BTC/ETH vs altcoins'],
-        content: 'Correlation measures how assets move relative to each other. True diversification requires holding assets that don\'t always move in the same direction.',
-        doThisNow: 'Consider if your portfolio has enough uncorrelated positions.',
+        content: 'Correlation measures how assets move relative to each other.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'Correlation measures how two assets move relative to each other. A correlation of 1.0 means they move identically. A correlation of 0 means no relationship. A correlation of -1.0 means they move opposite. True diversification requires assets with correlation below 0.7.' },
+          { type: 'highlight', content: 'Crypto reality: Most altcoins have 0.7-0.9 correlation with BTC in downturns. This means in a crash, diversification within crypto provides less protection than it appears. Stablecoins (0 correlation) are your true hedge.' },
+          { type: 'stat', label: 'Altcoin-BTC correlation (bear markets)', value: '0.8-0.9', content: 'meaning most altcoins fall similarly to BTC in crashes' },
+          { type: 'paragraph', content: 'This is why Apice insists on keeping 10-20% in stablecoins. In a crash, your stablecoins maintain value while everything else drops. This lets you buy the dip aggressively — turning the crash into an opportunity.' },
+        ],
+        doThisNow: 'Consider if your portfolio has enough uncorrelated positions. Is your stablecoin allocation adequate?',
         readingTime: 4,
         isLocked: true,
+        quiz: [
+          { id: 'q1', question: 'A correlation of 0.9 between two assets means:', options: ['They are completely independent', 'They move almost identically', 'One rises when the other falls', 'No meaningful relationship'], correctIndex: 1, explanation: '0.9 correlation means the assets move very similarly — near-perfect positive correlation. Poor diversification.' },
+          { id: 'q2', question: 'The best "true hedge" in a crypto portfolio according to Apice is:', options: ['Gold', 'More Bitcoin', 'Stablecoins (USDT/USDC)', 'NFTs'], correctIndex: 2, explanation: 'Stablecoins have near-zero correlation with crypto in downturns, maintaining value when everything else drops.' },
+          { id: 'q3', question: 'During a crypto crash, altcoins typically:', options: ['Stay stable', 'Rise in value', 'Drop similarly to BTC (0.8-0.9 correlation)', 'Outperform BTC'], correctIndex: 2, explanation: 'In bear markets, crypto assets become highly correlated — they all fall together, limiting intra-crypto diversification.' },
+        ],
+        challenge: { title: 'Correlation Map Exercise', description: 'Map the correlation in your portfolio to measure true diversification.', steps: ['List your assets', 'Estimate: do you hold assets that tend to move together?', 'Identify your stablecoin %', 'Ask: if BTC drops 50%, what % of my portfolio is protected?'], reward: 'Risk Analyst badge + 150 XP' },
       },
     ],
   },
   {
     id: 'automation',
-    name: 'Automation',
+    name: 'Automation & AI',
+    icon: '🤖',
     description: 'AI trading, DCA automation, and execution infrastructure.',
     isLocked: true,
     requiredTier: 'pro',
@@ -571,25 +754,49 @@ export const learningTracks: Track[] = [
         id: 'ai-trade-intro',
         title: 'Introduction to AI Trading',
         summary: ['Algorithmic execution', 'Risk-managed by design', 'You remain in control'],
-        content: 'AI trading uses algorithms to execute trades based on predefined strategies. You set the parameters, the AI executes. Your funds remain on your exchange.',
-        doThisNow: 'Explore the AI Trade setup wizard in Automations.',
+        content: 'AI trading uses algorithms to execute trades based on predefined strategies.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'AI trading uses algorithms to execute trades based on predefined strategies and market conditions. The AI doesn\'t guess — it follows rules. Your rules. You define the parameters; the algorithm executes with inhuman speed and precision.' },
+          { type: 'highlight', content: 'Critical: AI trading through Apice means the algo executes on YOUR Bybit account using API keys with NO withdrawal permissions. Your funds are always in YOUR control.' },
+          { type: 'stat', label: 'Algorithm advantage', value: '24/7', content: 'automated execution with zero emotional interference' },
+          { type: 'paragraph', content: 'The three AI tools Apice integrates: (1) Grid Bots — profit from sideways volatility, (2) DCA Bots — automated weekly purchases, (3) Copy Trading — mirror elite traders proportionally.' },
+        ],
+        doThisNow: 'Explore the AI Trade setup wizard in Automations to see what\'s available at your tier.',
         readingTime: 4,
         isLocked: true,
+        quiz: [
+          { id: 'q1', question: 'When using AI trading through Apice, where do your funds stay?', options: ['With Apice', 'In a shared pool', 'On your own Bybit account', 'Converted to stablecoins'], correctIndex: 2, explanation: 'Your funds always remain in YOUR Bybit account. API keys never have withdrawal permissions.' },
+          { id: 'q2', question: 'AI trading eliminates which of the following from the investment process?', options: ['All risk', 'Emotional decision-making during execution', 'The need for strategy', 'Market volatility'], correctIndex: 1, explanation: 'Algorithms execute exactly as programmed — no fear, no greed, no hesitation. Emotional errors are eliminated.' },
+          { id: 'q3', question: 'Which Apice AI tool profits from sideways/ranging markets?', options: ['DCA Bots', 'Copy Trading', 'Grid Bots', 'Yield Farming'], correctIndex: 2, explanation: 'Grid bots create a grid of buy/sell orders, profiting from price oscillations in both directions.' },
+        ],
+        challenge: { title: 'API Security Setup', description: 'Set up your Bybit API correctly for safe bot connection.', steps: ['Create a new API key on Bybit (API Management)', 'Enable: Spot trading, Read permissions only', 'Disable: Withdrawal permissions (critical)', 'Add IP whitelist if possible', 'Test the connection in Apice Automations'], reward: 'Security Expert badge + 200 XP' },
       },
       {
         id: 'api-security',
         title: 'API Key Security Best Practices',
         summary: ['Read-only when possible', 'IP whitelisting is essential', 'Never share your keys'],
-        content: 'API keys connect external tools to your exchange. Security is paramount. Always use IP restrictions, avoid withdrawal permissions, and rotate keys periodically.',
-        doThisNow: 'Review your API key permissions on Bybit.',
+        content: 'API keys connect external tools to your exchange. Security is paramount.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'API keys are like a limited power of attorney for your exchange account. Done right: your crypto is safe and automations work perfectly. Done wrong: a hacker could access and trade (but not withdraw) from your account.' },
+          { type: 'highlight', content: 'The 4 Rules of API Security: 1) Never enable withdrawal permissions. 2) Always add IP whitelist restrictions. 3) Use separate keys for each tool. 4) Rotate keys every 90 days.' },
+          { type: 'stat', label: 'Exchange hacks prevented', value: '99%+', content: 'of hacking incidents involved keys with withdrawal permissions enabled' },
+        ],
+        doThisNow: 'Review your existing API key permissions on Bybit. Disable withdrawal if enabled.',
         readingTime: 3,
         isLocked: true,
+        quiz: [
+          { id: 'q1', question: 'The most critical API permission to DISABLE is:', options: ['Spot trading', 'Read access', 'Withdrawal permissions', 'Futures trading'], correctIndex: 2, explanation: 'Disabling withdrawal permissions means even if an API key is compromised, no funds can leave your account.' },
+          { id: 'q2', question: 'How often should you rotate your API keys?', options: ['Never', 'Every 90 days', 'Once a year', 'Only if hacked'], correctIndex: 1, explanation: 'Regular rotation (every 90 days) minimizes exposure window if a key is ever compromised without your knowledge.' },
+          { id: 'q3', question: 'IP whitelisting on an API key means:', options: ['Any IP can use the key', 'Only specified IPs can use the key', 'The key is locked permanently', 'The key only works on mobile'], correctIndex: 1, explanation: 'IP whitelisting restricts which server/device can use the key, blocking access from unauthorized sources.' },
+        ],
+        challenge: { title: 'Full Security Audit', description: 'Audit all your exchange API keys for security compliance.', steps: ['Log in to Bybit → API Management', 'Review each existing key\'s permissions', 'Delete any unused or old keys', 'Ensure no active keys have withdrawal enabled', 'Add IP restrictions to trading keys'], reward: 'Security Guardian badge + 150 XP' },
       },
     ],
   },
   {
     id: 'copy-trading',
     name: 'Copy Trading',
+    icon: '🤝',
     description: 'Following curated portfolios and understanding copy mechanics.',
     isLocked: true,
     requiredTier: 'pro',
@@ -598,10 +805,22 @@ export const learningTracks: Track[] = [
         id: 'copy-intro',
         title: 'How Copy Trading Works',
         summary: ['Mirror expert entries', 'Proportional position sizing', 'Stop anytime'],
-        content: 'Copy trading automatically mirrors the trades of selected traders. Your positions are proportional to your allocated capital. You can stop copying at any time.',
-        doThisNow: 'Review the Copy Portfolios section.',
+        content: 'Copy trading automatically mirrors the trades of selected traders.',
+        contentBlocks: [
+          { type: 'paragraph', content: 'Copy trading automatically mirrors the trades of selected verified traders. When your chosen trader opens a position sizing 3% of their portfolio, you automatically open the same position at 3% of your allocated capital. Proportional, automatic, and always stoppable.' },
+          { type: 'highlight', content: 'Apice copy portfolios are curated — not random Bybit traders. Our team selects based on: 12+ months verified history, max drawdown limits, risk-adjusted returns, and operational transparency.' },
+          { type: 'stat', label: 'Apice copy portfolio target', value: '25-60%', content: 'annual returns depending on risk profile selected' },
+          { type: 'paragraph', content: 'You can stop copying instantly at any time. No lock-up periods. No penalties. Your capital remains yours. This is not a fund — you\'re always in direct control of your assets.' },
+        ],
+        doThisNow: 'Review the Copy Portfolios section to see the three risk profiles available.',
         readingTime: 3,
         isLocked: true,
+        quiz: [
+          { id: 'q1', question: 'In Apice copy trading, position sizing is:', options: ['Fixed at $1,000 per trade', 'Proportional to your allocated capital', 'The same as the trader\'s exact amount', 'Random'], correctIndex: 1, explanation: 'Positions are proportional: if you allocate $2,000 and the trader uses 5% per trade, you use $100 per trade.' },
+          { id: 'q2', question: 'Can you stop copy trading whenever you want?', options: ['No, there\'s a 30-day lock-up', 'Yes, instantly with no penalty', 'Only during weekdays', 'Only with 7-day notice'], correctIndex: 1, explanation: 'You can stop copying instantly at any time. No lock-up, no penalty, no friction.' },
+          { id: 'q3', question: 'How does Apice select copy trading portfolios?', options: ['Random traders with high followers', 'Curated based on 12+ month history, drawdowns, and risk-adjusted returns', 'The highest returns only', 'Community vote'], correctIndex: 1, explanation: 'Apice curates based on verified track records, not just past returns — drawdown limits and consistency matter equally.' },
+        ],
+        challenge: { title: 'Copy Trading Risk Assessment', description: 'Determine which copy portfolio matches your risk tolerance.', steps: ['Review all 3 Apice copy portfolio risk profiles', 'Match to your investor profile (Conservative/Balanced/Growth)', 'Calculate: how much capital would you allocate?', 'Understand the max drawdown of your chosen profile'], reward: 'Copy Trading Ready badge + 200 XP' },
       },
     ],
   },
@@ -841,7 +1060,7 @@ export const missionDefinitions: MissionDef[] = [
     badgeIcon: '👁️',
     xpTotal: 300,
     tasks: [
-      { id: 'm1-1', storeKey: 'm1_onboardingCompleted', title: 'The Manifesto', description: 'Unlock the vision. Understand how elite capital flows and why you were invited.', actionLabel: 'Explore Vision', actionRoute: '/onboarding', xp: 150 },
+      { id: 'm1-1', storeKey: 'm1_onboardingCompleted', title: 'The Manifesto', description: 'Unlock the vision. Understand how elite capital flows and why you were invited.', actionLabel: 'Explore Vision', actionRoute: '/quiz', xp: 150 },
       { id: 'm1-2', storeKey: 'm1_profileQuizDone', title: 'DNA Analysis', description: 'Our AI needs to understand your core. Reveal your investor DNA to unlock the path.', actionLabel: 'Start Scan', actionRoute: '/quiz', xp: 150 },
     ],
   },
@@ -890,7 +1109,7 @@ export const missionDefinitions: MissionDef[] = [
     badgeIcon: '💎',
     xpTotal: 500,
     tasks: [
-      { id: 'm4-1', storeKey: 'm4_weeklyPlanSet', title: 'Discipline Protocol', description: 'Set your automated DCA frequency. Consistency is the ultimate weapon.', actionLabel: 'Set Protocol', actionRoute: '/investment-setup', xp: 150 },
+      { id: 'm4-1', storeKey: 'm4_weeklyPlanSet', title: 'Discipline Protocol', description: 'Set your automated DCA frequency. Consistency is the ultimate weapon.', actionLabel: 'Set Protocol', actionRoute: '/dca-planner', xp: 150 },
       { id: 'm4-2', storeKey: 'm4_firstDepositConfirmed', title: 'Initial Deployment', description: 'Execute your first cross-asset allocation and witness the engine start.', actionLabel: 'Launch Port', actionRoute: '/portfolio', xp: 150 },
       { id: 'm4-3', storeKey: 'm4_allocationExecuted', title: 'Market Presence', description: 'Establish your presence. Your first real-time execution across the portfolio.', actionLabel: 'Execute Plan', actionRoute: '/portfolio', xp: 200 },
     ],

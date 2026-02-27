@@ -1,22 +1,22 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useAppStore } from '@/store/appStore';
-import { dailyInsights, getReturnRateForInvestorType, getReturnLabel } from '@/data/sampleData';
+import { dailyInsights } from '@/data/sampleData';
 import SetupMissions from '@/components/SetupMissions';
 import InvestmentDashboard from '@/components/InvestmentDashboard';
 import { GamificationWidget } from '@/components/GamificationWidget';
 import { TopCoinsList } from '@/components/TopCoinsList';
+import { WeeklyDepositConfirm } from '@/components/WeeklyDepositConfirm';
 import {
   TrendingUp, DollarSign, Flame, ChevronRight,
-  PieChart, BookOpen, Sparkles, Zap, Award
+  PieChart, BookOpen, Sparkles, Zap, Award, Settings2,
+  Lock, Crown, GripVertical, X, Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Get current ISO week ID
 function getCurrentWeekId(): string {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 1);
@@ -25,32 +25,266 @@ function getCurrentWeekId(): string {
   return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
 }
 
+// Widget definitions — the system is ordered via appStore widgetOrder
+type WidgetLock =
+  | { lockType: null; premiumRequired: null }
+  | { lockType: 'usage'; usageUnlockKey: 'hasFirstDeposit' | 'hasMinimumActivity'; premiumRequired: null }
+  | { lockType: 'premium'; premiumRequired: 'pro' | 'club' };
+
+type WidgetDef = {
+  id: string;
+  label: string;
+  icon: string;
+  description: string;
+} & WidgetLock;
+
+const WIDGET_DEFINITIONS: WidgetDef[] = [
+  {
+    id: 'journey',
+    label: 'Apice Journey',
+    icon: '🗺️',
+    description: 'Your mission progress',
+    lockType: null, // always visible
+    premiumRequired: null,
+  },
+  {
+    id: 'milestone',
+    label: 'Next Milestone',
+    icon: '🏆',
+    description: 'Investment milestone tracker',
+    lockType: 'usage' as const, // unlocks after first deposit
+    usageUnlockKey: 'hasFirstDeposit',
+    premiumRequired: null,
+  },
+  {
+    id: 'market',
+    label: 'Market Movers',
+    icon: '📈',
+    description: 'Top 10 crypto prices',
+    lockType: null,
+    premiumRequired: null,
+  },
+  {
+    id: 'insight',
+    label: 'Daily Insight',
+    icon: '💡',
+    description: 'Personalized market insight',
+    lockType: null,
+    premiumRequired: null,
+  },
+  {
+    id: 'quickactions',
+    label: 'Quick Actions',
+    icon: '⚡',
+    description: 'Fast access to core features',
+    lockType: null,
+    premiumRequired: null,
+  },
+  {
+    id: 'gamification',
+    label: 'Levels & Badges',
+    icon: '🎮',
+    description: 'XP, level, badges & plan',
+    lockType: 'usage' as const,
+    usageUnlockKey: 'hasMinimumActivity', // unlocks after 3 days active
+    premiumRequired: null,
+  },
+  {
+    id: 'analytics',
+    label: 'Portfolio Analytics',
+    icon: '📊',
+    description: 'Advanced portfolio stats',
+    lockType: 'premium' as const,
+    premiumRequired: 'pro' as const,
+  },
+  {
+    id: 'copytrading',
+    label: 'Copy Trading Status',
+    icon: '🤖',
+    description: 'Monitor copy portfolio',
+    lockType: 'premium' as const,
+    premiumRequired: 'pro' as const,
+  },
+] as const;
+
+function WidgetCustomizer({
+  isOpen,
+  onClose,
+  widgetOrder,
+  onOrderChange,
+  daysActive,
+  hasFirstDeposit,
+  subscriptionTier,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  widgetOrder: string[];
+  onOrderChange: (order: string[]) => void;
+  daysActive: number;
+  hasFirstDeposit: boolean;
+  subscriptionTier: string;
+}) {
+  const [order, setOrder] = useState(widgetOrder);
+
+  const getWidgetStatus = (w: WidgetDef): 'available' | 'locked' | 'premium' => {
+    if (w.lockType === 'premium') {
+      if (subscriptionTier === 'free') return 'premium';
+      return 'available';
+    }
+    if (w.lockType === 'usage') {
+      const uk = (w as { usageUnlockKey: string }).usageUnlockKey;
+      if (uk === 'hasFirstDeposit' && !hasFirstDeposit) return 'locked';
+      if (uk === 'hasMinimumActivity' && daysActive < 3) return 'locked';
+    }
+    return 'available';
+  };
+
+  const move = (id: string, dir: 'up' | 'down') => {
+    const idx = order.indexOf(id);
+    if (idx < 0) return;
+    const newOrder = [...order];
+    const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= newOrder.length) return;
+    [newOrder[idx], newOrder[swapIdx]] = [newOrder[swapIdx], newOrder[idx]];
+    setOrder(newOrder);
+  };
+
+  const save = () => {
+    onOrderChange(order);
+    onClose();
+  };
+
+  const orderedWidgets = [...WIDGET_DEFINITIONS].sort(
+    (a, b) => order.indexOf(a.id) - order.indexOf(b.id)
+  );
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border/50 rounded-t-3xl max-h-[80vh] overflow-hidden"
+          >
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-border/60" />
+            </div>
+
+            <div className="px-5 py-3 flex items-center justify-between border-b border-border/30">
+              <div>
+                <h2 className="font-bold text-base">Customize Widgets</h2>
+                <p className="text-xs text-muted-foreground">Reorder your home screen widgets</p>
+              </div>
+              <button onClick={onClose} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto pb-24" style={{ maxHeight: 'calc(80vh - 100px)' }}>
+              <div className="px-5 py-4 space-y-2">
+                {orderedWidgets.map((w, i) => {
+                  const status = getWidgetStatus(w);
+                  return (
+                    <div
+                      key={w.id}
+                      className={cn(
+                        'flex items-center gap-3 p-3.5 rounded-xl border transition-all',
+                        status === 'available' ? 'bg-secondary/40 border-border/40' :
+                          status === 'locked' ? 'bg-secondary/20 border-border/20 opacity-60' :
+                            'bg-amber-500/5 border-amber-500/20 opacity-70'
+                      )}
+                    >
+                      <span className="text-xl shrink-0">{w.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold">{w.label}</p>
+                        <p className="text-[10px] text-muted-foreground">{w.description}</p>
+                        {status === 'locked' && (
+                          <p className="text-[10px] text-orange-400 mt-0.5 flex items-center gap-1">
+                            <Lock className="w-2.5 h-2.5" />
+                            {(w as any).usageUnlockKey === 'hasFirstDeposit' ? 'Unlocks after first deposit' : 'Unlocks after 3 days active'}
+                          </p>
+                        )}
+                        {status === 'premium' && (
+                          <p className="text-[10px] text-amber-400 mt-0.5 flex items-center gap-1">
+                            <Crown className="w-2.5 h-2.5" />
+                            Pro / Club plan only
+                          </p>
+                        )}
+                      </div>
+                      {status === 'available' && (
+                        <div className="flex flex-col gap-0.5 shrink-0">
+                          <button
+                            onClick={() => move(w.id, 'up')}
+                            disabled={i === 0}
+                            className="w-6 h-6 rounded bg-border/30 flex items-center justify-center disabled:opacity-30 hover:bg-primary/20 transition-colors"
+                          >
+                            <span className="text-[10px]">↑</span>
+                          </button>
+                          <button
+                            onClick={() => move(w.id, 'down')}
+                            disabled={i === orderedWidgets.length - 1}
+                            className="w-6 h-6 rounded bg-border/30 flex items-center justify-center disabled:opacity-30 hover:bg-primary/20 transition-colors"
+                          >
+                            <span className="text-[10px]">↓</span>
+                          </button>
+                        </div>
+                      )}
+                      {status === 'locked' && <Lock className="w-4 h-4 text-orange-400/60 shrink-0" />}
+                      {status === 'premium' && <Crown className="w-4 h-4 text-amber-400/60 shrink-0" />}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-card/95 backdrop-blur-sm border-t border-border/30">
+              <Button variant="premium" size="lg" className="w-full" onClick={save}>
+                <Check className="w-4 h-4 mr-1.5" />
+                Save Layout
+              </Button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export default function Home() {
   const navigate = useNavigate();
+  const [showDepositConfirm, setShowDepositConfirm] = useState(false);
+  const [showCustomizer, setShowCustomizer] = useState(false);
+
   const weeklyInvestment = useAppStore((s) => s.weeklyInvestment);
   const weeklyDepositHistory = useAppStore((s) => s.weeklyDepositHistory);
   const weeklyDepositStreak = useAppStore((s) => s.weeklyDepositStreak);
   const investorType = useAppStore((s) => s.investorType);
   const currentInsightIndex = useAppStore((s) => s.currentInsightIndex);
   const missionProgress = useAppStore((s) => s.missionProgress);
-  const isJourneyCompleted = useMemo(() => {
-    return missionProgress.m5_advancedUnlocked; // Mission 5 last task
-  }, [missionProgress]);
-
   const userProfile = useAppStore((state) => state.userProfile);
-  const setupProgress = useAppStore((state) => state.setupProgress);
   const subscription = useAppStore((state) => state.subscription);
   const daysActive = useAppStore((state) => state.daysActive);
+  const widgetOrder = useAppStore((s) => s.widgetOrder);
+  const updateWidgetOrder = useAppStore((s) => s.updateWidgetOrder);
+
+  const isJourneyCompleted = useMemo(() => missionProgress.m5_advancedUnlocked, [missionProgress]);
+
   const currentWeekId = getCurrentWeekId();
   const totalDeposited = weeklyDepositHistory.reduce((sum, d) => sum + d.amount, 0);
-
-  // Dynamic return rate based on investor profile
-  const annualRate = getReturnRateForInvestorType(investorType);
-  const returnLabel = getReturnLabel(investorType);
-
+  const hasFirstDeposit = weeklyDepositHistory.length > 0;
   const todayInsight = dailyInsights[currentInsightIndex % dailyInsights.length];
 
-  // Milestone progression
   const milestones = [
     { threshold: 0, label: 'Starter', icon: '🌱' },
     { threshold: 500, label: 'Builder', icon: '🔨' },
@@ -67,63 +301,38 @@ export default function Home() {
     ? Math.ceil((nextMilestone.threshold - totalDeposited) / weeklyInvestment)
     : null;
 
-  return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Hero Header */}
-      <div
-        className="px-6 pt-8 pb-6 space-y-6"
-        style={{
-          background: 'linear-gradient(180deg, rgba(99,102,241,0.08) 0%, transparent 100%)',
-        }}
-      >
-        {/* Top bar */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground">Welcome back</p>
-            <h1 className="text-xl font-bold">{investorType || 'Investor'}</h1>
-          </div>
-        </div>
+  // Check unlock conditions
+  const isGamificationUnlocked = daysActive >= 3;
+  const isMilestoneUnlocked = hasFirstDeposit;
 
-        {/* Gamification Widget */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.05 }}
-        >
-          <GamificationWidget />
-        </motion.div>
-
-        {/* Investment Dashboard (compact) */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <InvestmentDashboard compact />
-        </motion.div>
-
-      </div>
-
-      {/* Content */}
-      <div className="px-6 space-y-4">
-        {/* Setup Missions (if not completed) */}
-        {!isJourneyCompleted && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
+  // Render widget by ID
+  const renderWidget = (widgetId: string, idx: number) => {
+    switch (widgetId) {
+      case 'journey':
+        if (isJourneyCompleted) return null; // show below main content instead
+        return (
+          <motion.div key="journey" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
             <SetupMissions />
           </motion.div>
-        )}
+        );
 
-        {/* Next Milestone */}
-        {nextMilestone && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-          >
+      case 'milestone':
+        if (!nextMilestone) return null;
+        if (!isMilestoneUnlocked) {
+          return (
+            <motion.div key="milestone" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+              <div className="p-4 rounded-2xl border border-border/30 bg-secondary/20 flex items-center gap-3 opacity-60">
+                <Lock className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-semibold text-muted-foreground">Milestone Tracker</p>
+                  <p className="text-xs text-muted-foreground">Make your first deposit to unlock</p>
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+        return (
+          <motion.div key="milestone" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
             <Card className="overflow-hidden">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center justify-between mb-2">
@@ -144,102 +353,169 @@ export default function Home() {
                 </div>
                 <div className="flex justify-between text-[10px] text-muted-foreground">
                   <span>${totalDeposited.toLocaleString()} invested</span>
-                  <span>
-                    {weeksToNext
-                      ? `~${weeksToNext}w to ${nextMilestone.label}`
-                      : `$${nextMilestone.threshold.toLocaleString()} to unlock`}
-                  </span>
+                  <span>{weeksToNext ? `~${weeksToNext}w to ${nextMilestone.label}` : `$${nextMilestone.threshold.toLocaleString()} goal`}</span>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
-        )}
+        );
 
-        {/* Market Movers */}
-        <TopCoinsList />
+      case 'market':
+        return (
+          <motion.div key="market" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+            <TopCoinsList />
+          </motion.div>
+        );
 
-        {/* Personalized Insight */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="border-none" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.04))' }}>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <Sparkles className="w-4 h-4 text-primary" />
+      case 'insight':
+        return (
+          <motion.div key="insight" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+            <Card className="border-none" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.04))' }}>
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Daily Insight</p>
+                    <h3 className="text-sm font-semibold mb-1">{todayInsight.title}</h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{todayInsight.content}</p>
+                    {todayInsight.recommendedAction && (
+                      <p className="text-xs text-primary mt-2 flex items-center gap-1">
+                        <Zap className="w-3 h-3" />
+                        {todayInsight.recommendedAction}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Daily Insight</p>
-                  <h3 className="text-sm font-semibold mb-1">{todayInsight.title}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{todayInsight.content}</p>
-                  {todayInsight.recommendedAction && (
-                    <p className="text-xs text-primary mt-2 flex items-center gap-1">
-                      <Zap className="w-3 h-3" />
-                      {todayInsight.recommendedAction}
-                    </p>
-                  )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+
+      case 'quickactions':
+        return (
+          <motion.div key="quickactions" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { icon: DollarSign, label: 'Deposit', color: 'bg-green-500/10 text-green-500', action: () => { weeklyInvestment > 0 ? setShowDepositConfirm(true) : navigate('/investment-setup'); } },
+                { icon: PieChart, label: 'Portfolio', color: 'bg-blue-500/10 text-blue-500', action: () => navigate('/portfolio') },
+                { icon: BookOpen, label: 'Learn', color: 'bg-purple-500/10 text-purple-500', action: () => navigate('/learn') },
+                { icon: Award, label: 'Upgrade', color: 'bg-amber-500/10 text-amber-500', action: () => navigate('/upgrade') },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  onClick={item.action}
+                  className="flex flex-col items-center gap-2 py-3 rounded-xl bg-card border border-border/50 hover:border-primary/20 transition-all active:scale-95"
+                >
+                  <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', item.color)}>
+                    <item.icon className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-medium text-muted-foreground">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        );
+
+      case 'gamification':
+        if (!isGamificationUnlocked) {
+          return (
+            <motion.div key="gamification" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+              <div className="p-4 rounded-2xl border border-border/30 bg-secondary/20 flex items-center gap-3 opacity-60">
+                <Lock className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-semibold text-muted-foreground">Levels & Badges</p>
+                  <p className="text-xs text-muted-foreground">Use the app for 3 days to unlock your gamification profile</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </motion.div>
+          );
+        }
+        return (
+          <motion.div key="gamification" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+            <GamificationWidget />
+          </motion.div>
+        );
 
-        {/* Quick Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-        >
-          <div className="grid grid-cols-4 gap-3">
-            {[
-              {
-                icon: DollarSign,
-                label: 'Deposit',
-                color: 'bg-green-500/10 text-green-500',
-                action: () => navigate('/portfolio'),
-              },
-              {
-                icon: PieChart,
-                label: 'Portfolio',
-                color: 'bg-blue-500/10 text-blue-500',
-                action: () => navigate('/portfolio'),
-              },
-              {
-                icon: BookOpen,
-                label: 'Learn',
-                color: 'bg-purple-500/10 text-purple-500',
-                action: () => navigate('/learn'),
-              },
-              {
-                icon: Award,
-                label: 'Upgrade',
-                color: 'bg-amber-500/10 text-amber-500',
-                action: () => navigate('/upgrade'),
-              },
-            ].map((item, i) => (
-              <button
-                key={item.label}
-                onClick={item.action}
-                className="flex flex-col items-center gap-2 py-3 rounded-xl bg-card border border-border/50 hover:border-primary/20 transition-all active:scale-95"
-              >
-                <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', item.color)}>
-                  <item.icon className="w-4 h-4" />
+      case 'analytics':
+        if (subscription.tier === 'free') {
+          return (
+            <motion.div key="analytics" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+              <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 flex items-center gap-3">
+                <Crown className="w-5 h-5 text-amber-400 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-amber-300">Portfolio Analytics</p>
+                  <p className="text-xs text-muted-foreground">Upgrade to Pro to access advanced analytics</p>
                 </div>
-                <span className="text-[10px] font-medium text-muted-foreground">{item.label}</span>
-              </button>
-            ))}
-          </div>
-        </motion.div>
+                <Button variant="premium" size="sm" onClick={() => navigate('/upgrade')}>Pro</Button>
+              </div>
+            </motion.div>
+          );
+        }
+        return null;
 
-        {/* Completed Journey (at the end) */}
+      case 'copytrading':
+        if (subscription.tier === 'free') {
+          return (
+            <motion.div key="copytrading" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+              <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 flex items-center gap-3">
+                <Crown className="w-5 h-5 text-amber-400 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-amber-300">Copy Trading</p>
+                  <p className="text-xs text-muted-foreground">Upgrade to Pro to copy top traders</p>
+                </div>
+                <Button variant="premium" size="sm" onClick={() => navigate('/upgrade')}>Pro</Button>
+              </div>
+            </motion.div>
+          );
+        }
+        return null;
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background pb-28">
+      {/* Hero Header */}
+      <div
+        className="px-6 pt-8 pb-5 space-y-4"
+        style={{ background: 'linear-gradient(180deg, rgba(99,102,241,0.08) 0%, transparent 100%)' }}
+      >
+        {/* Top bar */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground">Welcome back</p>
+            <h1 className="text-xl font-bold">{investorType || 'Investor'}</h1>
+          </div>
+          <button
+            onClick={() => setShowCustomizer(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/60 border border-border/40 hover:bg-secondary transition-all text-xs font-medium text-muted-foreground"
+          >
+            <Settings2 className="w-3.5 h-3.5" />
+            Widgets
+          </button>
+        </div>
+
+        {/* Investment Dashboard (always first in the hero) */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+          <InvestmentDashboard compact />
+        </motion.div>
+      </div>
+
+      {/* Widget Grid */}
+      <div className="px-6 space-y-4">
+        {widgetOrder.map((widgetId, idx) => renderWidget(widgetId, idx))}
+
+        {/* Completed Journey (at the very end) */}
         {isJourneyCompleted && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="pt-8 pb-4"
+            className="pt-4"
           >
             <div className="flex items-center gap-2 mb-4 px-1">
               <Award className="w-4 h-4 text-primary" />
@@ -249,6 +525,23 @@ export default function Home() {
           </motion.div>
         )}
       </div>
+
+      {/* Widget Customizer Sheet */}
+      <WidgetCustomizer
+        isOpen={showCustomizer}
+        onClose={() => setShowCustomizer(false)}
+        widgetOrder={widgetOrder}
+        onOrderChange={updateWidgetOrder}
+        daysActive={daysActive}
+        hasFirstDeposit={hasFirstDeposit}
+        subscriptionTier={subscription.tier}
+      />
+
+      {/* Deposit Confirm Modal */}
+      <WeeklyDepositConfirm
+        isOpen={showDepositConfirm}
+        onClose={() => setShowDepositConfirm(false)}
+      />
     </div>
   );
 }

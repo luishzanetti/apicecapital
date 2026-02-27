@@ -103,6 +103,11 @@ export interface LearnProgress {
   unlockedTracks: string[];
 }
 
+export interface HomeWidget {
+  id: string;
+  enabled: boolean;
+}
+
 export interface UnlockState {
   // Free tier
   basicDashboard: boolean;
@@ -181,6 +186,9 @@ export interface AppState {
   lastOpenDate: string | null;
   currentInsightIndex: number;
 
+  // Widget config
+  widgetOrder: string[];
+
   // Wizard states (checklist completion)
   aiTradeWizard: { [step: string]: boolean };
   aiBotWizard: { [step: string]: boolean };
@@ -217,6 +225,7 @@ export interface AppState {
   completeMissionTask: (task: keyof MissionProgress, value?: any) => void;
   startActivationChallenge: () => void;
   advanceChallengeDay: () => void;
+  updateWidgetOrder: (order: string[]) => void;
   resetApp: () => void;
 }
 
@@ -326,6 +335,7 @@ export const useAppStore = create<AppState>()(
       daysActive: 0,
       lastOpenDate: null,
       currentInsightIndex: 0,
+      widgetOrder: ['journey', 'milestone', 'market', 'insight', 'quickactions', 'gamification'],
       aiTradeWizard: {},
       aiBotWizard: {},
       dcaGamification: {
@@ -337,6 +347,8 @@ export const useAppStore = create<AppState>()(
         lastDcaAction: null,
       },
 
+      updateWidgetOrder: (order) => set({ widgetOrder: order }),
+
       setQuizStep: (step) => set({ currentQuizStep: step }),
 
       setOnboardingStep: (step) => set({ onboardingStep: step }),
@@ -344,82 +356,88 @@ export const useAppStore = create<AppState>()(
       skipOnboarding: () => {
         set({ onboardingSkipped: true, hasCompletedOnboarding: false });
         // Sync to Supabase
-        supabase.auth.getUser().then(({ data: { user } }) => {
-          if (user) {
-            supabase.from('profiles').update({
-              onboarding_skipped: true,
-              updated_at: new Date().toISOString()
-            }).eq('id', user.id);
-          }
-        });
+        try {
+          supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+              supabase.from('profiles').update({
+                onboarding_skipped: true,
+                updated_at: new Date().toISOString()
+              }).eq('id', user.id).then(() => { }).catch(console.error);
+            }
+          }).catch(console.error);
+        } catch (e) { console.error('Supabase skipped onboarding error', e); }
       },
 
       syncFromSupabase: async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
 
-        // Fetch Profile
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+          // Fetch Profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
 
-        if (profile) {
-          set((state) => ({
-            userProfile: {
-              goal: profile.goal as any,
-              experience: profile.experience as any,
-              riskTolerance: profile.risk_tolerance as any,
-              capitalRange: profile.capital_range as any,
-              habitType: profile.habit_type as any,
-              preferredAssets: profile.preferred_assets as any,
-            },
-            investorType: profile.investor_type as any,
-            hasCompletedOnboarding: profile.has_completed_onboarding || false,
-            onboardingSkipped: profile.onboarding_skipped || false,
-            missionProgress: (profile.mission_progress as any) || defaultMissionProgress,
-            weeklyInvestment: profile.weekly_investment || 0,
-          }));
-        }
+          if (profile) {
+            set((state) => ({
+              userProfile: {
+                goal: profile.goal as any,
+                experience: profile.experience as any,
+                riskTolerance: profile.risk_tolerance as any,
+                capitalRange: profile.capital_range as any,
+                habitType: profile.habit_type as any,
+                preferredAssets: profile.preferred_assets as any,
+              },
+              investorType: profile.investor_type as any,
+              hasCompletedOnboarding: profile.has_completed_onboarding || false,
+              onboardingSkipped: profile.onboarding_skipped || false,
+              missionProgress: (profile.mission_progress as any) || defaultMissionProgress,
+              weeklyInvestment: profile.weekly_investment || 0,
+            }));
+          }
 
-        // Fetch Portfolios
-        const { data: portfolios } = await supabase
-          .from('portfolios')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_selected', true)
-          .single();
+          // Fetch Portfolios
+          const { data: portfolios } = await supabase
+            .from('portfolios')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('is_selected', true)
+            .single();
 
-        if (portfolios) {
-          set({
-            selectedPortfolio: {
-              portfolioId: portfolios.id,
-              allocations: portfolios.allocations as any,
-              selectedAt: portfolios.created_at
-            }
-          })
-        }
+          if (portfolios) {
+            set({
+              selectedPortfolio: {
+                portfolioId: portfolios.id,
+                allocations: portfolios.allocations as any,
+                selectedAt: portfolios.created_at
+              }
+            })
+          }
 
-        // Fetch DCA Plans
-        const { data: dcaPlans } = await supabase
-          .from('dca_plans')
-          .select('*')
-          .eq('user_id', user.id);
+          // Fetch DCA Plans
+          const { data: dcaPlans } = await supabase
+            .from('dca_plans')
+            .select('*')
+            .eq('user_id', user.id);
 
-        if (dcaPlans) {
-          const formattedPlans = dcaPlans.map(p => ({
-            id: p.id,
-            assets: p.assets as any,
-            amountPerInterval: p.amount_per_interval,
-            frequency: p.frequency as any,
-            durationDays: p.duration_days,
-            startDate: p.start_date,
-            isActive: p.is_active,
-            totalInvested: p.total_invested,
-            nextExecutionDate: p.next_execution_date
-          }));
-          set({ dcaPlans: formattedPlans });
+          if (dcaPlans) {
+            const formattedPlans = dcaPlans.map(p => ({
+              id: p.id,
+              assets: p.assets as any,
+              amountPerInterval: p.amount_per_interval,
+              frequency: p.frequency as any,
+              durationDays: p.duration_days,
+              startDate: p.start_date,
+              isActive: p.is_active,
+              totalInvested: p.total_invested,
+              nextExecutionDate: p.next_execution_date
+            }));
+            set({ dcaPlans: formattedPlans });
+          }
+        } catch (error) {
+          console.error('Supabase sync error (using local state)', error);
         }
       },
 
@@ -428,23 +446,25 @@ export const useAppStore = create<AppState>()(
           const newProfile = { ...state.userProfile, ...updates };
 
           // Sync to Supabase
-          supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) {
-              supabase.from('profiles').upsert({
-                id: user.id,
-                updated_at: new Date().toISOString(),
-                // Map camelCase to snake_case
-                goal: newProfile.goal,
-                experience: newProfile.experience,
-                risk_tolerance: newProfile.riskTolerance,
-                capital_range: newProfile.capitalRange,
-                habit_type: newProfile.habitType,
-                preferred_assets: newProfile.preferredAssets,
-              }).then(({ error }) => {
-                if (error) console.error('Error syncing profile:', error);
-              });
-            }
-          });
+          try {
+            supabase.auth.getUser().then(({ data: { user } }) => {
+              if (user) {
+                supabase.from('profiles').upsert({
+                  id: user.id,
+                  updated_at: new Date().toISOString(),
+                  // Map camelCase to snake_case
+                  goal: newProfile.goal,
+                  experience: newProfile.experience,
+                  risk_tolerance: newProfile.riskTolerance,
+                  capital_range: newProfile.capitalRange,
+                  habit_type: newProfile.habitType,
+                  preferred_assets: newProfile.preferredAssets,
+                }).then(({ error }) => {
+                  if (error) console.error('Error syncing profile:', error);
+                });
+              }
+            }).catch(console.error);
+          } catch (e) { console.error('Supabase profile upsert error', e); }
 
           return { userProfile: newProfile };
         });
@@ -463,19 +483,21 @@ export const useAppStore = create<AppState>()(
         });
 
         // Sync to Supabase
-        supabase.auth.getUser().then(({ data: { user } }) => {
-          if (user) {
-            supabase.from('profiles').update({
-              has_completed_onboarding: true,
-              mission_progress: {
-                ...state.missionProgress,
-                m1_onboardingCompleted: true,
-                m1_profileQuizDone: true
-              },
-              updated_at: new Date().toISOString()
-            }).eq('id', user.id);
-          }
-        });
+        try {
+          supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+              supabase.from('profiles').update({
+                has_completed_onboarding: true,
+                mission_progress: {
+                  ...state.missionProgress,
+                  m1_onboardingCompleted: true,
+                  m1_profileQuizDone: true
+                },
+                updated_at: new Date().toISOString()
+              }).eq('id', user.id).then(() => { }).catch(console.error);
+            }
+          }).catch(console.error);
+        } catch (e) { console.error('Supabase complete onboarding error', e); }
       },
 
       updateSetupProgress: (updates) =>
@@ -500,16 +522,18 @@ export const useAppStore = create<AppState>()(
         set({ investorType: type });
 
         // Sync to Supabase
-        supabase.auth.getUser().then(({ data: { user } }) => {
-          if (user) {
-            supabase.from('profiles').update({
-              investor_type: type,
-              updated_at: new Date().toISOString()
-            }).eq('id', user.id).then(({ error }) => {
-              if (error) console.error('Error syncing investor type:', error);
-            });
-          }
-        });
+        try {
+          supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+              supabase.from('profiles').update({
+                investor_type: type,
+                updated_at: new Date().toISOString()
+              }).eq('id', user.id).then(({ error }) => {
+                if (error) console.error('Error syncing investor type:', error);
+              });
+            }
+          }).catch(console.error);
+        } catch (e) { console.error('Supabase update investor type error', e); }
       },
 
       setSelectedPortfolio: (portfolioId, allocations) =>
@@ -519,23 +543,25 @@ export const useAppStore = create<AppState>()(
           const total = Object.keys(newSetup).length;
 
           // Sync to Supabase
-          supabase.auth.getUser().then(async ({ data: { user } }) => {
-            if (user) {
-              // Deselect previous portfolios
-              await supabase.from('portfolios')
-                .update({ is_selected: false })
-                .eq('user_id', user.id);
+          try {
+            supabase.auth.getUser().then(async ({ data: { user } }) => {
+              if (user) {
+                // Deselect previous portfolios
+                await supabase.from('portfolios')
+                  .update({ is_selected: false })
+                  .eq('user_id', user.id);
 
-              // Insert new selected portfolio
-              await supabase.from('portfolios').insert({
-                user_id: user.id,
-                name: portfolioId,
-                allocations: allocations,
-                is_selected: true,
-                created_at: new Date().toISOString()
-              });
-            }
-          });
+                // Insert new selected portfolio
+                await supabase.from('portfolios').insert({
+                  user_id: user.id,
+                  name: portfolioId,
+                  allocations: allocations,
+                  is_selected: true,
+                  created_at: new Date().toISOString()
+                });
+              }
+            }).catch(console.error);
+          } catch (e) { console.error('Supabase set portfolio error', e); }
 
           return {
             selectedPortfolio: {
@@ -586,23 +612,25 @@ export const useAppStore = create<AppState>()(
           }
 
           // Sync to Supabase
-          supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) {
-              supabase.from('dca_plans').insert({
-                user_id: user.id,
-                assets: newPlan.assets,
-                amount_per_interval: newPlan.amountPerInterval,
-                frequency: newPlan.frequency,
-                duration_days: newPlan.durationDays,
-                start_date: newPlan.startDate,
-                is_active: newPlan.isActive,
-                total_invested: newPlan.totalInvested,
-                next_execution_date: newPlan.nextExecutionDate
-              }).then(({ error }) => {
-                if (error) console.error('Error syncing DCA plan:', error);
-              });
-            }
-          });
+          try {
+            supabase.auth.getUser().then(({ data: { user } }) => {
+              if (user) {
+                supabase.from('dca_plans').insert({
+                  user_id: user.id,
+                  assets: newPlan.assets,
+                  amount_per_interval: newPlan.amountPerInterval,
+                  frequency: newPlan.frequency,
+                  duration_days: newPlan.durationDays,
+                  start_date: newPlan.startDate,
+                  is_active: newPlan.isActive,
+                  total_invested: newPlan.totalInvested,
+                  next_execution_date: newPlan.nextExecutionDate
+                }).then(({ error }) => {
+                  if (error) console.error('Error syncing DCA plan:', error);
+                });
+              }
+            }).catch(console.error);
+          } catch (e) { console.error('Supabase add DCA plan error', e); }
 
           return {
             dcaPlans: [...state.dcaPlans, newPlan],
@@ -734,16 +762,18 @@ export const useAppStore = create<AppState>()(
       setWeeklyInvestment: (amount) => {
         set({ weeklyInvestment: amount });
         // Sync to Supabase
-        supabase.auth.getUser().then(({ data: { user } }) => {
-          if (user) {
-            supabase.from('profiles').update({
-              weekly_investment: amount,
-              updated_at: new Date().toISOString()
-            }).eq('id', user.id).then(({ error }) => {
-              if (error) console.error('Error syncing weekly investment:', error);
-            });
-          }
-        });
+        try {
+          supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+              supabase.from('profiles').update({
+                weekly_investment: amount,
+                updated_at: new Date().toISOString()
+              }).eq('id', user.id).then(({ error }) => {
+                if (error) console.error('Error syncing weekly investment:', error);
+              });
+            }
+          }).catch(console.error);
+        } catch (e) { console.error('Supabase set weekly investment error', e); }
       },
 
       confirmWeeklyDeposit: (weekId, amount, allocations) =>
@@ -770,24 +800,26 @@ export const useAppStore = create<AppState>()(
           const newTotalCommitted = state.dcaGamification.totalAmountCommitted + amount;
 
           // Sync to Supabase
-          supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) {
-              supabase.from('transactions').insert(
-                allocations.map(a => ({
-                  user_id: user.id,
-                  asset_symbol: a.asset,
-                  type: 'buy',
-                  amount: a.amount / (1), // placeholder for price
-                  price_per_unit: 1, // will be enhanced with real prices
-                  date: new Date().toISOString(),
-                  fees: 0,
-                  notes: `Weekly deposit W${weekId}`,
-                }))
-              ).then(({ error }) => {
-                if (error) console.error('Error syncing deposit:', error);
-              });
-            }
-          });
+          try {
+            supabase.auth.getUser().then(({ data: { user } }) => {
+              if (user) {
+                supabase.from('transactions').insert(
+                  allocations.map(a => ({
+                    user_id: user.id,
+                    asset_symbol: a.asset,
+                    type: 'buy',
+                    amount: a.amount / (1), // placeholder for price
+                    price_per_unit: 1, // will be enhanced with real prices
+                    date: new Date().toISOString(),
+                    fees: 0,
+                    notes: `Weekly deposit W${weekId}`,
+                  }))
+                ).then(({ error }) => {
+                  if (error) console.error('Error syncing deposit:', error);
+                });
+              }
+            }).catch(console.error);
+          } catch (e) { console.error('Supabase transaction insert error', e); }
 
           return {
             weeklyDepositHistory: [...state.weeklyDepositHistory, deposit],

@@ -7,13 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { LockedOverlay } from '@/components/LockedOverlay';
 import { useAppStore } from '@/store/appStore';
 import { copyPortfolios, referralLinks } from '@/data/sampleData';
-import { 
-  Zap, 
-  Shield, 
-  Calendar, 
-  Bot, 
-  Copy, 
-  ChevronRight, 
+import {
+  Zap,
+  Shield,
+  Calendar,
+  Bot,
+  Copy,
+  ChevronRight,
   ExternalLink,
   Check,
   Plus,
@@ -67,10 +67,10 @@ export default function Automations() {
               {hasDcaPlan ? 'Active' : 'Not configured'}
             </Badge>
           </div>
-          
-          <Card 
+
+          <Card
             className="cursor-pointer hover:border-primary/20 transition-colors"
-            onClick={() => navigate('/automations/dca')}
+            onClick={() => navigate('/dca-planner')}
           >
             <CardContent className="pt-5">
               <div className="flex items-start gap-4">
@@ -80,7 +80,7 @@ export default function Automations() {
                 <div className="flex-1">
                   <h3 className="font-semibold text-sm mb-1">Dollar-Cost Averaging</h3>
                   <p className="text-xs text-muted-foreground mb-3">
-                    {hasDcaPlan 
+                    {hasDcaPlan
                       ? `${dcaPlans.length} active plan${dcaPlans.length > 1 ? 's' : ''}`
                       : 'Set up recurring buys for consistent accumulation'
                     }
@@ -101,16 +101,16 @@ export default function Automations() {
             AI Infrastructure
             {!unlockState.aiTradeGuides && <Badge variant="premium" size="sm">Pro</Badge>}
           </h2>
-          
+
           <div className="space-y-3">
             <LockedOverlay
               isLocked={!unlockState.aiTradeGuides}
               message="Upgrade to Pro"
               onUnlock={() => navigate('/upgrade')}
             >
-              <Card 
+              <Card
                 className="cursor-pointer hover:border-primary/20 transition-colors"
-                onClick={() => unlockState.aiTradeGuides && navigate('/automations/ai-trade')}
+                onClick={() => navigate(unlockState.aiTradeGuides ? '/strategies' : '/upgrade')}
               >
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-4">
@@ -134,9 +134,9 @@ export default function Automations() {
               message="Upgrade to Pro"
               onUnlock={() => navigate('/upgrade')}
             >
-              <Card 
+              <Card
                 className="cursor-pointer hover:border-primary/20 transition-colors"
-                onClick={() => unlockState.aiBotGuides && navigate('/automations/ai-bot')}
+                onClick={() => navigate(unlockState.aiBotGuides ? '/strategies' : '/upgrade')}
               >
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-4">
@@ -163,7 +163,7 @@ export default function Automations() {
             Copy Portfolios
             {!unlockState.copyPortfolios && <Badge variant="premium" size="sm">Pro</Badge>}
           </h2>
-          
+
           <LockedOverlay
             isLocked={!unlockState.copyPortfolios}
             message="Upgrade to unlock copy trading"
@@ -191,14 +191,14 @@ export default function Automations() {
                         </div>
                         <Copy className="w-5 h-5 text-muted-foreground shrink-0" />
                       </div>
-                      
+
                       <p className="text-xs text-muted-foreground mb-3">
                         {portfolio.whatItAims}
                       </p>
-                      
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="w-full"
                         onClick={(e) => {
                           e.stopPropagation();

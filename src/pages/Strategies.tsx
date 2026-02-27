@@ -6,13 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { LockedOverlay } from '@/components/LockedOverlay';
 import { useAppStore } from '@/store/appStore';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Compass, 
-  Shield, 
-  Calendar, 
-  Bot, 
-  Copy, 
-  ChevronRight, 
+import {
+  Compass,
+  Shield,
+  Calendar,
+  Bot,
+  Copy,
+  ChevronRight,
   CreditCard,
   TrendingUp,
   Zap,
@@ -56,7 +56,7 @@ export default function Strategies() {
       description: 'Build wealth systematically with automated recurring investments. Remove emotion, stay consistent.',
       icon: Calendar,
       iconGradient: 'from-blue-500 to-cyan-500',
-      route: '/strategies/dca',
+      route: '/dca-planner',
       badge: dcaPlans.length > 0 ? `${dcaPlans.length} Active` : 'Get Started',
       badgeVariant: dcaPlans.length > 0 ? 'low' : 'recommended',
       features: ['AI-powered recommendations', 'Multi-asset allocation', 'Forever mode available', 'From $5/interval'],
@@ -190,9 +190,9 @@ export default function Strategies() {
           </h2>
           <div className="space-y-3">
             {wealthStrategies.map((strategy, i) => (
-              <StrategyCardComponent 
-                key={strategy.id} 
-                strategy={strategy} 
+              <StrategyCardComponent
+                key={strategy.id}
+                strategy={strategy}
                 index={i}
                 onNavigate={navigate}
               />
@@ -209,9 +209,9 @@ export default function Strategies() {
           </h2>
           <div className="space-y-3">
             {automationStrategies.map((strategy, i) => (
-              <StrategyCardComponent 
-                key={strategy.id} 
-                strategy={strategy} 
+              <StrategyCardComponent
+                key={strategy.id}
+                strategy={strategy}
                 index={i}
                 onNavigate={navigate}
               />
@@ -264,17 +264,17 @@ export default function Strategies() {
   );
 }
 
-function StrategyCardComponent({ 
-  strategy, 
+function StrategyCardComponent({
+  strategy,
   index,
-  onNavigate 
-}: { 
-  strategy: StrategyCard; 
+  onNavigate
+}: {
+  strategy: StrategyCard;
   index: number;
   onNavigate: (path: string) => void;
 }) {
   const content = (
-    <Card 
+    <Card
       className="cursor-pointer hover:border-primary/20 transition-all duration-300 overflow-hidden group"
       onClick={() => !strategy.isLocked && onNavigate(strategy.route)}
     >
@@ -284,7 +284,7 @@ function StrategyCardComponent({
           <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${strategy.iconGradient} flex items-center justify-center shrink-0 shadow-lg group-hover:scale-105 transition-transform`}>
             <strategy.icon className="w-6 h-6 text-white" />
           </div>
-          
+
           <div className="flex-1 min-w-0">
             {/* Title Row */}
             <div className="flex items-start justify-between gap-2 mb-1">
@@ -299,7 +299,7 @@ function StrategyCardComponent({
                 </Badge>
               )}
             </div>
-            
+
             {/* Description */}
             <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
               {strategy.description}
@@ -308,8 +308,8 @@ function StrategyCardComponent({
             {/* Features */}
             <div className="flex flex-wrap gap-1.5 mb-3">
               {strategy.features.slice(0, 3).map((feature, i) => (
-                <span 
-                  key={i} 
+                <span
+                  key={i}
                   className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground"
                 >
                   {feature}

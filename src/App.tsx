@@ -72,13 +72,15 @@ function AppContent() {
         <Route path="/portfolio/:id" element={<PortfolioDetail />} />
         <Route path="/strategies" element={<Strategies />} />
         <Route path="/learn" element={<Learn />} />
-        <Route path="/learn/:id" element={<LessonDetail />} />
+        <Route path="/learn/:trackId/:lessonId" element={<LessonDetail />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/referrals" element={<ReferralLinks />} />
         <Route path="/upgrade" element={<Upgrade />} />
         <Route path="/support" element={<Support />} />
         <Route path="/automations" element={<Automations />} />
         <Route path="/dca-planner" element={<DCAPlanner />} />
+        <Route path="/automations/dca" element={<DCAPlanner />} />
+        <Route path="/investment-setup" element={<DCAPlanner />} />
         <Route path="/activation-challenge" element={<ActivationChallenge />} />
         <Route path="/cashback-onboarding" element={<CashbackOnboarding />} />
         <Route path="/cashback-machine" element={<CashbackMachine />} />

@@ -85,24 +85,30 @@ export default function Portfolio() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-28">
       {/* Header */}
-      <div className="px-6 pt-8 pb-4" style={{ background: 'linear-gradient(180deg, rgba(99,102,241,0.06) 0%, transparent 100%)' }}>
+      <div
+        className="px-5 pt-6 pb-4"
+        style={{ background: 'linear-gradient(180deg, hsl(var(--primary) / 0.07) 0%, transparent 100%)' }}
+      >
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold">Portfolio</h1>
-            <p className="text-xs text-muted-foreground">Your investment engine</p>
+            <p className="text-xs text-muted-foreground font-medium">Investment Engine</p>
+            <h1 className="text-2xl font-bold tracking-tight mt-0.5">Portfolio</h1>
           </div>
           {weeklyDepositStreak > 0 && (
-            <Badge variant="outline" className="gap-1 border-orange-500/30 text-orange-400">
+            <Badge
+              variant="outline"
+              className="gap-1.5 border-orange-500/30 bg-orange-500/5 text-orange-400 text-[10px] font-bold"
+            >
               <Flame className="w-3 h-3" />
-              {weeklyDepositStreak}w
+              {weeklyDepositStreak}w streak
             </Badge>
           )}
         </div>
 
-        {/* Tab bar */}
-        <div className="flex bg-secondary/50 rounded-xl p-1 gap-1">
+        {/* Tab bar with animated active pill */}
+        <div className="flex bg-secondary/40 rounded-2xl p-1 gap-1 relative">
           {([
             { key: 'overview', label: 'Overview' },
             { key: 'strategies', label: 'Strategies' },
@@ -112,17 +118,25 @@ export default function Portfolio() {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={cn(
-                'flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all',
-                activeTab === tab.key ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'
+                'relative flex-1 py-2 px-3 rounded-[14px] text-xs font-semibold transition-colors duration-200 z-10',
+                activeTab === tab.key ? 'text-foreground' : 'text-muted-foreground'
               )}
             >
-              {tab.label}
+              {activeTab === tab.key && (
+                <motion.div
+                  layoutId="portfolioTabPill"
+                  className="absolute inset-0 bg-card rounded-[14px] shadow-sm"
+                  style={{ border: '1px solid hsl(var(--border) / 0.4)' }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+                />
+              )}
+              <span className="relative z-10">{tab.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="px-6 space-y-4 mt-4">
+      <div className="px-5 space-y-4 mt-4">
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
             <motion.div
@@ -238,25 +252,30 @@ export default function Portfolio() {
               {/* Confirm Deposit CTA */}
               {weeklyInvestment > 0 && !thisWeekDeposited && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                  <Card
-                    className="overflow-hidden cursor-pointer border-primary/30 hover:border-primary/50 transition-colors active:scale-[0.98]"
+                  <button
                     onClick={() => setShowDepositConfirm(true)}
+                    className="w-full press-scale"
                   >
-                    <div className="p-4" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.06))' }}>
+                    <div
+                      className="p-4 rounded-2xl border border-primary/30 hover:border-primary/50 transition-all"
+                      style={{ background: 'linear-gradient(135deg, hsl(var(--primary) / 0.09), hsl(250 84% 60% / 0.06))' }}
+                    >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <div className="w-11 h-11 rounded-xl bg-primary/12 flex items-center justify-center shrink-0 glow-primary">
                           <Wallet className="w-5 h-5 text-primary" />
                         </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold">Confirm Weekly Deposit</p>
-                          <p className="text-xs text-muted-foreground">
-                            ${weeklyInvestment} ready to allocate
+                        <div className="flex-1 text-left">
+                          <p className="text-sm font-bold">Confirm Weekly Deposit</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            ${weeklyInvestment} ready to allocate · Tap to confirm
                           </p>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-primary" />
+                        <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                          <ArrowRight className="w-4 h-4 text-primary" />
+                        </div>
                       </div>
                     </div>
-                  </Card>
+                  </button>
                 </motion.div>
               )}
 
