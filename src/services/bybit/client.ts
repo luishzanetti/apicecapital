@@ -31,7 +31,7 @@ export class BybitClient {
         try {
             const response = await fetch(url, {
                 method: 'GET',
-                headers
+                headers: headers as HeadersInit
             });
 
             if (!response.ok) {
