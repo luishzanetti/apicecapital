@@ -1,263 +1,253 @@
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useAppStore } from '@/store/appStore';
+import { dailyInsights, getReturnRateForInvestorType, getReturnLabel } from '@/data/sampleData';
+import SetupMissions from '@/components/SetupMissions';
+import InvestmentDashboard from '@/components/InvestmentDashboard';
+import { GamificationWidget } from '@/components/GamificationWidget';
+import { TopCoinsList } from '@/components/TopCoinsList';
 import {
-  Bell,
-  Settings,
-  TrendingUp,
-  Plus,
-  ArrowRight,
-  Wallet,
-  Zap,
-  Target,
-  Shield,
-  Link as LinkIcon,
-  TrendingDown
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { useAppStore } from "@/store/appStore";
-import { useAuth } from "@/components/AuthProvider";
-import { usePortfolioData } from "@/hooks/usePortfolioData";
-import { AddTransactionModal } from "@/components/AddTransactionModal";
-import { TopCoinsList } from "@/components/TopCoinsList";
-import { toast } from "sonner";
+  TrendingUp, DollarSign, Flame, ChevronRight,
+  PieChart, BookOpen, Sparkles, Zap, Award
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+// Get current ISO week ID
+function getCurrentWeekId(): string {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const diff = now.getTime() - start.getTime();
+  const weekNum = Math.ceil((diff / 86400000 + start.getDay() + 1) / 7);
+  return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+}
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const userName = user?.email?.split('@')[0] || 'Investor';
+  const weeklyInvestment = useAppStore((s) => s.weeklyInvestment);
+  const weeklyDepositHistory = useAppStore((s) => s.weeklyDepositHistory);
+  const weeklyDepositStreak = useAppStore((s) => s.weeklyDepositStreak);
+  const investorType = useAppStore((s) => s.investorType);
+  const currentInsightIndex = useAppStore((s) => s.currentInsightIndex);
+  const missionProgress = useAppStore((s) => s.missionProgress);
+  const isJourneyCompleted = useMemo(() => {
+    return missionProgress.m5_advancedUnlocked; // Mission 5 last task
+  }, [missionProgress]);
 
   const userProfile = useAppStore((state) => state.userProfile);
   const setupProgress = useAppStore((state) => state.setupProgress);
   const subscription = useAppStore((state) => state.subscription);
   const daysActive = useAppStore((state) => state.daysActive);
+  const currentWeekId = getCurrentWeekId();
+  const totalDeposited = weeklyDepositHistory.reduce((sum, d) => sum + d.amount, 0);
 
-  /*
-  const {
-    holdings,
-    totalBalance,
-    totalPnL,
-    totalPnLPercentage,
-    isLoading: isPortfolioLoading
-  } = usePortfolioData();
-  */
-  // Mock data to unblock initial load
-  const holdings: any[] = [];
-  const totalBalance = 0;
-  const totalPnL = 0;
-  const totalPnLPercentage = 0;
-  const isPortfolioLoading = false;
+  // Dynamic return rate based on investor profile
+  const annualRate = getReturnRateForInvestorType(investorType);
+  const returnLabel = getReturnLabel(investorType);
 
-  // Calculate setup progress percentage by counting true values
-  const progressSteps = [
-    setupProgress?.exchangeAccountCreated,
-    setupProgress?.corePortfolioSelected,
-    setupProgress?.dcaPlanConfigured,
+  const todayInsight = dailyInsights[currentInsightIndex % dailyInsights.length];
+
+  // Milestone progression
+  const milestones = [
+    { threshold: 0, label: 'Starter', icon: '🌱' },
+    { threshold: 500, label: 'Builder', icon: '🔨' },
+    { threshold: 2000, label: 'Optimizer', icon: '⚡' },
+    { threshold: 5000, label: 'Pro', icon: '🚀' },
+    { threshold: 10000, label: 'Elite', icon: '💎' },
   ];
-  const completedSteps = progressSteps.filter(Boolean).length;
-  const progressPercentage = (completedSteps / progressSteps.length) * 100;
-
-  const handleConnectBybit = () => {
-    toast.info("Exchange Integration", {
-      description: "Coming soon! AI analysis of your Bybit trades is being developed."
-    });
-  };
+  const currentMilestone = [...milestones].reverse().find(m => totalDeposited >= m.threshold) || milestones[0];
+  const nextMilestone = milestones.find(m => m.threshold > totalDeposited);
+  const milestoneProgress = nextMilestone
+    ? ((totalDeposited - currentMilestone.threshold) / (nextMilestone.threshold - currentMilestone.threshold)) * 100
+    : 100;
+  const weeksToNext = nextMilestone && weeklyInvestment > 0
+    ? Math.ceil((nextMilestone.threshold - totalDeposited) / weeklyInvestment)
+    : null;
 
   return (
-    <div className="min-h-screen bg-background pb-20 safe-top">
-      {/* Header */}
-      <header className="px-5 py-4 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-md z-10 border-b border-white/5">
-        <div className="flex items-center gap-3" onClick={() => navigate('/profile')}>
-          <Avatar className="h-10 w-10 border-2 border-primary/20 cursor-pointer">
-            <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`} />
-            <AvatarFallback>{userName.substring(0, 2).toUpperCase()}</AvatarFallback>
-          </Avatar>
+    <div className="min-h-screen bg-background pb-24">
+      {/* Hero Header */}
+      <div
+        className="px-6 pt-8 pb-6 space-y-6"
+        style={{
+          background: 'linear-gradient(180deg, rgba(99,102,241,0.08) 0%, transparent 100%)',
+        }}
+      >
+        {/* Top bar */}
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-muted-foreground">Welcome back,</p>
-            <h2 className="text-sm font-bold">{userName}</h2>
+            <p className="text-xs text-muted-foreground">Welcome back</p>
+            <h1 className="text-xl font-bold">{investorType || 'Investor'}</h1>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="icon" className="rounded-full relative" onClick={() => navigate('/profile')}>
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
-          </Button>
-          <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate('/profile')}>
-            <Settings className="w-5 h-5" />
-          </Button>
-        </div>
-      </header>
 
-      <div className="px-5 py-6 space-y-8">
-        {/* Portfolio Overview */}
+        {/* Gamification Widget */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.05 }}
         >
-          <Card className="border-none bg-gradient-to-br from-primary/10 via-background to-secondary/10 overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
-              <Wallet className="w-32 h-32" />
-            </div>
-            <CardContent className="pt-6 relative z-10">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <p className="text-sm text-muted-foreground font-medium">Total Balance</p>
-                  <h1 className="text-3xl font-bold tracking-tight">
-                    ${isPortfolioLoading ? "..." : totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </h1>
-                </div>
-                <Badge variant={totalPnL >= 0 ? 'default' : 'destructive'} className="gap-1">
-                  {totalPnL >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {isPortfolioLoading ? "..." : `${Math.abs(totalPnLPercentage).toFixed(2)}%`}
-                </Badge>
-              </div>
-              <p className={`text-sm font-medium ${totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {totalPnL >= 0 ? '+' : '-'}${Math.abs(totalPnL).toLocaleString()} (All time)
-              </p>
-
-              <div className="grid grid-cols-2 gap-3 mt-6">
-                <AddTransactionModal onTransactionAdded={() => {}} />
-                <Button variant="outline" className="w-full bg-background/50 hover:bg-background/80" onClick={() => navigate('/portfolio')}>
-                  View Details
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <GamificationWidget />
         </motion.div>
 
-        {/* Top 10 Coins Carousel */}
+        {/* Investment Dashboard (compact) */}
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <TopCoinsList />
+          <InvestmentDashboard compact />
         </motion.div>
 
-        {/* Action Required / Setup */}
-        {progressPercentage < 100 && (
+      </div>
+
+      {/* Content */}
+      <div className="px-6 space-y-4">
+        {/* Setup Missions (if not completed) */}
+        {!isJourneyCompleted && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="border-primary/20 bg-primary/5">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-sm font-bold flex items-center gap-2">
-                    <Target className="w-4 h-4 text-primary" /> Setup Progress
-                  </CardTitle>
-                  <span className="text-xs font-mono text-primary">{Math.round(progressPercentage)}%</span>
+            <SetupMissions />
+          </motion.div>
+        )}
+
+        {/* Next Milestone */}
+        {nextMilestone && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <Card className="overflow-hidden">
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{currentMilestone.icon}</span>
+                    <span className="text-sm font-semibold">{currentMilestone.label}</span>
+                    <ChevronRight className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-lg">{nextMilestone.icon}</span>
+                    <span className="text-sm font-semibold text-muted-foreground">{nextMilestone.label}</span>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <Progress value={progressPercentage} className="h-2 mb-3" />
-                <p className="text-xs text-muted-foreground mb-3">
-                  Complete your profile to unlock AI insights.
-                </p>
-                <Button size="sm" variant="secondary" className="w-full h-8 text-xs" onClick={() => navigate('/quiz')}>
-                  Continue Setup <ArrowRight className="w-3 h-3 ml-1" />
-                </Button>
+                <div className="h-1.5 bg-secondary rounded-full overflow-hidden mb-2">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500"
+                    animate={{ width: `${Math.min(milestoneProgress, 100)}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>${totalDeposited.toLocaleString()} invested</span>
+                  <span>
+                    {weeksToNext
+                      ? `~${weeksToNext}w to ${nextMilestone.label}`
+                      : `$${nextMilestone.threshold.toLocaleString()} to unlock`}
+                  </span>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
         )}
 
-        {/* Exchange Integration Teaser */}
+        {/* Market Movers */}
+        <TopCoinsList />
+
+        {/* Personalized Insight */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="bg-gradient-to-r from-slate-900 to-slate-800 border-none text-white relative overflow-hidden group cursor-pointer" onClick={handleConnectBybit}>
-            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-            <CardContent className="flex items-center gap-4 p-5 relative z-10">
-              <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                <LinkIcon className="w-6 h-6" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-base">Connect Bybit</h3>
-                <p className="text-xs text-gray-300 mt-1">
-                  Analyze your trade history with AI to find patterns and improve.
-                </p>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                <Plus className="w-4 h-4" />
+          <Card className="border-none" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.04))' }}>
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Daily Insight</p>
+                  <h3 className="text-sm font-semibold mb-1">{todayInsight.title}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{todayInsight.content}</p>
+                  {todayInsight.recommendedAction && (
+                    <p className="text-xs text-primary mt-2 flex items-center gap-1">
+                      <Zap className="w-3 h-3" />
+                      {todayInsight.recommendedAction}
+                    </p>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Quick Actions / Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="cursor-pointer hover:border-primary/30 transition-all border-dashed" onClick={() => navigate('/portfolio/builder')}>
-            <CardContent className="flex flex-col items-center justify-center p-6 gap-2 text-center h-full">
-              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
-                <Shield className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm">Portfolio Builder</h3>
-                <p className="text-[10px] text-muted-foreground">Create custom index</p>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+        >
+          <div className="grid grid-cols-4 gap-3">
+            {[
+              {
+                icon: DollarSign,
+                label: 'Deposit',
+                color: 'bg-green-500/10 text-green-500',
+                action: () => navigate('/portfolio'),
+              },
+              {
+                icon: PieChart,
+                label: 'Portfolio',
+                color: 'bg-blue-500/10 text-blue-500',
+                action: () => navigate('/portfolio'),
+              },
+              {
+                icon: BookOpen,
+                label: 'Learn',
+                color: 'bg-purple-500/10 text-purple-500',
+                action: () => navigate('/learn'),
+              },
+              {
+                icon: Award,
+                label: 'Upgrade',
+                color: 'bg-amber-500/10 text-amber-500',
+                action: () => navigate('/upgrade'),
+              },
+            ].map((item, i) => (
+              <button
+                key={item.label}
+                onClick={item.action}
+                className="flex flex-col items-center gap-2 py-3 rounded-xl bg-card border border-border/50 hover:border-primary/20 transition-all active:scale-95"
+              >
+                <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', item.color)}>
+                  <item.icon className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-medium text-muted-foreground">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </motion.div>
 
-          <Card className="cursor-pointer hover:border-primary/30 transition-all border-dashed" onClick={() => navigate('/strategies')}>
-            <CardContent className="flex flex-col items-center justify-center p-6 gap-2 text-center h-full">
-              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
-                <Zap className="w-5 h-5 text-yellow-500" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm">AI Strategies</h3>
-                <p className="text-[10px] text-muted-foreground">Automated plays</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Activity / Holdings Snapshot */}
-        <div>
-          <h3 className="font-semibold text-sm mb-3 px-1">Top Holdings</h3>
-          {holdings.length > 0 ? (
-            <div className="space-y-2">
-              {holdings.slice(0, 3).map((holding) => (
-                <Card key={holding.asset} className="border-none bg-secondary/30">
-                  <CardContent className="flex items-center justify-between p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center font-bold text-xs">
-                        {holding.asset.slice(0, 1)}
-                      </div>
-                      <div>
-                        <p className="font-bold text-sm">{holding.asset}</p>
-                        <p className="text-xs text-muted-foreground">{holding.amount} units</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-sm">${holding.value.toLocaleString()}</p>
-                      <p className={`text-xs ${holding.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {holding.pnl >= 0 ? '+' : ''}{holding.pnlPercentage.toFixed(2)}%
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+        {/* Completed Journey (at the end) */}
+        {isJourneyCompleted && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="pt-8 pb-4"
+          >
+            <div className="flex items-center gap-2 mb-4 px-1">
+              <Award className="w-4 h-4 text-primary" />
+              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70">Your Journey</h2>
             </div>
-          ) : (
-            <Card className="border-dashed bg-transparent">
-              <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-                <p className="text-sm text-muted-foreground mb-2">No assets yet</p>
-                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => document.getElementById('add-transaction-trigger')?.click()}>
-                  Add your first asset
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
+            <SetupMissions />
+          </motion.div>
+        )}
       </div>
     </div>
   );

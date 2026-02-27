@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { useAppStore, UserProfile } from '@/store/appStore';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { useAppStore, UserProfile, InvestorType } from '@/store/appStore';
+import { ArrowLeft, ChevronRight, DollarSign, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getPersonalizedTiers } from '@/data/sampleData';
 
 interface QuizQuestion {
   id: keyof UserProfile;
@@ -80,6 +81,12 @@ const quizQuestions: QuizQuestion[] = [
       { value: 'majors-alts', label: 'Majors + Alts', description: 'Broader exposure' },
     ],
   },
+  {
+    id: 'weeklyInvestment' as any,
+    question: 'How much to invest weekly?',
+    subtitle: 'Consistency is key to the Apice methodology',
+    options: [], // Dynamic options will be used
+  },
 ];
 
 export default function Quiz() {
@@ -93,18 +100,24 @@ export default function Quiz() {
   const totalSteps = quizQuestions.length;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
-  const handleSelect = (value: string) => {
-    updateUserProfile({ [currentQuestion.id]: value });
-    
-    setTimeout(() => {
-      if (currentStep < totalSteps - 1) {
-        setCurrentStep(currentStep + 1);
-      } else {
-        completeOnboarding();
-        navigate('/profile-result');
-      }
-    }, 150);
-  };
+  const currentValue = currentStep < quizQuestions.length
+    ? userProfile[currentQuestion?.id as keyof UserProfile]
+    : useAppStore.getState().weeklyInvestment;
+
+  // Calculate dynamic tiers for the last step
+  const tiers = useMemo(() => {
+    if (currentStep !== totalSteps - 1) return [];
+
+    // Calculate a temporary investor type for the UI
+    let type: InvestorType = 'Balanced Optimizer';
+    if (userProfile.riskTolerance === 'low' || userProfile.goal === 'protection') {
+      type = 'Conservative Builder';
+    } else if (userProfile.riskTolerance === 'high' || userProfile.goal === 'growth') {
+      type = 'Growth Seeker';
+    }
+
+    return getPersonalizedTiers(userProfile.capitalRange, type);
+  }, [currentStep, userProfile.capitalRange, userProfile.riskTolerance, userProfile.goal, totalSteps]);
 
   const handleBack = () => {
     if (currentStep > 0) {
@@ -114,7 +127,22 @@ export default function Quiz() {
     }
   };
 
-  const currentValue = userProfile[currentQuestion.id];
+  const handleSelect = (value: string | number) => {
+    if (currentStep < quizQuestions.length) {
+      updateUserProfile({ [currentQuestion.id]: value as any });
+    } else {
+      useAppStore.getState().setWeeklyInvestment(value as number);
+    }
+
+    setTimeout(() => {
+      if (currentStep < totalSteps - 1) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        completeOnboarding();
+        navigate('/profile-result');
+      }
+    }, 150);
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col px-6 py-8 safe-top">
@@ -159,34 +187,78 @@ export default function Quiz() {
 
           {/* Options */}
           <div className="space-y-3">
-            {currentQuestion.options.map((option, i) => (
-              <motion.button
-                key={option.value}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                onClick={() => handleSelect(option.value)}
-                className={cn(
-                  'w-full p-4 rounded-2xl border text-left transition-all duration-200 active:scale-[0.98]',
-                  currentValue === option.value
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border bg-card hover:border-primary/30'
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium text-sm mb-0.5">{option.label}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {option.description}
-                    </p>
+            {currentStep < quizQuestions.length - 1 ? (
+              currentQuestion.options.map((option, i) => (
+                <motion.button
+                  key={option.value}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  onClick={() => handleSelect(option.value)}
+                  className={cn(
+                    'w-full p-4 rounded-2xl border text-left transition-all duration-200 active:scale-[0.98]',
+                    currentValue === option.value
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border bg-card hover:border-primary/30'
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium text-sm mb-0.5">{option.label}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {option.description}
+                      </p>
+                    </div>
+                    <ChevronRight className={cn(
+                      'w-5 h-5 transition-colors',
+                      currentValue === option.value ? 'text-primary' : 'text-muted-foreground/30'
+                    )} />
                   </div>
-                  <ChevronRight className={cn(
-                    'w-5 h-5 transition-colors',
-                    currentValue === option.value ? 'text-primary' : 'text-muted-foreground/30'
-                  )} />
-                </div>
-              </motion.button>
-            ))}
+                </motion.button>
+              ))
+            ) : (
+              tiers.map((tier, i) => (
+                <motion.button
+                  key={tier.amount}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  onClick={() => handleSelect(tier.amount)}
+                  className={cn(
+                    'w-full p-4 rounded-2xl border text-left transition-all duration-200 active:scale-[0.98] relative overflow-hidden',
+                    currentValue === tier.amount
+                      ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
+                      : 'border-border bg-card hover:border-primary/30'
+                  )}
+                >
+                  {tier.recommended && (
+                    <div className="absolute top-0 right-0">
+                      <div className="text-[8px] px-2 py-0.5 bg-primary text-white font-bold rounded-bl-lg">
+                        RECOMMENDED
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-4">
+                    <div className="text-2xl">{tier.icon}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <h3 className="font-semibold text-sm">{tier.label}</h3>
+                        <div className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground font-medium uppercase tracking-wider">
+                          {tier.tag}
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground leading-tight">
+                        {tier.description}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-primary">${tier.amount}</p>
+                      <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-semibold">/week</p>
+                    </div>
+                  </div>
+                </motion.button>
+              ))
+            )}
           </div>
         </motion.div>
       </AnimatePresence>
@@ -201,8 +273,7 @@ export default function Quiz() {
             if (currentStep < totalSteps - 1) {
               setCurrentStep(currentStep + 1);
             } else {
-              completeOnboarding();
-              navigate('/profile-result');
+              navigate('/investment-setup');
             }
           }}
         >

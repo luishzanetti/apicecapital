@@ -8,7 +8,6 @@ import { useAppStore } from "@/store/appStore";
 import { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/components/AuthProvider";
 
-// Pages
 import Splash from "./pages/Splash";
 import Welcome from "./pages/Welcome";
 import Auth from "./pages/Auth";
@@ -17,16 +16,19 @@ import ProfileResult from "./pages/ProfileResult";
 import Home from "./pages/Home";
 import Portfolio from "./pages/Portfolio";
 import PortfolioDetail from "./pages/PortfolioDetail";
-import PortfolioBuilder from "./pages/PortfolioBuilder";
 import Strategies from "./pages/Strategies";
 import DCAPlanner from "./pages/DCAPlanner";
-import CashbackMachine from "./pages/CashbackMachine";
 import Learn from "./pages/Learn";
 import LessonDetail from "./pages/LessonDetail";
-import Insights from "./pages/Insights";
-import Profile from "./pages/Profile";
+import ActivationChallenge from "./pages/ActivationChallenge";
+import Settings from "./pages/Settings";
+import ReferralLinks from "./pages/ReferralLinks";
 import Upgrade from "./pages/Upgrade";
 import Support from "./pages/Support";
+import Automations from "./pages/Automations";
+import CashbackOnboarding from "./pages/CashbackOnboarding";
+import CashbackMachine from "./pages/CashbackMachine";
+import CashbackDashboard from "./pages/CashbackDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,35 +60,32 @@ function AppContent() {
 
   return (
     <Routes>
-      <Route path="/splash" element={session ? <Navigate to="/home" /> : <Splash />} />
-      <Route path="/welcome" element={session ? <Navigate to="/home" /> : <Welcome />} />
-      <Route path="/auth" element={session ? <Navigate to="/home" /> : <Auth />} />
-
-      {/* Quiz flow can be public or protected depending on preference, kept public for onboarding */}
+      <Route path="/splash" element={<Splash />} />
+      <Route path="/welcome" element={<Welcome />} />
       <Route path="/quiz" element={<Quiz />} />
       <Route path="/profile-result" element={<ProfileResult />} />
 
-      <Route element={
-        <ProtectedRoute>
-          <AppLayout />
-        </ProtectedRoute>
-      }>
+      <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+        <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<Home />} />
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/portfolio/:id" element={<PortfolioDetail />} />
-        <Route path="/portfolio/builder" element={<PortfolioBuilder />} />
         <Route path="/strategies" element={<Strategies />} />
-        <Route path="/strategies/dca" element={<DCAPlanner />} />
-        <Route path="/strategies/cashback" element={<CashbackMachine />} />
         <Route path="/learn" element={<Learn />} />
-        <Route path="/learn/:trackId/:lessonId" element={<LessonDetail />} />
-        <Route path="/insights" element={<Insights />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/learn/:id" element={<LessonDetail />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/referrals" element={<ReferralLinks />} />
         <Route path="/upgrade" element={<Upgrade />} />
         <Route path="/support" element={<Support />} />
+        <Route path="/automations" element={<Automations />} />
+        <Route path="/dca-planner" element={<DCAPlanner />} />
+        <Route path="/activation-challenge" element={<ActivationChallenge />} />
+        <Route path="/cashback-onboarding" element={<CashbackOnboarding />} />
+        <Route path="/cashback-machine" element={<CashbackMachine />} />
+        <Route path="/cashback-dashboard" element={<CashbackDashboard />} />
       </Route>
 
-      <Route path="/" element={<Navigate to="/splash" replace />} />
+      <Route path="/auth" element={<Auth />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

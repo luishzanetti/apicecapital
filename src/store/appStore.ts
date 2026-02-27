@@ -18,6 +18,32 @@ export interface SetupProgress {
   dcaPlanConfigured: boolean;
 }
 
+export interface MissionProgress {
+  // Mission 1: Explore the App
+  m1_onboardingCompleted: boolean;
+  m1_profileQuizDone: boolean;
+  // Mission 2: Apice Methodology (7-Day Challenge)
+  m2_methodologyRead: boolean;
+  m2_whyCryptoExchange: boolean;
+  m2_bybitAccountCreated: boolean;
+  m2_bybitReferralUsed: boolean;
+  m2_firstDepositUSDT: boolean;
+  m2_activationChallengeDay: number; // 0-7
+  m2_challengeStartDate: string | null;
+  // Mission 3: Strategy & Portfolio
+  m3_strategyChosen: boolean;
+  m3_portfolioSelected: boolean;
+  m3_allocationReviewed: boolean;
+  // Mission 4: Action Plan
+  m4_weeklyPlanSet: boolean;
+  m4_firstDepositConfirmed: boolean;
+  m4_allocationExecuted: boolean;
+  // Mission 5: Unlock Access
+  m5_foundationsCourseCompleted: boolean;
+  m5_firstStrategyMastered: boolean;
+  m5_advancedUnlocked: boolean;
+}
+
 export interface DCAPlan {
   id: string;
   assets: { symbol: string; allocation: number }[];
@@ -50,7 +76,7 @@ export interface DCABadge {
 
 export interface SelectedPortfolio {
   portfolioId: string | null;
-  allocations: { asset: string; percentage: number }[];
+  allocations: { asset: string; percentage: number; color?: string }[];
   selectedAt: string | null;
 }
 
@@ -61,6 +87,13 @@ export interface LinkClick {
   aiBotClickedAt: string | null;
   aiTradeClicked: boolean;
   aiTradeClickedAt: string | null;
+}
+
+export interface WeeklyDeposit {
+  weekId: string; // ISO week identifier e.g. '2026-W09'
+  amount: number;
+  confirmedAt: string;
+  allocations: { asset: string; amount: number; percentage: number }[];
 }
 
 export interface LearnProgress {
@@ -105,15 +138,20 @@ export type InvestorType =
 export interface AppState {
   // Onboarding
   hasCompletedOnboarding: boolean;
+  onboardingSkipped: boolean;
+  onboardingStep: number;
   currentQuizStep: number;
 
   // User profile
   userProfile: UserProfile;
   investorType: InvestorType | null;
 
-  // Setup progress (3-step path)
+  // Setup progress (3-step path) — legacy
   setupProgress: SetupProgress;
   setupProgressPercent: number;
+
+  // Mission progress (5-mission journey)
+  missionProgress: MissionProgress;
 
   // Portfolio
   selectedPortfolio: SelectedPortfolio;
@@ -132,6 +170,12 @@ export interface AppState {
   unlockState: UnlockState;
   subscription: SubscriptionState;
 
+  // Weekly Investment
+  weeklyInvestment: number;
+  weeklyDepositHistory: WeeklyDeposit[];
+  weeklyDepositStreak: number;
+  portfolioAccepted: boolean;
+
   // App state
   daysActive: number;
   lastOpenDate: string | null;
@@ -144,11 +188,14 @@ export interface AppState {
   // Actions
   syncFromSupabase: () => Promise<void>;
   setQuizStep: (step: number) => void;
+  setOnboardingStep: (step: number) => void;
+  skipOnboarding: () => void;
   updateUserProfile: (updates: Partial<UserProfile>) => void;
   completeOnboarding: () => void;
   updateSetupProgress: (updates: Partial<SetupProgress>) => void;
   calculateInvestorType: () => void;
-  setSelectedPortfolio: (portfolioId: string, allocations: { asset: string; percentage: number }[]) => void;
+  setSelectedPortfolio: (portfolioId: string, allocations: { asset: string; percentage: number; color?: string }[]) => void;
+  selectPortfolio: (portfolioId: string, allocations: { asset: string; percentage: number; color?: string }[]) => void;
   addDcaPlan: (plan: Omit<DCAPlan, 'id'>) => void;
   updateDcaPlan: (id: string, updates: Partial<DCAPlan>) => void;
   deleteDcaPlan: (id: string) => void;
@@ -160,8 +207,16 @@ export interface AppState {
   completeWizardStep: (wizard: 'aiTrade' | 'aiBot', step: string) => void;
   unlockFeature: (feature: keyof UnlockState) => void;
   setSubscription: (tier: 'free' | 'pro' | 'club') => void;
+  setWeeklyInvestment: (amount: number) => void;
+  confirmWeeklyDeposit: (weekId: string, amount: number, allocations: { asset: string; amount: number; percentage: number }[]) => void;
+  editDeposit: (weekId: string, newAmount: number) => void;
+  removeDeposit: (weekId: string) => void;
+  setPortfolioAccepted: (accepted: boolean) => void;
   incrementDaysActive: () => void;
   advanceInsight: () => void;
+  completeMissionTask: (task: keyof MissionProgress, value?: any) => void;
+  startActivationChallenge: () => void;
+  advanceChallengeDay: () => void;
   resetApp: () => void;
 }
 
@@ -178,6 +233,27 @@ const defaultSetupProgress: SetupProgress = {
   exchangeAccountCreated: false,
   corePortfolioSelected: false,
   dcaPlanConfigured: false,
+};
+
+const defaultMissionProgress: MissionProgress = {
+  m1_onboardingCompleted: false,
+  m1_profileQuizDone: false,
+  m2_methodologyRead: false,
+  m2_whyCryptoExchange: false,
+  m2_bybitAccountCreated: false,
+  m2_bybitReferralUsed: false,
+  m2_firstDepositUSDT: false,
+  m2_activationChallengeDay: 0,
+  m2_challengeStartDate: null,
+  m3_strategyChosen: false,
+  m3_portfolioSelected: false,
+  m3_allocationReviewed: false,
+  m4_weeklyPlanSet: false,
+  m4_firstDepositConfirmed: false,
+  m4_allocationExecuted: false,
+  m5_foundationsCourseCompleted: false,
+  m5_firstStrategyMastered: false,
+  m5_advancedUnlocked: false,
 };
 
 const defaultUnlockState: UnlockState = {
@@ -221,11 +297,14 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       hasCompletedOnboarding: false,
+      onboardingSkipped: false,
+      onboardingStep: 0,
       currentQuizStep: 0,
       userProfile: defaultUserProfile,
       investorType: null,
       setupProgress: defaultSetupProgress,
       setupProgressPercent: 0,
+      missionProgress: defaultMissionProgress,
       selectedPortfolio: {
         portfolioId: null,
         allocations: [],
@@ -240,6 +319,10 @@ export const useAppStore = create<AppState>()(
         activeSince: null,
         expiresAt: null,
       },
+      weeklyInvestment: 0,
+      weeklyDepositHistory: [],
+      weeklyDepositStreak: 0,
+      portfolioAccepted: false,
       daysActive: 0,
       lastOpenDate: null,
       currentInsightIndex: 0,
@@ -255,6 +338,21 @@ export const useAppStore = create<AppState>()(
       },
 
       setQuizStep: (step) => set({ currentQuizStep: step }),
+
+      setOnboardingStep: (step) => set({ onboardingStep: step }),
+
+      skipOnboarding: () => {
+        set({ onboardingSkipped: true, hasCompletedOnboarding: false });
+        // Sync to Supabase
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          if (user) {
+            supabase.from('profiles').update({
+              onboarding_skipped: true,
+              updated_at: new Date().toISOString()
+            }).eq('id', user.id);
+          }
+        });
+      },
 
       syncFromSupabase: async () => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -278,7 +376,10 @@ export const useAppStore = create<AppState>()(
               preferredAssets: profile.preferred_assets as any,
             },
             investorType: profile.investor_type as any,
-            // Merge other fields as needed
+            hasCompletedOnboarding: profile.has_completed_onboarding || false,
+            onboardingSkipped: profile.onboarding_skipped || false,
+            missionProgress: (profile.mission_progress as any) || defaultMissionProgress,
+            weeklyInvestment: profile.weekly_investment || 0,
           }));
         }
 
@@ -352,7 +453,29 @@ export const useAppStore = create<AppState>()(
       completeOnboarding: () => {
         const state = get();
         state.calculateInvestorType();
-        set({ hasCompletedOnboarding: true });
+        set({
+          hasCompletedOnboarding: true,
+          missionProgress: {
+            ...state.missionProgress,
+            m1_onboardingCompleted: true,
+            m1_profileQuizDone: true
+          }
+        });
+
+        // Sync to Supabase
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          if (user) {
+            supabase.from('profiles').update({
+              has_completed_onboarding: true,
+              mission_progress: {
+                ...state.missionProgress,
+                m1_onboardingCompleted: true,
+                m1_profileQuizDone: true
+              },
+              updated_at: new Date().toISOString()
+            }).eq('id', user.id);
+          }
+        });
       },
 
       updateSetupProgress: (updates) =>
@@ -420,10 +543,16 @@ export const useAppStore = create<AppState>()(
               allocations,
               selectedAt: new Date().toISOString(),
             },
+            portfolioAccepted: true,
             setupProgress: newSetup,
             setupProgressPercent: Math.round((completed / total) * 100),
           };
         }),
+
+      // Alias for setSelectedPortfolio
+      selectPortfolio: (portfolioId, allocations) => {
+        get().setSelectedPortfolio(portfolioId, allocations);
+      },
 
       addDcaPlan: (plan) =>
         set((state) => {
@@ -602,6 +731,96 @@ export const useAppStore = create<AppState>()(
           unlockState: { ...state.unlockState, [feature]: true },
         })),
 
+      setWeeklyInvestment: (amount) => {
+        set({ weeklyInvestment: amount });
+        // Sync to Supabase
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          if (user) {
+            supabase.from('profiles').update({
+              weekly_investment: amount,
+              updated_at: new Date().toISOString()
+            }).eq('id', user.id).then(({ error }) => {
+              if (error) console.error('Error syncing weekly investment:', error);
+            });
+          }
+        });
+      },
+
+      confirmWeeklyDeposit: (weekId, amount, allocations) =>
+        set((state) => {
+          const deposit: WeeklyDeposit = {
+            weekId,
+            amount,
+            confirmedAt: new Date().toISOString(),
+            allocations,
+          };
+
+          // Calculate streak
+          const lastDeposit = state.weeklyDepositHistory[state.weeklyDepositHistory.length - 1];
+          let newStreak = state.weeklyDepositStreak;
+          if (lastDeposit) {
+            const lastWeekNum = parseInt(lastDeposit.weekId.split('-W')[1]);
+            const thisWeekNum = parseInt(weekId.split('-W')[1]);
+            newStreak = (thisWeekNum - lastWeekNum === 1) ? newStreak + 1 : 1;
+          } else {
+            newStreak = 1;
+          }
+
+          // Update total committed in gamification
+          const newTotalCommitted = state.dcaGamification.totalAmountCommitted + amount;
+
+          // Sync to Supabase
+          supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+              supabase.from('transactions').insert(
+                allocations.map(a => ({
+                  user_id: user.id,
+                  asset_symbol: a.asset,
+                  type: 'buy',
+                  amount: a.amount / (1), // placeholder for price
+                  price_per_unit: 1, // will be enhanced with real prices
+                  date: new Date().toISOString(),
+                  fees: 0,
+                  notes: `Weekly deposit W${weekId}`,
+                }))
+              ).then(({ error }) => {
+                if (error) console.error('Error syncing deposit:', error);
+              });
+            }
+          });
+
+          return {
+            weeklyDepositHistory: [...state.weeklyDepositHistory, deposit],
+            weeklyDepositStreak: newStreak,
+            dcaGamification: {
+              ...state.dcaGamification,
+              totalAmountCommitted: newTotalCommitted,
+              lastDcaAction: new Date().toISOString(),
+            },
+          };
+        }),
+
+      editDeposit: (weekId, newAmount) =>
+        set((state) => {
+          const history = state.weeklyDepositHistory.map((d) => {
+            if (d.weekId !== weekId) return d;
+            const ratio = newAmount / d.amount;
+            return {
+              ...d,
+              amount: newAmount,
+              allocations: d.allocations.map((a) => ({ ...a, amount: a.amount * ratio })),
+            };
+          });
+          return { weeklyDepositHistory: history };
+        }),
+
+      removeDeposit: (weekId) =>
+        set((state) => ({
+          weeklyDepositHistory: state.weeklyDepositHistory.filter((d) => d.weekId !== weekId),
+        })),
+
+      setPortfolioAccepted: (accepted) => set({ portfolioAccepted: accepted }),
+
       setSubscription: (tier) =>
         set((state) => {
           const newUnlocks = { ...state.unlockState };
@@ -666,6 +885,8 @@ export const useAppStore = create<AppState>()(
 
       resetApp: () =>
         set({
+          onboardingSkipped: false,
+          onboardingStep: 0,
           hasCompletedOnboarding: false,
           currentQuizStep: 0,
           userProfile: defaultUserProfile,
@@ -682,6 +903,10 @@ export const useAppStore = create<AppState>()(
             dcaStreak: 0,
             lastDcaAction: null,
           },
+          weeklyInvestment: 0,
+          weeklyDepositHistory: [],
+          weeklyDepositStreak: 0,
+          portfolioAccepted: false,
           linkClicks: defaultLinkClicks,
           learnProgress: defaultLearnProgress,
           unlockState: defaultUnlockState,
@@ -691,6 +916,70 @@ export const useAppStore = create<AppState>()(
           currentInsightIndex: 0,
           aiTradeWizard: {},
           aiBotWizard: {},
+          missionProgress: defaultMissionProgress,
+        }),
+
+      completeMissionTask: (task, value) =>
+        set((state) => {
+          const val = value !== undefined ? value : true;
+          const newMission = { ...state.missionProgress, [task]: val };
+          let newState: Partial<AppState> = { missionProgress: newMission };
+
+          // Auto-sync related state
+          if (task === 'm1_onboardingCompleted' && val) {
+            newState = { ...newState, hasCompletedOnboarding: true };
+          }
+          if (task === 'm3_portfolioSelected' && val) {
+            newState = {
+              ...newState,
+              setupProgress: { ...state.setupProgress, corePortfolioSelected: true },
+            };
+          }
+          if (task === 'm4_weeklyPlanSet' && val) {
+            newState = {
+              ...newState,
+              setupProgress: { ...state.setupProgress, dcaPlanConfigured: true },
+            };
+          }
+          if (task === 'm2_bybitAccountCreated' && val) {
+            newState = {
+              ...newState,
+              setupProgress: { ...state.setupProgress, exchangeAccountCreated: true },
+            };
+          }
+
+          // Sync to Supabase
+          supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+              supabase.from('profiles').update({
+                mission_progress: newMission,
+                has_completed_onboarding: newState.hasCompletedOnboarding ?? state.hasCompletedOnboarding,
+                updated_at: new Date().toISOString()
+              }).eq('id', user.id);
+            }
+          });
+
+          return newState;
+        }),
+
+      startActivationChallenge: () =>
+        set((state) => ({
+          missionProgress: {
+            ...state.missionProgress,
+            m2_challengeStartDate: new Date().toISOString(),
+            m2_activationChallengeDay: 1,
+          },
+        })),
+
+      advanceChallengeDay: () =>
+        set((state) => {
+          const nextDay = Math.min(state.missionProgress.m2_activationChallengeDay + 1, 7);
+          return {
+            missionProgress: {
+              ...state.missionProgress,
+              m2_activationChallengeDay: nextDay,
+            },
+          };
         }),
     }),
     {

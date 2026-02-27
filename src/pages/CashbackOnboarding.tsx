@@ -30,9 +30,9 @@ export default function CashbackOnboarding() {
     const slides: OnboardingSlide[] = [
         {
             id: 1,
-            title: "Transforme Cada Compra em Bitcoin",
-            subtitle: "Acumule fortunas silenciosamente de forma inteligente",
-            description: "Cada café, cada Uber, cada Netflix se transforma automaticamente em Bitcoin. Sem esforço, sem pensar, apenas acumulando.",
+            title: "Transform Every Purchase into Bitcoin",
+            subtitle: "Silently build wealth the smart way",
+            description: "Every coffee, every Uber, every Netflix subscription automatically turns into Bitcoin. No effort, no thinking, just accumulating.",
             visual: (
                 <motion.div
                     className="relative w-full h-64 flex items-center justify-center"
@@ -88,13 +88,13 @@ export default function CashbackOnboarding() {
                     ))}
                 </motion.div>
             ),
-            cta: "Ver Como Funciona"
+            cta: "See How It Works"
         },
         {
             id: 2,
-            title: "2-10% Cashback em TUDO",
-            subtitle: "100% de volta nas suas assinaturas favoritas",
-            description: "Não é sobre gastar mais. É sobre transformar o que você já gasta em um investimento automático que cresce com o tempo.",
+            title: "2-10% Cashback on EVERYTHING",
+            subtitle: "100% back on your favorite subscriptions",
+            description: "It's not about spending more. It's about turning what you already spend into an automatic investment that grows over time.",
             visual: (
                 <div className="space-y-6 py-8">
                     {/* Cashback Principal */}
@@ -110,7 +110,7 @@ export default function CashbackOnboarding() {
                             </div>
                             <div>
                                 <h3 className="text-2xl font-bold">2-10% Cashback</h3>
-                                <p className="text-sm text-muted-foreground">Em todas as suas compras</p>
+                                <p className="text-sm text-muted-foreground">On all your purchases</p>
                             </div>
                         </div>
                     </motion.div>
@@ -136,10 +136,10 @@ export default function CashbackOnboarding() {
                     {/* Benefícios */}
                     <div className="grid grid-cols-2 gap-3 pt-4">
                         {[
-                            { icon: Bitcoin, text: "DCA Automático" },
-                            { icon: TrendingUp, text: "Cresce com BTC" },
-                            { icon: Zap, text: "Sem Esforço" },
-                            { icon: Target, text: "Longo Prazo" }
+                            { icon: Bitcoin, text: "Auto DCA" },
+                            { icon: TrendingUp, text: "Grows with BTC" },
+                            { icon: Zap, text: "Effortless" },
+                            { icon: Target, text: "Long Term" }
                         ].map((benefit, i) => (
                             <motion.div
                                 key={i}
@@ -155,16 +155,16 @@ export default function CashbackOnboarding() {
                     </div>
                 </div>
             ),
-            cta: "Continuar"
+            cta: "Continue"
         },
         {
             id: 3,
-            title: "O Poder do Tempo",
-            subtitle: "Bitcoin cresceu 22,000% nos últimos 10 anos",
-            description: "Imagine ter acumulado Bitcoin automaticamente durante esse período. Cada compra pequena se transformando em algo significativo.",
+            title: "The Power of Time",
+            subtitle: "Bitcoin grew 22,000% in the last 10 years",
+            description: "Imagine having automatically accumulated Bitcoin during this period. Every small purchase turning into something significant.",
             visual: (
                 <div className="space-y-6 py-4">
-                    {/* Gráfico Simplificado */}
+                    {/* Simplified Chart */}
                     <div className="relative h-48 bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 overflow-hidden">
                         <div className="absolute inset-0 opacity-10">
                             <svg className="w-full h-full" viewBox="0 0 400 200">
@@ -200,40 +200,40 @@ export default function CashbackOnboarding() {
 
                     {/* Calculadora Rápida */}
                     <Card className="p-6 bg-primary/5 border-primary/20">
-                        <h4 className="font-semibold mb-4 text-center">Simulação Simples</h4>
+                        <h4 className="font-semibold mb-4 text-center">Simple Simulation</h4>
                         <div className="space-y-3">
                             <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">Gasto mensal:</span>
+                                <span className="text-sm text-muted-foreground">Monthly spend:</span>
                                 <span className="font-bold">$500</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">Cashback médio (5%):</span>
-                                <span className="font-bold text-amber-500">$25/mês em BTC</span>
+                                <span className="text-sm text-muted-foreground">Average cashback (5%):</span>
+                                <span className="font-bold text-amber-500">$25/mo in BTC</span>
                             </div>
                             <div className="h-px bg-border my-2" />
                             <div className="flex justify-between items-center">
-                                <span className="text-sm text-muted-foreground">Em 1 ano:</span>
-                                <span className="font-bold text-green-500">~$300 em BTC</span>
+                                <span className="text-sm text-muted-foreground">In 1 year:</span>
+                                <span className="font-bold text-green-500">~$300 in BTC</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-sm font-medium">Se BTC crescer 50%:</span>
+                                <span className="text-sm font-medium">If BTC grows 50%:</span>
                                 <span className="text-xl font-bold text-green-500">$450</span>
                             </div>
                         </div>
                     </Card>
 
                     <p className="text-xs text-center text-muted-foreground italic">
-                        "Não é sobre timing do mercado. É sobre tempo no mercado."
+                        "It's not about timing the market. It's about time in the market."
                     </p>
                 </div>
             ),
-            cta: "Ver Meu Potencial"
+            cta: "See My Potential"
         },
         {
             id: 4,
-            title: "Desafio de 30 Dias",
-            subtitle: "Gaste $500 e veja a mágica acontecer",
-            description: "Aceite o desafio. Use o cartão normalmente por 30 dias. Veja você acumulando Bitcoin automaticamente. Sem truques, apenas matemática e tempo.",
+            title: "30-Day Challenge",
+            subtitle: "Spend $500 and watch the magic happen",
+            description: "Take the challenge. Use the card normally for 30 days. See yourself automatically accumulating Bitcoin. No tricks, just math and time.",
             visual: (
                 <div className="space-y-6 py-4">
                     {/* Card do Desafio */}
@@ -251,29 +251,29 @@ export default function CashbackOnboarding() {
                                     <Target className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-2xl font-bold">Desafio 30 Dias</h3>
-                                    <p className="text-sm opacity-90">Comece sua jornada Bitcoin</p>
+                                    <h3 className="text-2xl font-bold">30-Day Challenge</h3>
+                                    <p className="text-sm opacity-90">Start your Bitcoin journey</p>
                                 </div>
                             </div>
 
                             <div className="space-y-2 pt-4">
                                 <div className="flex items-center gap-2">
                                     <div className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center text-xs font-bold">1</div>
-                                    <span className="text-sm">Use o cartão normalmente</span>
+                                    <span className="text-sm">Use the card normally</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center text-xs font-bold">2</div>
-                                    <span className="text-sm">Gaste $500 em 30 dias</span>
+                                    <span className="text-sm">Spend $500 in 30 days</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center text-xs font-bold">3</div>
-                                    <span className="text-sm">Acumule Bitcoin automaticamente</span>
+                                    <span className="text-sm">Accumulate Bitcoin automatically</span>
                                 </div>
                             </div>
 
                             <div className="pt-4 border-t border-white/20">
-                                <p className="text-xs opacity-80">Recompensa estimada:</p>
-                                <p className="text-3xl font-bold">$25-50 em BTC</p>
+                                <p className="text-xs opacity-80">Estimated reward:</p>
+                                <p className="text-3xl font-bold">$25-50 in BTC</p>
                             </div>
                         </div>
                     </motion.div>
@@ -281,15 +281,15 @@ export default function CashbackOnboarding() {
                     {/* Motivação */}
                     <div className="text-center space-y-2">
                         <p className="text-sm font-medium">
-                            "A melhor hora para começar foi há 10 anos."
+                            "The best time to start was 10 years ago."
                         </p>
                         <p className="text-lg font-bold text-primary">
-                            A segunda melhor hora é agora.
+                            The second best time is now.
                         </p>
                     </div>
                 </div>
             ),
-            cta: "Aceitar Desafio"
+            cta: "Accept Challenge"
         }
     ];
 
@@ -335,8 +335,8 @@ export default function CashbackOnboarding() {
                         <div
                             key={index}
                             className={`h-2 rounded-full transition-all ${index === currentSlide
-                                    ? 'w-8 bg-primary'
-                                    : 'w-2 bg-muted'
+                                ? 'w-8 bg-primary'
+                                : 'w-2 bg-muted'
                                 }`}
                         />
                     ))}
@@ -348,7 +348,7 @@ export default function CashbackOnboarding() {
                     onClick={handleSkip}
                     className="text-xs"
                 >
-                    Pular
+                    Skip
                 </Button>
             </div>
 

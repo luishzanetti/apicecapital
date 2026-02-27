@@ -1,5 +1,34 @@
 // Complete sample data for the Apice MVP
 
+// ============== APICE RETURN RATES ==============
+// Conservative: 15% annual (DCA + stablecoin buffer + blue-chip focus)
+// Balanced: 35% annual (DCA + diversification + strategic rebalancing)
+// Aggressive: 60%+ annual (DCA + micro-leverage + explosive allocation)
+
+export const APICE_RETURN_RATES = {
+  conservative: 0.15,
+  balanced: 0.35,
+  aggressive: 0.60,
+} as const;
+
+export type ApiceRiskLevel = keyof typeof APICE_RETURN_RATES;
+
+export const getReturnRateForInvestorType = (investorType: string | null): number => {
+  switch (investorType) {
+    case 'Conservative Builder': return APICE_RETURN_RATES.conservative;
+    case 'Growth Seeker': return APICE_RETURN_RATES.aggressive;
+    default: return APICE_RETURN_RATES.balanced;
+  }
+};
+
+export const getReturnLabel = (investorType: string | null): string => {
+  switch (investorType) {
+    case 'Conservative Builder': return '~15% a.a.';
+    case 'Growth Seeker': return '~60%+ a.a.';
+    default: return '~35% a.a.';
+  }
+};
+
 // ============== DCA ASSETS ==============
 
 export interface DCAAsset {
@@ -51,14 +80,19 @@ export interface DCAHistoricalReturn {
 
 export const dcaHistoricalData: Record<string, DCAHistoricalReturn[]> = {
   BTC: [
-    { period: '1 year', weeklyAmount: 25, totalInvested: 1300, currentValue: 1850, returnPercent: 42.3 },
-    { period: '2 years', weeklyAmount: 25, totalInvested: 2600, currentValue: 4200, returnPercent: 61.5 },
-    { period: '4 years', weeklyAmount: 25, totalInvested: 5200, currentValue: 12400, returnPercent: 138.5 },
+    { period: '1 year', weeklyAmount: 25, totalInvested: 1300, currentValue: 2145, returnPercent: 65.0 },
+    { period: '2 years', weeklyAmount: 25, totalInvested: 2600, currentValue: 5720, returnPercent: 120.0 },
+    { period: '4 years', weeklyAmount: 25, totalInvested: 5200, currentValue: 18200, returnPercent: 250.0 },
   ],
   ETH: [
-    { period: '1 year', weeklyAmount: 25, totalInvested: 1300, currentValue: 1680, returnPercent: 29.2 },
-    { period: '2 years', weeklyAmount: 25, totalInvested: 2600, currentValue: 3900, returnPercent: 50.0 },
-    { period: '4 years', weeklyAmount: 25, totalInvested: 5200, currentValue: 9800, returnPercent: 88.5 },
+    { period: '1 year', weeklyAmount: 25, totalInvested: 1300, currentValue: 1950, returnPercent: 50.0 },
+    { period: '2 years', weeklyAmount: 25, totalInvested: 2600, currentValue: 5460, returnPercent: 110.0 },
+    { period: '4 years', weeklyAmount: 25, totalInvested: 5200, currentValue: 15600, returnPercent: 200.0 },
+  ],
+  'Apice Strategy': [
+    { period: '1 year', weeklyAmount: 100, totalInvested: 5200, currentValue: 7020, returnPercent: 35.0 },
+    { period: '2 years', weeklyAmount: 100, totalInvested: 10400, currentValue: 18980, returnPercent: 82.5 },
+    { period: '4 years', weeklyAmount: 100, totalInvested: 20800, currentValue: 56160, returnPercent: 170.0 },
   ],
 };
 
@@ -769,3 +803,399 @@ export const faqItems = [
     answer: 'Free users get basic features and limited content. Pro unlocks all portfolios, automation guides, and premium insights. Club adds community access and advanced customization.',
   },
 ];
+
+// ============== MISSIONS DATA ==============
+
+export interface MissionTask {
+  id: string;
+  storeKey: string;
+  title: string;
+  description: string;
+  actionLabel: string;
+  actionRoute?: string;
+  xp: number;
+}
+
+export interface MissionDef {
+  id: number;
+  title: string;
+  subtitle: string;
+  icon: string;
+  color: string;
+  gradient: string;
+  badge: string;
+  badgeIcon: string;
+  xpTotal: number;
+  tasks: MissionTask[];
+}
+
+export const missionDefinitions: MissionDef[] = [
+  {
+    id: 1,
+    title: 'The Awakening',
+    subtitle: 'Ignite your journey into the Apice universe',
+    icon: '🔥',
+    color: 'text-orange-400',
+    gradient: 'from-orange-500 to-red-500',
+    badge: 'Awakened',
+    badgeIcon: '👁️',
+    xpTotal: 300,
+    tasks: [
+      { id: 'm1-1', storeKey: 'm1_onboardingCompleted', title: 'The Manifesto', description: 'Unlock the vision. Understand how elite capital flows and why you were invited.', actionLabel: 'Explore Vision', actionRoute: '/onboarding', xp: 150 },
+      { id: 'm1-2', storeKey: 'm1_profileQuizDone', title: 'DNA Analysis', description: 'Our AI needs to understand your core. Reveal your investor DNA to unlock the path.', actionLabel: 'Start Scan', actionRoute: '/quiz', xp: 150 },
+    ],
+  },
+  {
+    id: 2,
+    title: 'Methodology Master',
+    subtitle: 'Internalize the laws of asymmetric growth',
+    icon: '🧠',
+    color: 'text-indigo-400',
+    gradient: 'from-indigo-500 to-blue-500',
+    badge: 'Apice Sage',
+    badgeIcon: '📚',
+    xpTotal: 600,
+    tasks: [
+      { id: 'm2-1', storeKey: 'm2_methodologyRead', title: 'Master the Apice Method', description: 'Internalize the 3 Pillars: DCA + Diversification + Micro-Leverage for explosive performance.', actionLabel: 'Deep Dive', actionRoute: '/learn', xp: 150 },
+      { id: 'm2-2', storeKey: 'm2_whyCryptoExchange', title: 'The Fortress', description: 'Why self-custody and top-tier exchanges like Bybit are your financial fortress.', actionLabel: 'Build Fortress', actionRoute: '/activation-challenge', xp: 100 },
+      { id: 'm2-3', storeKey: 'm2_bybitAccountCreated', title: 'Gateway Access', description: 'Create your multi-chain gateway on Bybit. This is your primary execution engine.', actionLabel: 'Secure Access', actionRoute: '/activation-challenge', xp: 150 },
+      { id: 'm2-4', storeKey: 'm2_bybitReferralUsed', title: 'Elite Benefits', description: 'Activate the Apice protocol on your account for fee reduction and exclusive liquidity.', actionLabel: 'Activate Perks', xp: 100 },
+      { id: 'm2-5', storeKey: 'm2_firstDepositUSDT', title: 'Fuel the Tank', description: 'Fuel your journey with your first USDT deposit. Even the smallest spark starts a fire.', actionLabel: 'Fuel Up', xp: 100 },
+    ],
+  },
+  {
+    id: 3,
+    title: 'Smart Diversifier',
+    subtitle: 'Construct your resilient wealth engine',
+    icon: '🛡️',
+    color: 'text-emerald-400',
+    gradient: 'from-emerald-500 to-cyan-500',
+    badge: 'Architect',
+    badgeIcon: '🏗️',
+    xpTotal: 400,
+    tasks: [
+      { id: 'm3-1', storeKey: 'm3_strategyChosen', title: 'Strategic Alignment', description: 'Align your goals with the right risk profile: Conservative, Balanced, or Aggressive growth.', actionLabel: 'Align Now', actionRoute: '/portfolio', xp: 100 },
+      { id: 'm3-2', storeKey: 'm3_portfolioSelected', title: 'Architect Selection', description: 'Choose a battle-tested portfolio blueprint optimized by our AI for current cycles.', actionLabel: 'Choose Blueprint', actionRoute: '/portfolio', xp: 150 },
+      { id: 'm3-3', storeKey: 'm3_allocationReviewed', title: 'Precision Check', description: 'Review the weights. Understand exactly what you own and why it\'s there.', actionLabel: 'Verify Weights', actionRoute: '/portfolio', xp: 150 },
+    ],
+  },
+  {
+    id: 4,
+    title: 'Execution Force',
+    subtitle: 'Deploy your capital into the digital frontier',
+    icon: '⚔️',
+    color: 'text-rose-400',
+    gradient: 'from-rose-500 to-pink-500',
+    badge: 'Centurion',
+    badgeIcon: '💎',
+    xpTotal: 500,
+    tasks: [
+      { id: 'm4-1', storeKey: 'm4_weeklyPlanSet', title: 'Discipline Protocol', description: 'Set your automated DCA frequency. Consistency is the ultimate weapon.', actionLabel: 'Set Protocol', actionRoute: '/investment-setup', xp: 150 },
+      { id: 'm4-2', storeKey: 'm4_firstDepositConfirmed', title: 'Initial Deployment', description: 'Execute your first cross-asset allocation and witness the engine start.', actionLabel: 'Launch Port', actionRoute: '/portfolio', xp: 150 },
+      { id: 'm4-3', storeKey: 'm4_allocationExecuted', title: 'Market Presence', description: 'Establish your presence. Your first real-time execution across the portfolio.', actionLabel: 'Execute Plan', actionRoute: '/portfolio', xp: 200 },
+    ],
+  },
+  {
+    id: 5,
+    title: 'The Ascended',
+    subtitle: 'Unlock elite strategies and deep automation',
+    icon: '👑',
+    color: 'text-amber-400',
+    gradient: 'from-amber-500 to-yellow-500',
+    badge: 'Ascended',
+    badgeIcon: '✨',
+    xpTotal: 700,
+    tasks: [
+      { id: 'm5-1', storeKey: 'm5_foundationsCourseCompleted', title: 'Advanced Intel', description: 'Complete the full Foundations course to unlock deeper market understanding.', actionLabel: 'Get Intel', actionRoute: '/learn', xp: 250 },
+      { id: 'm5-2', storeKey: 'm5_firstStrategyMastered', title: 'Elite Strategy', description: 'Demonstrate DCA mastery for 4 consecutive weeks to prove your resolve.', actionLabel: 'Show Mastery', actionRoute: '/learn', xp: 250 },
+      { id: 'm5-3', storeKey: 'm5_advancedUnlocked', title: 'Final Ascension', description: 'Unlock institutional-grade optimized portfolios and automated copy trading.', actionLabel: 'Ascend Now', xp: 200 },
+    ],
+  },
+];
+
+// ============== 7-DAY ACTIVATION CHALLENGE ==============
+
+export interface ChallengeDay {
+  day: number;
+  title: string;
+  subtitle: string;
+  icon: string;
+  tasks: { id: string; title: string; description: string; actionLabel: string; actionRoute?: string; tip?: string }[];
+  reward: string;
+}
+
+export const activationChallenge: ChallengeDay[] = [
+  {
+    day: 1, title: 'Understand the Game', subtitle: 'Why invest in crypto and how Apice works', icon: '🧠',
+    tasks: [
+      { id: 'c1-1', title: 'What is the crypto market?', description: 'Crypto is the most innovative financial market in the world. Bitcoin has generated returns of over 1,000,000% since 2009. Apice helps you participate intelligently.', actionLabel: 'Got It', tip: 'The crypto market operates 24/7 — unlike the stock market.' },
+      { id: 'c1-2', title: 'Why DCA works better than timing', description: 'Investing a fixed amount every week eliminates emotion. 95% of traders who try to time the market lose money. With DCA, you buy more when prices are low and less when they\'re high.', actionLabel: 'Learn DCA', actionRoute: '/learn' },
+      { id: 'c1-3', title: 'The Apice methodology in 3 pillars', description: '1️⃣ Strategic DCA — weekly investments. 2️⃣ Smart Diversification — blue-chips, L1s, DeFi. 3️⃣ Micro-Leverage — 2-5x on 10-20% of portfolio.', actionLabel: 'Continue' },
+    ],
+    reward: '🏅 Apice Starter',
+  },
+  {
+    day: 2, title: 'Your Exchange Account', subtitle: 'Create your Bybit account step by step', icon: '🏦',
+    tasks: [
+      { id: 'c2-1', title: 'Why use Bybit?', description: 'One of the world\'s largest exchanges: ✅ Low fees (0.1%), ✅ Intuitive interface, ✅ Auto DCA, ✅ Copy trading, ✅ Institutional security.', actionLabel: 'Got It', tip: 'Your funds stay in YOUR account. Apice never has access to your money.' },
+      { id: 'c2-2', title: 'Step 1: Create your account', description: 'Go to bybit.com through our link. Sign Up with email, create a strong password, confirm your email.', actionLabel: 'Open Bybit', tip: 'Use our invite for a $30 bonus + reduced fees.' },
+      { id: 'c2-3', title: 'Step 2: KYC Verification', description: 'Submit an ID document + selfie. 5-15 min process, approval within 24h.', actionLabel: 'Verify Account', tip: 'KYC is legally required and protects your account from fraud.' },
+    ],
+    reward: '🏅 Exchange Ready',
+  },
+  {
+    day: 3, title: 'First Deposit', subtitle: 'Deposit USDT and get ready to invest', icon: '💵',
+    tasks: [
+      { id: 'c3-1', title: 'What is USDT?', description: 'A stablecoin pegged to the dollar: 1 USDT = 1 USD. It\'s the base currency to buy other cryptos.', actionLabel: 'Got It' },
+      { id: 'c3-2', title: 'How to deposit USDT on Bybit', description: '1) Assets → Deposit. 2) Select USDT, TRC20 network. 3) Copy the address. 4) Send from another exchange or use P2P.', actionLabel: 'Deposit Now', tip: 'Start with any amount: $10, $50, or $100.' },
+    ],
+    reward: '🏅 Funded',
+  },
+  {
+    day: 4, title: 'Choose Your Strategy', subtitle: 'Define your profile and select a portfolio', icon: '🎯',
+    tasks: [
+      { id: 'c4-1', title: 'Review your investor profile', description: 'Confirm that the profile reflects your real goals and risk tolerance.', actionLabel: 'View Profile', actionRoute: '/profile-result' },
+      { id: 'c4-2', title: 'Choose a portfolio', description: 'Select one of the curated portfolios. You can change it at any time.', actionLabel: 'Choose Portfolio', actionRoute: '/portfolio' },
+    ],
+    reward: '🏅 Strategist',
+  },
+  {
+    day: 5, title: 'First Investment', subtitle: 'Execute your first purchase following the plan', icon: '🚀',
+    tasks: [
+      { id: 'c5-1', title: 'Set up your weekly DCA', description: 'Define your weekly amount. $25/week for 5 years could grow to $15,000+ with the Apice methodology.', actionLabel: 'Set Up DCA', actionRoute: '/investment-setup' },
+      { id: 'c5-2', title: 'Execute your first purchase', description: 'On Bybit, use Spot Trading. Buy in the proportions of your portfolio. Confirm in the app.', actionLabel: 'Confirm Purchase', actionRoute: '/portfolio', tip: 'Use "Market" orders for instant purchase.' },
+    ],
+    reward: '🏅 First Trade',
+  },
+  {
+    day: 6, title: 'Automation & Discipline', subtitle: 'Set up reminders and tracking', icon: '⚡',
+    tasks: [
+      { id: 'c6-1', title: 'Set weekly alerts', description: 'Weekly reminder (Friday is ideal) for your deposit. Build the habit.', actionLabel: 'Set Up' },
+      { id: 'c6-2', title: 'Understand rebalancing', description: 'Every month, review allocations and redistribute if needed.', actionLabel: 'Learn', actionRoute: '/learn' },
+    ],
+    reward: '🏅 Disciplined',
+  },
+  {
+    day: 7, title: 'Review & Level Up', subtitle: 'Review your progress and unlock the next level', icon: '🏆',
+    tasks: [
+      { id: 'c7-1', title: 'Review your first week', description: 'Congratulations! ✅ Account created, ✅ Deposit made, ✅ Portfolio set, ✅ Investment executed. You\'re ahead of 90% of people.', actionLabel: 'View Summary', actionRoute: '/home' },
+      { id: 'c7-2', title: 'Unlock the next level', description: 'Complete Foundations + 4 weeks of DCA to unlock optimized portfolios and copy trading.', actionLabel: 'Go to Learn', actionRoute: '/learn', tip: 'Members who complete everything are 3x more likely to reach their goals.' },
+    ],
+    reward: '🏅 7-Day Champion',
+  },
+];
+
+// ============== BYBIT GUIDE ==============
+
+export const bybitGuide = {
+  referralLink: 'https://www.bybit.com/invite?ref=APICE',
+  referralCode: 'APICE',
+  benefits: [
+    { icon: '💰', title: '$30 Bonus', description: 'Earn up to $30 USDT by creating your account with our invite' },
+    { icon: '📉', title: 'Reduced Fees', description: 'Discount on trading fees through the Apice partner link' },
+    { icon: '🎁', title: 'Exclusive Promotions', description: 'Access to exclusive events and rewards for Apice members' },
+    { icon: '🤝', title: 'Priority Support', description: 'Dedicated support via the Apice community for any questions' },
+  ],
+  steps: [
+    { step: 1, title: 'Access the link', description: 'Click the button to open Bybit with our invite applied.' },
+    { step: 2, title: 'Create your account', description: 'Email + strong password. Confirm the verification email.' },
+    { step: 3, title: 'KYC Verification', description: 'Identity document + selfie. Approval within 24h.' },
+    { step: 4, title: 'Deposit USDT', description: 'Assets → Deposit → USDT → TRC20 Network. Any amount.' },
+    { step: 5, title: 'Back to the app', description: 'Confirm here that you are ready and start investing.' },
+  ],
+};
+
+// ============== LOCKED STRATEGIES ==============
+
+export interface LockedStrategy {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  unlockRequirements: string[];
+  expectedReturn: string;
+  risk: string;
+  color: string;
+  gradient: string;
+}
+
+export const lockedStrategies: LockedStrategy[] = [
+  {
+    id: 'copy-trading',
+    name: 'Copy Trading',
+    icon: '🤖',
+    description: 'Automatically copy trades from top Bybit traders. AI selects the top performers for you.',
+    unlockRequirements: ['Complete 4 weeks of DCA', 'Minimum investment of $500', 'Foundations course complete'],
+    expectedReturn: '25-80% APY',
+    risk: 'Medium-High',
+    color: 'text-blue-400',
+    gradient: 'from-blue-500 to-cyan-500',
+  },
+  {
+    id: 'grid-bot',
+    name: 'Grid Bot',
+    icon: '📊',
+    description: 'Automated trading bots that profit from sideways market volatility. Operates 24/7 without intervention.',
+    unlockRequirements: ['Complete Mission 5', 'Minimum investment of $2,000', 'Pro Subscription'],
+    expectedReturn: '15-40% APY',
+    risk: 'Medium',
+    color: 'text-purple-400',
+    gradient: 'from-purple-500 to-pink-500',
+  },
+  {
+    id: 'dca-futures',
+    name: 'DCA with Micro-Leverage',
+    icon: '⚡',
+    description: 'Combine DCA with 2-5x leverage on selected positions. The explosive pillar of the Apice methodology.',
+    unlockRequirements: ['3 months of consistent DCA', 'Minimum investment of $1,000', 'Leverage Safety course'],
+    expectedReturn: '60-120%+ APY',
+    risk: 'High',
+    color: 'text-amber-400',
+    gradient: 'from-amber-500 to-orange-500',
+  },
+  {
+    id: 'yield-farming',
+    name: 'Yield Farming',
+    icon: '🌾',
+    description: 'Generate passive yield in DeFi with your idle assets. Optimized staking, liquidity pools, and lending.',
+    unlockRequirements: ['6 months of active investing', 'Diversified portfolio', 'Club Subscription'],
+    expectedReturn: '10-30% APY',
+    risk: 'Medium',
+    color: 'text-green-400',
+    gradient: 'from-green-500 to-emerald-500',
+  },
+];
+
+// ============== DCA EDUCATION SLIDES ==============
+
+export const dcaEducationSlides = [
+  {
+    id: 1,
+    title: 'Why DCA is the #1 Strategy',
+    icon: '📈',
+    content: 'Dollar-Cost Averaging (DCA) is the safest and most proven strategy for investing in crypto. You invest a fixed amount every week, eliminating emotion and market timing.',
+    stats: [
+      { label: 'DCA Investors', value: '83%', detail: 'have positive returns in 3+ years' },
+      { label: 'Timing Traders', value: '95%', detail: 'lose money in the long run' },
+    ],
+  },
+  {
+    id: 2,
+    title: 'Last 10 Years of Crypto',
+    icon: '🚀',
+    content: 'Those who invested $25/week in Bitcoin over the last 10 years turned $13,000 into over $1,200,000. With smart diversification, results are even better.',
+    stats: [
+      { label: 'Bitcoin', value: '+1,000,000%', detail: 'since 2013' },
+      { label: 'Ethereum', value: '+500,000%', detail: 'since 2015' },
+    ],
+  },
+  {
+    id: 3,
+    title: 'Next 10 Years',
+    icon: '🔮',
+    content: 'Institutional adoption, ETFs, clear regulation, and RWA tokenization should multiply the market from $2T to $20T+. Starting now captures this growth.',
+    stats: [
+      { label: 'BTC Potential', value: '$500K-1M', detail: 'analyst projection by 2035' },
+      { label: 'Total Market', value: '10x', detail: 'projected growth' },
+    ],
+  },
+  {
+    id: 4,
+    title: 'The Apice Advantage',
+    icon: '🧠',
+    content: 'Our AI adjusts your strategy in real-time: when the market dips, it recommends buying more. In major crashes, it suggests using USDT reserves to amplify positions.',
+    stats: [
+      { label: 'Apice Strategy', value: '+35-60%', detail: 'avg annual return' },
+      { label: 'Individual Investor', value: '+8-12%', detail: 'avg return without strategy' },
+    ],
+  },
+];
+
+// ============== ACTION PLAN STEPS ==============
+
+export const actionPlanSteps = [
+  { step: 1, title: 'Define your goal', description: 'Passive income, growth, or protection? Your goal guides the entire strategy.', icon: '🎯', status: 'profileSet' as const },
+  { step: 2, title: 'Choose base strategy', description: 'Conservative (15%), Balanced (35%) or Aggressive (60%+). AI recommends based on your profile.', icon: '📋', status: 'strategySet' as const },
+  { step: 3, title: 'Set up weekly DCA', description: 'Define how much to invest per week. Consistency > amount. Start with what you can.', icon: '💰', status: 'weeklySet' as const },
+  { step: 4, title: 'Execute allocation', description: 'Distribute according to plan. AI shows exactly how much to invest in each crypto.', icon: '🚀', status: 'executed' as const },
+  { step: 5, title: 'Review and optimize', description: 'Monthly, review proportions. AI suggests rebalancing when necessary.', icon: '🔄', status: 'optimized' as const },
+];
+
+// ============== AI MARKET INSIGHTS ==============
+
+export const aiMarketRecommendations = {
+  bullish: {
+    sentiment: 'bullish',
+    icon: '📈',
+    title: 'Bull Market',
+    message: 'The market is in an uptrend. Continue your normal DCA and maintain discipline. Do not increase investment due to FOMO.',
+    actionLabel: 'Maintain DCA',
+    color: 'text-green-400',
+    bgColor: 'bg-green-500/5',
+    borderColor: 'border-green-500/20',
+  },
+  neutral: {
+    sentiment: 'neutral',
+    icon: '➡️',
+    title: 'Stable Market',
+    message: 'Normal volatility. Ideal time for DCA. Your weekly investments are buying at fair prices.',
+    actionLabel: 'Continue DCA',
+    color: 'text-blue-400',
+    bgColor: 'bg-blue-500/5',
+    borderColor: 'border-blue-500/20',
+  },
+  dip: {
+    sentiment: 'dip',
+    icon: '📉',
+    title: 'Buying Opportunity',
+    message: 'Market down 15-30%. Consider increasing your DCA this week. Historically, buying the dip generates the highest returns.',
+    actionLabel: 'Increase DCA',
+    color: 'text-amber-400',
+    bgColor: 'bg-amber-500/5',
+    borderColor: 'border-amber-500/20',
+  },
+  crash: {
+    sentiment: 'crash',
+    icon: '🔥',
+    title: 'Major Crash — Buy More!',
+    message: 'Down 30%+. Now is the time to use your USDT reserves to buy aggressively. 90% of history\'s biggest returns came from crash buys.',
+    actionLabel: 'Use USDT Reserves',
+    color: 'text-red-400',
+    bgColor: 'bg-red-500/5',
+    borderColor: 'border-red-500/20',
+  },
+};
+// ============== INVESTMENT TIERS ==============
+
+export const getPersonalizedTiers = (capitalRange: string | null, investorType: string | null) => {
+  const isConservative = investorType === 'Conservative Builder';
+  const isGrowth = investorType === 'Growth Seeker';
+
+  if (capitalRange === 'under-200') {
+    return [
+      { amount: 25, label: 'Starter', tag: 'Start small', description: 'Build the habit with minimal commitment', icon: '🌱', recommended: false },
+      { amount: 50, label: 'Recommended', tag: 'Sweet spot', description: 'The ideal starting point for your profile', icon: '⭐', recommended: true },
+      { amount: 100, label: 'Accelerated', tag: 'Fast track', description: 'Accelerate your early growth phase', icon: '🚀', recommended: false },
+    ];
+  }
+  if (capitalRange === '200-1k') {
+    return [
+      { amount: 50, label: 'Starter', tag: 'Build habits', description: 'Consistent weekly contribution', icon: '🌱', recommended: false },
+      { amount: 100, label: 'Recommended', tag: 'Optimal growth', description: isConservative ? 'Steady accumulation of proven assets' : 'Balanced growth for your goals', icon: '⭐', recommended: true },
+      { amount: 250, label: 'Accelerated', tag: 'Power mode', description: 'Maximize your early portfolio growth', icon: '🚀', recommended: false },
+    ];
+  }
+  if (capitalRange === '1k-5k') {
+    return [
+      { amount: 100, label: 'Steady', tag: 'Consistent', description: 'Disciplined weekly accumulation', icon: '🌱', recommended: false },
+      { amount: 250, label: 'Recommended', tag: 'Optimal', description: isGrowth ? 'Aggressive growth aligned to your goals' : 'Sweet spot for your capital level', icon: '⭐', recommended: true },
+      { amount: 500, label: 'Accelerated', tag: 'Fast track', description: 'Reach investment milestones faster', icon: '🚀', recommended: false },
+    ];
+  }
+  // 5k-plus
+  return [
+    { amount: 250, label: 'Moderate', tag: 'Steady pace', description: 'Consistent high-value accumulation', icon: '🌱', recommended: false },
+    { amount: 500, label: 'Recommended', tag: 'Optimal', description: 'Strategic allocation for serious investors', icon: '⭐', recommended: true },
+    { amount: 1000, label: 'Maximum', tag: 'Full power', description: 'Maximum weekly allocation for rapid growth', icon: '🚀', recommended: false },
+  ];
+};

@@ -12,7 +12,7 @@ export default function Splash() {
       if (hasCompletedOnboarding) {
         navigate('/home', { replace: true });
       } else {
-        navigate('/welcome', { replace: true });
+        navigate('/onboarding', { replace: true });
       }
     }, 2800);
 
@@ -23,7 +23,7 @@ export default function Splash() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center relative overflow-hidden">
       {/* Subtle gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/3 via-transparent to-transparent" />
-      
+
       {/* Animated rings */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <motion.div
@@ -54,7 +54,7 @@ export default function Splash() {
         className="relative z-10 flex flex-col items-center gap-8"
       >
         {/* Logo mark */}
-        <motion.div 
+        <motion.div
           className="w-20 h-20 rounded-2xl apice-gradient-primary flex items-center justify-center shadow-lg"
           initial={{ rotate: -10 }}
           animate={{ rotate: 0 }}

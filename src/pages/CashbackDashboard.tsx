@@ -83,7 +83,7 @@ export default function CashbackDashboard() {
                         </div>
                         <CardContent className="pt-6 relative z-10">
                             <div className="text-center space-y-2">
-                                <p className="text-sm text-muted-foreground font-medium">Bitcoin Acumulado</p>
+                                <p className="text-sm text-muted-foreground font-medium">Accumulated Bitcoin</p>
                                 <div className="flex items-baseline justify-center gap-2">
                                     <Bitcoin className="w-8 h-8 text-amber-500" />
                                     <h1 className="text-4xl font-bold tracking-tight">
@@ -116,17 +116,17 @@ export default function CashbackDashboard() {
                             <div className="flex justify-between items-center">
                                 <CardTitle className="text-base font-bold flex items-center gap-2">
                                     <Target className="w-5 h-5 text-primary" />
-                                    Desafio 30 Dias
+                                    30-Day Challenge
                                 </CardTitle>
                                 <Badge variant="outline" className="gap-1">
                                     <Calendar className="w-3 h-3" />
-                                    {daysRemaining} dias restantes
+                                    {daysRemaining} days remaining
                                 </Badge>
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="flex justify-between items-baseline">
-                                <span className="text-sm text-muted-foreground">Progresso</span>
+                                <span className="text-sm text-muted-foreground">Progress</span>
                                 <span className="text-2xl font-bold">
                                     ${challengeProgress}
                                     <span className="text-sm text-muted-foreground font-normal">/${challengeTarget}</span>
@@ -134,7 +134,7 @@ export default function CashbackDashboard() {
                             </div>
                             <Progress value={progressPercentage} className="h-3" />
                             <p className="text-xs text-muted-foreground text-center">
-                                Faltam ${(challengeTarget - challengeProgress).toFixed(0)} para completar o desafio!
+                                Only ${(challengeTarget - challengeProgress).toFixed(0)} left to complete the challenge!
                             </p>
                         </CardContent>
                     </Card>
@@ -150,24 +150,24 @@ export default function CashbackDashboard() {
                         <CardHeader className="pb-3">
                             <CardTitle className="text-base font-bold flex items-center gap-2">
                                 <Sparkles className="w-5 h-5 text-yellow-500" />
-                                Projeção de Acumulação
+                                Accumulation Projection
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="text-center p-4 rounded-lg bg-secondary/50">
-                                    <p className="text-xs text-muted-foreground mb-1">Em 1 ano</p>
+                                    <p className="text-xs text-muted-foreground mb-1">In 1 year</p>
                                     <p className="text-xl font-bold text-primary">0.028 BTC</p>
                                     <p className="text-xs text-muted-foreground">~$1,900</p>
                                 </div>
                                 <div className="text-center p-4 rounded-lg bg-secondary/50">
-                                    <p className="text-xs text-muted-foreground mb-1">Em 5 anos</p>
+                                    <p className="text-xs text-muted-foreground mb-1">In 5 years</p>
                                     <p className="text-xl font-bold text-green-500">0.140 BTC</p>
                                     <p className="text-xs text-muted-foreground">~$9,500</p>
                                 </div>
                             </div>
                             <p className="text-xs text-center text-muted-foreground italic">
-                                *Baseado em gasto médio de $500/mês e crescimento conservador do BTC
+                                *Based on $500/month average spend and conservative BTC growth
                             </p>
                         </CardContent>
                     </Card>
@@ -180,9 +180,9 @@ export default function CashbackDashboard() {
                     transition={{ delay: 0.3 }}
                 >
                     <div className="flex justify-between items-center mb-3">
-                        <h3 className="font-semibold text-sm">Últimas Transações</h3>
+                        <h3 className="font-semibold text-sm">Recent Transactions</h3>
                         <Button variant="ghost" size="sm" className="h-8 text-xs">
-                            Ver Todas <ArrowRight className="w-3 h-3 ml-1" />
+                            See All <ArrowRight className="w-3 h-3 ml-1" />
                         </Button>
                     </div>
                     <div className="space-y-2">
@@ -228,10 +228,10 @@ export default function CashbackDashboard() {
                         <CardHeader className="pb-3">
                             <CardTitle className="text-base font-bold flex items-center gap-2">
                                 <Sparkles className="w-5 h-5 text-green-500" />
-                                Assinaturas 100% Cashback
+                                100% Cashback Subscriptions
                             </CardTitle>
                             <p className="text-xs text-muted-foreground">
-                                Receba 100% de volta em Bitcoin nas suas assinaturas favoritas
+                                Get 100% back in Bitcoin on your favorite subscriptions
                             </p>
                         </CardHeader>
                         <CardContent>
@@ -240,8 +240,8 @@ export default function CashbackDashboard() {
                                     <Card
                                         key={partner.name}
                                         className={`cursor-pointer transition-all ${partner.active
-                                                ? 'border-green-500/50 bg-green-500/10'
-                                                : 'border-dashed hover:border-primary/30'
+                                            ? 'border-green-500/50 bg-green-500/10'
+                                            : 'border-dashed hover:border-primary/30'
                                             }`}
                                     >
                                         <CardContent className="p-4 text-center space-y-2">
@@ -251,10 +251,10 @@ export default function CashbackDashboard() {
                                                 <p className="text-[10px] text-green-500 font-bold">{partner.cashback}</p>
                                             </div>
                                             {partner.active ? (
-                                                <Badge variant="default" className="text-[10px] w-full">Ativo</Badge>
+                                                <Badge variant="default" className="text-[10px] w-full">Active</Badge>
                                             ) : (
                                                 <Button size="sm" variant="outline" className="w-full h-7 text-[10px]">
-                                                    Ativar
+                                                    Activate
                                                 </Button>
                                             )}
                                         </CardContent>
@@ -275,8 +275,8 @@ export default function CashbackDashboard() {
                         <CardContent className="p-6 text-center space-y-3">
                             <CreditCard className="w-12 h-12 mx-auto" />
                             <div>
-                                <h3 className="font-bold text-lg">Ainda não tem o cartão?</h3>
-                                <p className="text-sm opacity-90">Solicite agora e comece a acumular Bitcoin</p>
+                                <h3 className="font-bold text-lg">Don't have the card yet?</h3>
+                                <p className="text-sm opacity-90">Apply now and start accumulating Bitcoin</p>
                             </div>
                             <Button
                                 size="lg"
@@ -284,7 +284,7 @@ export default function CashbackDashboard() {
                                 className="w-full gap-2"
                                 onClick={() => navigate('/strategies/cashback/setup')}
                             >
-                                Solicitar Cartão
+                                Request Card
                                 <ExternalLink className="w-4 h-4" />
                             </Button>
                         </CardContent>

@@ -26,38 +26,38 @@ interface ConsistentInvestmentStrategyProps {
 const INVESTMENT_LEVELS = [
     {
         threshold: 0,
-        label: 'Iniciante',
+        label: 'Beginner',
         icon: '🌱',
         color: 'text-gray-400',
-        unlocks: ['Portfolios Básicos', 'DCA Básico'],
+        unlocks: ['Basic Portfolios', 'Basic DCA'],
     },
     {
         threshold: 300,
-        label: 'Construtor',
+        label: 'Builder',
         icon: '🔨',
         color: 'text-blue-400',
-        unlocks: ['Portfolios Otimizados', 'DCA Multi-Ativos'],
+        unlocks: ['Optimized Portfolios', 'Multi-Asset DCA'],
     },
     {
         threshold: 1000,
-        label: 'Estrategista',
+        label: 'Strategist',
         icon: '🎯',
         color: 'text-purple-400',
-        unlocks: ['Diversificação Avançada', 'Acesso a Copy Trading'],
+        unlocks: ['Advanced Diversification', 'Access to Copy Trading'],
     },
     {
         threshold: 3000,
-        label: 'Arquiteto',
+        label: 'Architect',
         icon: '🏗️',
         color: 'text-orange-400',
-        unlocks: ['Lista de Alto Crescimento', 'Trading de Futuros'],
+        unlocks: ['High Growth List', 'Futures Trading'],
     },
     {
         threshold: 10000,
-        label: 'Titã',
+        label: 'Titan',
         icon: '👑',
         color: 'text-yellow-400',
-        unlocks: ['Estratégias IA Elite', 'Copy Trading Prioritário', 'Futuros Avançados'],
+        unlocks: ['Elite AI Strategies', 'Priority Copy Trading', 'Advanced Futures'],
     },
 ];
 
@@ -112,10 +112,10 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-primary" />
-                        Estratégia de Aporte Consistente
+                        Consistent Investment Strategy
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                        Quanto mais você investe regularmente, mais estratégias você desbloqueia
+                        The more you invest regularly, the more strategies you unlock
                     </p>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -124,7 +124,7 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
                         <div className="flex items-center gap-2 p-3 rounded-lg bg-apice-success/10 border border-apice-success/20">
                             <Zap className="w-4 h-4 text-apice-success" />
                             <span className="text-sm font-medium text-apice-success">
-                                Conectado com Bybit - Dados em tempo real
+                                Connected with Bybit - Real-time data
                             </span>
                         </div>
                     )}
@@ -132,10 +132,10 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
                     {/* Current Investment Amount */}
                     <div className="space-y-3">
                         <div className="flex items-baseline justify-between">
-                            <span className="text-sm text-muted-foreground">Seu Aporte Semanal</span>
+                            <span className="text-sm text-muted-foreground">Your Weekly Investment</span>
                             <div className="text-right">
                                 <span className="text-3xl font-bold">${weeklyAmount}</span>
-                                <span className="text-muted-foreground">/semana</span>
+                                <span className="text-muted-foreground">/week</span>
                             </div>
                         </div>
 
@@ -155,11 +155,11 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
 
                         <div className="grid grid-cols-2 gap-3 text-sm">
                             <div className="p-3 rounded-lg bg-secondary/50">
-                                <div className="text-xs text-muted-foreground">Mensal</div>
+                                <div className="text-xs text-muted-foreground">Monthly</div>
                                 <div className="font-semibold">${monthlyAmount.toLocaleString()}</div>
                             </div>
                             <div className="p-3 rounded-lg bg-secondary/50">
-                                <div className="text-xs text-muted-foreground">Anual</div>
+                                <div className="text-xs text-muted-foreground">Yearly</div>
                                 <div className="font-semibold">${yearlyAmount.toLocaleString()}</div>
                             </div>
                         </div>
@@ -169,16 +169,16 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
                     <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
                         <div className="flex items-center gap-2 mb-3">
                             <Sparkles className="w-4 h-4 text-primary" />
-                            <span className="text-sm font-semibold">Projeção em 5 anos (8% a.a.)</span>
+                            <span className="text-sm font-semibold">5-year projection (8% p.a.)</span>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <div className="text-xs text-muted-foreground">Total Investido</div>
+                                <div className="text-xs text-muted-foreground">Total Invested</div>
                                 <div className="text-lg font-semibold">${fiveYearInvested.toLocaleString()}</div>
                             </div>
                             <div className="text-right">
-                                <div className="text-xs text-muted-foreground">Valor Projetado</div>
+                                <div className="text-xs text-muted-foreground">Projected Value</div>
                                 <div className="text-lg font-semibold text-apice-success">
                                     ${fiveYearProjected.toLocaleString()}
                                 </div>
@@ -187,7 +187,7 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
 
                         <div className="mt-2 pt-2 border-t border-primary/10">
                             <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Ganho Estimado</span>
+                                <span className="text-muted-foreground">Estimated Gain</span>
                                 <span className="font-semibold text-apice-success">
                                     +${fiveYearGain.toLocaleString()} ({fiveYearGainPercent}%)
                                 </span>
@@ -199,11 +199,11 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
                     <div className="flex gap-3">
                         <Button variant="outline" className="flex-1" size="sm">
                             <Info className="w-4 h-4 mr-2" />
-                            Ver Detalhes
+                            View Details
                         </Button>
                         <Button variant="default" className="flex-1" size="sm">
                             <Zap className="w-4 h-4 mr-2" />
-                            Automatizar DCA
+                            Automate DCA
                         </Button>
                     </div>
                 </CardContent>
@@ -214,7 +214,7 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Award className="w-5 h-5 text-primary" />
-                        Seu Nível de Investimento
+                        Your Investment Level
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -225,12 +225,12 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
                             <div>
                                 <div className="text-lg font-bold">{currentLevel.label}</div>
                                 <div className="text-sm text-muted-foreground">
-                                    Total Investido: ${totalInvested.toLocaleString()}
+                                    Total Invested: ${totalInvested.toLocaleString()}
                                 </div>
                             </div>
                         </div>
                         <Badge variant="default" className="text-xs">
-                            Nível {currentLevelIndex + 1}/5
+                            Level {currentLevelIndex + 1}/5
                         </Badge>
                     </div>
 
@@ -239,14 +239,14 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
                         <div className="space-y-2">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">
-                                    Progresso para {nextLevel.label} {nextLevel.icon}
+                                    Progress to {nextLevel.label} {nextLevel.icon}
                                 </span>
                                 <span className="font-semibold">{progressToNext.toFixed(0)}%</span>
                             </div>
                             <Progress value={progressToNext} className="h-2" />
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <span>Faltam ${(nextLevel.threshold - totalInvested).toLocaleString()}</span>
-                                <span>~{weeksToNextLevel} semanas com ${weeklyAmount}/semana</span>
+                                <span>Remaining ${(nextLevel.threshold - totalInvested).toLocaleString()}</span>
+                                <span>~{weeksToNextLevel} weeks with ${weeklyAmount}/week</span>
                             </div>
                         </div>
                     )}
@@ -255,7 +255,7 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
                     <div className="space-y-3">
                         <div className="text-sm font-semibold flex items-center gap-2">
                             <CheckCircle2 className="w-4 h-4 text-apice-success" />
-                            Desbloqueado
+                            Unlocked
                         </div>
                         <div className="grid gap-2">
                             {currentLevel.unlocks.map((unlock, i) => (
@@ -272,7 +272,7 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
                         <div className="space-y-3">
                             <div className="text-sm font-semibold flex items-center gap-2">
                                 <Lock className="w-4 h-4 text-muted-foreground" />
-                                Próximo Nível ({nextLevel.label})
+                                Next Level ({nextLevel.label})
                             </div>
                             <div className="grid gap-2">
                                 {nextLevel.unlocks.map((unlock, i) => (
@@ -292,43 +292,43 @@ export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: C
                 <CardHeader>
                     <CardTitle className="text-base flex items-center gap-2">
                         <Target className="w-4 h-4" />
-                        Por que Consistência Importa?
+                        Why Consistency Matters?
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                     <div className="flex items-start gap-3">
                         <CheckCircle2 className="w-4 h-4 text-apice-success shrink-0 mt-0.5" />
                         <div>
-                            <div className="font-medium">Reduz risco de timing ruim</div>
+                            <div className="font-medium">Reduces bad timing risk</div>
                             <div className="text-xs text-muted-foreground">
-                                DCA elimina a necessidade de acertar o momento perfeito
+                                DCA eliminates the need to hit the perfect moment
                             </div>
                         </div>
                     </div>
                     <div className="flex items-start gap-3">
                         <CheckCircle2 className="w-4 h-4 text-apice-success shrink-0 mt-0.5" />
                         <div>
-                            <div className="font-medium">Aproveita a volatilidade</div>
+                            <div className="font-medium">Takes advantage of volatility</div>
                             <div className="text-xs text-muted-foreground">
-                                Compra mais quando está barato, menos quando está caro
+                                Buy more when it's cheap, less when it's expensive
                             </div>
                         </div>
                     </div>
                     <div className="flex items-start gap-3">
                         <CheckCircle2 className="w-4 h-4 text-apice-success shrink-0 mt-0.5" />
                         <div>
-                            <div className="font-medium">Desbloqueia estratégias avançadas</div>
+                            <div className="font-medium">Unlocks advanced strategies</div>
                             <div className="text-xs text-muted-foreground">
-                                Mais capital = mais diversificação e automação
+                                More capital = more diversification and automation
                             </div>
                         </div>
                     </div>
                     <div className="flex items-start gap-3">
                         <CheckCircle2 className="w-4 h-4 text-apice-success shrink-0 mt-0.5" />
                         <div>
-                            <div className="font-medium">Cria disciplina financeira</div>
+                            <div className="font-medium">Creates financial discipline</div>
                             <div className="text-xs text-muted-foreground">
-                                Investimento regular se torna um hábito automático
+                                Regular investment becomes an automatic habit
                             </div>
                         </div>
                     </div>
