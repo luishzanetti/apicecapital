@@ -63,7 +63,7 @@ export class BybitClient {
         try {
             const response = await fetch(url, {
                 method: 'POST',
-                headers,
+                headers: headers as HeadersInit,
                 body: bodyString
             });
 
