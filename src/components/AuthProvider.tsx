@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/appStore";
 
 interface AuthContextType {
@@ -29,17 +29,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const resetApp = useAppStore((state) => state.resetApp);
 
     useEffect(() => {
-        // Check active sessions and sets the user
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session) {
-                syncFromSupabase();
-            }
+        if (!isSupabaseConfigured) {
             setLoading(false);
-        });
+            return;
+        }
 
-        // Listen for changes on auth state (logged in, signed out, etc.)
+        let isMounted = true;
+
+        supabase.auth.getSession()
+            .then(({ data: { session } }) => {
+                if (!isMounted) return;
+                setSession(session);
+                setUser(session?.user ?? null);
+                if (session) {
+                    syncFromSupabase();
+                }
+            })
+            .catch((error) => {
+                console.error("Erro ao carregar sessão:", error);
+            })
+            .finally(() => {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            });
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             (_event, session) => {
                 setSession(session);
@@ -48,16 +62,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 if (session) {
                     syncFromSupabase();
                 } else {
-                    // Optional: reset app state on logout
                     resetApp();
                 }
             }
         );
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+        };
     }, [syncFromSupabase, resetApp]);
 
     const signOut = async () => {
+        if (!isSupabaseConfigured) return;
         await supabase.auth.signOut();
     };
 
