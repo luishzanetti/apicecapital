@@ -31,7 +31,7 @@ export default function Home() {
   const userName = user?.email?.split('@')[0] || 'Investor';
 
   const userProfile = useAppStore((state) => state.userProfile);
-  const setupProgress = useAppStore((state) => state.setupProgress) || {};
+  const setupProgress = useAppStore((state) => state.setupProgress);
   const subscription = useAppStore((state) => state.subscription);
   const daysActive = useAppStore((state) => state.daysActive);
 
