@@ -120,7 +120,7 @@ export default function Home() {
               </p>
 
               <div className="grid grid-cols-2 gap-3 mt-6">
-                <AddTransactionModal />
+                <AddTransactionModal onTransactionAdded={() => {}} />
                 <Button variant="outline" className="w-full bg-background/50 hover:bg-background/80" onClick={() => navigate('/portfolio')}>
                   View Details
                 </Button>

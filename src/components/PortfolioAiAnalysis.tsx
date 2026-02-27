@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAppStore } from '@/store/appStore';
-import { Brain, checkCircle, AlertTriangle, TrendingUp, Shield, Zap, Loader2 } from 'lucide-react';
+import { Brain, CheckCircle, AlertTriangle, TrendingUp, Shield, Zap, Loader2 } from 'lucide-react';
 
 export function PortfolioAiAnalysis() {
     const userProfile = useAppStore((s) => s.userProfile);
