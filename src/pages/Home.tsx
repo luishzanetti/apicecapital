@@ -53,10 +53,9 @@ export default function Home() {
 
   // Calculate setup progress percentage by counting true values
   const progressSteps = [
-    setupProgress?.profileCompleted,
-    setupProgress?.riskAnalyzed,
-    setupProgress?.firstInvestment,
-    setupProgress?.strategySelected
+    setupProgress?.exchangeAccountCreated,
+    setupProgress?.corePortfolioSelected,
+    setupProgress?.dcaPlanConfigured,
   ];
   const completedSteps = progressSteps.filter(Boolean).length;
   const progressPercentage = (completedSteps / progressSteps.length) * 100;
