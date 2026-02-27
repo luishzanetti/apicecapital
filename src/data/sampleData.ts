@@ -1060,8 +1060,8 @@ export const missionDefinitions: MissionDef[] = [
     badgeIcon: '👁️',
     xpTotal: 300,
     tasks: [
-      { id: 'm1-1', storeKey: 'm1_onboardingCompleted', title: 'The Manifesto', description: 'Unlock the vision. Understand how elite capital flows and why you were invited.', actionLabel: 'Explore Vision', actionRoute: '/quiz', xp: 150 },
-      { id: 'm1-2', storeKey: 'm1_profileQuizDone', title: 'DNA Analysis', description: 'Our AI needs to understand your core. Reveal your investor DNA to unlock the path.', actionLabel: 'Start Scan', actionRoute: '/quiz', xp: 150 },
+      { id: 'm1-1', storeKey: 'm1_onboardingCompleted', title: 'The Manifesto', description: 'Unlock the vision. Understand how elite capital flows and why you were invited.', actionLabel: 'Explore Vision', actionRoute: '/onboarding', xp: 150 },
+      { id: 'm1-2', storeKey: 'm1_profileQuizDone', title: 'DNA Analysis', description: 'Our AI needs to understand your core. Reveal your investor DNA to unlock the path.', actionLabel: 'Start Scan', actionRoute: '/onboarding', xp: 150 },
     ],
   },
   {
@@ -1078,8 +1078,8 @@ export const missionDefinitions: MissionDef[] = [
       { id: 'm2-1', storeKey: 'm2_methodologyRead', title: 'Master the Apice Method', description: 'Internalize the 3 Pillars: DCA + Diversification + Micro-Leverage for explosive performance.', actionLabel: 'Deep Dive', actionRoute: '/learn', xp: 150 },
       { id: 'm2-2', storeKey: 'm2_whyCryptoExchange', title: 'The Fortress', description: 'Why self-custody and top-tier exchanges like Bybit are your financial fortress.', actionLabel: 'Build Fortress', actionRoute: '/activation-challenge', xp: 100 },
       { id: 'm2-3', storeKey: 'm2_bybitAccountCreated', title: 'Gateway Access', description: 'Create your multi-chain gateway on Bybit. This is your primary execution engine.', actionLabel: 'Secure Access', actionRoute: '/activation-challenge', xp: 150 },
-      { id: 'm2-4', storeKey: 'm2_bybitReferralUsed', title: 'Elite Benefits', description: 'Activate the Apice protocol on your account for fee reduction and exclusive liquidity.', actionLabel: 'Activate Perks', xp: 100 },
-      { id: 'm2-5', storeKey: 'm2_firstDepositUSDT', title: 'Fuel the Tank', description: 'Fuel your journey with your first USDT deposit. Even the smallest spark starts a fire.', actionLabel: 'Fuel Up', xp: 100 },
+      { id: 'm2-4', storeKey: 'm2_bybitReferralUsed', title: 'Elite Benefits', description: 'Activate the Apice protocol on your account for fee reduction and exclusive liquidity.', actionLabel: 'Activate Perks', actionRoute: '/activation-challenge', xp: 100 },
+      { id: 'm2-5', storeKey: 'm2_firstDepositUSDT', title: 'Fuel the Tank', description: 'Fuel your journey with your first USDT deposit. Even the smallest spark starts a fire.', actionLabel: 'Fuel Up', actionRoute: '/activation-challenge', xp: 100 },
     ],
   },
   {

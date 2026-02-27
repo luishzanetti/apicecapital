@@ -13,6 +13,7 @@ import Welcome from "./pages/Welcome";
 import Auth from "./pages/Auth";
 import Quiz from "./pages/Quiz";
 import ProfileResult from "./pages/ProfileResult";
+import ApiceOnboarding from "./pages/ApiceOnboarding";
 import Home from "./pages/Home";
 import Portfolio from "./pages/Portfolio";
 import PortfolioDetail from "./pages/PortfolioDetail";
@@ -64,6 +65,7 @@ function AppContent() {
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/quiz" element={<Quiz />} />
       <Route path="/profile-result" element={<ProfileResult />} />
+      <Route path="/onboarding" element={<ApiceOnboarding />} />
 
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/" element={<Navigate to="/home" replace />} />

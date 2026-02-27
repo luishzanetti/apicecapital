@@ -5,6 +5,7 @@ import { CheckCircle2, ChevronDown, ChevronRight, Lock, Zap, Trophy, PlayCircle 
 import { cn } from '@/lib/utils';
 import { useAppStore, type MissionProgress } from '@/store/appStore';
 import { missionDefinitions } from '@/data/sampleData';
+import { toast } from 'sonner';
 
 export default function SetupMissions() {
     const navigate = useNavigate();
@@ -302,6 +303,7 @@ export default function SetupMissions() {
                                                                         completeMissionTask(
                                                                             task.storeKey as keyof MissionProgress
                                                                         );
+                                                                        toast.success(`Mission accomplished! +${task.xp} XP`);
                                                                     }
                                                                 }}
                                                             >

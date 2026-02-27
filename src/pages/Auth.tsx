@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Loader2, Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function Auth() {
     const [loading, setLoading] = useState(false);
@@ -15,6 +16,13 @@ export default function Auth() {
     const [showPassword, setShowPassword] = useState(false);
     const [isSignUp, setIsSignUp] = useState(false);
     const navigate = useNavigate();
+    const { session } = useAuth();
+
+    useEffect(() => {
+        if (session) {
+            navigate("/home", { replace: true });
+        }
+    }, [session, navigate]);
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,11 +30,16 @@ export default function Auth() {
 
         try {
             if (isSignUp) {
-                const { error } = await supabase.auth.signUp({ email, password });
+                const { data, error } = await supabase.auth.signUp({ email, password });
                 if (error) throw error;
-                toast.success("Account created!", {
-                    description: "Please check your email to confirm your account.",
-                });
+                if (data?.session) {
+                    toast.success("Account created successfully!");
+                    navigate("/home");
+                } else {
+                    toast.success("Account created!", {
+                        description: "Please check your email to confirm your account.",
+                    });
+                }
             } else {
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) {

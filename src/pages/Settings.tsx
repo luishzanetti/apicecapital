@@ -527,7 +527,7 @@ export default function Settings() {
                                 <p className="text-sm font-semibold">Market Alerts</p>
                                 <p className="text-[10px] text-muted-foreground">Coming soon — crash alerts & opportunities</p>
                             </div>
-                            <Switch disabled checked={false} />
+                            <Badge variant="outline" className="text-[9px]">Soon</Badge>
                         </div>
                         <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-start gap-2">
                             <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
@@ -574,9 +574,9 @@ export default function Settings() {
                                     <p className="text-[10px] text-muted-foreground">Coming in future update</p>
                                 </div>
                             </div>
-                            <Switch checked={false} disabled />
+                            <Badge variant="outline" className="text-[9px]">Soon</Badge>
                         </div>
-                        <p className="text-[10px] text-muted-foreground text-center px-2">
+                        <p className="text-[10px] text-muted-foreground text-center px-2 mt-4">
                             Apice is designed for dark mode. Light mode and custom themes are on the roadmap.
                         </p>
                     </div>

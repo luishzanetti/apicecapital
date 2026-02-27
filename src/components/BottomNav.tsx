@@ -15,7 +15,7 @@ export function BottomNav() {
   const location = useLocation();
 
   return (
-    <div className="fixed bottom-4 left-0 right-0 z-50 px-5 pointer-events-none flex justify-center">
+    <div className="fixed bottom-4 left-0 right-0 z-40 px-5 pointer-events-none flex justify-center">
       <nav className="pointer-events-auto flex items-center glass-nav px-1.5 py-1.5 rounded-[22px] shadow-2xl shadow-black/25">
         {navItems.map((item) => {
           const isActive =
