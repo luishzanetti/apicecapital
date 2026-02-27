@@ -74,6 +74,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [syncFromSupabase, resetApp]);
 
     const signOut = async () => {
+        if (!isSupabaseConfigured) return;
         await supabase.auth.signOut();
     };
 
