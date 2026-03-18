@@ -362,7 +362,7 @@ export const useAppStore = create<AppState>()(
               supabase.from('profiles').update({
                 onboarding_skipped: true,
                 updated_at: new Date().toISOString()
-              }).eq('id', user.id).then(() => { }).catch(console.error);
+              }).eq('id', user.id).then(() => { }, console.error);
             }
           }).catch(console.error);
         } catch (e) { console.error('Supabase skipped onboarding error', e); }
