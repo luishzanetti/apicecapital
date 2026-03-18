@@ -494,9 +494,9 @@ export const useAppStore = create<AppState>()(
                   m1_profileQuizDone: true
                 },
                 updated_at: new Date().toISOString()
-              }).eq('id', user.id).then(() => { }).catch(console.error);
+              }).eq('id', user.id).then(() => { }, console.error);
             }
-          }).catch(console.error);
+          }).then(() => { }, console.error);
         } catch (e) { console.error('Supabase complete onboarding error', e); }
       },
 
