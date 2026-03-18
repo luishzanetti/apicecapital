@@ -364,7 +364,7 @@ export const useAppStore = create<AppState>()(
                 updated_at: new Date().toISOString()
               }).eq('id', user.id).then(() => { }, console.error);
             }
-          }).catch(console.error);
+          }).then(() => { }, console.error);
         } catch (e) { console.error('Supabase skipped onboarding error', e); }
       },
 
