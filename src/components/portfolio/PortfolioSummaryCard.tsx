@@ -142,25 +142,32 @@ function TimeRangeSelector({
 
 function QuickActions({ onNavigate }: { onNavigate: (path: string) => void }) {
   const actions = [
-    { icon: Repeat2, label: 'Strategies', color: 'text-primary', bg: 'bg-primary/10', path: '/strategies' },
-    { icon: BarChart3, label: 'Operations', color: 'text-blue-400', bg: 'bg-blue-500/10', path: '/analytics' },
-    { icon: ArrowDownToLine, label: 'DCA', color: 'text-purple-400', bg: 'bg-purple-500/10', path: '/dca-planner' },
-    { icon: BarChart3, label: 'Analytics', color: 'text-amber-400', bg: 'bg-amber-500/10', path: '/analytics' },
+    { icon: Repeat2, label: 'Strategies', color: 'text-primary', bg: 'bg-primary/10', hoverBorder: 'hover:border-primary/30', path: '/strategies' },
+    { icon: BarChart3, label: 'Operations', color: 'text-blue-400', bg: 'bg-blue-500/10', hoverBorder: 'hover:border-blue-500/30', path: '/analytics' },
+    { icon: ArrowDownToLine, label: 'DCA', color: 'text-purple-400', bg: 'bg-purple-500/10', hoverBorder: 'hover:border-purple-500/30', path: '/dca-planner' },
+    { icon: BarChart3, label: 'Analytics', color: 'text-amber-400', bg: 'bg-amber-500/10', hoverBorder: 'hover:border-amber-500/30', path: '/analytics' },
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-2">
+    <div className="grid grid-cols-4 gap-2 md:gap-3">
       {actions.map((a) => (
-        <button
+        <motion.button
           key={a.label}
           onClick={() => onNavigate(a.path)}
-          className="flex flex-col items-center gap-1.5 py-2.5 rounded-xl hover:bg-secondary/40 transition-all active:scale-95"
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          className={cn(
+            'flex flex-col md:flex-row items-center gap-1.5 md:gap-2 p-2.5 md:p-3',
+            'rounded-xl bg-card border border-border/40 transition-all',
+            'hover:shadow-md hover:shadow-primary/5',
+            a.hoverBorder,
+          )}
         >
-          <div className={cn('w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center', a.bg)}>
-            <a.icon className={cn('w-[18px] h-[18px] md:w-5 md:h-5', a.color)} />
+          <div className={cn('w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center shrink-0', a.bg)}>
+            <a.icon className={cn('w-4 h-4 md:w-[18px] md:h-[18px]', a.color)} />
           </div>
-          <span className="text-[9px] font-medium text-muted-foreground">{a.label}</span>
-        </button>
+          <span className="text-[9px] md:text-[11px] font-medium text-muted-foreground">{a.label}</span>
+        </motion.button>
       ))}
     </div>
   );
@@ -304,6 +311,9 @@ export function PortfolioSummaryCard() {
       ? '••••••'
       : `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+  // Count funding assets
+  const fundingAssetCount = analytics.fundingHoldings.length;
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
       <Card className="overflow-hidden border-0 shadow-xl shadow-primary/5">
@@ -314,43 +324,43 @@ export function PortfolioSummaryCard() {
           }}
         />
 
-        <CardContent className="pt-5 pb-4 space-y-3 relative">
+        <CardContent className="pt-5 pb-4 space-y-3 md:space-y-4 relative">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {analytics.isTestnet && (
-                <Badge variant="outline" className="text-[8px] border-amber-500/30 text-amber-400 px-1.5">TESTNET</Badge>
+                <Badge variant="outline" className="text-[8px] md:text-[9px] border-amber-500/30 text-amber-400 px-1.5 md:px-2 md:py-0.5">TESTNET</Badge>
               )}
-              <Badge variant="outline" className="text-[8px] gap-1 border-green-500/30 text-green-400 px-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <Badge variant="outline" className="text-[8px] md:text-[9px] gap-1 border-green-500/30 text-green-400 px-1.5 md:px-2 md:py-0.5">
+                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-green-500 animate-pulse" />
                 Live
               </Badge>
             </div>
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setHideBalance(!hideBalance)}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all"
+                className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all"
               >
-                {hideBalance ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                {hideBalance ? <EyeOff className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <Eye className="w-3.5 h-3.5 md:w-4 md:h-4" />}
               </button>
               <button
                 onClick={refresh}
                 disabled={isRefreshing}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all"
+                className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all"
               >
-                <RefreshCw className={cn('w-3.5 h-3.5', isRefreshing && 'animate-spin')} />
+                <RefreshCw className={cn('w-3.5 h-3.5 md:w-4 md:h-4', isRefreshing && 'animate-spin')} />
               </button>
             </div>
           </div>
 
           {/* Balance */}
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-0.5">Total Balance</p>
+            <p className="text-[10px] md:text-[11px] text-muted-foreground uppercase tracking-widest mb-0.5">Total Balance</p>
             <motion.p
               key={hideBalance ? 'hidden' : String(grandTotal)}
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-[32px] font-bold tracking-tight leading-none"
+              className="text-[32px] md:text-4xl lg:text-5xl font-bold tracking-tight leading-none"
             >
               {fmt(grandTotal)}
             </motion.p>
@@ -380,64 +390,80 @@ export function PortfolioSummaryCard() {
             <TimeRangeSelector selected={timeRange} onChange={setTimeRange} />
           </div>
 
-          {/* Account Summary (collapsible) */}
-          <button
-            onClick={() => setShowAccounts(!showAccounts)}
-            className="w-full flex items-center justify-between py-2 px-1 group"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-                <span className="text-[10px] text-muted-foreground">Unified</span>
-                <span className="text-xs font-semibold">{hideBalance ? '••••' : fmt(totalEquity)}</span>
+          {/* Account Summary — Mini Cards */}
+          <div className="grid grid-cols-2 gap-2 md:gap-3">
+            {/* Unified Account Card */}
+            <div className="rounded-xl bg-primary/5 border border-primary/10 p-3 md:p-4 space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-sm shadow-primary/40" />
+                <span className="text-[11px] md:text-xs font-medium text-muted-foreground">Unified</span>
               </div>
-              {hasFunding && (
-                <>
-                  <span className="text-muted-foreground/30">|</span>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-amber-500" />
-                    <span className="text-[10px] text-muted-foreground">Funding</span>
-                    <span className="text-xs font-semibold">{hideBalance ? '••••' : fmt(fundingBalance)}</span>
-                  </div>
-                </>
-              )}
+              <p className="text-sm md:text-base font-bold tracking-tight">{hideBalance ? '••••' : fmt(totalEquity)}</p>
+              <p className="text-[10px] md:text-[11px] text-muted-foreground">{analytics.spotCount} assets</p>
             </div>
-            <motion.div animate={{ rotate: showAccounts ? 180 : 0 }} className="text-muted-foreground">
-              <ChevronDown className="w-3.5 h-3.5" />
-            </motion.div>
-          </button>
 
-          <AnimatePresence>
-            {showAccounts && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden space-y-2"
+            {/* Funding Account Card */}
+            <div className={cn(
+              'rounded-xl border p-3 md:p-4 space-y-1',
+              hasFunding ? 'bg-amber-500/5 border-amber-500/10' : 'bg-secondary/30 border-border/30'
+            )}>
+              <div className="flex items-center gap-2">
+                <div className={cn('w-2.5 h-2.5 rounded-full', hasFunding ? 'bg-amber-500 shadow-sm shadow-amber-500/40' : 'bg-muted-foreground/30')} />
+                <span className="text-[11px] md:text-xs font-medium text-muted-foreground">Funding</span>
+              </div>
+              <p className="text-sm md:text-base font-bold tracking-tight">{hideBalance ? '••••' : fmt(fundingBalance)}</p>
+              <p className="text-[10px] md:text-[11px] text-muted-foreground">{fundingAssetCount} assets</p>
+            </div>
+          </div>
+
+          {/* Info Bar — Assets & Available Balance */}
+          <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 rounded-lg bg-secondary/30 border border-border/20">
+            <span className="text-[10px] md:text-xs text-muted-foreground">
+              {analytics.spotCount} assets{' '}
+              <span className="text-muted-foreground/40 mx-0.5">&middot;</span>{' '}
+              {analytics.activeDCAPlans} DCA {analytics.activeDCAPlans === 1 ? 'plan' : 'plans'}
+            </span>
+            <span className="text-[10px] md:text-xs font-medium text-foreground/80">
+              Available {hideBalance ? '••••' : fmt(analytics.totalAvailableBalance)}
+            </span>
+          </div>
+
+          {/* Funding Holdings (collapsible) */}
+          {hasFunding && analytics.fundingHoldings.length > 0 && (
+            <>
+              <button
+                onClick={() => setShowAccounts(!showAccounts)}
+                className="w-full flex items-center justify-center gap-1.5 py-1 text-[10px] md:text-[11px] text-muted-foreground hover:text-foreground transition-colors"
               >
-                {hasFunding && analytics.fundingHoldings.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {analytics.fundingHoldings.slice(0, 6).map((fh) => (
-                      <div key={fh.coin} className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/5 border border-amber-500/10">
-                        <span className="text-[10px] font-semibold">{fh.coin}</span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {hideBalance ? '•••' : fh.balance.toLocaleString(undefined, { maximumFractionDigits: 4 })}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                <span>{showAccounts ? 'Hide' : 'Show'} funding details</span>
+                <motion.div animate={{ rotate: showAccounts ? 180 : 0 }}>
+                  <ChevronDown className="w-3 h-3" />
+                </motion.div>
+              </button>
+
+              <AnimatePresence>
+                {showAccounts && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex flex-wrap gap-1.5">
+                      {analytics.fundingHoldings.slice(0, 6).map((fh) => (
+                        <div key={fh.coin} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/5 border border-amber-500/10">
+                          <span className="text-[10px] font-semibold">{fh.coin}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {hideBalance ? '•••' : fh.balance.toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
                 )}
-                <div className="flex items-center justify-between px-1 pt-1">
-                  <span className="text-[10px] text-muted-foreground">
-                    {analytics.spotCount} assets · {analytics.activeDCAPlans} DCA plans
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">
-                    Available: {fmt(analytics.totalAvailableBalance)}
-                  </span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </AnimatePresence>
+            </>
+          )}
 
           {/* Quick Actions */}
           <div className="pt-1">
