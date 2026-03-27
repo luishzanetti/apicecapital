@@ -103,7 +103,7 @@ export default function Auth() {
           }}
         />
         <motion.div
-          className="absolute w-[500px] h-[500px] rounded-full"
+          className="absolute w-[60vw] h-[60vw] max-w-[500px] max-h-[500px] rounded-full"
           style={{
             top: '-15%', left: '-15%',
             background: 'radial-gradient(circle, hsl(var(--primary) / 0.07), transparent 65%)',
@@ -113,7 +113,7 @@ export default function Auth() {
           transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
-          className="absolute w-[400px] h-[400px] rounded-full"
+          className="absolute w-[50vw] h-[50vw] max-w-[400px] max-h-[400px] rounded-full"
           style={{
             bottom: '-10%', right: '-10%',
             background: 'radial-gradient(circle, hsl(var(--apice-gradient-end) / 0.06), transparent 65%)',

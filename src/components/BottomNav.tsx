@@ -28,7 +28,7 @@ export function BottomNav() {
               key={item.to}
               to={item.to}
               className={cn(
-                'relative flex flex-col items-center gap-1 px-3.5 py-2 rounded-[18px] transition-all duration-200 press-scale',
+                'relative flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-[18px] transition-all duration-200 press-scale',
                 isActive
                   ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
@@ -60,7 +60,7 @@ export function BottomNav() {
               >
                 <item.icon
                   className={cn(
-                    'w-4.5 h-4.5 transition-colors duration-200',
+                    'w-5 h-5 transition-colors duration-200',
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   )}
                   strokeWidth={isActive ? 2.2 : 1.8}

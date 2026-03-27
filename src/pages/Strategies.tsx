@@ -161,7 +161,7 @@ export default function Strategies() {
     const lockProgress = (completedSteps / totalSteps) * 100;
 
     return (
-      <div className="min-h-screen bg-background px-5 py-6 pb-24 safe-top">
+      <div className="min-h-screen bg-background px-5 py-6 pb-28 safe-top">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3 mb-1">
@@ -287,7 +287,7 @@ export default function Strategies() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-5 py-6 pb-24 safe-top">
+    <div className="min-h-screen bg-background px-5 py-6 pb-28 safe-top">
       <motion.div
         variants={containerVariants}
         initial="hidden"

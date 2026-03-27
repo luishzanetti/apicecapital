@@ -63,7 +63,7 @@ export default function CashbackMachine() {
   const bybitLink = referralLinks.find(l => l.id === 'bybit');
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-28">
       {/* Header */}
       <div className="px-5 py-6 safe-top border-b border-border">
         <div className="flex items-center gap-4">

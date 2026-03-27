@@ -317,7 +317,7 @@ export default function CashbackOnboarding() {
     };
 
     return (
-        <div className="min-h-screen bg-background flex flex-col">
+        <div className="min-h-screen bg-background flex flex-col pb-28">
             {/* Header */}
             <div className="p-4 flex justify-between items-center">
                 <Button

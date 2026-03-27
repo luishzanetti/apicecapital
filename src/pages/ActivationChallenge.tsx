@@ -70,7 +70,7 @@ export default function ActivationChallenge() {
     };
 
     return (
-        <div className="min-h-screen bg-background pb-24">
+        <div className="min-h-screen bg-background pb-28">
             {/* Header */}
             <div
                 className="px-6 pt-8 pb-6"

@@ -47,7 +47,7 @@ export default function CashbackDashboard() {
     const progressPercentage = (challengeProgress / challengeTarget) * 100;
 
     return (
-        <div className="min-h-screen bg-background pb-24">
+        <div className="min-h-screen bg-background pb-28">
             {/* Header */}
             <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl border-b border-border">
                 <div className="px-5 py-4 flex justify-between items-center">

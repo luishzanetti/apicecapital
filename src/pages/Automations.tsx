@@ -40,7 +40,7 @@ export default function Automations() {
   };
 
   return (
-    <div className="min-h-screen bg-background px-5 py-6 pb-24 safe-top">
+    <div className="min-h-screen bg-background px-5 py-6 pb-28 safe-top">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
