@@ -47,7 +47,8 @@ export function AppHeader() {
     }, []);
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 h-16 glass-nav px-5 flex items-center justify-between">
+        <header className="fixed top-0 left-0 right-0 z-50 h-16 glass-nav px-5 flex items-center justify-center">
+          <div className="max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto w-full flex items-center justify-between">
             {/* Logo & Brand / Page Title */}
             <div className="flex items-center gap-3">
                 <button
@@ -120,6 +121,8 @@ export function AppHeader() {
 
                 <NotificationBell />
             </div>
+
+          </div>
 
             {/* Search Dialog */}
             <CommandDialog open={open} onOpenChange={setOpen}>

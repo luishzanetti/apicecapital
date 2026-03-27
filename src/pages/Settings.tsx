@@ -291,7 +291,7 @@ export default function Settings() {
     ];
 
     return (
-        <div className="min-h-screen bg-background px-5 pb-28 safe-top">
+        <div className="min-h-screen bg-background px-5 md:px-6 lg:px-8 pb-28 safe-top">
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}

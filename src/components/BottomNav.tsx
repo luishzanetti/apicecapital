@@ -16,7 +16,7 @@ export function BottomNav() {
 
   return (
     <div className="fixed bottom-4 left-0 right-0 z-40 px-5 pointer-events-none flex justify-center">
-      <nav className="pointer-events-auto flex items-center glass-nav px-1.5 py-1.5 rounded-[22px] shadow-2xl shadow-black/25">
+      <nav className="pointer-events-auto flex items-center glass-nav px-1.5 py-1.5 rounded-[22px] shadow-2xl shadow-black/25 max-w-lg md:max-w-xl w-full">
         {navItems.map((item) => {
           const isActive =
             location.pathname === item.to ||

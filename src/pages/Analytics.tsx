@@ -192,7 +192,7 @@ export default function Analytics() {
               )}
 
               {/* Key Metrics */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <StatCard
                   icon={Wallet}
                   label="Total Balance"
@@ -454,7 +454,7 @@ export default function Analytics() {
               )}
 
               {/* Investment Summary */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <StatCard
                   icon={DollarSign}
                   label="Total Deposited"
@@ -490,7 +490,7 @@ export default function Analytics() {
                 <Card>
                   <CardContent className="pt-4 pb-4">
                     <SectionHeader title="Deposit History" icon={BarChart3} />
-                    <div className="h-[180px] -mx-2">
+                    <div className="h-[180px] md:h-[260px] lg:h-[320px] -mx-2">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={depositChartData}>
                           <XAxis dataKey="week" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
@@ -547,7 +547,7 @@ export default function Analytics() {
           {activeTab === 'performance' && (
             <motion.div key="performance" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5">
               {/* Performance Stats */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <StatCard
                   icon={Wallet}
                   label="Current Value"

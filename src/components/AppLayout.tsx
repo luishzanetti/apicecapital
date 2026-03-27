@@ -35,7 +35,7 @@ export function AppLayout() {
             ease: [0.22, 1, 0.36, 1],
           }}
           className={cn(
-            "flex-1 w-full max-w-lg mx-auto",
+            "flex-1 w-full max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto px-4 md:px-6 lg:px-8",
             showNav ? "pt-16 pb-36" : ""
           )}
         >

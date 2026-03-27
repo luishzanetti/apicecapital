@@ -356,7 +356,7 @@ export default function Home() {
       case 'journey':
         if (isJourneyCompleted) return null; // show below main content instead
         return (
-          <motion.div key="journey" id="apice-journey" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+          <motion.div key="journey" id="apice-journey" className="md:col-span-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
             <SetupMissions />
           </motion.div>
         );
@@ -425,7 +425,7 @@ export default function Home() {
 
       case 'market':
         return (
-          <motion.div key="market" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+          <motion.div key="market" className="md:col-span-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
             <TopCoinsList />
           </motion.div>
         );
@@ -468,7 +468,7 @@ export default function Home() {
 
       case 'quickactions':
         return (
-          <motion.div key="quickactions" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+          <motion.div key="quickactions" className="md:col-span-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
             <div className="grid grid-cols-4 gap-3">
               {[
                 { icon: Plus, label: 'Log Deposit', color: 'bg-green-500/10 text-green-500', action: () => { weeklyInvestment > 0 ? setShowDepositConfirm(true) : navigate('/investment-setup'); } },
@@ -579,11 +579,12 @@ export default function Home() {
       </div>
 
       {/* Widget Grid */}
-      <div className="px-6 space-y-4">
+      <div className="px-6 space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
         {widgetOrder.map((widgetId, idx) => renderWidget(widgetId, idx))}
 
         {/* Completed Journey (at the very end) */}
         {isJourneyCompleted && (
+          <div className="md:col-span-2">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -596,6 +597,7 @@ export default function Home() {
             </div>
             <SetupMissions />
           </motion.div>
+          </div>
         )}
       </div>
 

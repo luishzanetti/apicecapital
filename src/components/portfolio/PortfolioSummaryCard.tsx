@@ -63,14 +63,15 @@ function PortfolioChart({
 
   if (hideBalance) {
     return (
-      <div className="h-[120px] flex items-center justify-center">
+      <div className="h-[120px] md:h-[180px] lg:h-[220px] flex items-center justify-center">
         <p className="text-xs text-muted-foreground">Balance hidden</p>
       </div>
     );
   }
 
   return (
-    <ResponsiveContainer width="100%" height={120}>
+    <div className="h-[120px] md:h-[180px] lg:h-[220px]">
+    <ResponsiveContainer width="100%" height="100%">
       <AreaChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -103,6 +104,7 @@ function PortfolioChart({
         />
       </AreaChart>
     </ResponsiveContainer>
+    </div>
   );
 }
 
@@ -154,8 +156,8 @@ function QuickActions({ onNavigate }: { onNavigate: (path: string) => void }) {
           onClick={() => onNavigate(a.path)}
           className="flex flex-col items-center gap-1.5 py-2.5 rounded-xl hover:bg-secondary/40 transition-all active:scale-95"
         >
-          <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', a.bg)}>
-            <a.icon className={cn('w-[18px] h-[18px]', a.color)} />
+          <div className={cn('w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center', a.bg)}>
+            <a.icon className={cn('w-[18px] h-[18px] md:w-5 md:h-5', a.color)} />
           </div>
           <span className="text-[9px] font-medium text-muted-foreground">{a.label}</span>
         </button>

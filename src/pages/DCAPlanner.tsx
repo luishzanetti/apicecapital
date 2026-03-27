@@ -261,7 +261,7 @@ export default function DCAPlanner() {
                   Your DCA Plans ({dcaPlans.length})
                 </h2>
                 <AnimatePresence mode="popLayout">
-                  <div className="space-y-3">
+                  <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
                     {dcaPlans.map((plan) => (
                       <DCAPlanCard key={plan.id} plan={plan} />
                     ))}
