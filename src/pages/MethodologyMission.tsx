@@ -361,6 +361,7 @@ function FortressStep({ onComplete }: { onComplete: () => void }) {
 
 function GatewayAccessStep({ onComplete }: { onComplete: () => void }) {
   const [copied, setCopied] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   const trackLinkClick = useAppStore((s) => s.trackLinkClick);
 
   const handleCopyCode = () => {
@@ -373,6 +374,11 @@ function GatewayAccessStep({ onComplete }: { onComplete: () => void }) {
   const handleOpenBybit = () => {
     trackLinkClick('bybit');
     window.open('https://www.bybit.com/invite?ref=APICE', '_blank');
+  };
+
+  const handleAccountCreated = () => {
+    setShowCelebration(true);
+    setTimeout(() => onComplete(), 2500);
   };
 
   const steps = [
@@ -463,12 +469,70 @@ function GatewayAccessStep({ onComplete }: { onComplete: () => void }) {
           variant="outline"
           size="lg"
           className="w-full"
-          onClick={onComplete}
+          onClick={handleAccountCreated}
         >
           <Check className="w-4 h-4 mr-2" />
           I've Created My Account
         </Button>
       </div>
+
+      {/* Celebration Overlay */}
+      <AnimatePresence>
+        {showCelebration && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-lg"
+          >
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', damping: 15, stiffness: 200 }}
+              className="text-center space-y-4 px-8"
+            >
+              <motion.div
+                animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 1.5, repeat: 1, ease: 'easeInOut' }}
+                className="text-6xl mx-auto"
+              >
+                🏰
+              </motion.div>
+              <h2 className="text-2xl font-bold">Fortress Activated!</h2>
+              <p className="text-sm text-muted-foreground max-w-[260px] mx-auto">
+                Your execution engine is ready. Welcome to the Apice ecosystem — your wealth-building journey starts now.
+              </p>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="flex items-center justify-center gap-2 text-primary"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span className="text-sm font-semibold">+150 XP earned</span>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.2 }}
+                className="flex flex-wrap justify-center gap-2 pt-2"
+              >
+                {['DCA Automation', 'Live Portfolio', 'AI Insights', 'All Strategies'].map((feat, i) => (
+                  <motion.span
+                    key={feat}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 1.4 + i * 0.15 }}
+                    className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-semibold text-primary"
+                  >
+                    {feat}
+                  </motion.span>
+                ))}
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

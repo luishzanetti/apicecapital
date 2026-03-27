@@ -35,6 +35,33 @@ export interface ExecutePlanResult {
   totalSpent: number;
 }
 
+// ─── Error detection helpers ─────────────────────────────────
+
+function isPermissionError(msg: string): boolean {
+  const lower = msg.toLowerCase();
+  return lower.includes('permission') ||
+    lower.includes('invalid api-key') ||
+    lower.includes('invalid api key') ||
+    lower.includes('api key, ip') ||
+    lower.includes('not allowed') ||
+    lower.includes('131004') || // Bybit error code for invalid API key
+    lower.includes('10004') ||  // Bybit error code for sign error
+    lower.includes('10003');    // Bybit error code for invalid API key
+}
+
+function friendlyError(msg: string): string {
+  if (isPermissionError(msg)) {
+    return 'API key lacks Trade (Spot) permission. Go to Bybit → API Management → Edit your key → enable "Trade" with "Spot" access.';
+  }
+  if (msg.includes('insufficient') || msg.includes('balance')) {
+    return 'Insufficient USDT balance on Bybit. Deposit USDT first.';
+  }
+  if (msg.includes('qty') || msg.includes('minimum') || msg.includes('notional')) {
+    return 'Order amount too small for this trading pair. Increase your DCA amount.';
+  }
+  return msg;
+}
+
 // ─── Bybit API helpers (client-side direct) ─────────────────
 
 const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY || 'apice-capital-default-key-change-in-production';
@@ -55,9 +82,11 @@ function decryptSecret(ciphertext: string): string {
 }
 
 function signRequest(apiKey: string, apiSecret: string, recvWindow: string, payload: string) {
+  const cleanKey = apiKey.trim();
+  const cleanSecret = apiSecret.trim();
   const timestamp = Date.now().toString();
-  const signStr = `${timestamp}${apiKey}${recvWindow}${payload}`;
-  const signature = CryptoJS.HmacSHA256(signStr, apiSecret).toString(CryptoJS.enc.Hex);
+  const signStr = `${timestamp}${cleanKey}${recvWindow}${payload}`;
+  const signature = CryptoJS.HmacSHA256(signStr, cleanSecret).toString(CryptoJS.enc.Hex);
   return { timestamp, signature };
 }
 
@@ -68,6 +97,8 @@ async function bybitSpotOrder(
   tradingSymbol: string,
   amountUsdt: number
 ): Promise<{ orderId: string; qty: string | null; price: string | null }> {
+  const cleanKey = apiKey.trim();
+  const cleanSecret = apiSecret.trim();
   const baseUrl = testnet
     ? 'https://api-testnet.bybit.com'
     : 'https://api.bybit.com';
@@ -82,12 +113,12 @@ async function bybitSpotOrder(
     marketUnit: 'quoteCoin',
   };
   const bodyStr = JSON.stringify(body);
-  const { timestamp, signature } = signRequest(apiKey, apiSecret, recvWindow, bodyStr);
+  const { timestamp, signature } = signRequest(cleanKey, cleanSecret, recvWindow, bodyStr);
 
   const res = await fetch(`${baseUrl}/v5/order/create`, {
     method: 'POST',
     headers: {
-      'X-BAPI-API-KEY': apiKey,
+      'X-BAPI-API-KEY': cleanKey,
       'X-BAPI-TIMESTAMP': timestamp,
       'X-BAPI-SIGN': signature,
       'X-BAPI-RECV-WINDOW': recvWindow,
@@ -114,11 +145,11 @@ async function bybitSpotOrder(
       await new Promise((r) => setTimeout(r, 1500));
 
       const orderParams = `category=spot&orderId=${orderId}`;
-      const { timestamp: ts2, signature: sig2 } = signRequest(apiKey, apiSecret, recvWindow, orderParams);
+      const { timestamp: ts2, signature: sig2 } = signRequest(cleanKey, cleanSecret, recvWindow, orderParams);
 
       const orderRes = await fetch(`${baseUrl}/v5/order/realtime?${orderParams}`, {
         headers: {
-          'X-BAPI-API-KEY': apiKey,
+          'X-BAPI-API-KEY': cleanKey,
           'X-BAPI-TIMESTAMP': ts2,
           'X-BAPI-SIGN': sig2,
           'X-BAPI-RECV-WINDOW': recvWindow,
@@ -138,6 +169,99 @@ async function bybitSpotOrder(
   }
 
   return { orderId, qty, price };
+}
+
+// ─── API Key Validation ──────────────────────────────────────
+
+export async function testBybitApiKey(
+  apiKey: string,
+  apiSecret: string,
+  testnet: boolean
+): Promise<{ valid: boolean; canTrade: boolean; error?: string }> {
+  const cleanKey = apiKey.trim();
+  const cleanSecret = apiSecret.trim();
+
+  if (!cleanKey || !cleanSecret) {
+    return { valid: false, canTrade: false, error: 'API Key and Secret cannot be empty.' };
+  }
+
+  const baseUrl = testnet
+    ? 'https://api-testnet.bybit.com'
+    : 'https://api.bybit.com';
+  const recvWindow = '20000';
+
+  try {
+    // 1. Test basic auth — fetch account info
+    const params = 'accountType=UNIFIED';
+    const { timestamp, signature } = signRequest(cleanKey, cleanSecret, recvWindow, params);
+
+    const res = await fetch(`${baseUrl}/v5/account/wallet-balance?${params}`, {
+      headers: {
+        'X-BAPI-API-KEY': cleanKey,
+        'X-BAPI-TIMESTAMP': timestamp,
+        'X-BAPI-SIGN': signature,
+        'X-BAPI-RECV-WINDOW': recvWindow,
+        'X-BAPI-SIGN-TYPE': '2',
+      },
+    });
+
+    const json = await res.json();
+    if (json.retCode !== 0) {
+      return {
+        valid: false,
+        canTrade: false,
+        error: isPermissionError(json.retMsg || '')
+          ? 'Invalid API key or IP restriction. Check your Bybit API settings.'
+          : (json.retMsg || `Error ${json.retCode}`),
+      };
+    }
+
+    // 2. Test trade permission — place a tiny order that will be rejected for min qty
+    //    This tests if the key has Trade permission without actually spending money
+    const testBody = {
+      category: 'spot',
+      symbol: 'BTCUSDT',
+      side: 'Buy',
+      orderType: 'Market',
+      qty: '0.01', // $0.01 — will be rejected for minimum order but proves trade permission
+      marketUnit: 'quoteCoin',
+    };
+    const testBodyStr = JSON.stringify(testBody);
+    const { timestamp: ts2, signature: sig2 } = signRequest(cleanKey, cleanSecret, recvWindow, testBodyStr);
+
+    const tradeRes = await fetch(`${baseUrl}/v5/order/create`, {
+      method: 'POST',
+      headers: {
+        'X-BAPI-API-KEY': cleanKey,
+        'X-BAPI-TIMESTAMP': ts2,
+        'X-BAPI-SIGN': sig2,
+        'X-BAPI-RECV-WINDOW': recvWindow,
+        'X-BAPI-SIGN-TYPE': '2',
+        'Content-Type': 'application/json',
+      },
+      body: testBodyStr,
+    });
+
+    const tradeJson = await tradeRes.json();
+
+    // If we get a permission error, the key can't trade
+    if (isPermissionError(tradeJson.retMsg || '')) {
+      return {
+        valid: true,
+        canTrade: false,
+        error: 'API key connected but lacks Trade (Spot) permission. Enable it on Bybit → API Management → Edit → Trade → Spot.',
+      };
+    }
+
+    // Any other error (min qty, insufficient balance) means the key CAN trade
+    return { valid: true, canTrade: true };
+  } catch (err: any) {
+    return {
+      valid: false,
+      canTrade: false,
+      error: err.message || 'Failed to connect to Bybit API',
+    };
+  }
 }
 
 // ─── Plan data for direct execution ────────────────────────
@@ -282,6 +406,7 @@ async function executeDirectly(
 
     } catch (err: any) {
       console.error(`[DCA] Order failed for ${tradingSymbol}:`, err);
+      const errorMsg = friendlyError(err.message || 'Order failed');
 
       result.executions.push({
         asset: asset.symbol,
@@ -291,7 +416,7 @@ async function executeDirectly(
         price: null,
         orderId: null,
         status: 'failed',
-        error: err.message || 'Order failed',
+        error: errorMsg,
       });
 
       // Record failed execution

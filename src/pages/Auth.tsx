@@ -55,8 +55,8 @@ export default function Auth() {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
         if (data?.session) {
-          toast.success("Account created successfully!");
-          navigate("/home");
+          toast.success("Welcome to Apice Capital! 🚀");
+          navigate("/onboarding");
         } else {
           toast.success("Account created!", {
             description: "Please check your email to confirm your account.",

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { to: '/home', icon: Home, label: 'Home' },
   { to: '/portfolio', icon: PieChart, label: 'Portfolio' },
-  { to: '/strategies', icon: Compass, label: 'Explore' },
+  { to: '/strategies', icon: Compass, label: 'Strategies' },
   { to: '/learn', icon: BookOpen, label: 'Learn' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];

@@ -9,6 +9,7 @@ import { createPortfolioSlice } from './slices/portfolioSlice';
 import { createDCASlice } from './slices/dcaSlice';
 import { createLearnSlice } from './slices/learnSlice';
 import { createSubscriptionSlice } from './slices/subscriptionSlice';
+import { createNotificationSlice } from './slices/notificationSlice';
 import { createAppSlice } from './slices/appSlice';
 
 // Re-export all types for backward compatibility
@@ -26,6 +27,7 @@ export type {
   HomeWidget,
   UnlockState,
   SubscriptionState,
+  AppNotification,
   InvestorType,
   AppState,
 } from './types';
@@ -39,6 +41,7 @@ export const useAppStore = create<AppState>()(
       ...createDCASlice(...a),
       ...createLearnSlice(...a),
       ...createSubscriptionSlice(...a),
+      ...createNotificationSlice(...a),
       ...createAppSlice(...a),
     }),
     {

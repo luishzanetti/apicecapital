@@ -11,7 +11,12 @@ import { GamificationWidget } from '@/components/GamificationWidget';
 import { TopCoinsList } from '@/components/TopCoinsList';
 import { PortfolioSummaryCard } from '@/components/portfolio/PortfolioSummaryCard';
 import { DCATracker } from '@/components/portfolio/DCATracker';
+import { useAutoDCA } from '@/hooks/useAutoDCA';
+import { AiInsightCard } from '@/components/ai/AiInsightCard';
+import { AiAdvisorChat } from '@/components/ai/AiAdvisorChat';
+import { AiPortfolioScore } from '@/components/ai/AiPortfolioScore';
 import { WeeklyDepositConfirm } from '@/components/WeeklyDepositConfirm';
+import { NotificationBell } from '@/components/NotificationBell';
 import {
   TrendingUp, DollarSign, Flame, ChevronRight, ArrowRight,
   PieChart, BookOpen, Sparkles, Zap, Award, Settings2,
@@ -104,6 +109,14 @@ const WIDGET_DEFINITIONS: WidgetDef[] = [
     description: 'XP, level, badges & plan',
     lockType: 'usage' as const,
     usageUnlockKey: 'hasMinimumActivity', // unlocks after 3 days active
+    premiumRequired: null,
+  },
+  {
+    id: 'ai-score',
+    label: 'AI Portfolio Score',
+    icon: '🧠',
+    description: 'AI-powered portfolio analysis',
+    lockType: null,
     premiumRequired: null,
   },
   {
@@ -283,6 +296,9 @@ export default function Home() {
   const [showDepositConfirm, setShowDepositConfirm] = useState(false);
   const [showCustomizer, setShowCustomizer] = useState(false);
 
+  // Auto-execute due DCA plans on app load + every 5 min
+  useAutoDCA();
+
   const weeklyInvestment = useAppStore((s) => s.weeklyInvestment);
   const weeklyDepositHistory = useAppStore((s) => s.weeklyDepositHistory);
   const weeklyDepositStreak = useAppStore((s) => s.weeklyDepositStreak);
@@ -401,6 +417,13 @@ export default function Home() {
           </motion.div>
         );
 
+      case 'ai-score':
+        return (
+          <motion.div key="ai-score" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+            <AiPortfolioScore />
+          </motion.div>
+        );
+
       case 'market':
         return (
           <motion.div key="market" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
@@ -411,26 +434,7 @@ export default function Home() {
       case 'insight':
         return (
           <motion.div key="insight" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-            <Card className="border-none" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.04))' }}>
-              <CardContent className="pt-4 pb-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Daily Insight</p>
-                    <h3 className="text-sm font-semibold mb-1">{todayInsight.title}</h3>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{todayInsight.content}</p>
-                    {todayInsight.recommendedAction && (
-                      <p className="text-xs text-primary mt-2 flex items-center gap-1">
-                        <Zap className="w-3 h-3" />
-                        {todayInsight.recommendedAction}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AiInsightCard />
           </motion.div>
         );
 
@@ -560,13 +564,16 @@ export default function Home() {
             <p className="text-xs text-muted-foreground">{getTimeGreeting()}</p>
             <h1 className="text-xl font-bold">{investorType || 'Investor'}</h1>
           </div>
-          <button
-            onClick={() => setShowCustomizer(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/60 border border-border/40 hover:bg-secondary transition-all text-xs font-medium text-muted-foreground"
-          >
-            <Settings2 className="w-3.5 h-3.5" />
-            Widgets
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <button
+              onClick={() => setShowCustomizer(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/60 border border-border/40 hover:bg-secondary transition-all text-xs font-medium text-muted-foreground"
+            >
+              <Settings2 className="w-3.5 h-3.5" />
+              Widgets
+            </button>
+          </div>
         </div>
 
         {/* Bybit Live Portfolio (always first in the hero) */}
@@ -612,6 +619,9 @@ export default function Home() {
         isOpen={showDepositConfirm}
         onClose={() => setShowDepositConfirm(false)}
       />
+
+      {/* AI Advisor Chat FAB */}
+      <AiAdvisorChat />
     </div>
   );
 }

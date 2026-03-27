@@ -52,6 +52,7 @@ import {
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { encrypt } from '@/lib/crypto';
+import { testBybitApiKey } from '@/hooks/useDCAExecution';
 
 export default function Settings() {
     const navigate = useNavigate();
@@ -100,8 +101,13 @@ export default function Settings() {
         }
     };
 
+    const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'saving'>('idle');
+
     const handleConnectBybit = async () => {
-        if (!apiKey || !apiSecret) {
+        const cleanKey = apiKey.trim();
+        const cleanSecret = apiSecret.trim();
+
+        if (!cleanKey || !cleanSecret) {
             toast.error('API Key and Secret are required');
             return;
         }
@@ -110,27 +116,60 @@ export default function Settings() {
             return;
         }
         setIsConnecting(true);
+        setConnectionStatus('testing');
+
         try {
-            const encryptedSecret = encrypt(apiSecret);
+            // Step 1: Validate API key and permissions
+            toast.loading('Testing API key...', { id: 'bybit-connect' });
+            const test = await testBybitApiKey(cleanKey, cleanSecret, useTestnet);
+
+            if (!test.valid) {
+                toast.error(test.error || 'Invalid API key', { id: 'bybit-connect' });
+                return;
+            }
+
+            if (!test.canTrade) {
+                // Save anyway but warn about permissions
+                toast.warning(test.error || 'Key lacks trade permission', {
+                    id: 'bybit-connect',
+                    duration: 8000,
+                });
+            }
+
+            // Step 2: Save credentials
+            setConnectionStatus('saving');
+            toast.loading('Saving credentials...', { id: 'bybit-connect' });
+
+            const encryptedSecret = encrypt(cleanSecret);
             const { error } = await supabase
                 .from('bybit_credentials')
                 .upsert({
                     user_id: user.id,
-                    api_key: apiKey,
+                    api_key: cleanKey,
                     api_secret_encrypted: encryptedSecret,
                     testnet: useTestnet,
                     updated_at: new Date().toISOString()
                 });
             if (error) throw error;
+
             setIsConnected(true);
             setShowBybitModal(false);
-            toast.success('Bybit connected successfully!');
+
+            if (test.canTrade) {
+                toast.success('Bybit connected with full trade access!', { id: 'bybit-connect' });
+            } else {
+                toast.warning('Bybit connected (read-only). Enable Trade (Spot) permission for DCA execution.', {
+                    id: 'bybit-connect',
+                    duration: 10000,
+                });
+            }
             setApiKey('');
             setApiSecret('');
         } catch (error: any) {
-            toast.error(error.message || 'Connection failed');
+            toast.error(error.message || 'Connection failed', { id: 'bybit-connect' });
         } finally {
             setIsConnecting(false);
+            setConnectionStatus('idle');
         }
     };
 
@@ -689,18 +728,38 @@ export default function Settings() {
                         </div>
                     </div>
 
+                    {/* Permission Guide */}
+                    <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                        <p className="text-[10px] font-bold text-blue-400 mb-1">Required API Permissions:</p>
+                        <ul className="text-[10px] text-muted-foreground space-y-0.5">
+                            <li>Read (Account Info, Balance)</li>
+                            <li>Trade → Spot (for DCA auto-buy)</li>
+                        </ul>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                            Bybit → Account → API Management → Create/Edit Key
+                        </p>
+                    </div>
+
                     <DialogFooter>
                         <Button
                             onClick={handleConnectBybit}
                             disabled={isConnecting || !apiKey || !apiSecret}
                             className="w-full h-12 rounded-xl group"
                         >
-                            {isConnecting ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                            {connectionStatus === 'testing' ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Testing permissions...
+                                </>
+                            ) : connectionStatus === 'saving' ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Saving...
+                                </>
                             ) : (
                                 <>
                                     <Zap className="w-4 h-4 mr-2 fill-current" />
-                                    Connect Now
+                                    Test & Connect
                                 </>
                             )}
                         </Button>

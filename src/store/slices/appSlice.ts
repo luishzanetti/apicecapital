@@ -15,11 +15,12 @@ export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
   currentInsightIndex: 0,
   widgetOrder: [
     'dca',
+    'insight',
     'nextstep',
+    'ai-score',
     'market',
     'quickactions',
     'journey',
-    'insight',
     'gamification',
     'milestone',
   ],

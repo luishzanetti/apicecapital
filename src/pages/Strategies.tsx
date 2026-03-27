@@ -47,6 +47,12 @@ export default function Strategies() {
   const dcaPlans = useAppStore((s) => s.dcaPlans);
   const subscription = useAppStore((s) => s.subscription);
   const investorType = useAppStore((s) => s.investorType);
+  const missionProgress = useAppStore((s) => s.missionProgress);
+  const hasCompletedOnboarding = useAppStore((s) => s.hasCompletedOnboarding);
+
+  // Mission 2 completion check — need methodology + Bybit account
+  const isMission2Done = missionProgress.m2_methodologyRead && missionProgress.m2_bybitAccountCreated;
+  const isStrategiesLocked = !hasCompletedOnboarding || !isMission2Done;
 
   const strategies: StrategyCard[] = [
     {
@@ -142,6 +148,143 @@ export default function Strategies() {
     hidden: { opacity: 0, y: 16 },
     show: { opacity: 1, y: 0 },
   };
+
+  // ─── LOCKED SCREEN: Mission 2 Required ───
+  if (isStrategiesLocked) {
+    const completedSteps = [
+      hasCompletedOnboarding,
+      missionProgress.m1_profileQuizDone,
+      missionProgress.m2_methodologyRead,
+      missionProgress.m2_bybitAccountCreated,
+    ].filter(Boolean).length;
+    const totalSteps = 4;
+    const lockProgress = (completedSteps / totalSteps) * 100;
+
+    return (
+      <div className="min-h-screen bg-background px-5 py-6 pb-24 safe-top">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+              <Lock className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">Strategies</h1>
+              <p className="text-muted-foreground text-xs">Complete your missions to unlock</p>
+            </div>
+          </div>
+
+          {/* Unlock Progress Card */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <Card className="overflow-hidden border-primary/20">
+              <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at top, rgba(99,102,241,0.08), transparent 70%)' }} />
+              <CardContent className="pt-6 pb-6 relative">
+                <div className="flex flex-col items-center text-center gap-4">
+                  <motion.div
+                    animate={{ scale: [1, 1.08, 1], rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-violet-500/20 flex items-center justify-center"
+                  >
+                    <Sparkles className="w-10 h-10 text-primary" />
+                  </motion.div>
+                  <div>
+                    <h2 className="text-lg font-bold mb-1">Unlock Your Strategies</h2>
+                    <p className="text-xs text-muted-foreground max-w-[280px]">
+                      Complete Mission 2 — Master the Apice methodology and create your Bybit account to access all strategies.
+                    </p>
+                  </div>
+
+                  {/* Progress */}
+                  <div className="w-full space-y-2">
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                      <span>{completedSteps}/{totalSteps} steps completed</span>
+                      <span>{Math.round(lockProgress)}%</span>
+                    </div>
+                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full rounded-full bg-gradient-to-r from-primary to-violet-500"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${lockProgress}%` }}
+                        transition={{ duration: 0.8, delay: 0.3 }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Steps */}
+                  <div className="w-full space-y-2 mt-2">
+                    {[
+                      { done: hasCompletedOnboarding, label: 'Complete onboarding', route: '/onboarding' },
+                      { done: missionProgress.m1_profileQuizDone, label: 'Investor DNA analysis', route: '/onboarding' },
+                      { done: missionProgress.m2_methodologyRead, label: 'Master the Apice Method', route: '/mission2/1' },
+                      { done: missionProgress.m2_bybitAccountCreated, label: 'Create Bybit account', route: '/mission2/3' },
+                    ].map((s, i) => (
+                      <button
+                        key={i}
+                        onClick={() => !s.done && navigate(s.route)}
+                        disabled={s.done}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
+                          s.done
+                            ? 'bg-green-500/5 border-green-500/20 opacity-60'
+                            : 'bg-card border-primary/20 hover:border-primary/40 active:scale-[0.98]'
+                        }`}
+                      >
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                          s.done ? 'bg-green-500/20' : 'bg-primary/10'
+                        }`}>
+                          {s.done ? (
+                            <ChevronRight className="w-3 h-3 text-green-400" />
+                          ) : (
+                            <span className="text-[10px] font-bold text-primary">{i + 1}</span>
+                          )}
+                        </div>
+                        <span className={`text-xs font-medium flex-1 ${s.done ? 'line-through text-muted-foreground' : ''}`}>
+                          {s.label}
+                        </span>
+                        {!s.done && <ArrowRight className="w-3.5 h-3.5 text-primary" />}
+                      </button>
+                    ))}
+                  </div>
+
+                  <Button variant="premium" className="w-full mt-2" onClick={() => {
+                    if (!hasCompletedOnboarding) navigate('/onboarding');
+                    else if (!missionProgress.m2_methodologyRead) navigate('/mission2/1');
+                    else navigate('/mission2/3');
+                  }}>
+                    <Zap className="w-4 h-4 mr-1.5" />
+                    Continue Mission
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Preview of locked strategies */}
+          <div className="space-y-3 opacity-40 pointer-events-none">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+              <Lock className="w-3 h-3" />
+              Available After Unlock
+            </h2>
+            {strategies.slice(0, 3).map((strategy) => (
+              <Card key={strategy.id} className="overflow-hidden">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${strategy.iconGradient} flex items-center justify-center shrink-0 opacity-50`}>
+                      <strategy.icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold">{strategy.title}</h3>
+                      <p className="text-[10px] text-muted-foreground">{strategy.subtitle}</p>
+                    </div>
+                    <Lock className="w-4 h-4 text-muted-foreground ml-auto" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background px-5 py-6 pb-24 safe-top">

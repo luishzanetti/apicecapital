@@ -31,6 +31,7 @@ const Automations = lazy(() => import("./pages/Automations"));
 const CashbackOnboarding = lazy(() => import("./pages/CashbackOnboarding"));
 const CashbackMachine = lazy(() => import("./pages/CashbackMachine"));
 const CashbackDashboard = lazy(() => import("./pages/CashbackDashboard"));
+const Analytics = lazy(() => import("./pages/Analytics"));
 const MethodologyMission = lazy(() => import("./pages/MethodologyMission"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -106,6 +107,7 @@ function AppContent() {
         <Route path="/upgrade" element={<Upgrade />} />
         <Route path="/support" element={<Support />} />
         <Route path="/automations" element={<Automations />} />
+        <Route path="/analytics" element={<Analytics />} />
         <Route path="/dca-planner" element={<DCAPlanner />} />
         <Route path="/automations/dca" element={<DCAPlanner />} />
         <Route path="/investment-setup" element={<DCAPlanner />} />

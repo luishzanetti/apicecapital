@@ -132,6 +132,22 @@ export interface SubscriptionState {
   expiresAt: string | null;
 }
 
+// ─── Notifications ──────────────────────────────────────────
+export type NotificationType = 'success' | 'warning' | 'error' | 'info';
+export type NotificationCategory = 'dca' | 'system' | 'mission' | 'market';
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  category: NotificationCategory;
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  actionRoute?: string;
+  actionLabel?: string;
+}
+
 // ─── Widgets ────────────────────────────────────────────────
 export interface HomeWidget {
   id: string;
@@ -209,6 +225,15 @@ export interface SubscriptionSlice {
   completeWizardStep: (wizard: 'aiTrade' | 'aiBot', step: string) => void;
 }
 
+export interface NotificationSlice {
+  notifications: AppNotification[];
+  addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp' | 'read'>) => void;
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
+  clearNotifications: () => void;
+  removeNotification: (id: string) => void;
+}
+
 export interface AppSlice {
   daysActive: number;
   lastOpenDate: string | null;
@@ -230,6 +255,7 @@ export type AppState =
   DCASlice &
   LearnSlice &
   SubscriptionSlice &
+  NotificationSlice &
   AppSlice;
 
 // Slice creator helper type

@@ -11,7 +11,7 @@ import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis } from 'recharts';
 import {
   Wallet, RefreshCw, Link2,
   Eye, EyeOff, ArrowUpRight, ArrowDownRight,
-  Send, ArrowDownToLine, Repeat2, BarChart3,
+  ArrowDownToLine, Repeat2, BarChart3,
   ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -139,10 +139,10 @@ function TimeRangeSelector({
 
 function QuickActions({ onNavigate }: { onNavigate: (path: string) => void }) {
   const actions = [
-    { icon: ArrowDownToLine, label: 'Deposit', color: 'text-green-400', bg: 'bg-green-500/10', path: '/settings' },
-    { icon: Send, label: 'Send', color: 'text-blue-400', bg: 'bg-blue-500/10', path: '/settings' },
-    { icon: Repeat2, label: 'DCA', color: 'text-purple-400', bg: 'bg-purple-500/10', path: '/dca-planner' },
-    { icon: BarChart3, label: 'Portfolio', color: 'text-amber-400', bg: 'bg-amber-500/10', path: '/portfolio' },
+    { icon: Repeat2, label: 'Strategies', color: 'text-primary', bg: 'bg-primary/10', path: '/strategies' },
+    { icon: BarChart3, label: 'Operations', color: 'text-blue-400', bg: 'bg-blue-500/10', path: '/portfolio' },
+    { icon: ArrowDownToLine, label: 'DCA', color: 'text-purple-400', bg: 'bg-purple-500/10', path: '/dca-planner' },
+    { icon: BarChart3, label: 'Analytics', color: 'text-amber-400', bg: 'bg-amber-500/10', path: '/analytics' },
   ];
 
   return (

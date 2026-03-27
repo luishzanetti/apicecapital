@@ -148,7 +148,7 @@ export default function ApiceOnboarding() {
 
     const [step, setStep] = useState(0);
     const [quizStep, setQuizStep] = useState(0);
-    const [selectedAmount, setSelectedAmount] = useState(0);
+    const [selectedAmount, setSelectedAmount] = useState(500);
     const [customAmount, setCustomAmount] = useState(100);
     const [showCustom, setShowCustom] = useState(false);
     const [confirmed, setConfirmed] = useState(false);
