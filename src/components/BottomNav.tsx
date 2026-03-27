@@ -76,6 +76,15 @@ export function BottomNav() {
               >
                 {item.label}
               </span>
+
+              {/* Active dot indicator */}
+              {isActive && (
+                <motion.div
+                  layoutId="bottomNavIndicator"
+                  className="absolute -bottom-0.5 w-4 h-0.5 rounded-full bg-primary"
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              )}
             </NavLink>
           );
         })}

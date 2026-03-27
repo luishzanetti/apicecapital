@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { BottomNav } from './BottomNav';
 import { AppHeader } from './AppHeader';
+import { ErrorBoundary } from './ErrorBoundary';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -38,7 +39,9 @@ export function AppLayout() {
             showNav ? "pt-16 pb-36" : ""
           )}
         >
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </motion.main>
       </AnimatePresence>
 

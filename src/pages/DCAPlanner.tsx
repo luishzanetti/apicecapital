@@ -26,6 +26,9 @@ import {
   Loader2,
   CheckCircle2,
   XCircle,
+  TrendingUp,
+  ShieldCheck,
+  Clock,
 } from 'lucide-react';
 import { referralLinks } from '@/data/sampleData';
 import { useDCAExecution } from '@/hooks/useDCAExecution';
@@ -210,6 +213,44 @@ export default function DCAPlanner() {
       >
         {!showWizard ? (
           <>
+            {/* Empty State: No DCA plans */}
+            {dcaPlans.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="rounded-2xl bg-card/50 border border-border/50 p-6 text-center"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="text-lg font-bold mb-1.5">Automate your investing</h3>
+                <p className="text-sm text-muted-foreground mb-4 max-w-[280px] mx-auto leading-relaxed">
+                  Dollar-Cost Averaging (DCA) means buying a fixed amount on a regular schedule -- removing emotion and timing risk from your investments.
+                </p>
+                <div className="flex flex-col gap-3 mb-5">
+                  {[
+                    { icon: ShieldCheck, text: 'Reduce volatility risk over time' },
+                    { icon: Clock, text: 'Set it and forget it -- fully automated' },
+                    { icon: TrendingUp, text: 'Historically outperforms lump-sum timing' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 text-left">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <item.icon className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-xs text-muted-foreground">{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setShowWizard(true)}
+                  className="w-full py-3 rounded-xl text-sm font-semibold text-white apice-gradient-primary transition-all hover:opacity-90 active:scale-[0.98]"
+                >
+                  Create Your First DCA Plan
+                </button>
+              </motion.div>
+            )}
+
             {/* AI Recommendation Card */}
             <DCARecommendationCard onApply={handleApplyRecommendation} />
 

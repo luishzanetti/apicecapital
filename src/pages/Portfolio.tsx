@@ -22,7 +22,7 @@ import {
   DollarSign, ChevronRight, Edit3, Check,
   Wallet, PieChart, Lock, Flame,
   ArrowRight, CheckCircle2, Target, Sparkles,
-  Brain
+  Brain, Rocket
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -146,6 +146,38 @@ export default function Portfolio() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-4"
             >
+              {/* Empty State: No portfolio selected */}
+              {selectedPortfolio.portfolioId === null && weeklyInvestment === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="rounded-2xl bg-card/50 border border-border/50 p-6 text-center"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
+                    <Rocket className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-bold mb-1.5">Your portfolio starts here</h3>
+                  <p className="text-sm text-muted-foreground mb-5 max-w-[280px] mx-auto leading-relaxed">
+                    Choose a strategy and set up your weekly investment to start building wealth automatically.
+                  </p>
+                  <div className="flex flex-col gap-2.5">
+                    <button
+                      onClick={() => setActiveTab('strategies')}
+                      className="w-full py-3 rounded-xl text-sm font-semibold text-white apice-gradient-primary transition-all hover:opacity-90 active:scale-[0.98]"
+                    >
+                      Explore Strategies
+                    </button>
+                    <button
+                      onClick={() => navigate('/journey')}
+                      className="w-full py-3 rounded-xl text-sm font-semibold border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all active:scale-[0.98]"
+                    >
+                      Start the Apice Journey
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Hero: Portfolio Summary with Allocation Ring */}
               <PortfolioSummaryCard />
 

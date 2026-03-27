@@ -9,6 +9,7 @@ import {
   ArrowLeft, TrendingUp, TrendingDown, DollarSign, Activity,
   Wallet, PieChart as PieIcon, BarChart3, Calendar, Clock,
   ArrowUpRight, ArrowDownRight, Zap, Target, ChevronRight,
+  Layers, LineChart, ArrowRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -158,6 +159,38 @@ export default function Analytics() {
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
             <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5">
+              {/* Empty state when no exchange and no deposits */}
+              {!analytics.isConnected && totalDeposited === 0 && dcaPlans.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="rounded-2xl bg-card/50 border border-border/50 p-6 text-center"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
+                    <Layers className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-bold mb-1.5">No data yet</h3>
+                  <p className="text-sm text-muted-foreground mb-5 max-w-[260px] mx-auto leading-relaxed">
+                    Connect your exchange and start investing to see your portfolio analytics come to life.
+                  </p>
+                  <div className="flex flex-col gap-2.5">
+                    <button
+                      onClick={() => navigate('/settings')}
+                      className="w-full py-3 rounded-xl text-sm font-semibold text-white apice-gradient-primary transition-all hover:opacity-90 active:scale-[0.98]"
+                    >
+                      Connect Exchange
+                    </button>
+                    <button
+                      onClick={() => navigate('/portfolio')}
+                      className="w-full py-3 rounded-xl text-sm font-semibold border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all active:scale-[0.98]"
+                    >
+                      Go to Portfolio
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Key Metrics */}
               <div className="grid grid-cols-2 gap-3">
                 <StatCard
@@ -267,6 +300,30 @@ export default function Analytics() {
 
           {activeTab === 'operations' && (
             <motion.div key="operations" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5">
+              {/* Empty state for operations */}
+              {dcaNotifications.length === 0 && dcaPlans.filter(p => p.isActive).length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="rounded-2xl bg-card/50 border border-border/50 p-6 text-center"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-primary/20 flex items-center justify-center mx-auto mb-4">
+                    <Zap className="w-8 h-8 text-purple-400" />
+                  </div>
+                  <h3 className="text-lg font-bold mb-1.5">No operations yet</h3>
+                  <p className="text-sm text-muted-foreground mb-5 max-w-[260px] mx-auto leading-relaxed">
+                    Create a DCA plan to start automated buying. Every execution will appear here.
+                  </p>
+                  <button
+                    onClick={() => navigate('/dca-planner')}
+                    className="w-full py-3 rounded-xl text-sm font-semibold text-white apice-gradient-primary transition-all hover:opacity-90 active:scale-[0.98]"
+                  >
+                    Create a DCA Plan
+                  </button>
+                </motion.div>
+              )}
+
               {/* DCA Execution History */}
               <Card>
                 <CardContent className="pt-4 pb-4">
@@ -369,6 +426,33 @@ export default function Analytics() {
 
           {activeTab === 'investments' && (
             <motion.div key="investments" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5">
+              {/* Empty state for investments */}
+              {totalDeposited === 0 && analytics.totalDCAInvested === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="rounded-2xl bg-card/50 border border-border/50 p-6 text-center"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                    <DollarSign className="w-8 h-8 text-green-400" />
+                  </div>
+                  <h3 className="text-lg font-bold mb-1.5">No investments recorded</h3>
+                  <p className="text-sm text-muted-foreground mb-5 max-w-[260px] mx-auto leading-relaxed">
+                    Your deposit history and DCA investments will be tracked here once you start investing.
+                  </p>
+                  <button
+                    onClick={() => navigate('/portfolio')}
+                    className="w-full py-3 rounded-xl text-sm font-semibold text-white apice-gradient-primary transition-all hover:opacity-90 active:scale-[0.98]"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      Start Investing
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </button>
+                </motion.div>
+              )}
+
               {/* Investment Summary */}
               <div className="grid grid-cols-2 gap-3">
                 <StatCard
@@ -538,21 +622,26 @@ export default function Analytics() {
               )}
 
               {!analytics.isConnected && (
-                <div className="flex flex-col items-center text-center py-12">
-                  <div className="w-14 h-14 rounded-2xl bg-secondary/40 flex items-center justify-center mb-4">
-                    <TrendingUp className="w-6 h-6 text-muted-foreground/40" />
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="rounded-2xl bg-card/50 border border-border/50 p-6 text-center"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
+                    <LineChart className="w-8 h-8 text-primary" />
                   </div>
-                  <p className="text-sm font-semibold text-muted-foreground/60">Connect your exchange</p>
-                  <p className="text-xs text-muted-foreground/40 mt-1 max-w-[240px]">
-                    Link your Bybit account in Settings to see live performance data
+                  <h3 className="text-lg font-bold mb-1.5">Track your performance</h3>
+                  <p className="text-sm text-muted-foreground mb-5 max-w-[260px] mx-auto leading-relaxed">
+                    Link your Bybit account to see live P&L, holdings breakdown, and portfolio performance.
                   </p>
                   <button
                     onClick={() => navigate('/settings')}
-                    className="mt-4 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold"
+                    className="w-full py-3 rounded-xl text-sm font-semibold text-white apice-gradient-primary transition-all hover:opacity-90 active:scale-[0.98]"
                   >
-                    Go to Settings
+                    Connect Exchange
                   </button>
-                </div>
+                </motion.div>
               )}
             </motion.div>
           )}

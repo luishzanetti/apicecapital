@@ -37,25 +37,33 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
-// App-level skeleton for loading states
-function AppSkeleton() {
+// Branded loading screen with Apice logo
+function AppLoading() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="px-6 pt-8 pb-5 space-y-4" style={{ background: 'linear-gradient(180deg, rgba(99,102,241,0.08) 0%, transparent 100%)' }}>
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <div className="h-3 w-20 rounded bg-muted animate-pulse" />
-            <div className="h-6 w-32 rounded bg-muted animate-pulse" />
-          </div>
-          <div className="h-8 w-20 rounded-full bg-muted animate-pulse" />
-        </div>
-        <div className="h-32 rounded-2xl bg-muted/50 animate-pulse" />
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-5">
+      <div className="w-14 h-14 rounded-2xl apice-gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 animate-pulse">
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 40 40"
+          fill="none"
+          className="text-white"
+        >
+          <path
+            d="M20 4L36 34H4L20 4Z"
+            stroke="currentColor"
+            strokeWidth="3.5"
+            strokeLinejoin="round"
+            fill="none"
+          />
+          <path
+            d="M20 14L29 32H11L20 14Z"
+            fill="currentColor"
+            opacity="0.3"
+          />
+        </svg>
       </div>
-      <div className="px-6 space-y-4 mt-4">
-        <div className="h-24 rounded-2xl bg-muted/30 animate-pulse" />
-        <div className="h-20 rounded-2xl bg-muted/30 animate-pulse" />
-        <div className="h-40 rounded-2xl bg-muted/20 animate-pulse" />
-      </div>
+      <p className="text-sm text-muted-foreground font-medium">Loading...</p>
     </div>
   );
 }
@@ -66,7 +74,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   if (loading) {
-    return <AppSkeleton />;
+    return <AppLoading />;
   }
 
   if (!session) {
@@ -86,7 +94,7 @@ function AppContent() {
   }, [incrementDaysActive]);
 
   return (
-    <Suspense fallback={<AppSkeleton />}>
+    <Suspense fallback={<AppLoading />}>
     <Routes>
       <Route path="/splash" element={<Splash />} />
       <Route path="/welcome" element={<Welcome />} />
