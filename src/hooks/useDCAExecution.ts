@@ -140,22 +140,47 @@ async function bybitSpotOrder(
   return { orderId, qty, price };
 }
 
+// ─── Plan data for direct execution ────────────────────────
+
+export interface LocalPlanData {
+  id: string;
+  assets: Array<{ symbol: string; allocation: number }>;
+  amountPerInterval: number;
+  frequency: string;
+}
+
 // ─── Direct execution (client-side, uses stored credentials) ──
 
 async function executeDirectly(
   userId: string,
-  planId: string
+  planId: string,
+  localPlan?: LocalPlanData
 ): Promise<ExecutePlanResult> {
-  // 1. Get plan from local store or DB
-  const { data: plan, error: planError } = await supabase
-    .from('dca_plans')
-    .select('*')
-    .eq('id', planId)
-    .eq('user_id', userId)
-    .single();
+  // 1. Use local plan data if provided, otherwise fetch from DB
+  let plan: any;
 
-  if (planError || !plan) {
-    throw new Error('Plan not found in database. Try again in a moment.');
+  if (localPlan) {
+    plan = {
+      id: localPlan.id,
+      user_id: userId,
+      assets: localPlan.assets,
+      amount_per_interval: localPlan.amountPerInterval,
+      frequency: localPlan.frequency,
+      is_active: true,
+      total_invested: 0,
+    };
+  } else {
+    const { data, error: planError } = await supabase
+      .from('dca_plans')
+      .select('*')
+      .eq('id', planId)
+      .eq('user_id', userId)
+      .single();
+
+    if (planError || !data) {
+      throw new Error('Plan not found in database. Try again in a moment.');
+    }
+    plan = data;
   }
 
   if (!plan.is_active) {
@@ -310,7 +335,7 @@ export function useDCAExecution() {
   const [lastResult, setLastResult] = useState<ExecutePlanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const executePlan = useCallback(async (planId: string): Promise<ExecutePlanResult | null> => {
+  const executePlan = useCallback(async (planId: string, localPlan?: LocalPlanData): Promise<ExecutePlanResult | null> => {
     if (!isSupabaseConfigured || !user) {
       setError('Not connected. Please log in first.');
       return null;
@@ -323,23 +348,25 @@ export function useDCAExecution() {
     try {
       let result: ExecutePlanResult | null = null;
 
-      // Strategy 1: Try Edge Function first (server-side, more secure)
-      try {
-        const { data, error: fnError } = await supabase.functions.invoke('dca-execute', {
-          body: { action: 'execute-plan', planId },
-        });
+      // Strategy 1: Try Edge Function first (only if no local plan data — plan must be in DB)
+      if (!localPlan) {
+        try {
+          const { data, error: fnError } = await supabase.functions.invoke('dca-execute', {
+            body: { action: 'execute-plan', planId },
+          });
 
-        if (!fnError && data && !data.error) {
-          result = data.data as ExecutePlanResult;
+          if (!fnError && data && !data.error) {
+            result = data.data as ExecutePlanResult;
+          }
+        } catch {
+          // Edge Function not available, will use direct fallback
         }
-      } catch {
-        // Edge Function not available, will use direct fallback
       }
 
-      // Strategy 2: Direct client-side execution (fallback)
+      // Strategy 2: Direct client-side execution (always works, supports local plan data)
       if (!result) {
-        console.log('[DCA] Edge Function unavailable, executing directly via Bybit API');
-        result = await executeDirectly(user.id, planId);
+        console.log('[DCA] Executing directly via Bybit API', localPlan ? '(local plan)' : '(DB plan)');
+        result = await executeDirectly(user.id, planId, localPlan);
       }
 
       setLastResult(result);

@@ -13,18 +13,22 @@ import { DCAHistoricalProof } from '@/components/dca/DCAHistoricalProof';
 import { DCABadges } from '@/components/dca/DCABadges';
 import { DCALearnBlock } from '@/components/dca/DCALearnBlock';
 import { DCAPlanCard } from '@/components/dca/DCAPlanCard';
-import { 
-  ArrowLeft, 
-  Calendar, 
-  Plus, 
+import {
+  ArrowLeft,
+  Calendar,
+  Plus,
   ChevronRight,
   ChevronLeft,
   Infinity,
   Sparkles,
   Check,
-  ExternalLink
+  ExternalLink,
+  Loader2,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react';
 import { referralLinks } from '@/data/sampleData';
+import { useDCAExecution } from '@/hooks/useDCAExecution';
 
 type WizardStep = 'amount' | 'assets' | 'schedule' | 'review';
 
@@ -34,9 +38,12 @@ export default function DCAPlanner() {
   const addDcaPlan = useAppStore((s) => s.addDcaPlan);
   const trackLinkClick = useAppStore((s) => s.trackLinkClick);
   const linkClicks = useAppStore((s) => s.linkClicks);
-  
+  const { executePlan, isExecuting, lastResult, error: execError, clearError } = useDCAExecution();
+
   const [showWizard, setShowWizard] = useState(false);
   const [wizardStep, setWizardStep] = useState<WizardStep>('amount');
+  const [creatingPlan, setCreatingPlan] = useState(false);
+  const [createStatus, setCreateStatus] = useState<'idle' | 'executing' | 'success' | 'error'>('idle');
   const [newPlan, setNewPlan] = useState<{
     assets: { symbol: string; allocation: number }[];
     amountPerInterval: number;
@@ -51,7 +58,14 @@ export default function DCAPlanner() {
     isForever: false,
   });
 
-  const handleCreatePlan = () => {
+  const handleCreatePlan = async () => {
+    setCreatingPlan(true);
+    setCreateStatus('executing');
+
+    // Generate plan ID
+    const planId = Date.now().toString();
+
+    // 1. Save plan to store + Supabase
     addDcaPlan({
       assets: newPlan.assets,
       amountPerInterval: newPlan.amountPerInterval,
@@ -62,15 +76,39 @@ export default function DCAPlanner() {
       totalInvested: 0,
       nextExecutionDate: new Date().toISOString(),
     });
-    setShowWizard(false);
-    setWizardStep('amount');
-    setNewPlan({
-      assets: [],
-      amountPerInterval: 25,
-      frequency: 'weekly',
-      durationDays: 90,
-      isForever: false,
-    });
+
+    // 2. Execute first buy immediately using local plan data (no DB dependency)
+    try {
+      const result = await executePlan(planId, {
+        id: planId,
+        assets: newPlan.assets,
+        amountPerInterval: newPlan.amountPerInterval,
+        frequency: newPlan.frequency,
+      });
+
+      if (result && result.executions.some(e => e.status === 'success')) {
+        setCreateStatus('success');
+      } else {
+        setCreateStatus('error');
+      }
+    } catch {
+      setCreateStatus('error');
+    }
+
+    // 3. Reset wizard after delay
+    setTimeout(() => {
+      setShowWizard(false);
+      setWizardStep('amount');
+      setCreatingPlan(false);
+      setCreateStatus('idle');
+      setNewPlan({
+        assets: [],
+        amountPerInterval: 25,
+        frequency: 'weekly',
+        durationDays: 90,
+        isForever: false,
+      });
+    }, 3000);
   };
 
   const handleApplyRecommendation = (
@@ -470,10 +508,53 @@ export default function DCAPlanner() {
                       variant="premium"
                       className="w-full"
                       onClick={handleCreatePlan}
+                      disabled={creatingPlan}
                     >
-                      <Check className="w-4 h-4 mr-2" />
-                      Create DCA Plan
+                      {createStatus === 'executing' ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Executing first buy on Bybit...
+                        </>
+                      ) : createStatus === 'success' ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                          DCA Created & First Buy Done!
+                        </>
+                      ) : createStatus === 'error' ? (
+                        <>
+                          <XCircle className="w-4 h-4 mr-2" />
+                          Plan Created (Buy failed — check permissions)
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          Create & Execute First Buy
+                        </>
+                      )}
                     </Button>
+
+                    {/* Execution result feedback */}
+                    {createStatus === 'success' && lastResult && (
+                      <div className="mt-3 p-3 rounded-xl bg-green-500/10 border border-green-500/20">
+                        <p className="text-xs text-green-400 font-medium mb-1">Orders executed on Bybit:</p>
+                        {lastResult.executions.map((ex, i) => (
+                          <p key={i} className="text-[10px] text-muted-foreground">
+                            {ex.asset}: {ex.status === 'success'
+                              ? `Bought${ex.quantity ? ` ${ex.quantity}` : ''} ${ex.price ? `@ $${ex.price}` : `$${ex.amountUsdt.toFixed(2)}`}`
+                              : ex.error || 'Failed'
+                            }
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                    {createStatus === 'error' && execError && (
+                      <div className="mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                        <p className="text-[10px] text-red-400">{execError}</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          Plan was saved. Enable Trade (Spot) permission on your Bybit API key and try "Execute Now" from the plan card.
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
