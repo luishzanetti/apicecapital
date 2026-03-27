@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
@@ -161,6 +161,11 @@ export default function ApiceOnboarding() {
         [selectedAmount, customAmount, annualRate]
     );
     const tiers = useMemo(() => getTiers(userProfile.capitalRange), [userProfile.capitalRange]);
+
+    // Scroll to top on step change
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }, [step, quizStep]);
 
     const goNext = () => {
         if (step < TOTAL_STEPS - 1) {

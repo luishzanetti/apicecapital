@@ -1,14 +1,9 @@
-import { Bell, Search, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Search } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppStore } from '@/store/appStore';
 import { useState, useEffect } from 'react';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+import { NotificationBell } from './NotificationBell';
 import {
     CommandDialog,
     CommandEmpty,
@@ -18,18 +13,17 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
 // Map routes to page titles
-const pageTitles: Record<string, string> = {
+const pageTitles: Record<string, string | null> = {
     '/home': null,
     '/portfolio': 'Portfolio',
     '/strategies': 'Strategies',
     '/learn': 'Learn',
     '/settings': 'Settings',
     '/upgrade': 'Upgrade',
-    '/cashback': 'Cashback',
-    '/insights': 'Insights',
+    '/analytics': 'Analytics',
+    '/dca-planner': 'DCA Planner',
 };
 
 export function AppHeader() {
@@ -37,7 +31,6 @@ export function AppHeader() {
     const navigate = useNavigate();
     const location = useLocation();
     const [open, setOpen] = useState(false);
-    const [hasNotif, setHasNotif] = useState(true);
 
     const pageTitle = pageTitles[location.pathname];
     const isHome = location.pathname === '/home' || location.pathname === '/';
@@ -125,64 +118,7 @@ export function AppHeader() {
                     <Search className="w-4 h-4" />
                 </Button>
 
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="w-9 h-9 rounded-xl relative text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all press-scale"
-                        >
-                            <Bell className="w-4 h-4" />
-                            {hasNotif && (
-                                <motion.span
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-background animate-pulse-dot"
-                                />
-                            )}
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                        align="end"
-                        className="w-76 mt-2 rounded-2xl border-border/40 glass-card p-0 overflow-hidden shadow-xl"
-                    >
-                        <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
-                            <h3 className="text-sm font-bold">Notifications</h3>
-                            <button
-                                className="text-[10px] text-primary font-semibold"
-                                onClick={() => setHasNotif(false)}
-                            >
-                                Mark all read
-                            </button>
-                        </div>
-                        <div className="py-1">
-                            <DropdownMenuItem className="px-4 py-3.5 focus:bg-primary/5 cursor-pointer rounded-none gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                                    <Bell className="w-4 h-4 text-primary" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold">Welcome to Apice!</p>
-                                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                                        Start your journey by completing your first mission.
-                                    </p>
-                                </div>
-                                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0" />
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="px-4 py-3.5 focus:bg-primary/5 cursor-pointer rounded-none gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
-                                    <Search className="w-4 h-4 text-amber-500" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold">Market Insight Ready</p>
-                                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
-                                        A new analysis for {investorType || 'your profile'} is available.
-                                    </p>
-                                </div>
-                                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0" />
-                            </DropdownMenuItem>
-                        </div>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <NotificationBell />
             </div>
 
             {/* Search Dialog */}
@@ -200,6 +136,9 @@ export function AppHeader() {
                         <CommandItem onSelect={() => { navigate('/strategies'); setOpen(false); }}>
                             Strategies
                         </CommandItem>
+                        <CommandItem onSelect={() => { navigate('/analytics'); setOpen(false); }}>
+                            Analytics & History
+                        </CommandItem>
                         <CommandItem onSelect={() => { navigate('/learn'); setOpen(false); }}>
                             Learn & Academy
                         </CommandItem>
@@ -208,6 +147,9 @@ export function AppHeader() {
                         </CommandItem>
                     </CommandGroup>
                     <CommandGroup heading="Quick Actions">
+                        <CommandItem onSelect={() => { navigate('/dca-planner'); setOpen(false); }}>
+                            DCA Planner
+                        </CommandItem>
                         <CommandItem onSelect={() => { navigate('/settings'); setOpen(false); }}>
                             Connect Bybit
                         </CommandItem>

@@ -6,10 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { usePortfolioAnalytics } from '@/hooks/usePortfolioAnalytics';
 import { useExchangeBalance } from '@/hooks/useExchangeBalance';
+import { useAppStore } from '@/store/appStore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis } from 'recharts';
 import {
-  Wallet, RefreshCw, Link2,
+  Wallet, RefreshCw, Link2, Sparkles, ArrowRight,
   Eye, EyeOff, ArrowUpRight, ArrowDownRight,
   ArrowDownToLine, Repeat2, BarChart3,
   ChevronDown,
@@ -218,7 +219,51 @@ export function PortfolioSummaryCard() {
 
   if (analytics.isLoading) return <SummarySkeleton />;
 
+  // Check if user has completed enough of the journey to show connect exchange
+  const missionProgress = useAppStore((s) => s.missionProgress);
+  const hasCreatedBybitAccount = missionProgress.m2_bybitAccountCreated;
+
   if (!analytics.isConnected) {
+    // New user who hasn't gone through the journey yet — show friendly guidance
+    if (!hasCreatedBybitAccount) {
+      return (
+        <Card className="overflow-hidden border-dashed border-primary/20">
+          <div
+            className="absolute inset-0 opacity-[0.04] pointer-events-none"
+            style={{ background: 'radial-gradient(ellipse at center, hsl(var(--primary)), transparent 70%)' }}
+          />
+          <CardContent className="pt-6 pb-6 relative">
+            <div className="flex items-start gap-4">
+              <motion.div
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0"
+              >
+                <Sparkles className="w-6 h-6 text-primary" />
+              </motion.div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold mb-1">Welcome to Apice</p>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                  Follow the Apice Journey below to set up your account step by step. Once ready, your live portfolio will appear here.
+                </p>
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('apice-journey');
+                    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-primary"
+                >
+                  Start your journey
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // User has completed journey but needs to connect API
     return (
       <Card className="overflow-hidden border-dashed border-primary/20">
         <div

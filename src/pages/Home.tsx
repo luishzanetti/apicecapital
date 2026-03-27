@@ -16,7 +16,6 @@ import { AiInsightCard } from '@/components/ai/AiInsightCard';
 import { AiAdvisorChat } from '@/components/ai/AiAdvisorChat';
 import { AiPortfolioScore } from '@/components/ai/AiPortfolioScore';
 import { WeeklyDepositConfirm } from '@/components/WeeklyDepositConfirm';
-import { NotificationBell } from '@/components/NotificationBell';
 import {
   TrendingUp, DollarSign, Flame, ChevronRight, ArrowRight,
   PieChart, BookOpen, Sparkles, Zap, Award, Settings2,
@@ -357,7 +356,7 @@ export default function Home() {
       case 'journey':
         if (isJourneyCompleted) return null; // show below main content instead
         return (
-          <motion.div key="journey" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+          <motion.div key="journey" id="apice-journey" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
             <SetupMissions />
           </motion.div>
         );
@@ -564,16 +563,13 @@ export default function Home() {
             <p className="text-xs text-muted-foreground">{getTimeGreeting()}</p>
             <h1 className="text-xl font-bold">{investorType || 'Investor'}</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <NotificationBell />
-            <button
-              onClick={() => setShowCustomizer(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/60 border border-border/40 hover:bg-secondary transition-all text-xs font-medium text-muted-foreground"
-            >
-              <Settings2 className="w-3.5 h-3.5" />
-              Widgets
-            </button>
-          </div>
+          <button
+            onClick={() => setShowCustomizer(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/60 border border-border/40 hover:bg-secondary transition-all text-xs font-medium text-muted-foreground"
+          >
+            <Settings2 className="w-3.5 h-3.5" />
+            Widgets
+          </button>
         </div>
 
         {/* Bybit Live Portfolio (always first in the hero) */}

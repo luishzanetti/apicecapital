@@ -1,8 +1,18 @@
+import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { BottomNav } from './BottomNav';
 import { AppHeader } from './AppHeader';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+
+// Scroll to top on every route change
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
+  return null;
+}
 
 export function AppLayout() {
   const location = useLocation();
@@ -10,6 +20,7 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <ScrollToTop />
       {showNav && <AppHeader />}
 
       <AnimatePresence mode="wait">

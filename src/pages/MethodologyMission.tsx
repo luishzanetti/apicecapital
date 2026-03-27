@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -830,6 +830,11 @@ export default function MethodologyMission() {
 
   const stepIndex = STEP_CONFIG.findIndex(s => s.param === step);
   const config = STEP_CONFIG[stepIndex] || STEP_CONFIG[0];
+
+  // Scroll to top on step change
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [step]);
 
   const handleComplete = () => {
     completeMissionTask(config.storeKey);
