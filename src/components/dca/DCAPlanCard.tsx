@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DCAPlan, useAppStore } from '@/store/appStore';
 import { dcaAssets } from '@/data/sampleData';
-import { useDCAExecution } from '@/hooks/useDCAExecution';
+import { useDCAExecution, type AssetExecution } from '@/hooks/useDCAExecution';
 import {
   Play,
   Pause,
@@ -229,13 +229,16 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
                   <div className="p-2 rounded-lg bg-green-500/10 border border-green-500/20">
                     <div className="flex items-center gap-1.5 text-xs text-green-400 font-medium mb-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      DCA Executed Successfully
+                      DCA Executed — ${lastResult.totalSpent.toFixed(2)} spent
                     </div>
-                    {lastResult.results && (
+                    {lastResult.executions && lastResult.executions.length > 0 && (
                       <div className="space-y-0.5">
-                        {lastResult.results.map((r: any, i: number) => (
+                        {lastResult.executions.map((r, i) => (
                           <p key={i} className="text-[10px] text-muted-foreground">
-                            {r.symbol}: {r.status === 'filled' ? `Bought ${r.qty} @ $${r.avgPrice}` : r.status}
+                            {r.asset}: {r.status === 'success'
+                              ? `Bought${r.quantity ? ` ${r.quantity}` : ''} ${r.price ? `@ $${r.price}` : `$${r.amountUsdt.toFixed(2)}`}`
+                              : `❌ ${r.error || 'Failed'}`
+                            }
                           </p>
                         ))}
                       </div>
