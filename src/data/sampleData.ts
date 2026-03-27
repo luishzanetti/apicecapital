@@ -107,7 +107,7 @@ export interface DCAQuote {
 export const dcaQuotes: DCAQuote[] = [
   { author: 'Warren Buffett', quote: 'The stock market transfers money from the impatient to the patient.', role: 'Legendary Investor' },
   { author: 'Benjamin Graham', quote: 'The essence of investment management is the management of risks, not returns.', role: 'Father of Value Investing' },
-  { author: 'Jack Bogle', quote: 'Time is your friend; impulse is your enemy.', role: 'Vanguard Founder' },
+  { author: 'Jack Bogle', quote: 'Time is your friend; impulse is your enemy.', role: 'Founder of Vanguard' },
   { author: 'Peter Lynch', quote: 'The key to making money in stocks is not to get scared out of them.', role: 'Fidelity Legend' },
 ];
 
@@ -124,11 +124,11 @@ export interface DCABadge {
 
 export const dcaBadges: DCABadge[] = [
   { id: 'first-step', name: 'First Step', description: 'Created your first DCA plan', icon: '🚀', requirement: 'Create 1 DCA plan', category: 'beginner' },
-  { id: 'consistency-king', name: 'Consistency King', description: '30 days with an active DCA plan', icon: '👑', requirement: '30-day active plan', category: 'consistency' },
+  { id: 'consistency-king', name: 'Consistency King', description: '30 days with an active DCA plan', icon: '👑', requirement: 'Plan active for 30 days', category: 'consistency' },
   { id: 'diversifier', name: 'Diversifier', description: 'DCA into 3+ different assets', icon: '🎯', requirement: '3+ assets in DCA', category: 'diversification' },
   { id: 'long-game', name: 'Long Game', description: 'Created a 90+ day DCA plan', icon: '🏆', requirement: '90+ day plan', category: 'commitment' },
   { id: 'committed', name: 'Committed', description: 'Committed $1,000+ to DCA', icon: '💎', requirement: '$1,000+ committed', category: 'commitment' },
-  { id: 'diamond-hands', name: 'Diamond Hands', description: 'Started an indefinite DCA plan', icon: '💪', requirement: 'Forever mode DCA', category: 'commitment' },
+  { id: 'diamond-hands', name: 'Diamond Hands', description: 'Started an indefinite DCA plan', icon: '💪', requirement: 'DCA Forever mode', category: 'commitment' },
 ];
 
 // ============== DCA RECOMMENDATIONS ==============
@@ -146,20 +146,20 @@ export interface DCARecommendation {
 
 export const dcaRecommendations: DCARecommendation[] = [
   // Conservative
-  { id: 'rec-cons-1', profileType: 'Conservative Builder', capitalRange: 'under-200', suggestedAmount: 10, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 60 }, { symbol: 'ETH', allocation: 40 }], rationale: 'Focus on blue-chip stability with maximum capital preservation.', marketContext: 'Current market conditions favor disciplined accumulation.' },
+  { id: 'rec-cons-1', profileType: 'Conservative Builder', capitalRange: 'under-200', suggestedAmount: 10, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 60 }, { symbol: 'ETH', allocation: 40 }], rationale: 'Blue-chip stability focus with maximum capital preservation.', marketContext: 'Current market conditions favor disciplined accumulation.' },
   { id: 'rec-cons-2', profileType: 'Conservative Builder', capitalRange: '200-1k', suggestedAmount: 25, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 60 }, { symbol: 'ETH', allocation: 40 }], rationale: 'Steady accumulation of proven assets builds a solid foundation.', marketContext: 'Blue-chip dominance protects against volatility.' },
-  { id: 'rec-cons-3', profileType: 'Conservative Builder', capitalRange: '1k-5k', suggestedAmount: 50, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 55 }, { symbol: 'ETH', allocation: 35 }, { symbol: 'USDT', allocation: 10 }], rationale: 'Maintain stablecoin buffer for opportunistic buying.', marketContext: 'Dry powder strategy enhances long-term returns.' },
+  { id: 'rec-cons-3', profileType: 'Conservative Builder', capitalRange: '1k-5k', suggestedAmount: 50, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 55 }, { symbol: 'ETH', allocation: 35 }, { symbol: 'USDT', allocation: 10 }], rationale: 'Keep stablecoin reserve for opportunistic buys.', marketContext: 'Dry powder strategy amplifies long-term returns.' },
   { id: 'rec-cons-4', profileType: 'Conservative Builder', capitalRange: '5k-plus', suggestedAmount: 100, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 50 }, { symbol: 'ETH', allocation: 35 }, { symbol: 'USDC', allocation: 15 }], rationale: 'Institutional-grade allocation with strategic reserves.', marketContext: 'Professional approach to systematic accumulation.' },
   // Balanced
-  { id: 'rec-bal-1', profileType: 'Balanced Optimizer', capitalRange: 'under-200', suggestedAmount: 15, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 45 }, { symbol: 'ETH', allocation: 35 }, { symbol: 'SOL', allocation: 20 }], rationale: 'Core + growth allocation for optimized risk-reward.', marketContext: 'Diversification across top assets reduces concentration risk.' },
+  { id: 'rec-bal-1', profileType: 'Balanced Optimizer', capitalRange: 'under-200', suggestedAmount: 15, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 45 }, { symbol: 'ETH', allocation: 35 }, { symbol: 'SOL', allocation: 20 }], rationale: 'Core + growth allocation for optimized risk-return profile.', marketContext: 'Diversification across top assets reduces concentration risk.' },
   { id: 'rec-bal-2', profileType: 'Balanced Optimizer', capitalRange: '200-1k', suggestedAmount: 35, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 40 }, { symbol: 'ETH', allocation: 30 }, { symbol: 'SOL', allocation: 20 }, { symbol: 'USDT', allocation: 10 }], rationale: 'Balanced exposure with tactical stablecoin position.', marketContext: 'Multi-asset approach captures broader market growth.' },
-  { id: 'rec-bal-3', profileType: 'Balanced Optimizer', capitalRange: '1k-5k', suggestedAmount: 75, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 35 }, { symbol: 'ETH', allocation: 30 }, { symbol: 'SOL', allocation: 20 }, { symbol: 'LINK', allocation: 15 }], rationale: 'Add DeFi exposure for yield potential.', marketContext: 'Infrastructure plays offer asymmetric upside.' },
+  { id: 'rec-bal-3', profileType: 'Balanced Optimizer', capitalRange: '1k-5k', suggestedAmount: 75, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 35 }, { symbol: 'ETH', allocation: 30 }, { symbol: 'SOL', allocation: 20 }, { symbol: 'LINK', allocation: 15 }], rationale: 'Add DeFi exposure for yield potential.', marketContext: 'Infrastructure projects offer asymmetric upside.' },
   { id: 'rec-bal-4', profileType: 'Balanced Optimizer', capitalRange: '5k-plus', suggestedAmount: 150, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 35 }, { symbol: 'ETH', allocation: 25 }, { symbol: 'SOL', allocation: 20 }, { symbol: 'AVAX', allocation: 10 }, { symbol: 'USDC', allocation: 10 }], rationale: 'Diversified core with L1 basket and reserves.', marketContext: 'Broad exposure to capture ecosystem growth.' },
   // Growth
-  { id: 'rec-gro-1', profileType: 'Growth Seeker', capitalRange: 'under-200', suggestedAmount: 20, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 35 }, { symbol: 'ETH', allocation: 30 }, { symbol: 'SOL', allocation: 35 }], rationale: 'Higher beta allocation for growth potential.', marketContext: 'Early accumulation benefits from higher volatility exposure.' },
+  { id: 'rec-gro-1', profileType: 'Growth Seeker', capitalRange: 'under-200', suggestedAmount: 20, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 35 }, { symbol: 'ETH', allocation: 30 }, { symbol: 'SOL', allocation: 35 }], rationale: 'Higher beta allocation for maximum growth potential.', marketContext: 'Early accumulation benefits from higher volatility exposure.' },
   { id: 'rec-gro-2', profileType: 'Growth Seeker', capitalRange: '200-1k', suggestedAmount: 50, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 30 }, { symbol: 'ETH', allocation: 25 }, { symbol: 'SOL', allocation: 25 }, { symbol: 'ARB', allocation: 20 }], rationale: 'L2 exposure adds growth potential with managed risk.', marketContext: 'Layer 2 adoption is accelerating.' },
   { id: 'rec-gro-3', profileType: 'Growth Seeker', capitalRange: '1k-5k', suggestedAmount: 100, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 25 }, { symbol: 'ETH', allocation: 25 }, { symbol: 'SOL', allocation: 20 }, { symbol: 'ARB', allocation: 15 }, { symbol: 'TIA', allocation: 15 }], rationale: 'Emerging asset allocation for asymmetric returns.', marketContext: 'Modular blockchain thesis gaining traction.' },
-  { id: 'rec-gro-4', profileType: 'Growth Seeker', capitalRange: '5k-plus', suggestedAmount: 200, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 25 }, { symbol: 'ETH', allocation: 20 }, { symbol: 'SOL', allocation: 20 }, { symbol: 'ARB', allocation: 15 }, { symbol: 'INJ', allocation: 10 }, { symbol: 'JUP', allocation: 10 }], rationale: 'Aggressive diversification across high-conviction plays.', marketContext: 'Multi-ecosystem approach maximizes opportunity capture.' },
+  { id: 'rec-gro-4', profileType: 'Growth Seeker', capitalRange: '5k-plus', suggestedAmount: 200, frequency: 'weekly', assets: [{ symbol: 'BTC', allocation: 25 }, { symbol: 'ETH', allocation: 20 }, { symbol: 'SOL', allocation: 20 }, { symbol: 'ARB', allocation: 15 }, { symbol: 'INJ', allocation: 10 }, { symbol: 'JUP', allocation: 10 }], rationale: 'Aggressive diversification across high-conviction positions.', marketContext: 'Multi-ecosystem approach maximizes opportunity capture.' },
 ];
 
 // ============== PORTFOLIOS ==============
@@ -198,7 +198,7 @@ export const portfolios: Portfolio[] = [
       { asset: 'USDT', percentage: 10, color: 'hsl(152, 70%, 50%)' },
     ],
     description: 'The institutional standard. Heavy on BTC & ETH with tactical altcoin exposure.',
-    whyItWorks: 'BTC and ETH provide store of value; SOL adds growth potential; USDT maintains dry powder.',
+    whyItWorks: 'BTC and ETH provide store of value; SOL adds growth potential; USDT maintains strategic reserve.',
     minCapital: '$200',
     isLocked: false,
   },
@@ -213,8 +213,8 @@ export const portfolios: Portfolio[] = [
       { asset: 'ETH', percentage: 30, color: 'hsl(217, 100%, 60%)' },
       { asset: 'USDT', percentage: 20, color: 'hsl(152, 70%, 50%)' },
     ],
-    description: 'Maximum stability. Focus on blue-chip assets with significant stablecoin buffer.',
-    whyItWorks: 'Blue-chip dominance reduces volatility. Stablecoin allocation enables dip buying.',
+    description: 'Maximum stability. Blue-chip focus with significant stablecoin reserve.',
+    whyItWorks: 'Blue-chip dominance reduces volatility. Stablecoin allocation lets you buy the dips.',
     minCapital: '$100',
     isLocked: false,
   },
@@ -231,7 +231,7 @@ export const portfolios: Portfolio[] = [
       { asset: 'Others', percentage: 20, color: 'hsl(200, 100%, 50%)' },
     ],
     description: 'Higher altcoin exposure for those seeking asymmetric upside potential.',
-    whyItWorks: 'Maintains BTC/ETH foundation while allocating to higher-beta assets.',
+    whyItWorks: 'Maintains BTC/ETH base while allocating to higher-beta assets.',
     minCapital: '$500',
     isLocked: false,
   },
@@ -324,81 +324,248 @@ export interface DailyInsight {
 
 // Generate 30 days of insights
 const generateDailyInsights = (): DailyInsight[] => {
-  const insights: DailyInsight[] = [
+  return [
     {
       id: 'di-1',
       date: new Date().toISOString(),
-      title: 'Market Stability Confirmed',
-      content: 'Current volatility is within normal ranges. Your portfolio allocation remains optimal. No rebalancing needed.',
-      recommendedAction: null,
-      type: 'portfolio',
+      title: 'Bitcoin Is Digital Gold',
+      content: 'With only 21 million units that will ever exist, Bitcoin has programmed scarcity — something no government can change. While fiat currencies are printed endlessly, BTC appreciates by design.',
+      recommendedAction: 'Review your BTC allocation in the portfolio',
+      type: 'education',
     },
     {
       id: 'di-2',
       date: new Date(Date.now() - 86400000).toISOString(),
-      title: 'DCA Discipline Reminder',
-      content: 'Consistent DCA beats timing the market. Your next scheduled buy maintains your cost-averaging advantage.',
-      recommendedAction: 'Review your DCA schedule',
+      title: 'DCA Discipline Beats Market Timing',
+      content: 'Studies show that 95% of traders who try to "time the market" underperform a simple DCA strategy. Weekly consistency beats the talent of predicting market moves every time.',
+      recommendedAction: 'Check your next scheduled DCA',
       type: 'discipline',
     },
     {
       id: 'di-3',
       date: new Date(Date.now() - 86400000 * 2).toISOString(),
-      title: 'Risk Band Check',
-      content: 'Your portfolio remains within target risk parameters. Diversification score: Strong.',
-      recommendedAction: null,
-      type: 'portfolio',
+      title: 'Market Cycles: The Wheel Always Turns',
+      content: 'Crypto follows 4-year cycles tied to Bitcoin\'s halving. Every bear market has been followed by an even larger bull run. Historical context is your greatest edge as an investor.',
+      recommendedAction: 'Study the market cycles module',
+      type: 'market',
     },
     {
       id: 'di-4',
       date: new Date(Date.now() - 86400000 * 3).toISOString(),
-      title: 'Learning: Position Sizing',
-      content: 'Understanding position sizing is key to risk management. Small positions in volatile assets protect your capital.',
-      recommendedAction: 'Complete the Position Sizing lesson',
-      type: 'education',
-      lessonLink: 'position-sizing',
+      title: 'A Diversified Portfolio Sleeps Well',
+      content: 'The golden rule: no single asset should exceed 50% of your portfolio (except BTC for conservative profiles). Diversification isn\'t cowardice — it\'s intelligence. Concentration risk is the enemy of long-term wealth.',
+      recommendedAction: 'Review your portfolio distribution',
+      type: 'portfolio',
     },
     {
       id: 'di-5',
       date: new Date(Date.now() - 86400000 * 4).toISOString(),
-      title: 'Weekly Market Context',
-      content: 'Major indices stable. Crypto correlation to equities remains moderate. No significant macro catalysts this week.',
-      recommendedAction: null,
-      type: 'market',
+      title: 'FOMO Is the Investor\'s Biggest Enemy',
+      content: 'Fear Of Missing Out makes you buy at peaks and sell at bottoms. When everyone is euphoric, caution is warranted. When everyone is fearful, accumulate. Being contrarian to the crowd is where wealth is built.',
+      recommendedAction: 'Complete the investor psychology lesson',
+      type: 'discipline',
     },
     {
       id: 'di-6',
       date: new Date(Date.now() - 86400000 * 5).toISOString(),
-      title: 'Stay the Course',
-      content: 'Emotional decisions erode returns. Your systematic approach is working. Trust the process.',
-      recommendedAction: null,
-      type: 'discipline',
+      title: 'Ethereum: The World Computer',
+      content: 'ETH is the foundation of all DeFi, NFTs, and Web3 apps. Its transition to Proof of Stake made it deflationary during high-demand periods. ETH is the second pillar of any serious crypto portfolio.',
+      recommendedAction: 'Add ETH to your DCA plan if you haven\'t already',
+      type: 'education',
     },
     {
       id: 'di-7',
       date: new Date(Date.now() - 86400000 * 6).toISOString(),
-      title: 'Diversification Insight',
-      content: 'Your multi-asset allocation reduces single-point-of-failure risk. This is institutional-grade thinking.',
-      recommendedAction: null,
+      title: 'Stablecoins: Your Strategic Reserve',
+      content: 'Holding 10-20% in USDT or USDC isn\'t weakness — it\'s strategy. When markets drop 40%, you have ammunition to buy quality assets at a discount. Cash reserves create opportunity.',
+      recommendedAction: 'Check if your stablecoin reserve is adequate',
       type: 'portfolio',
     },
-  ];
-
-  // Generate more insights for remaining days
-  for (let i = 8; i <= 30; i++) {
-    const types: DailyInsight['type'][] = ['market', 'portfolio', 'education', 'discipline'];
-    const type = types[i % 4];
-    insights.push({
-      id: `di-${i}`,
-      date: new Date(Date.now() - 86400000 * (i - 1)).toISOString(),
-      title: type === 'market' ? 'Market Update' : type === 'portfolio' ? 'Portfolio Status' : type === 'education' ? 'Learning Moment' : 'Discipline Check',
-      content: 'Your portfolio continues to perform within expected parameters. Stay consistent with your strategy.',
+    {
+      id: 'di-8',
+      date: new Date(Date.now() - 86400000 * 7).toISOString(),
+      title: 'The Power of Compounding in Crypto',
+      content: '$100/week for 4 years at 35% annualized = over $65,000. Time in the market is more powerful than any timing. Every week you delay is money that doesn\'t compound. The earlier you start, the steeper the curve.',
+      recommendedAction: 'Use the DCA calculator to simulate your growth',
+      type: 'education',
+    },
+    {
+      id: 'di-9',
+      date: new Date(Date.now() - 86400000 * 8).toISOString(),
+      title: 'Solana: Speed and Scalability',
+      content: 'SOL processes 65,000 transactions per second versus Ethereum\'s 15. With sub-cent fees, it\'s the go-to blockchain for high-frequency DeFi. SOL represents the growth engine in the Apice allocation.',
+      recommendedAction: 'Check your SOL allocation in the portfolio',
+      type: 'market',
+    },
+    {
+      id: 'di-10',
+      date: new Date(Date.now() - 86400000 * 9).toISOString(),
+      title: 'Never Invest More Than You Can Lose',
+      content: 'Core rule: only invest in crypto what you could watch drop 80% without panic-selling. If that number scares you, reduce your position. Safe long-term strategy always outperforms short-term bets with excessive risk.',
       recommendedAction: null,
-      type,
-    });
-  }
-
-  return insights;
+      type: 'discipline',
+    },
+    {
+      id: 'di-11',
+      date: new Date(Date.now() - 86400000 * 10).toISOString(),
+      title: 'Bitcoin Halving: The 4-Year Event',
+      content: 'Every 4 years, the reward for Bitcoin miners is cut in half. Historically, each halving has been followed by a significant rally in the 12-18 months after. It\'s the most predictable supply shock in financial history.',
+      recommendedAction: 'Study the market cycles lesson',
+      type: 'education',
+    },
+    {
+      id: 'di-12',
+      date: new Date(Date.now() - 86400000 * 11).toISOString(),
+      title: 'DCA During Dips: Where Wealth Is Built',
+      content: 'Investors who kept DCA running through the 2022 bear market (BTC from $68k to $15k) accumulated Bitcoin at average prices of ~$25,000 — and watched their portfolio multiply in 2023-2024. The dip is the discount.',
+      recommendedAction: 'Set DCA to continue regardless of price',
+      type: 'discipline',
+    },
+    {
+      id: 'di-13',
+      date: new Date(Date.now() - 86400000 * 12).toISOString(),
+      title: 'Layer 2: The Future of Scalability',
+      content: 'Arbitrum and Optimism process Ethereum transactions at a fraction of the cost. As Ethereum adoption grows, L2s benefit directly. They\'re the sweet spot between Ethereum\'s security and affordable fees.',
+      recommendedAction: 'Explore the advanced strategies section',
+      type: 'market',
+    },
+    {
+      id: 'di-14',
+      date: new Date(Date.now() - 86400000 * 13).toISOString(),
+      title: 'Rebalancing: Sell High, Buy Low Automatically',
+      content: 'When BTC rises 50% and represents 60% of your portfolio, rebalancing means selling BTC high and buying ETH/SOL cheaper. It\'s automated "buy low, sell high" discipline — no market timing required.',
+      recommendedAction: 'Check if your portfolio needs rebalancing',
+      type: 'portfolio',
+    },
+    {
+      id: 'di-15',
+      date: new Date(Date.now() - 86400000 * 14).toISOString(),
+      title: 'Security: Your Funds Stay on Your Exchange',
+      content: 'With Apice, you never transfer funds to third parties. Your keys stay on your exchange (Bybit). Never trust platforms that ask for custody of your assets — non-custodial is the gold standard.',
+      recommendedAction: null,
+      type: 'education',
+    },
+    {
+      id: 'di-16',
+      date: new Date(Date.now() - 86400000 * 15).toISOString(),
+      title: 'The Mistake of Checking Prices Every Day',
+      content: 'Behavioral research shows that investors who check prices daily make 3x more harmful emotional decisions. Weekly check-ins are enough. Set a fixed day to review and stick to it.',
+      recommendedAction: 'Set a weekly review reminder',
+      type: 'discipline',
+    },
+    {
+      id: 'di-17',
+      date: new Date(Date.now() - 86400000 * 16).toISOString(),
+      title: 'DeFi: Earn Yield on Your Crypto',
+      content: 'DeFi protocols like Aave let you lend your assets and earn interest. With properly managed risk, you can generate an additional 3-8% annually on your stablecoin allocation on top of your growth strategy.',
+      recommendedAction: 'Study the Automation & AI track',
+      type: 'education',
+    },
+    {
+      id: 'di-18',
+      date: new Date(Date.now() - 86400000 * 17).toISOString(),
+      title: 'Position Sizing: The Art of Protection',
+      content: 'Apice rule: high-risk altcoins should never exceed 5-15% of total portfolio. If an asset goes to zero, you lose 5-15% — not 50-80%. Surviving a full market cycle requires correct position sizing from the start.',
+      recommendedAction: 'Review each position size in your portfolio',
+      type: 'portfolio',
+    },
+    {
+      id: 'di-19',
+      date: new Date(Date.now() - 86400000 * 18).toISOString(),
+      title: 'Crypto Correlation: The Diversification Illusion',
+      content: 'During crashes, 90% of altcoins fall alongside BTC. Real protection comes from stablecoins (zero correlation), not from diversifying across crypto assets. That\'s why Apice always includes a USDT reserve.',
+      recommendedAction: 'Check your stablecoin allocation',
+      type: 'education',
+    },
+    {
+      id: 'di-20',
+      date: new Date(Date.now() - 86400000 * 19).toISOString(),
+      title: 'Consistency Over Perfection',
+      content: 'There is no perfect time to invest. The best time to start your DCA was yesterday. The second best is today. $50/week consistently outperforms $500 sporadic over any 3+ year horizon.',
+      recommendedAction: 'Keep your DCA active even in tough weeks',
+      type: 'discipline',
+    },
+    {
+      id: 'di-21',
+      date: new Date(Date.now() - 86400000 * 20).toISOString(),
+      title: 'Chainlink: The Bridge to the Real World',
+      content: 'LINK connects smart contracts with real-world data (prices, weather, sports events). It\'s critical DeFi infrastructure — without oracles, smart contracts can\'t interact with anything outside the blockchain.',
+      recommendedAction: null,
+      type: 'market',
+    },
+    {
+      id: 'di-22',
+      date: new Date(Date.now() - 86400000 * 21).toISOString(),
+      title: 'The Apice Classic Portfolio',
+      content: 'BTC 40% + ETH 30% + SOL 20% + USDT 10%: this allocation balances growth, security, and liquidity. Simple, efficient, and battle-tested across multiple market cycles. It\'s the foundation for a reason.',
+      recommendedAction: 'Compare your current portfolio against the Classic',
+      type: 'portfolio',
+    },
+    {
+      id: 'di-23',
+      date: new Date(Date.now() - 86400000 * 22).toISOString(),
+      title: 'Altcoins: High Risk, High Potential',
+      content: 'Emerging assets like TIA, INJ, and JUP can 5-20x in bull markets — but also drop 90%+ in bears. Keep maximum 15-20% of total portfolio in this category. The upside is real, so is the downside.',
+      recommendedAction: 'Assess your high-risk altcoin exposure',
+      type: 'education',
+    },
+    {
+      id: 'di-24',
+      date: new Date(Date.now() - 86400000 * 23).toISOString(),
+      title: 'Bull Week: Keep a Cool Head',
+      content: 'When the market surges, the temptation is to pile in more from FOMO. But that\'s exactly when risk is highest. Stick to your plan. Don\'t add positions outside your strategy when euphoria peaks.',
+      recommendedAction: null,
+      type: 'discipline',
+    },
+    {
+      id: 'di-25',
+      date: new Date(Date.now() - 86400000 * 24).toISOString(),
+      title: 'API Keys: Security Is Non-Negotiable',
+      content: 'If you use bots or automations, NEVER enable withdrawal permissions on API keys. With trading-only permissions, even if compromised, no funds can leave your account. This is a simple rule that protects everything.',
+      recommendedAction: 'Check your API key permissions',
+      type: 'education',
+    },
+    {
+      id: 'di-26',
+      date: new Date(Date.now() - 86400000 * 25).toISOString(),
+      title: 'Time Is Your Greatest Asset',
+      content: 'An investor who starts at 25 with $100/week will have significantly more than one who starts at 35 with $200/week — even though they invest twice as much. Compounding time is irreplaceable. Start early, stay consistent.',
+      recommendedAction: 'Calculate your long-term projection in the DCA Planner',
+      type: 'education',
+    },
+    {
+      id: 'di-27',
+      date: new Date(Date.now() - 86400000 * 26).toISOString(),
+      title: 'Copy Trading: Learn From the Best',
+      content: 'Copying traders with 12+ months of consistent track record lets you learn their strategies while generating returns. With Apice, you always control how much to allocate and can stop at any moment.',
+      recommendedAction: 'Explore the Copy Trading section',
+      type: 'market',
+    },
+    {
+      id: 'di-28',
+      date: new Date(Date.now() - 86400000 * 27).toISOString(),
+      title: 'Volatile Week: Time to Accumulate',
+      content: 'Volatility isn\'t DCA\'s enemy — it\'s its ally. When markets swing 10-15% in a week, your fixed weekly amount buys more when prices drop. The dollar-cost average works in your favor automatically.',
+      recommendedAction: 'Keep your DCA active through the volatility',
+      type: 'discipline',
+    },
+    {
+      id: 'di-29',
+      date: new Date(Date.now() - 86400000 * 28).toISOString(),
+      title: 'Avalanche: Speed With Security',
+      content: 'AVAX combines Solana\'s speed with Ethereum compatibility. Its subnet architecture allows custom blockchains to be built on top. It\'s one of the most solid Layer 1 projects outside the top 3.',
+      recommendedAction: null,
+      type: 'market',
+    },
+    {
+      id: 'di-30',
+      date: new Date(Date.now() - 86400000 * 29).toISOString(),
+      title: 'Your Mission This Week',
+      content: 'Review your portfolio, confirm your weekly DCA, and complete at least one lesson in the Learn section. These three simple habits, repeated for 52 weeks, build real wealth in crypto. That\'s the Apice methodology.',
+      recommendedAction: 'Complete all 3 actions this week',
+      type: 'discipline',
+    },
+  ];
 };
 
 export const dailyInsights = generateDailyInsights();
@@ -1061,7 +1228,7 @@ export const missionDefinitions: MissionDef[] = [
     xpTotal: 300,
     tasks: [
       { id: 'm1-1', storeKey: 'm1_onboardingCompleted', title: 'The Manifesto', description: 'Unlock the vision. Understand how elite capital flows and why you were invited.', actionLabel: 'Explore Vision', actionRoute: '/onboarding', xp: 150 },
-      { id: 'm1-2', storeKey: 'm1_profileQuizDone', title: 'DNA Analysis', description: 'Our AI needs to understand your core. Reveal your investor DNA to unlock the path.', actionLabel: 'Start Scan', actionRoute: '/onboarding', xp: 150 },
+      { id: 'm1-2', storeKey: 'm1_profileQuizDone', title: 'DNA Analysis', description: 'Our AI needs to understand your core. Reveal your investor DNA to unlock the path.', actionLabel: 'Start Scan', actionRoute: '/quiz', xp: 150 },
     ],
   },
   {
@@ -1075,11 +1242,11 @@ export const missionDefinitions: MissionDef[] = [
     badgeIcon: '📚',
     xpTotal: 600,
     tasks: [
-      { id: 'm2-1', storeKey: 'm2_methodologyRead', title: 'Master the Apice Method', description: 'Internalize the 3 Pillars: DCA + Diversification + Micro-Leverage for explosive performance.', actionLabel: 'Deep Dive', actionRoute: '/learn', xp: 150 },
-      { id: 'm2-2', storeKey: 'm2_whyCryptoExchange', title: 'The Fortress', description: 'Why self-custody and top-tier exchanges like Bybit are your financial fortress.', actionLabel: 'Build Fortress', actionRoute: '/activation-challenge', xp: 100 },
-      { id: 'm2-3', storeKey: 'm2_bybitAccountCreated', title: 'Gateway Access', description: 'Create your multi-chain gateway on Bybit. This is your primary execution engine.', actionLabel: 'Secure Access', actionRoute: '/activation-challenge', xp: 150 },
-      { id: 'm2-4', storeKey: 'm2_bybitReferralUsed', title: 'Elite Benefits', description: 'Activate the Apice protocol on your account for fee reduction and exclusive liquidity.', actionLabel: 'Activate Perks', actionRoute: '/activation-challenge', xp: 100 },
-      { id: 'm2-5', storeKey: 'm2_firstDepositUSDT', title: 'Fuel the Tank', description: 'Fuel your journey with your first USDT deposit. Even the smallest spark starts a fire.', actionLabel: 'Fuel Up', actionRoute: '/activation-challenge', xp: 100 },
+      { id: 'm2-1', storeKey: 'm2_methodologyRead', title: 'Master the Apice Method', description: 'Internalize the 3 Pillars: DCA + Diversification + Micro-Leverage for explosive performance.', actionLabel: 'Deep Dive', actionRoute: '/mission2/method', xp: 150 },
+      { id: 'm2-2', storeKey: 'm2_whyCryptoExchange', title: 'The Fortress', description: 'Why self-custody and top-tier exchanges like Bybit are your financial fortress.', actionLabel: 'Build Fortress', actionRoute: '/mission2/fortress', xp: 100 },
+      { id: 'm2-3', storeKey: 'm2_bybitAccountCreated', title: 'Gateway Access', description: 'Create your multi-chain gateway on Bybit. This is your primary execution engine.', actionLabel: 'Secure Access', actionRoute: '/mission2/gateway', xp: 150 },
+      { id: 'm2-4', storeKey: 'm2_bybitReferralUsed', title: 'Elite Benefits', description: 'Activate the Apice protocol on your account for fee reduction and exclusive liquidity.', actionLabel: 'Activate Perks', actionRoute: '/mission2/benefits', xp: 100 },
+      { id: 'm2-5', storeKey: 'm2_firstDepositUSDT', title: 'Fuel the Tank', description: 'Fuel your journey with your first USDT deposit. Even the smallest spark starts a fire.', actionLabel: 'Fuel Up', actionRoute: '/mission2/fuel', xp: 100 },
     ],
   },
   {

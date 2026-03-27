@@ -8,13 +8,15 @@ export default function Splash() {
   const hasCompletedOnboarding = useAppStore((s) => s.hasCompletedOnboarding);
 
   useEffect(() => {
+    // Returning users see a quick splash (1.2s), new users see full animation (2.8s)
+    const delay = hasCompletedOnboarding ? 1200 : 2800;
     const timer = setTimeout(() => {
       if (hasCompletedOnboarding) {
         navigate('/home', { replace: true });
       } else {
         navigate('/onboarding', { replace: true });
       }
-    }, 2800);
+    }, delay);
     return () => clearTimeout(timer);
   }, [navigate, hasCompletedOnboarding]);
 

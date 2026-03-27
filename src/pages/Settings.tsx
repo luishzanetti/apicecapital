@@ -81,16 +81,15 @@ export default function Settings() {
 
     useEffect(() => {
         loadBybitCredentials();
-    }, []);
+    }, [user]);
 
     const loadBybitCredentials = async () => {
         try {
-            const { data: { user: currentUser } } = await supabase.auth.getUser();
-            if (!currentUser) return;
+            if (!user) return;
             const { data: credentials, error } = await supabase
                 .from('bybit_credentials')
                 .select('api_key, testnet')
-                .eq('user_id', currentUser.id)
+                .eq('user_id', user.id)
                 .single();
             if (credentials && !error) {
                 setIsConnected(true);
@@ -106,15 +105,17 @@ export default function Settings() {
             toast.error('API Key and Secret are required');
             return;
         }
+        if (!user) {
+            toast.error('Please sign in first to connect your exchange');
+            return;
+        }
         setIsConnecting(true);
         try {
-            const { data: { user: currentUser } } = await supabase.auth.getUser();
-            if (!currentUser) throw new Error('User not authenticated');
             const encryptedSecret = encrypt(apiSecret);
             const { error } = await supabase
                 .from('bybit_credentials')
                 .upsert({
-                    user_id: currentUser.id,
+                    user_id: user.id,
                     api_key: apiKey,
                     api_secret_encrypted: encryptedSecret,
                     testnet: useTestnet,
@@ -135,12 +136,11 @@ export default function Settings() {
 
     const handleDisconnectBybit = async () => {
         try {
-            const { data: { user: currentUser } } = await supabase.auth.getUser();
-            if (!currentUser) return;
+            if (!user) return;
             const { error } = await supabase
                 .from('bybit_credentials')
                 .delete()
-                .eq('user_id', currentUser.id);
+                .eq('user_id', user.id);
             if (error) throw error;
             setIsConnected(false);
             toast.success('Bybit disconnected');

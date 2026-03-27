@@ -94,7 +94,8 @@ export default function Quiz() {
   const [currentStep, setCurrentStep] = useState(0);
   const updateUserProfile = useAppStore((s) => s.updateUserProfile);
   const userProfile = useAppStore((s) => s.userProfile);
-  const completeOnboarding = useAppStore((s) => s.completeOnboarding);
+  const completeMissionTask = useAppStore((s) => s.completeMissionTask);
+  const calculateInvestorType = useAppStore((s) => s.calculateInvestorType);
 
   const currentQuestion = quizQuestions[currentStep];
   const totalSteps = quizQuestions.length;
@@ -138,7 +139,8 @@ export default function Quiz() {
       if (currentStep < totalSteps - 1) {
         setCurrentStep(currentStep + 1);
       } else {
-        completeOnboarding();
+        calculateInvestorType();
+        completeMissionTask('m1_profileQuizDone');
         navigate('/profile-result');
       }
     }, 150);

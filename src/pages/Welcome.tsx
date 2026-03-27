@@ -60,7 +60,7 @@ export default function Welcome() {
           Build your passive<br />
           <span className="text-gradient-primary">crypto income</span>
         </h1>
-        
+
         <p className="text-muted-foreground text-body mb-12 max-w-sm">
           Intelligent automation. Transparent strategies. You're always in control.
         </p>
@@ -103,7 +103,7 @@ export default function Welcome() {
           Get Started
           <ArrowRight className="w-4 h-4" />
         </Button>
-        
+
         <p className="text-center text-micro text-muted-foreground">
           No credit card required • Cancel anytime
         </p>

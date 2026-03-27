@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { useAppStore } from '@/store/appStore';
-import { portfolios, getReturnRateForInvestorType, aiMarketRecommendations } from '@/data/sampleData';
+import { portfolios, aiMarketRecommendations } from '@/data/sampleData';
 import { AllocationEngine } from '@/components/AllocationEngine';
 import { WeeklyDepositConfirm } from '@/components/WeeklyDepositConfirm';
 import DCAOnboarding from '@/components/DCAOnboarding';
@@ -14,15 +14,18 @@ import InvestmentDashboard from '@/components/InvestmentDashboard';
 import ActionPlanWidget from '@/components/ActionPlanWidget';
 import LockedStrategies from '@/components/LockedStrategies';
 import { TopCoinsList } from '@/components/TopCoinsList';
+import { PortfolioSummaryCard } from '@/components/portfolio/PortfolioSummaryCard';
+import { SpotHoldingsTable } from '@/components/portfolio/SpotHoldingsTable';
+import { DCATracker } from '@/components/portfolio/DCATracker';
+import { PerformanceMetrics } from '@/components/portfolio/PerformanceMetrics';
 import {
-  DollarSign, TrendingUp, ChevronRight, Edit3, Check,
-  Wallet, PieChart, Lock, Flame, Award,
-  ArrowRight, CheckCircle2, Target, Sparkles, Shield,
-  Zap, Brain
+  DollarSign, ChevronRight, Edit3, Check,
+  Wallet, PieChart, Lock, Flame,
+  ArrowRight, CheckCircle2, Target, Sparkles,
+  Brain
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Get current week ID
 function getCurrentWeekId(): string {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 1);
@@ -37,10 +40,8 @@ export default function Portfolio() {
   const setWeeklyInvestment = useAppStore((s) => s.setWeeklyInvestment);
   const weeklyDepositHistory = useAppStore((s) => s.weeklyDepositHistory);
   const weeklyDepositStreak = useAppStore((s) => s.weeklyDepositStreak);
-  const investorType = useAppStore((s) => s.investorType);
   const selectedPortfolio = useAppStore((s) => s.selectedPortfolio);
   const selectPortfolio = useAppStore((s) => s.selectPortfolio);
-  const portfolioAccepted = useAppStore((s) => s.portfolioAccepted);
 
   const [editingWeekly, setEditingWeekly] = useState(false);
   const [editAmount, setEditAmount] = useState(weeklyInvestment);
@@ -56,7 +57,6 @@ export default function Portfolio() {
   const corePortfolios = portfolios.filter(p => p.type === 'core');
   const proPortfolios = portfolios.filter(p => p.type === 'optimized');
 
-  // Simulated market sentiment (in production, this would come from real market data)
   const marketSentiment = useMemo(() => {
     const sentiments = ['neutral', 'dip', 'bullish', 'neutral'] as const;
     const idx = Math.floor(new Date().getDate() / 8) % sentiments.length;
@@ -107,7 +107,7 @@ export default function Portfolio() {
           )}
         </div>
 
-        {/* Tab bar with animated active pill */}
+        {/* Tab bar */}
         <div className="flex bg-secondary/40 rounded-2xl p-1 gap-1 relative">
           {([
             { key: 'overview', label: 'Overview' },
@@ -146,17 +146,24 @@ export default function Portfolio() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-4"
             >
-              {/* Investment Dashboard */}
-              <InvestmentDashboard />
+              {/* Hero: Portfolio Summary with Allocation Ring */}
+              <PortfolioSummaryCard />
+
+              {/* Spot Holdings Table */}
+              <SpotHoldingsTable />
+
+              {/* DCA Automation Tracker */}
+              <DCATracker />
+
+              {/* Portfolio Health & Insights */}
+              <PerformanceMetrics />
+
+              {/* Market Coins */}
               <TopCoinsList />
 
               {/* AI Market Insight */}
               {weeklyInvestment > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                >
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
                   <div className={cn(
                     'p-4 rounded-2xl border transition-all',
                     marketSentiment.bgColor,
@@ -183,7 +190,7 @@ export default function Portfolio() {
               )}
 
               {/* Weekly Investment Editor */}
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
                 <Card className="overflow-hidden">
                   <CardContent className="pt-4 pb-4">
                     <div className="flex items-center justify-between mb-3">
@@ -251,11 +258,8 @@ export default function Portfolio() {
 
               {/* Confirm Deposit CTA */}
               {weeklyInvestment > 0 && !thisWeekDeposited && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                  <button
-                    onClick={() => setShowDepositConfirm(true)}
-                    className="w-full press-scale"
-                  >
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+                  <button onClick={() => setShowDepositConfirm(true)} className="w-full press-scale">
                     <div
                       className="p-4 rounded-2xl border border-primary/30 hover:border-primary/50 transition-all"
                       style={{ background: 'linear-gradient(135deg, hsl(var(--primary) / 0.09), hsl(250 84% 60% / 0.06))' }}
@@ -291,7 +295,7 @@ export default function Portfolio() {
 
               {/* Smart Allocation Engine */}
               {weeklyInvestment > 0 && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
                   <AllocationEngine
                     weeklyAmount={weeklyInvestment}
                     onAccept={handleAcceptAllocation}
@@ -301,7 +305,7 @@ export default function Portfolio() {
               )}
 
               {/* Action Plan Widget */}
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
                 <ActionPlanWidget />
               </motion.div>
             </motion.div>
@@ -315,7 +319,6 @@ export default function Portfolio() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
-              {/* Core Portfolios */}
               <div>
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                   <PieChart className="w-4 h-4 text-primary" />
@@ -381,13 +384,9 @@ export default function Portfolio() {
                 </div>
               </div>
 
-              {/* Separator */}
               <div className="h-px bg-border/50" />
-
-              {/* Locked Strategies */}
               <LockedStrategies />
 
-              {/* Pro Portfolios */}
               <div>
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-500" />
@@ -396,10 +395,7 @@ export default function Portfolio() {
                 </h3>
                 <div className="space-y-3">
                   {proPortfolios.map((portfolio) => (
-                    <Card
-                      key={portfolio.id}
-                      className="overflow-hidden border-border/50 opacity-75"
-                    >
+                    <Card key={portfolio.id} className="overflow-hidden border-border/50 opacity-75">
                       <CardContent className="pt-4 pb-4">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -409,12 +405,7 @@ export default function Portfolio() {
                           <Badge variant="secondary" className="text-[9px]">{portfolio.riskLabel}</Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mb-3">{portfolio.description}</p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full text-xs"
-                          onClick={() => navigate('/upgrade')}
-                        >
+                        <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => navigate('/upgrade')}>
                           Unlock with Pro
                         </Button>
                       </CardContent>
@@ -423,7 +414,6 @@ export default function Portfolio() {
                 </div>
               </div>
 
-              {/* Build Custom */}
               <Card
                 className="border-dashed border-primary/30 cursor-pointer hover:border-primary/50 transition-colors active:scale-[0.98]"
                 onClick={() => navigate('/portfolio/builder')}
@@ -445,7 +435,6 @@ export default function Portfolio() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-4"
             >
-              {/* Summary Stats */}
               <div className="grid grid-cols-3 gap-3">
                 <Card>
                   <CardContent className="pt-3 pb-3 text-center">
@@ -462,25 +451,20 @@ export default function Portfolio() {
                 <Card>
                   <CardContent className="pt-3 pb-3 text-center">
                     <p className="text-[10px] text-muted-foreground uppercase">Streak</p>
-                    <p className="text-sm font-bold">{weeklyDepositStreak}w 🔥</p>
+                    <p className="text-sm font-bold">{weeklyDepositStreak}w</p>
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Full investment dashboard with deposit history */}
               <InvestmentDashboard />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Deposit Confirm Modal */}
       <WeeklyDepositConfirm
         isOpen={showDepositConfirm}
         onClose={() => setShowDepositConfirm(false)}
       />
-
-      {/* DCA Onboarding Modal */}
       <DCAOnboarding
         isOpen={showDCAOnboarding}
         onClose={() => setShowDCAOnboarding(false)}

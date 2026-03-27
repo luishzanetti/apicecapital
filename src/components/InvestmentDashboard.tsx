@@ -38,6 +38,9 @@ function generateGrowthData(weekly: number, weeks: number, annualRate: number) {
 export default function InvestmentDashboard({ compact }: Props) {
     const navigate = useNavigate();
     const weeklyInvestment = useAppStore((s) => s.weeklyInvestment);
+    const investmentFrequency = useAppStore((s) => s.investmentFrequency);
+    const setWeeklyInvestment = useAppStore((s) => s.setWeeklyInvestment);
+    const setInvestmentFrequency = useAppStore((s) => s.setInvestmentFrequency);
     const weeklyDepositHistory = useAppStore((s) => s.weeklyDepositHistory);
     const weeklyDepositStreak = useAppStore((s) => s.weeklyDepositStreak);
     const investorType = useAppStore((s) => s.investorType);
@@ -47,6 +50,8 @@ export default function InvestmentDashboard({ compact }: Props) {
     const [hideBalance, setHideBalance] = useState(false);
     const [editingWeekId, setEditingWeekId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState(0);
+    const [editingInvestment, setEditingInvestment] = useState(false);
+    const [tempInvestment, setTempInvestment] = useState(weeklyInvestment);
 
     const totalDeposited = weeklyDepositHistory.reduce((sum, d) => sum + d.amount, 0);
     const annualRate = getReturnRateForInvestorType(investorType);
@@ -129,8 +134,92 @@ export default function InvestmentDashboard({ compact }: Props) {
                         </div>
                     )}
 
-                    {/* CTA */}
-                    {weeklyInvestment === 0 && (
+                    {/* Investment plan row */}
+                    {weeklyInvestment > 0 ? (
+                        <div className="mt-3 pt-3 border-t border-border/20">
+                            <AnimatePresence mode="wait">
+                                {editingInvestment ? (
+                                    <motion.div
+                                        key="edit"
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="space-y-2"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1 relative">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                                                <input
+                                                    type="number"
+                                                    value={tempInvestment}
+                                                    onChange={(e) => setTempInvestment(Math.max(0, Number(e.target.value)))}
+                                                    className="w-full pl-7 pr-3 py-2 rounded-xl bg-secondary/60 text-sm font-semibold border border-border/40 focus:border-primary/40 focus:outline-none"
+                                                    autoFocus
+                                                />
+                                            </div>
+                                            <button
+                                                onClick={() => { setWeeklyInvestment(tempInvestment); setEditingInvestment(false); }}
+                                                className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
+                                            >
+                                                <Check className="w-4 h-4 text-primary" />
+                                            </button>
+                                            <button
+                                                onClick={() => { setTempInvestment(weeklyInvestment); setEditingInvestment(false); }}
+                                                className="w-8 h-8 rounded-lg bg-secondary/60 flex items-center justify-center hover:bg-secondary transition-colors"
+                                            >
+                                                <X className="w-4 h-4 text-muted-foreground" />
+                                            </button>
+                                        </div>
+                                        <div className="flex gap-1.5">
+                                            {[25, 50, 100, 200, 500].map((preset) => (
+                                                <button
+                                                    key={preset}
+                                                    onClick={() => setTempInvestment(preset)}
+                                                    className={cn(
+                                                        'flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all',
+                                                        tempInvestment === preset
+                                                            ? 'bg-primary/15 text-primary border border-primary/30'
+                                                            : 'bg-secondary/40 text-muted-foreground border border-transparent hover:bg-secondary/60'
+                                                    )}
+                                                >
+                                                    ${preset}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="display"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="flex items-center justify-between"
+                                    >
+                                        <button
+                                            onClick={() => { setTempInvestment(weeklyInvestment); setEditingInvestment(true); }}
+                                            className="flex items-center gap-2 group"
+                                        >
+                                            <span className="text-xs text-muted-foreground">Plan:</span>
+                                            <span className="text-sm font-bold text-primary">${weeklyInvestment}</span>
+                                            <span
+                                                className="text-[10px] text-muted-foreground/60 cursor-pointer hover:text-muted-foreground transition-colors"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setInvestmentFrequency(investmentFrequency === 'weekly' ? 'monthly' : 'weekly');
+                                                }}
+                                            >
+                                                /{investmentFrequency === 'weekly' ? 'week' : 'month'}
+                                            </span>
+                                            <Edit3 className="w-3 h-3 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                                        </button>
+                                        {weeklyDepositStreak === 0 && (
+                                            <span className="text-[10px] text-muted-foreground/50">tap to edit</span>
+                                        )}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    ) : (
                         <button
                             className="w-full mt-3 py-2 rounded-xl text-xs font-semibold text-primary border border-primary/20 hover:bg-primary/5 transition-all"
                             onClick={() => navigate('/portfolio')}

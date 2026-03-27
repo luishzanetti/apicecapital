@@ -4,16 +4,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/appStore';
-import { dailyInsights } from '@/data/sampleData';
+import { dailyInsights, missionDefinitions } from '@/data/sampleData';
+import type { MissionProgress } from '@/store/appStore';
 import SetupMissions from '@/components/SetupMissions';
 import InvestmentDashboard from '@/components/InvestmentDashboard';
 import { GamificationWidget } from '@/components/GamificationWidget';
 import { TopCoinsList } from '@/components/TopCoinsList';
+import { PortfolioSummaryCard } from '@/components/portfolio/PortfolioSummaryCard';
 import { WeeklyDepositConfirm } from '@/components/WeeklyDepositConfirm';
 import {
-  TrendingUp, DollarSign, Flame, ChevronRight,
+  TrendingUp, DollarSign, Flame, ChevronRight, ArrowRight,
   PieChart, BookOpen, Sparkles, Zap, Award, Settings2,
-  Lock, Crown, GripVertical, X, Check
+  Lock, Crown, GripVertical, X, Check, Target, Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +25,13 @@ function getCurrentWeekId(): string {
   const diff = now.getTime() - start.getTime();
   const weekNum = Math.ceil((diff / 86400000 + start.getDay() + 1) / 7);
   return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+}
+
+function getTimeGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
 }
 
 // Widget definitions — the system is ordered via appStore widgetOrder
@@ -39,6 +48,14 @@ type WidgetDef = {
 } & WidgetLock;
 
 const WIDGET_DEFINITIONS: WidgetDef[] = [
+  {
+    id: 'nextstep',
+    label: 'Next Step',
+    icon: '🎯',
+    description: 'Your next action in the journey',
+    lockType: null,
+    premiumRequired: null,
+  },
   {
     id: 'journey',
     label: 'Apice Journey',
@@ -305,6 +322,19 @@ export default function Home() {
   const isGamificationUnlocked = daysActive >= 3;
   const isMilestoneUnlocked = hasFirstDeposit;
 
+  // Calculate next step from journey
+  const nextStep = useMemo(() => {
+    for (const mission of missionDefinitions) {
+      for (const task of mission.tasks) {
+        const key = task.storeKey as keyof MissionProgress;
+        if (!missionProgress[key]) {
+          return { mission, task };
+        }
+      }
+    }
+    return null;
+  }, [missionProgress]);
+
   // Render widget by ID
   const renderWidget = (widgetId: string, idx: number) => {
     switch (widgetId) {
@@ -360,6 +390,13 @@ export default function Home() {
           </motion.div>
         );
 
+      case 'balance':
+        return (
+          <motion.div key="balance" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+            <PortfolioSummaryCard />
+          </motion.div>
+        );
+
       case 'market':
         return (
           <motion.div key="market" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
@@ -393,12 +430,41 @@ export default function Home() {
           </motion.div>
         );
 
+      case 'nextstep':
+        if (!nextStep || isJourneyCompleted) return null;
+        return (
+          <motion.div key="nextstep" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+            <button
+              onClick={() => nextStep.task.actionRoute && navigate(nextStep.task.actionRoute)}
+              className="w-full p-4 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 to-violet-500/5 text-left group hover:border-primary/40 transition-all active:scale-[0.99]"
+            >
+              <div className="flex items-center gap-1.5 mb-2">
+                <Target className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[10px] text-primary font-semibold uppercase tracking-wider">Next Step</span>
+                <span className="text-[10px] text-muted-foreground/60 ml-auto">Mission {nextStep.mission.id}</span>
+              </div>
+              <h3 className="text-sm font-bold mb-1">{nextStep.task.title}</h3>
+              <p className="text-xs text-muted-foreground line-clamp-1 mb-3">{nextStep.task.description}</p>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-1">
+                  <Zap className="w-3 h-3" />
+                  +{nextStep.task.xp} XP
+                </span>
+                <span className="text-xs font-medium text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
+                  {nextStep.task.actionLabel}
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
+            </button>
+          </motion.div>
+        );
+
       case 'quickactions':
         return (
           <motion.div key="quickactions" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
             <div className="grid grid-cols-4 gap-3">
               {[
-                { icon: DollarSign, label: 'Deposit', color: 'bg-green-500/10 text-green-500', action: () => { weeklyInvestment > 0 ? setShowDepositConfirm(true) : navigate('/investment-setup'); } },
+                { icon: Plus, label: 'Log Deposit', color: 'bg-green-500/10 text-green-500', action: () => { weeklyInvestment > 0 ? setShowDepositConfirm(true) : navigate('/investment-setup'); } },
                 { icon: PieChart, label: 'Portfolio', color: 'bg-blue-500/10 text-blue-500', action: () => navigate('/portfolio') },
                 { icon: BookOpen, label: 'Learn', color: 'bg-purple-500/10 text-purple-500', action: () => navigate('/learn') },
                 { icon: Award, label: 'Upgrade', color: 'bg-amber-500/10 text-amber-500', action: () => navigate('/upgrade') },
@@ -487,7 +553,7 @@ export default function Home() {
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-muted-foreground">Welcome back</p>
+            <p className="text-xs text-muted-foreground">{getTimeGreeting()}</p>
             <h1 className="text-xl font-bold">{investorType || 'Investor'}</h1>
           </div>
           <button

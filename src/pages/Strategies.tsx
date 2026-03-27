@@ -71,7 +71,7 @@ export default function Strategies() {
       description: 'Turn every daily expense into Bitcoin. Earn 2-10% cashback on all purchases, building passive BTC income.',
       icon: CreditCard,
       iconGradient: 'from-amber-500 to-orange-500',
-      route: '/strategies/cashback',
+      route: '/cashback-onboarding',
       badge: 'New',
       badgeVariant: 'premium',
       features: ['2-10% cashback in BTC', '100% back on select subscriptions', 'Zero effort accumulation', 'Compounds over time'],
@@ -98,31 +98,31 @@ export default function Strategies() {
     {
       id: 'ai-trade',
       title: 'AI Trade Setup',
-      subtitle: 'Algorithmic Execution',
-      description: 'Guided setup for AI-powered trading infrastructure. Risk-managed, API-based automated execution.',
+      subtitle: 'Advanced AI-Powered Leverage',
+      description: 'Harness artificial intelligence for strategic financial leverage. AI-optimized entries, risk-managed positions, and algorithmic execution that adapts to market conditions in real-time.',
       icon: Bot,
       iconGradient: 'from-emerald-500 to-green-500',
       route: '/strategies/ai-trade',
-      badge: 'Pro',
-      badgeVariant: 'premium',
-      features: ['Guided API configuration', 'Risk mode selection', 'Step-by-step wizard', 'Monitor & adjust'],
-      isLocked: !unlockState.aiTradeGuides,
-      lockMessage: 'Upgrade to Pro',
+      badge: 'Featured',
+      badgeVariant: 'recommended',
+      features: ['AI-powered market analysis', 'Smart leverage optimization', 'Real-time risk management', 'Guided setup wizard'],
+      projection: 'AI advantage: algorithmic precision + emotional discipline',
+      isLocked: false,
       category: 'automation',
     },
     {
       id: 'ai-bot',
       title: 'AI Bot Infrastructure',
-      subtitle: 'Automation Engine',
-      description: 'Set up automated trading bots with pre-configured risk parameters and execution strategies.',
+      subtitle: 'Autonomous Trading Engine',
+      description: 'Military-grade automated trading infrastructure. Reserved for selected Apice members with verified track record.',
       icon: Zap,
       iconGradient: 'from-rose-500 to-pink-500',
       route: '/strategies/ai-bot',
-      badge: 'Pro',
-      badgeVariant: 'premium',
-      features: ['Pre-built configurations', 'Risk guardrails', 'Performance monitoring', '24/7 execution'],
-      isLocked: !unlockState.aiBotGuides,
-      lockMessage: 'Upgrade to Pro',
+      badge: 'Invite Only',
+      badgeVariant: 'high',
+      features: ['Autonomous 24/7 execution', 'Institutional-grade algorithms', 'Private signal network', 'Dedicated risk engine'],
+      isLocked: true,
+      lockMessage: 'Application required — Selected members only',
       category: 'automation',
     },
   ];
@@ -204,8 +204,7 @@ export default function Strategies() {
         <motion.div variants={itemVariants}>
           <h2 className="text-xs font-semibold mb-3 text-muted-foreground uppercase tracking-wide flex items-center gap-2">
             <Bot className="w-3.5 h-3.5" />
-            Automation Infrastructure
-            {subscription.tier === 'free' && <Badge variant="premium" size="sm">Pro</Badge>}
+            AI & Automation
           </h2>
           <div className="space-y-3">
             {automationStrategies.map((strategy, i) => (

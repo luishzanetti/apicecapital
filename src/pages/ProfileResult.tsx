@@ -15,23 +15,23 @@ export default function ProfileResult() {
   const recommended = investorType ? recommendedPath[investorType] : 'balanced';
 
   const setupSteps = [
-    { 
+    {
       id: 'exchange',
-      label: 'Create Exchange Account', 
+      label: 'Create Exchange Account',
       sublabel: 'Via Bybit referral link',
       done: setupProgress.exchangeAccountCreated,
       icon: ExternalLink,
     },
-    { 
+    {
       id: 'portfolio',
-      label: 'Choose Core Portfolio', 
+      label: 'Choose Core Portfolio',
       sublabel: 'One-tap selection',
       done: setupProgress.corePortfolioSelected,
       icon: PieChart,
     },
-    { 
+    {
       id: 'dca',
-      label: 'Activate DCA Plan', 
+      label: 'Activate DCA Plan',
       sublabel: 'Simple schedule setup',
       done: setupProgress.dcaPlanConfigured,
       icon: Zap,
@@ -58,7 +58,7 @@ export default function ProfileResult() {
           </motion.div>
           
           <Badge variant="default" className="mb-3">Your Investor Profile</Badge>
-          
+
           <h1 className="text-2xl font-bold mb-2">{investorType}</h1>
           <p className="text-muted-foreground text-sm">
             Based on your answers, here's your personalized path
@@ -78,7 +78,7 @@ export default function ProfileResult() {
                   <p className="text-sm">{description.wants}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
                   <Shield className="w-4 h-4 text-destructive" />
@@ -88,7 +88,7 @@ export default function ProfileResult() {
                   <p className="text-sm">{description.avoids}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <Zap className="w-4 h-4 text-primary" />
@@ -112,7 +112,7 @@ export default function ProfileResult() {
               </h3>
               <Badge variant="recommended" size="sm">3 Steps</Badge>
             </div>
-            
+
             <p className="text-sm text-muted-foreground mb-5">
               Complete these to activate your {recommended} strategy
             </p>

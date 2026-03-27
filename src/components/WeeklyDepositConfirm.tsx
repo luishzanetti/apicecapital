@@ -142,10 +142,17 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                             /* Confirmation Form */
                             <div className="p-6 safe-bottom">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-lg font-bold">Confirm Weekly Deposit</h2>
+                                    <h2 className="text-lg font-bold">Log Investment</h2>
                                     <button onClick={onClose} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                                         <X className="w-4 h-4" />
                                     </button>
+                                </div>
+
+                                {/* Explanation */}
+                                <div className="mb-4 p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                        <span className="font-semibold text-blue-400">How it works:</span> Log the amount you invested on your exchange this week. Your DCA plan auto-buys as configured — make sure your Bybit DCA settings match your Apice plan for accurate tracking.
+                                    </p>
                                 </div>
 
                                 {/* Amount */}
@@ -153,7 +160,7 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                     <div className="p-4" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.04))' }}>
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-xs text-muted-foreground mb-1">This Week's Amount</p>
+                                                <p className="text-xs text-muted-foreground mb-1">This Week's Investment</p>
                                                 <p className="text-2xl font-bold">${weeklyInvestment}</p>
                                             </div>
                                             <Badge className="bg-primary/10 text-primary border-primary/20" variant="outline">
@@ -225,9 +232,9 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                             />
                                         </div>
                                         <label htmlFor="dca-sync" className="flex-1 cursor-pointer">
-                                            <p className="text-sm font-semibold mb-1">DCA Configured in Broker</p>
+                                            <p className="text-sm font-semibold mb-1">DCA Matches My Exchange</p>
                                             <p className="text-[11px] text-muted-foreground leading-relaxed">
-                                                I confirm I have set up the $${weeklyInvestment} purchase exactly as shown above in my Bybit account for real-time sync.
+                                                I confirm my Bybit DCA is set to buy $${weeklyInvestment}/week with the same allocation shown above. Both Apice and my exchange are in sync.
                                             </p>
                                         </label>
                                     </div>
@@ -252,7 +259,7 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                 <div className="flex items-center gap-2 mb-5">
                                     <Shield className="w-3 h-3 text-muted-foreground shrink-0" />
                                     <p className="text-[10px] text-muted-foreground">
-                                        This confirms your weekly tracking. Your funds remain on your exchange.
+                                        This logs your investment for tracking. Your funds stay on your exchange — Apice never has access to your wallet. For extra purchases outside DCA, simply log them here too.
                                     </p>
                                 </div>
 

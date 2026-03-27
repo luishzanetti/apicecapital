@@ -102,12 +102,33 @@ const generateProjections = (weekly: number, annualRate: number) => {
     return data;
 };
 
-const getTiers = (capitalRange: string | null) => {
-    const base = capitalRange === '5k-plus' ? 500 : capitalRange === '1k-5k' ? 100 : capitalRange === '200-1k' ? 50 : 25;
+const getTiers = (_capitalRange: string | null) => {
     return [
-        { amount: base, label: 'Starter', icon: '🌱', tag: 'Build the habit' },
-        { amount: base * 2, label: 'Recommended', icon: '⭐', tag: 'Optimal growth', recommended: true },
-        { amount: base * 5, label: 'Accelerated', icon: '🚀', tag: 'Fast track' },
+        {
+            amount: 100,
+            label: 'Foundation',
+            icon: '🌱',
+            tag: 'Build the habit',
+            proof: '$100/wk × 52 weeks = $5,200/yr invested',
+            projections: { y1: '$5,850', y3: '$22,400', y5: '$52,000' },
+        },
+        {
+            amount: 500,
+            label: 'Recommended',
+            icon: '⭐',
+            tag: 'Optimal growth',
+            recommended: true,
+            proof: '$500/wk × 52 weeks = $26,000/yr invested',
+            projections: { y1: '$29,250', y3: '$112,000', y5: '$260,000' },
+        },
+        {
+            amount: 1000,
+            label: 'Accelerated',
+            icon: '🚀',
+            tag: 'Maximum compounding',
+            proof: '$1,000/wk × 52 weeks = $52,000/yr invested',
+            projections: { y1: '$58,500', y3: '$224,000', y5: '$520,000' },
+        },
     ];
 };
 
@@ -120,6 +141,7 @@ export default function ApiceOnboarding() {
     const calculateInvestorType = useAppStore((s) => s.calculateInvestorType);
     const investorType = useAppStore((s) => s.investorType);
     const completeOnboarding = useAppStore((s) => s.completeOnboarding);
+    const completeMissionTask = useAppStore((s) => s.completeMissionTask);
     const setWeeklyInvestment = useAppStore((s) => s.setWeeklyInvestment);
     const skipOnboarding = useAppStore((s) => s.skipOnboarding);
     const setOnboardingStep = useAppStore((s) => s.setOnboardingStep);
@@ -163,11 +185,19 @@ export default function ApiceOnboarding() {
     };
 
     const handleFinish = () => {
-        const amount = selectedAmount || customAmount;
-        setWeeklyInvestment(amount);
-        completeOnboarding();
-        setConfirmed(true);
-        setTimeout(() => navigate('/home', { replace: true }), 2000);
+        try {
+            const amount = selectedAmount || customAmount;
+            setWeeklyInvestment(amount);
+            completeOnboarding();
+            completeMissionTask('m1_onboardingCompleted');
+            setConfirmed(true);
+            setTimeout(() => {
+                navigate('/home', { replace: true });
+            }, 2200);
+        } catch (err) {
+            console.error('Onboarding finish error:', err);
+            navigate('/home', { replace: true });
+        }
     };
 
     const handleQuizAnswer = (questionId: keyof UserProfile, value: string) => {
@@ -479,34 +509,55 @@ export default function ApiceOnboarding() {
 
                             {/* Tiers */}
                             <div className="space-y-3 mb-4">
-                                {tiers.map((tier) => (
-                                    <button
-                                        key={tier.amount}
-                                        onClick={() => { setSelectedAmount(tier.amount); setShowCustom(false); }}
-                                        className={cn(
-                                            'w-full p-4 rounded-2xl border text-left transition-all active:scale-[0.98]',
-                                            selectedAmount === tier.amount
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-border bg-card hover:border-primary/30'
-                                        )}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-xl">{tier.icon}</span>
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <h3 className="text-sm font-bold">{tier.label}</h3>
-                                                        <Badge variant="secondary" className="text-[9px]">{tier.tag}</Badge>
+                                {tiers.map((tier) => {
+                                    const isSelected = selectedAmount === tier.amount;
+                                    return (
+                                        <button
+                                            key={tier.amount}
+                                            onClick={() => { setSelectedAmount(tier.amount); setShowCustom(false); }}
+                                            className={cn(
+                                                'w-full p-4 rounded-2xl border text-left transition-all active:scale-[0.98]',
+                                                isSelected
+                                                    ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                                                    : 'border-border bg-card hover:border-primary/30',
+                                                tier.recommended && !isSelected && 'border-amber-500/30 bg-amber-500/[0.02]'
+                                            )}
+                                        >
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-xl">{tier.icon}</span>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <h3 className="text-sm font-bold">{tier.label}</h3>
+                                                            <Badge variant={tier.recommended ? 'premium' : 'secondary'} className="text-[9px]">{tier.tag}</Badge>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                <div className="text-right">
+                                                    <span className="text-lg font-bold text-primary">${tier.amount}</span>
+                                                    <span className="text-xs text-muted-foreground">/week</span>
+                                                </div>
                                             </div>
-                                            <div className="text-right">
-                                                <span className="text-lg font-bold text-primary">${tier.amount}</span>
-                                                <span className="text-xs text-muted-foreground">/week</span>
+                                            {/* Proof line */}
+                                            <p className="text-[10px] text-muted-foreground mb-2 pl-9">{tier.proof}</p>
+                                            {/* Projections */}
+                                            <div className="flex gap-3 pl-9">
+                                                <div className="flex-1 text-center p-1.5 rounded-lg bg-secondary/50">
+                                                    <p className="text-[9px] text-muted-foreground">1yr</p>
+                                                    <p className="text-[11px] font-bold">{tier.projections.y1}</p>
+                                                </div>
+                                                <div className="flex-1 text-center p-1.5 rounded-lg bg-secondary/50">
+                                                    <p className="text-[9px] text-muted-foreground">3yr</p>
+                                                    <p className="text-[11px] font-bold text-primary">{tier.projections.y3}</p>
+                                                </div>
+                                                <div className="flex-1 text-center p-1.5 rounded-lg bg-secondary/50">
+                                                    <p className="text-[9px] text-muted-foreground">5yr</p>
+                                                    <p className="text-[11px] font-bold text-green-500">{tier.projections.y5}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </button>
-                                ))}
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             {/* Custom */}
@@ -533,17 +584,20 @@ export default function ApiceOnboarding() {
 
                             {/* Projection Chart */}
                             {(selectedAmount > 0 || showCustom) && (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
                                     <Card className="border-none" style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.04), rgba(99,102,241,0.04))' }}>
                                         <CardContent className="pt-4 pb-4">
-                                            <div className="flex items-center gap-2 mb-3">
+                                            <div className="flex items-center gap-2 mb-1">
                                                 <TrendingUp className="w-4 h-4 text-green-500" />
-                                                <span className="text-sm font-semibold">5-Year Projection</span>
+                                                <span className="text-sm font-semibold">Growth Projection</span>
                                                 <Badge variant="secondary" className="text-[9px] ml-auto">
-                                                    {investorType === 'Conservative Builder' ? '~15%' : investorType === 'Growth Seeker' ? '~60%+' : '~35%'} a.a.
+                                                    {investorType === 'Conservative Builder' ? '~15%' : investorType === 'Growth Seeker' ? '~60%+' : '~35%'} annual
                                                 </Badge>
                                             </div>
-                                            <div className="h-[120px]">
+                                            <p className="text-[10px] text-muted-foreground mb-3">
+                                                Purple = projected value · Green dashed = total invested
+                                            </p>
+                                            <div className="h-[140px]">
                                                 <ResponsiveContainer width="100%" height="100%">
                                                     <AreaChart data={projectionData}>
                                                         <defs>
@@ -560,13 +614,33 @@ export default function ApiceOnboarding() {
                                                     </AreaChart>
                                                 </ResponsiveContainer>
                                             </div>
-                                            <div className="grid grid-cols-3 gap-3 text-center mt-2">
-                                                <div><p className="text-[10px] text-muted-foreground">1 Year</p><p className="text-xs font-bold">${projectionData[2]?.projected.toLocaleString() || '—'}</p></div>
-                                                <div><p className="text-[10px] text-muted-foreground">3 Years</p><p className="text-xs font-bold text-primary">${projectionData[6]?.projected.toLocaleString() || '—'}</p></div>
-                                                <div><p className="text-[10px] text-muted-foreground">5 Years</p><p className="text-xs font-bold text-green-500">${projectionData[projectionData.length - 1]?.projected.toLocaleString() || '—'}</p></div>
+                                            <div className="grid grid-cols-3 gap-3 text-center mt-3">
+                                                <div className="p-2 rounded-lg bg-secondary/40">
+                                                    <p className="text-[10px] text-muted-foreground">1 Year</p>
+                                                    <p className="text-xs font-bold">${projectionData[2]?.projected.toLocaleString() || '—'}</p>
+                                                    <p className="text-[9px] text-muted-foreground">invested: ${projectionData[2]?.invested.toLocaleString() || '—'}</p>
+                                                </div>
+                                                <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
+                                                    <p className="text-[10px] text-muted-foreground">3 Years</p>
+                                                    <p className="text-xs font-bold text-primary">${projectionData[6]?.projected.toLocaleString() || '—'}</p>
+                                                    <p className="text-[9px] text-muted-foreground">invested: ${projectionData[6]?.invested.toLocaleString() || '—'}</p>
+                                                </div>
+                                                <div className="p-2 rounded-lg bg-green-500/5 border border-green-500/10">
+                                                    <p className="text-[10px] text-muted-foreground">5 Years</p>
+                                                    <p className="text-xs font-bold text-green-500">${projectionData[projectionData.length - 1]?.projected.toLocaleString() || '—'}</p>
+                                                    <p className="text-[9px] text-muted-foreground">invested: ${projectionData[projectionData.length - 1]?.invested.toLocaleString() || '—'}</p>
+                                                </div>
                                             </div>
                                         </CardContent>
                                     </Card>
+
+                                    {/* Proof & context */}
+                                    <div className="flex items-start gap-2 px-1">
+                                        <Shield className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                                        <p className="text-[10px] text-muted-foreground leading-relaxed">
+                                            Based on historical DCA performance in crypto markets. BTC 4-year DCA has been positive 94% of the time. Past performance does not guarantee future results. Your funds remain on your exchange.
+                                        </p>
+                                    </div>
                                 </motion.div>
                             )}
                         </div>
@@ -587,12 +661,38 @@ export default function ApiceOnboarding() {
             case 5:
                 if (confirmed) {
                     return (
-                        <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col items-center justify-center text-center px-4">
+                        <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col items-center justify-center text-center px-4 relative overflow-hidden">
+                            {/* Confetti particles */}
+                            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                                {Array.from({ length: 24 }).map((_, i) => (
+                                    <motion.div
+                                        key={i}
+                                        className="absolute w-2 h-2 rounded-full"
+                                        style={{
+                                            left: `${10 + Math.random() * 80}%`,
+                                            top: '-5%',
+                                            backgroundColor: ['#f59e0b', '#8b5cf6', '#10b981', '#3b82f6', '#ef4444', '#ec4899'][i % 6],
+                                        }}
+                                        initial={{ y: 0, opacity: 1, rotate: 0, scale: 0.6 + Math.random() * 0.8 }}
+                                        animate={{
+                                            y: [0, window.innerHeight * (0.5 + Math.random() * 0.5)],
+                                            x: [0, (Math.random() - 0.5) * 150],
+                                            opacity: [1, 1, 0],
+                                            rotate: [0, Math.random() * 720 - 360],
+                                        }}
+                                        transition={{
+                                            duration: 1.8 + Math.random() * 1.2,
+                                            delay: Math.random() * 0.4,
+                                            ease: [0.25, 0.46, 0.45, 0.94],
+                                        }}
+                                    />
+                                ))}
+                            </div>
                             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}
                                 className="w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center mb-6">
                                 <CheckCircle2 className="w-10 h-10 text-green-500" />
                             </motion.div>
-                            <h1 className="text-2xl font-bold mb-2">You're All Set! 🎉</h1>
+                            <h1 className="text-2xl font-bold mb-2">You're All Set!</h1>
                             <p className="text-muted-foreground text-sm mb-4">Welcome to the Apice family.<br />Your personalized dashboard is ready.</p>
                             <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/20" variant="outline">
                                 <Crown className="w-3 h-3 mr-1" />

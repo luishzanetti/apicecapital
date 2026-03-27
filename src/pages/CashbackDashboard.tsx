@@ -63,7 +63,7 @@ export default function CashbackDashboard() {
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => navigate('/strategies/cashback/settings')}
+                        onClick={() => navigate('/settings')}
                         className="rounded-full"
                     >
                         <Settings className="w-5 h-5" />
@@ -282,7 +282,7 @@ export default function CashbackDashboard() {
                                 size="lg"
                                 variant="secondary"
                                 className="w-full gap-2"
-                                onClick={() => navigate('/strategies/cashback/setup')}
+                                onClick={() => navigate('/cashback-machine')}
                             >
                                 Request Card
                                 <ExternalLink className="w-4 h-4" />

@@ -300,7 +300,7 @@ export default function CashbackOnboarding() {
             setCurrentSlide(currentSlide + 1);
         } else {
             // Último slide - aceitar desafio
-            navigate('/strategies/cashback/setup');
+            navigate('/cashback-machine');
         }
     };
 
@@ -313,7 +313,7 @@ export default function CashbackOnboarding() {
     };
 
     const handleSkip = () => {
-        navigate('/strategies/cashback/dashboard');
+        navigate('/cashback-dashboard');
     };
 
     return (

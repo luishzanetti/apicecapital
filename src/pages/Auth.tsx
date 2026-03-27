@@ -32,7 +32,7 @@ export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, demoSignIn, isDemoMode } = useAuth();
 
   useEffect(() => {
     if (session) navigate("/home", { replace: true });
@@ -43,6 +43,14 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      // Demo mode: skip Supabase, use local session
+      if (isDemoMode) {
+        demoSignIn(email);
+        toast.success(isSignUp ? "Account created (demo mode)!" : "Welcome back (demo mode)!");
+        navigate("/home");
+        return;
+      }
+
       if (isSignUp) {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
@@ -274,7 +282,7 @@ export default function Auth() {
         >
           <Shield className="w-3 h-3" />
           <span className="text-[10px] tracking-wide">
-            End-to-end encrypted • Your keys, your crypto
+            {isDemoMode ? "Demo mode • No Supabase configured • Data saved locally" : "End-to-end encrypted • Your keys, your crypto"}
           </span>
         </motion.div>
       </motion.div>
