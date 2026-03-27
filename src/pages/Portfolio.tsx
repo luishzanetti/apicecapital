@@ -16,6 +16,7 @@ import LockedStrategies from '@/components/LockedStrategies';
 import { TopCoinsList } from '@/components/TopCoinsList';
 import { PortfolioSummaryCard } from '@/components/portfolio/PortfolioSummaryCard';
 import { SpotHoldingsTable } from '@/components/portfolio/SpotHoldingsTable';
+import { AccountOverviewCard } from '@/components/portfolio/AccountOverviewCard';
 import { DCATracker } from '@/components/portfolio/DCATracker';
 import { PerformanceMetrics } from '@/components/portfolio/PerformanceMetrics';
 import {
@@ -183,6 +184,9 @@ export default function Portfolio() {
 
               {/* Spot Holdings Table */}
               <SpotHoldingsTable />
+
+              {/* Account Overview */}
+              <AccountOverviewCard />
 
               {/* DCA Automation Tracker */}
               <DCATracker />

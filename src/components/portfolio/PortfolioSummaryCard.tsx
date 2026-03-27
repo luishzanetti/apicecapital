@@ -143,7 +143,7 @@ function TimeRangeSelector({
 function QuickActions({ onNavigate }: { onNavigate: (path: string) => void }) {
   const actions = [
     { icon: Repeat2, label: 'Strategies', color: 'text-primary', bg: 'bg-primary/10', path: '/strategies' },
-    { icon: BarChart3, label: 'Operations', color: 'text-blue-400', bg: 'bg-blue-500/10', path: '/portfolio' },
+    { icon: BarChart3, label: 'Operations', color: 'text-blue-400', bg: 'bg-blue-500/10', path: '/analytics' },
     { icon: ArrowDownToLine, label: 'DCA', color: 'text-purple-400', bg: 'bg-purple-500/10', path: '/dca-planner' },
     { icon: BarChart3, label: 'Analytics', color: 'text-amber-400', bg: 'bg-amber-500/10', path: '/analytics' },
   ];
@@ -388,7 +388,7 @@ export function PortfolioSummaryCard() {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-primary" />
-                <span className="text-[10px] text-muted-foreground">Spot</span>
+                <span className="text-[10px] text-muted-foreground">Unified</span>
                 <span className="text-xs font-semibold">{hideBalance ? '••••' : fmt(totalEquity)}</span>
               </div>
               {hasFunding && (
