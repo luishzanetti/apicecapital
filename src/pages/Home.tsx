@@ -7,10 +7,10 @@ import { useAppStore } from '@/store/appStore';
 import { dailyInsights, missionDefinitions } from '@/data/sampleData';
 import type { MissionProgress } from '@/store/appStore';
 import SetupMissions from '@/components/SetupMissions';
-import InvestmentDashboard from '@/components/InvestmentDashboard';
 import { GamificationWidget } from '@/components/GamificationWidget';
 import { TopCoinsList } from '@/components/TopCoinsList';
 import { PortfolioSummaryCard } from '@/components/portfolio/PortfolioSummaryCard';
+import { DCATracker } from '@/components/portfolio/DCATracker';
 import { WeeklyDepositConfirm } from '@/components/WeeklyDepositConfirm';
 import {
   TrendingUp, DollarSign, Flame, ChevronRight, ArrowRight,
@@ -391,9 +391,13 @@ export default function Home() {
         );
 
       case 'balance':
+        // PortfolioSummaryCard is now always shown in the hero section above
+        return null;
+
+      case 'dca':
         return (
-          <motion.div key="balance" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-            <PortfolioSummaryCard />
+          <motion.div key="dca" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+            <DCATracker />
           </motion.div>
         );
 
@@ -565,9 +569,9 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Investment Dashboard (always first in the hero) */}
+        {/* Bybit Live Portfolio (always first in the hero) */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
-          <InvestmentDashboard compact />
+          <PortfolioSummaryCard />
         </motion.div>
       </div>
 

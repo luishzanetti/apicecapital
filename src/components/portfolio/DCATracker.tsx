@@ -59,7 +59,7 @@ export function DCATracker() {
                   Set up automated buys to build your portfolio consistently without timing the market.
                 </p>
               </div>
-              <Button size="sm" className="text-xs" onClick={() => navigate('/dca')}>
+              <Button size="sm" className="text-xs" onClick={() => navigate('/dca-planner')}>
                 <Plus className="w-3 h-3 mr-1" />
                 Create DCA Plan
               </Button>
@@ -81,7 +81,7 @@ export function DCATracker() {
               <span className="text-sm font-bold">DCA Automation</span>
               <Badge variant="secondary" className="text-[9px]">{activePlans.length} active</Badge>
             </div>
-            <Button variant="ghost" size="sm" className="text-xs gap-1 h-7" onClick={() => navigate('/dca')}>
+            <Button variant="ghost" size="sm" className="text-xs gap-1 h-7" onClick={() => navigate('/dca-planner')}>
               Manage <ChevronRight className="w-3 h-3" />
             </Button>
           </div>
@@ -117,7 +117,7 @@ export function DCATracker() {
                 <div
                   key={plan.id}
                   className="flex items-center justify-between p-2.5 rounded-xl bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
-                  onClick={() => navigate('/dca')}
+                  onClick={() => navigate('/dca-planner')}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -145,7 +145,7 @@ export function DCATracker() {
             })}
             {activePlans.length > 3 && (
               <button
-                onClick={() => navigate('/dca')}
+                onClick={() => navigate('/dca-planner')}
                 className="w-full text-center text-xs text-primary py-1"
               >
                 +{activePlans.length - 3} more plans
