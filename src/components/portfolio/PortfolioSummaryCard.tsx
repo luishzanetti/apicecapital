@@ -215,13 +215,11 @@ export function PortfolioSummaryCard() {
     };
   }, [chartData]);
 
+  const missionProgress = useAppStore((s) => s.missionProgress);
+  const hasCreatedBybitAccount = missionProgress.m2_bybitAccountCreated;
   const handleNavigate = useCallback((path: string) => navigate(path), [navigate]);
 
   if (analytics.isLoading) return <SummarySkeleton />;
-
-  // Check if user has completed enough of the journey to show connect exchange
-  const missionProgress = useAppStore((s) => s.missionProgress);
-  const hasCreatedBybitAccount = missionProgress.m2_bybitAccountCreated;
 
   if (!analytics.isConnected) {
     // New user who hasn't gone through the journey yet — show friendly guidance
