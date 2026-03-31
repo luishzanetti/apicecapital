@@ -4,7 +4,7 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useBybitData } from '@/hooks/useBybitData';
+import { useExchangeBalance } from '@/hooks/useExchangeBalance';
 import {
     TrendingUp,
     Zap,
@@ -62,7 +62,9 @@ const INVESTMENT_LEVELS = [
 ];
 
 export function ConsistentInvestmentStrategy({ totalInvested: externalTotal }: ConsistentInvestmentStrategyProps) {
-    const { totalEquity, isConnected, isLoading } = useBybitData();
+    const { data: balanceData, isLoading } = useExchangeBalance();
+    const isConnected = !!balanceData;
+    const totalEquity = balanceData?.totalEquity ?? 0;
     const [weeklyAmount, setWeeklyAmount] = useState(100);
 
     // Use Bybit data if connected, otherwise use external total

@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
-import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+import { isSupabaseConfigured } from '@/integrations/supabase/client';
+import { invokeEdgeFunction } from '@/lib/supabaseFunction';
 import { useAuth } from '@/components/AuthProvider';
 import { useAppStore } from '@/store/appStore';
 
@@ -87,6 +88,59 @@ function buildUserContext() {
   };
 }
 
+// ─── Local Chat Fallback ────────────────────────────────────
+
+function getLocalChatResponse(message: string): string {
+  const msg = message.toLowerCase();
+  const state = useAppStore.getState();
+  const type = state.investorType || 'Balanced Optimizer';
+  const plans = state.dcaPlans.filter(p => p.isActive);
+  const total = plans.reduce((s, p) => s + (p.totalInvested || 0), 0);
+
+  if (msg.includes('portfolio') || msg.includes('doing') || msg.includes('como está') || msg.includes('carteira')) {
+    if (plans.length === 0)
+      return `You don't have active DCA plans yet. As a ${type}, I recommend starting with a BTC/ETH core allocation. Head to the DCA Planner to create your first strategy!`;
+    return `You have ${plans.length} active DCA plan${plans.length > 1 ? 's' : ''} with $${total.toLocaleString()} invested. As a ${type}, your consistency is your biggest edge. Keep your DCA schedule running — time in the market beats timing the market.`;
+  }
+
+  if (msg.includes('invest') || msg.includes('buy') || msg.includes('comprar') || msg.includes('investir') || msg.includes('this week')) {
+    if (type === 'Conservative Builder')
+      return 'Based on your Conservative profile, I recommend BTC (60-70%) and ETH (30-40%). Weekly DCA of $15-25 is ideal. Consistency is key — don\'t try to time the market.';
+    if (type === 'Growth Seeker')
+      return 'For your Growth profile: BTC 35%, ETH 25%, SOL 20%, and split 20% between high-conviction alts like ARB or INJ. Weekly DCA of $50-100. Higher returns come with higher volatility.';
+    return 'For a balanced approach: BTC 45%, ETH 30%, SOL 15%, LINK 10%. Weekly DCA of $25-50 provides steady exposure across major ecosystems.';
+  }
+
+  if (msg.includes('btc') || msg.includes('bitcoin'))
+    return 'BTC remains the anchor asset of any crypto portfolio. With the Apice methodology, we recommend minimum 30% BTC allocation. DCA into BTC consistently — historically, holding BTC over 4+ years has never resulted in a loss.';
+
+  if (msg.includes('eth') || msg.includes('ethereum'))
+    return 'ETH is the second pillar of a solid crypto portfolio. It powers the largest DeFi and NFT ecosystems. 20-30% ETH allocation complements BTC well. Together, BTC+ETH should form 60-80% of a balanced portfolio.';
+
+  if (msg.includes('sol') || msg.includes('solana'))
+    return 'SOL has established itself as a top L1 ecosystem with high throughput and active DeFi. For Balanced/Growth profiles, 10-20% SOL allocation is reasonable. DCA in rather than buying lump sum.';
+
+  if (msg.includes('dca') || msg.includes('dollar cost') || msg.includes('strateg') || msg.includes('estratég'))
+    return 'DCA (Dollar-Cost Averaging) is the foundation of the Apice methodology. By investing a fixed amount at regular intervals, you remove emotional decisions. Studies show DCA investors outperform 90% of traders. Go to DCA Planner to set yours up.';
+
+  if (msg.includes('risk') || msg.includes('risco') || msg.includes('safe') || msg.includes('seguro'))
+    return `As a ${type}: 1) Never invest more than you can afford to lose, 2) Keep 60%+ in BTC/ETH, 3) DCA reduces timing risk, 4) Diversify across 3-5 assets max. Consistency is your best risk management tool.`;
+
+  if (msg.includes('time') || msg.includes('when') || msg.includes('quando') || msg.includes('hora') || msg.includes('now a good'))
+    return 'The best time to start DCA was yesterday. The second best time is now. Market timing is nearly impossible — even pros get it wrong. DCA eliminates this by spreading purchases over time.';
+
+  if (msg.includes('hello') || msg.includes('hi') || msg.includes('olá') || msg.includes('oi') || msg.includes('hey'))
+    return `Hello! I'm your Apice AI Advisor. I can help with DCA strategies, portfolio analysis, and market insights based on your ${type} profile. What would you like to know?`;
+
+  if (msg.includes('rebalance') || msg.includes('rebalanc'))
+    return `Rebalancing ensures your portfolio stays aligned with your ${type} strategy. Review allocations quarterly. If any asset deviates more than 10% from target, consider rebalancing via your next DCA purchase.`;
+
+  if (msg.includes('market') || msg.includes('mercado'))
+    return 'Crypto markets are volatile by nature. The Apice methodology focuses on long-term wealth building through consistent DCA. Instead of reacting to daily price swings, stay disciplined with your plan.';
+
+  return `Great question! As a ${type}, the Apice methodology recommends consistent DCA across proven crypto assets. I can help with portfolio strategy, asset allocation, DCA planning, and market insights. Try asking about specific assets, your portfolio, or DCA strategies!`;
+}
+
 // ─── Fallback Data ──────────────────────────────────────────
 
 function getFallbackRecommendation(): AiRecommendation {
@@ -159,7 +213,7 @@ function getFallbackInsight(): AiInsight {
 // ─── Hook ───────────────────────────────────────────────────
 
 export function useAiAdvisor() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<AiChatMessage[]>([]);
@@ -172,8 +226,9 @@ export function useAiAdvisor() {
 
     try {
       const userContext = buildUserContext();
-      const { data, error: fnError } = await supabase.functions.invoke('ai-advisor', {
+      const { data, error: fnError } = await invokeEdgeFunction('ai-advisor', {
         body: { action, userContext, ...extra },
+        token: session?.access_token,
       });
 
       if (fnError) throw fnError;
@@ -281,8 +336,14 @@ export function useAiAdvisor() {
     setError(null);
 
     try {
-      const result = await callAi('chat', { message });
-      const response = result?.message || 'I apologize, I could not process your request. Please try again.';
+      // Send last 10 messages as history for context
+      const history = chatMessages.slice(-10).map(m => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      const result = await callAi('chat', { message, history });
+      const response = result?.message || getLocalChatResponse(message);
 
       const assistantMsg: AiChatMessage = {
         role: 'assistant',
@@ -294,7 +355,7 @@ export function useAiAdvisor() {
       return response;
     } catch (err: any) {
       setError(err.message);
-      const fallbackMsg = 'Connection issue. Your DCA plans continue running automatically regardless.';
+      const fallbackMsg = getLocalChatResponse(message);
       setChatMessages(prev => [
         ...prev,
         { role: 'assistant', content: fallbackMsg, timestamp: new Date().toISOString() },
@@ -303,7 +364,7 @@ export function useAiAdvisor() {
     } finally {
       setIsLoading(false);
     }
-  }, [callAi]);
+  }, [callAi, chatMessages]);
 
   const clearChat = useCallback(() => {
     setChatMessages([]);

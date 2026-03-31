@@ -143,7 +143,7 @@ export default function Splash() {
             transition={{ delay: 1.2, duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
           />
         </div>
-        <p className="text-[9px] text-muted-foreground/40 uppercase tracking-[0.2em]">Loading</p>
+        <p className="text-[11px] text-muted-foreground/40 uppercase tracking-[0.2em]">Loading</p>
       </motion.div>
     </div>
   );

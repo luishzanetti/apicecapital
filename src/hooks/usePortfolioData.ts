@@ -45,12 +45,13 @@ export const usePortfolioData = () => {
     const fetchPortfolio = async () => {
         try {
             console.log("Fetching portfolio...");
-            const authResponse = await supabase.auth.getUser();
-            if (authResponse.error) {
-                console.warn("Auth error in usage:", authResponse.error);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) {
+                console.warn("No session in usePortfolioData");
                 setMetrics(prev => ({ ...prev, loading: false }));
                 return;
             }
+            const authResponse = { data: { user: session.user } };
 
             const user = authResponse.data.user;
             if (!user) {

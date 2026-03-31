@@ -87,7 +87,7 @@ export function DCARecommendationCard({ onApply }: DCARecommendationCardProps) {
               </div>
             </div>
             <div className="flex items-center gap-1.5">
-              <Badge variant="outline" className={cn('text-[8px] gap-0.5', confidenceConfig.color, confidenceConfig.bg)}>
+              <Badge variant="outline" className={cn('text-[11px] gap-0.5', confidenceConfig.color, confidenceConfig.bg)}>
                 <ConfidenceIcon className="w-2.5 h-2.5" />
                 {confidenceConfig.label}
               </Badge>
@@ -139,7 +139,7 @@ export function DCARecommendationCard({ onApply }: DCARecommendationCardProps) {
             <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/10 mb-4">
               <div className="flex items-center gap-1.5 mb-1">
                 <TrendingUp className="w-3 h-3 text-blue-400" />
-                <span className="text-[9px] font-bold text-blue-400 uppercase tracking-wider">Market Context</span>
+                <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Market Context</span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
                 {recommendation.marketInsight}
@@ -152,7 +152,7 @@ export function DCARecommendationCard({ onApply }: DCARecommendationCardProps) {
             <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/10 mb-4">
               <div className="flex items-center gap-1.5 mb-1">
                 <Zap className="w-3 h-3 text-amber-400" />
-                <span className="text-[9px] font-bold text-amber-400 uppercase tracking-wider">AI Adjustment</span>
+                <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">AI Adjustment</span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
                 {recommendation.adjustments}

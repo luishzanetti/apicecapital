@@ -48,7 +48,7 @@ export default function Insights() {
               <h1 className="text-xl font-bold">Insights</h1>
             </div>
             <p className="text-muted-foreground text-xs">
-              Your daily intelligence feed
+              AI-generated insights based on market analysis
             </p>
           </div>
           {learnProgress.currentStreak > 0 && (
@@ -155,7 +155,7 @@ export default function Insights() {
                           </p>
                         </div>
                         <div className="flex flex-col items-end gap-1">
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-[11px] text-muted-foreground">
                             {formatDate(insight.date)}
                           </span>
                           <ChevronRight className="w-4 h-4 text-muted-foreground/30" />
@@ -181,7 +181,7 @@ export default function Insights() {
             >
               <BookOpen className="w-6 h-6 mx-auto mb-2 text-primary" />
               <h4 className="font-medium text-sm mb-1">Risk 101</h4>
-              <p className="text-[10px] text-muted-foreground">2 min read</p>
+              <p className="text-[11px] text-muted-foreground">2 min read</p>
             </Card>
             <Card 
               className="text-center py-5 cursor-pointer hover:border-primary/20 transition-colors"
@@ -189,7 +189,7 @@ export default function Insights() {
             >
               <TrendingUp className="w-6 h-6 mx-auto mb-2 text-primary" />
               <h4 className="font-medium text-sm mb-1">DCA Basics</h4>
-              <p className="text-[10px] text-muted-foreground">3 min read</p>
+              <p className="text-[11px] text-muted-foreground">3 min read</p>
             </Card>
           </div>
         </div>

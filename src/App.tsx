@@ -8,7 +8,9 @@ import { useAppStore } from "@/store/appStore";
 import { useEffect, lazy, Suspense } from "react";
 import { AuthProvider, useAuth } from "@/components/AuthProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
+const Landing = lazy(() => import("./pages/Landing"));
 const Splash = lazy(() => import("./pages/Splash"));
 const Welcome = lazy(() => import("./pages/Welcome"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -33,7 +35,10 @@ const CashbackMachine = lazy(() => import("./pages/CashbackMachine"));
 const CashbackDashboard = lazy(() => import("./pages/CashbackDashboard"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const MethodologyMission = lazy(() => import("./pages/MethodologyMission"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const UnifiedOnboarding = lazy(() => import("./pages/UnifiedOnboarding"));
 
 const queryClient = new QueryClient();
 
@@ -86,16 +91,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 function AppContent() {
   const incrementDaysActive = useAppStore((s) => s.incrementDaysActive);
+  const checkTrialExpiry = useAppStore((s) => s.checkTrialExpiry);
   const { session } = useAuth();
 
   useEffect(() => {
     incrementDaysActive();
+    checkTrialExpiry();
     document.documentElement.classList.add('dark');
-  }, [incrementDaysActive]);
+  }, [incrementDaysActive, checkTrialExpiry]);
 
   return (
     <Suspense fallback={<AppLoading />}>
     <Routes>
+      <Route path="/landing" element={<Landing />} />
       <Route path="/splash" element={<Splash />} />
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/quiz" element={<Quiz />} />
@@ -127,6 +135,8 @@ function AppContent() {
       </Route>
 
       <Route path="/auth" element={<Auth />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
     </Suspense>
@@ -136,15 +146,17 @@ function AppContent() {
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AuthProvider>
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </AuthProvider>
-      </TooltipProvider>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AuthProvider>
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </AuthProvider>
+        </TooltipProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   </ErrorBoundary>
 );

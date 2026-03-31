@@ -26,6 +26,8 @@ export const defaultMissionProgress: MissionProgress = {
   m1_onboardingCompleted: false,
   m1_profileQuizDone: false,
   m2_methodologyRead: false,
+  m2_strategiesExplored: false,
+  m2_apiConnected: false,
   m2_whyCryptoExchange: false,
   m2_bybitAccountCreated: false,
   m2_bybitReferralUsed: false,

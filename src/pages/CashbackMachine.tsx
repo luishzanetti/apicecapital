@@ -181,7 +181,7 @@ export default function CashbackMachine() {
               </div>
             </div>
 
-            <p className="text-[10px] text-center text-muted-foreground mt-3">
+            <p className="text-[11px] text-center text-muted-foreground mt-3">
               Estimates based on average cashback rates. Actual BTC value varies with market price.
             </p>
           </CardContent>

@@ -31,7 +31,7 @@ function CoinIcon({ coin }: { coin: string }) {
     return <img src={COIN_IMAGES[coin]} alt={coin} className="w-7 h-7 rounded-full" />;
   }
   return (
-    <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-[9px] font-bold">
+    <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-[11px] font-bold">
       {coin.slice(0, 2)}
     </div>
   );
@@ -67,7 +67,7 @@ export function SpotHoldingsTable() {
             <div className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-primary" />
               <span className="text-sm font-bold">Unified Account</span>
-              <Badge variant="secondary" className="text-[9px]">{analytics.spotCount}</Badge>
+              <Badge variant="secondary" className="text-[11px]">{analytics.spotCount}</Badge>
             </div>
           </div>
 
@@ -94,7 +94,7 @@ export function SpotHoldingsTable() {
           {/* Holdings Table */}
           <div className="space-y-0.5">
             {/* Header Row */}
-            <div className="flex items-center text-[9px] text-muted-foreground uppercase tracking-wider font-semibold px-1 pb-1">
+            <div className="flex items-center text-[11px] text-muted-foreground uppercase tracking-wider font-semibold px-1 pb-1">
               <div className="flex-1">Asset</div>
               <div className="w-20 text-right">Balance</div>
               <div className="w-20 text-right">Value</div>
@@ -168,7 +168,7 @@ export function SpotHoldingsTable() {
                           className="overflow-hidden"
                         >
                           <div className="mx-1 mb-1 px-3 py-2.5 rounded-lg bg-secondary/20 border border-border/30">
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[10px]">
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px]">
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Balance</span>
                                 <span className="font-mono">{holding.balance.toLocaleString(undefined, { maximumFractionDigits: 8 })}</span>
@@ -226,7 +226,7 @@ export function SpotHoldingsTable() {
               <div className="flex items-center gap-2">
                 <Wallet className="w-4 h-4 text-amber-400" />
                 <span className="text-sm font-bold text-amber-400">Funding Holdings</span>
-                <Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-400">
+                <Badge variant="outline" className="text-[11px] border-amber-500/30 text-amber-400">
                   {analytics.fundingHoldings.length}
                 </Badge>
               </div>
@@ -237,7 +237,7 @@ export function SpotHoldingsTable() {
 
             <div className="space-y-0.5">
               {/* Header Row */}
-              <div className="flex items-center text-[9px] text-muted-foreground uppercase tracking-wider font-semibold px-1 pb-1">
+              <div className="flex items-center text-[11px] text-muted-foreground uppercase tracking-wider font-semibold px-1 pb-1">
                 <div className="flex-1">Asset</div>
                 <div className="w-24 text-right">Balance</div>
                 <div className="w-24 text-right">Value</div>
@@ -288,7 +288,7 @@ export function SpotHoldingsTable() {
                             className="overflow-hidden"
                           >
                             <div className="mx-1 mb-1 px-3 py-2.5 rounded-lg bg-amber-500/5 border border-amber-500/10">
-                              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[10px]">
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px]">
                                 <div className="flex justify-between">
                                   <span className="text-muted-foreground">Balance</span>
                                   <span className="font-mono">{fh.balance.toLocaleString(undefined, { maximumFractionDigits: 8 })}</span>

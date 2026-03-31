@@ -27,11 +27,19 @@ export default function SetupMissions() {
         };
     };
 
-    // Determine if a mission is unlocked (previous must be at least started)
+    // Determine if a mission is unlocked
     const isMissionUnlocked = (missionId: number) => {
         if (missionId === 1) return true;
-        const prev = getMissionCompletion(missionId - 1);
-        return prev.completed > 0;
+        // Mission 2 requires both Mission 1 tasks to be complete
+        if (missionId === 2) {
+            return missionProgress.m1_profileQuizDone && missionProgress.m1_onboardingCompleted;
+        }
+        // Mission N requires at least 1 task from mission N-1
+        const prevMission = missionDefinitions.find((m) => m.id === missionId - 1);
+        if (!prevMission) return false;
+        return prevMission.tasks.some(
+            (t) => missionProgress[t.storeKey as keyof MissionProgress]
+        );
     };
 
     // Find active mission (first incomplete)
@@ -78,7 +86,7 @@ export default function SetupMissions() {
                     </div>
                     <div>
                         <p className="text-sm font-bold">Your Apice Journey</p>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-[11px] text-muted-foreground">
                             {totalXP} / {totalPossibleXP} XP · {overallPercent}% complete
                         </p>
                     </div>
@@ -186,7 +194,7 @@ export default function SetupMissions() {
                                 <div className="flex items-center gap-2">
                                     <span
                                         className={cn(
-                                            'text-[10px] font-semibold uppercase tracking-wider',
+                                            'text-[11px] font-semibold uppercase tracking-wider',
                                             isComplete
                                                 ? 'text-green-400'
                                                 : isActive
@@ -198,17 +206,17 @@ export default function SetupMissions() {
                                     </span>
                                     {isComplete && (
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-400 font-medium">
+                                            <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-400 font-medium">
                                                 {mission.badgeIcon} {mission.badge}
                                             </span>
-                                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold flex items-center gap-1">
+                                            <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold flex items-center gap-1">
                                                 <PlayCircle className="w-2.5 h-2.5" />
                                                 REVIEW
                                             </span>
                                         </div>
                                     )}
                                     {isActive && !isComplete && (
-                                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium animate-pulse">
+                                        <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium animate-pulse">
                                             ACTIVE
                                         </span>
                                     )}
@@ -221,12 +229,12 @@ export default function SetupMissions() {
                                 >
                                     {mission.title}
                                 </p>
-                                <p className="text-[10px] text-muted-foreground truncate">{mission.subtitle}</p>
+                                <p className="text-[11px] text-muted-foreground truncate">{mission.subtitle}</p>
                             </div>
 
                             {/* Right side */}
                             <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-[10px] text-muted-foreground">
+                                <span className="text-[11px] text-muted-foreground">
                                     {completed}/{total}
                                 </span>
                                 {unlocked &&
@@ -272,7 +280,7 @@ export default function SetupMissions() {
                                                         {isDone ? (
                                                             <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
                                                         ) : (
-                                                            <span className="text-[10px] text-muted-foreground font-medium">
+                                                            <span className="text-[11px] text-muted-foreground font-medium">
                                                                 {idx + 1}
                                                             </span>
                                                         )}
@@ -286,13 +294,13 @@ export default function SetupMissions() {
                                                         >
                                                             {task.title}
                                                         </p>
-                                                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">
+                                                        <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
                                                             {task.description}
                                                         </p>
                                                         {!isDone && (
                                                             <button
                                                                 className={cn(
-                                                                    'mt-2 text-[10px] font-semibold px-3 py-1.5 rounded-full transition-all active:scale-95',
+                                                                    'mt-2 text-[11px] font-semibold px-3 py-1.5 rounded-full transition-all active:scale-95',
                                                                     `bg-gradient-to-r ${mission.gradient} text-white`
                                                                 )}
                                                                 onClick={(e) => {
@@ -313,7 +321,7 @@ export default function SetupMissions() {
                                                         {isDone && (
                                                             <div className="flex items-center gap-1 mt-1">
                                                                 <Zap className="w-3 h-3 text-amber-400" />
-                                                                <span className="text-[10px] text-amber-400 font-medium">
+                                                                <span className="text-[11px] text-amber-400 font-medium">
                                                                     +{task.xp} XP
                                                                 </span>
                                                             </div>
@@ -326,7 +334,7 @@ export default function SetupMissions() {
                                         {/* Mission reward preview */}
                                         {!isComplete && (
                                             <div className="text-center py-2">
-                                                <p className="text-[10px] text-muted-foreground">
+                                                <p className="text-[11px] text-muted-foreground">
                                                     Reward: <span className="font-medium">{mission.badgeIcon} {mission.badge}</span> + <span className="text-amber-400 font-medium">{mission.xpTotal} XP</span>
                                                 </p>
                                             </div>

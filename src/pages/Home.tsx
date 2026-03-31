@@ -22,6 +22,7 @@ import {
   Lock, Crown, GripVertical, X, Check, Target, Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function getCurrentWeekId(): string {
   const now = new Date();
@@ -31,11 +32,11 @@ function getCurrentWeekId(): string {
   return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
 }
 
-function getTimeGreeting(): string {
+function getTimeGreetingKey(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (hour < 12) return 'home.goodMorning';
+  if (hour < 18) return 'home.goodAfternoon';
+  return 'home.goodEvening';
 }
 
 // Widget definitions — the system is ordered via appStore widgetOrder
@@ -51,86 +52,87 @@ type WidgetDef = {
   description: string;
 } & WidgetLock;
 
+// Widget definitions use translation keys, resolved at render time via t()
 const WIDGET_DEFINITIONS: WidgetDef[] = [
   {
     id: 'nextstep',
-    label: 'Next Step',
+    label: 'widgets.nextStep',
     icon: '🎯',
-    description: 'Your next action in the journey',
+    description: 'widgets.yourNextAction',
     lockType: null,
     premiumRequired: null,
   },
   {
     id: 'journey',
-    label: 'Apice Journey',
+    label: 'widgets.apiceJourney',
     icon: '🗺️',
-    description: 'Your mission progress',
-    lockType: null, // always visible
+    description: 'widgets.missionProgress',
+    lockType: null,
     premiumRequired: null,
   },
   {
     id: 'milestone',
-    label: 'Next Milestone',
+    label: 'widgets.nextMilestone',
     icon: '🏆',
-    description: 'Investment milestone tracker',
-    lockType: 'usage' as const, // unlocks after first deposit
+    description: 'widgets.investmentMilestone',
+    lockType: 'usage' as const,
     usageUnlockKey: 'hasFirstDeposit',
     premiumRequired: null,
   },
   {
     id: 'market',
-    label: 'Market Movers',
+    label: 'widgets.marketMovers',
     icon: '📈',
-    description: 'Top 10 crypto prices',
+    description: 'widgets.topCryptoPrices',
     lockType: null,
     premiumRequired: null,
   },
   {
     id: 'insight',
-    label: 'Daily Insight',
+    label: 'widgets.dailyInsight',
     icon: '💡',
-    description: 'Personalized market insight',
+    description: 'widgets.personalizedInsight',
     lockType: null,
     premiumRequired: null,
   },
   {
     id: 'quickactions',
-    label: 'Quick Actions',
+    label: 'widgets.quickActions',
     icon: '⚡',
-    description: 'Fast access to core features',
+    description: 'widgets.fastAccess',
     lockType: null,
     premiumRequired: null,
   },
   {
     id: 'gamification',
-    label: 'Levels & Badges',
+    label: 'widgets.levelsAndBadges',
     icon: '🎮',
-    description: 'XP, level, badges & plan',
+    description: 'widgets.xpLevelBadges',
     lockType: 'usage' as const,
-    usageUnlockKey: 'hasMinimumActivity', // unlocks after 3 days active
+    usageUnlockKey: 'hasMinimumActivity',
     premiumRequired: null,
   },
   {
     id: 'ai-score',
-    label: 'AI Portfolio Score',
+    label: 'widgets.aiPortfolioScore',
     icon: '🧠',
-    description: 'AI-powered portfolio analysis',
+    description: 'widgets.aiAnalysis',
     lockType: null,
     premiumRequired: null,
   },
   {
     id: 'analytics',
-    label: 'Portfolio Analytics',
+    label: 'widgets.portfolioAnalytics',
     icon: '📊',
-    description: 'Advanced portfolio stats',
+    description: 'widgets.advancedStats',
     lockType: 'premium' as const,
     premiumRequired: 'pro' as const,
   },
   {
     id: 'copytrading',
-    label: 'Copy Trading Status',
+    label: 'widgets.copyTradingStatus',
     icon: '🤖',
-    description: 'Monitor copy portfolio',
+    description: 'widgets.monitorCopy',
     lockType: 'premium' as const,
     premiumRequired: 'pro' as const,
   },
@@ -144,6 +146,7 @@ function WidgetCustomizer({
   daysActive,
   hasFirstDeposit,
   subscriptionTier,
+  t,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -152,6 +155,7 @@ function WidgetCustomizer({
   daysActive: number;
   hasFirstDeposit: boolean;
   subscriptionTier: string;
+  t: (key: string) => string;
 }) {
   const [order, setOrder] = useState(widgetOrder);
 
@@ -212,8 +216,8 @@ function WidgetCustomizer({
 
             <div className="px-5 py-3 flex items-center justify-between border-b border-border/30">
               <div>
-                <h2 className="font-bold text-base">Customize Widgets</h2>
-                <p className="text-xs text-muted-foreground">Reorder your home screen widgets</p>
+                <h2 className="font-bold text-base">{t('home.customizeWidgets')}</h2>
+                <p className="text-xs text-muted-foreground">{t('home.reorderWidgets')}</p>
               </div>
               <button onClick={onClose} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                 <X className="w-4 h-4" />
@@ -236,18 +240,18 @@ function WidgetCustomizer({
                     >
                       <span className="text-xl shrink-0">{w.icon}</span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold">{w.label}</p>
-                        <p className="text-[10px] text-muted-foreground">{w.description}</p>
+                        <p className="text-sm font-semibold">{t(w.label)}</p>
+                        <p className="text-[11px] text-muted-foreground">{t(w.description)}</p>
                         {status === 'locked' && (
-                          <p className="text-[10px] text-orange-400 mt-0.5 flex items-center gap-1">
+                          <p className="text-[11px] text-orange-400 mt-0.5 flex items-center gap-1">
                             <Lock className="w-2.5 h-2.5" />
-                            {(w as any).usageUnlockKey === 'hasFirstDeposit' ? 'Unlocks after first deposit' : 'Unlocks after 3 days active'}
+                            {(w as any).usageUnlockKey === 'hasFirstDeposit' ? t('home.unlockAfterDeposit') : t('home.unlockAfterDays')}
                           </p>
                         )}
                         {status === 'premium' && (
-                          <p className="text-[10px] text-amber-400 mt-0.5 flex items-center gap-1">
+                          <p className="text-[11px] text-amber-400 mt-0.5 flex items-center gap-1">
                             <Crown className="w-2.5 h-2.5" />
-                            Pro / Club plan only
+                            {t('home.proClubOnly')}
                           </p>
                         )}
                       </div>
@@ -258,14 +262,14 @@ function WidgetCustomizer({
                             disabled={i === 0}
                             className="w-6 h-6 rounded bg-border/30 flex items-center justify-center disabled:opacity-30 hover:bg-primary/20 transition-colors"
                           >
-                            <span className="text-[10px]">↑</span>
+                            <span className="text-[11px]">↑</span>
                           </button>
                           <button
                             onClick={() => move(w.id, 'down')}
                             disabled={i === orderedWidgets.length - 1}
                             className="w-6 h-6 rounded bg-border/30 flex items-center justify-center disabled:opacity-30 hover:bg-primary/20 transition-colors"
                           >
-                            <span className="text-[10px]">↓</span>
+                            <span className="text-[11px]">↓</span>
                           </button>
                         </div>
                       )}
@@ -280,7 +284,7 @@ function WidgetCustomizer({
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-card/95 backdrop-blur-sm border-t border-border/30">
               <Button variant="premium" size="lg" className="w-full" onClick={save}>
                 <Check className="w-4 h-4 mr-1.5" />
-                Save Layout
+                {t('common.saveLayout')}
               </Button>
             </div>
           </motion.div>
@@ -294,6 +298,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [showDepositConfirm, setShowDepositConfirm] = useState(false);
   const [showCustomizer, setShowCustomizer] = useState(false);
+  const { t } = useTranslation();
 
   // Auto-execute due DCA plans on app load + every 5 min
   useAutoDCA();
@@ -309,8 +314,14 @@ export default function Home() {
   const daysActive = useAppStore((state) => state.daysActive);
   const widgetOrder = useAppStore((s) => s.widgetOrder);
   const updateWidgetOrder = useAppStore((s) => s.updateWidgetOrder);
+  const dcaPlans = useAppStore((s) => s.dcaPlans);
 
   const isJourneyCompleted = useMemo(() => missionProgress.m5_advancedUnlocked, [missionProgress]);
+
+  // Gate advanced widgets: user needs at least 1 active DCA plan OR mission 4 completed
+  const hasActiveDCA = dcaPlans.some((p) => p.isActive);
+  const isMission4Complete = missionProgress.m4_weeklyPlanSet && missionProgress.m4_firstDepositConfirmed && missionProgress.m4_allocationExecuted;
+  const showAdvancedWidgets = hasActiveDCA || isMission4Complete;
 
   const currentWeekId = getCurrentWeekId();
   const totalDeposited = weeklyDepositHistory.reduce((sum, d) => sum + d.amount, 0);
@@ -369,8 +380,8 @@ export default function Home() {
               <div className="p-4 rounded-2xl border border-border/30 bg-secondary/20 flex items-center gap-3 opacity-60">
                 <Lock className="w-5 h-5 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-semibold text-muted-foreground">Milestone Tracker</p>
-                  <p className="text-xs text-muted-foreground">Make your first deposit to unlock</p>
+                  <p className="text-sm font-semibold text-muted-foreground">{t('home.milestoneTracker')}</p>
+                  <p className="text-xs text-muted-foreground">{t('home.makeFirstDeposit')}</p>
                 </div>
               </div>
             </motion.div>
@@ -396,9 +407,9 @@ export default function Home() {
                     transition={{ duration: 0.5 }}
                   />
                 </div>
-                <div className="flex justify-between text-[10px] text-muted-foreground">
-                  <span>${totalDeposited.toLocaleString()} invested</span>
-                  <span>{weeksToNext ? `~${weeksToNext}w to ${nextMilestone.label}` : `$${nextMilestone.threshold.toLocaleString()} goal`}</span>
+                <div className="flex justify-between text-[11px] text-muted-foreground">
+                  <span>${totalDeposited.toLocaleString()} {t('home.invested')}</span>
+                  <span>{weeksToNext ? t('home.weeksTo').replace('{weeks}', String(weeksToNext)).replace('{milestone}', nextMilestone.label) : t('home.goal').replace('{amount}', nextMilestone.threshold.toLocaleString())}</span>
                 </div>
               </CardContent>
             </Card>
@@ -410,11 +421,8 @@ export default function Home() {
         return null;
 
       case 'dca':
-        return (
-          <motion.div key="dca" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-            <DCATracker />
-          </motion.div>
-        );
+        // DCA is now rendered separately below the widget grid
+        return null;
 
       case 'ai-score':
         return (
@@ -447,13 +455,13 @@ export default function Home() {
             >
               <div className="flex items-center gap-1.5 mb-2">
                 <Target className="w-3.5 h-3.5 text-primary" />
-                <span className="text-[10px] text-primary font-semibold uppercase tracking-wider">Next Step</span>
-                <span className="text-[10px] text-muted-foreground/60 ml-auto">Mission {nextStep.mission.id}</span>
+                <span className="text-[11px] text-primary font-semibold uppercase tracking-wider">{t('home.nextStep')}</span>
+                <span className="text-[11px] text-muted-foreground/60 ml-auto">{t('home.mission')} {nextStep.mission.id}</span>
               </div>
               <h3 className="text-sm font-bold mb-1">{nextStep.task.title}</h3>
               <p className="text-xs text-muted-foreground line-clamp-1 mb-3">{nextStep.task.description}</p>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-1">
+                <span className="text-[11px] text-amber-400 font-semibold flex items-center gap-1">
                   <Zap className="w-3 h-3" />
                   +{nextStep.task.xp} XP
                 </span>
@@ -471,10 +479,10 @@ export default function Home() {
           <motion.div key="quickactions" className="md:col-span-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
             <div className="grid grid-cols-4 gap-3">
               {[
-                { icon: Plus, label: 'Log Deposit', color: 'bg-green-500/10 text-green-500', action: () => { weeklyInvestment > 0 ? setShowDepositConfirm(true) : navigate('/investment-setup'); } },
-                { icon: PieChart, label: 'Portfolio', color: 'bg-blue-500/10 text-blue-500', action: () => navigate('/portfolio') },
-                { icon: BookOpen, label: 'Learn', color: 'bg-purple-500/10 text-purple-500', action: () => navigate('/learn') },
-                { icon: Award, label: 'Upgrade', color: 'bg-amber-500/10 text-amber-500', action: () => navigate('/upgrade') },
+                { icon: Sparkles, label: t('home.quickActions.analysis'), color: 'bg-green-500/10 text-green-500', action: () => navigate('/analytics') },
+                { icon: PieChart, label: t('home.quickActions.portfolio'), color: 'bg-blue-500/10 text-blue-500', action: () => navigate('/portfolio') },
+                { icon: BookOpen, label: t('home.quickActions.learn'), color: 'bg-purple-500/10 text-purple-500', action: () => navigate('/learn') },
+                { icon: Award, label: t('home.quickActions.upgrade'), color: 'bg-amber-500/10 text-amber-500', action: () => navigate('/upgrade') },
               ].map((item) => (
                 <button
                   key={item.label}
@@ -484,7 +492,7 @@ export default function Home() {
                   <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', item.color)}>
                     <item.icon className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] font-medium text-muted-foreground">{item.label}</span>
+                  <span className="text-[11px] font-medium text-muted-foreground">{item.label}</span>
                 </button>
               ))}
             </div>
@@ -498,8 +506,8 @@ export default function Home() {
               <div className="p-4 rounded-2xl border border-border/30 bg-secondary/20 flex items-center gap-3 opacity-60">
                 <Lock className="w-5 h-5 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-semibold text-muted-foreground">Levels & Badges</p>
-                  <p className="text-xs text-muted-foreground">Use the app for 3 days to unlock your gamification profile</p>
+                  <p className="text-sm font-semibold text-muted-foreground">{t('home.levelsAndBadges')}</p>
+                  <p className="text-xs text-muted-foreground">{t('home.useAppForDays')}</p>
                 </div>
               </div>
             </motion.div>
@@ -512,14 +520,15 @@ export default function Home() {
         );
 
       case 'analytics':
+        if (!showAdvancedWidgets) return null;
         if (subscription.tier === 'free') {
           return (
             <motion.div key="analytics" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
               <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 flex items-center gap-3">
                 <Crown className="w-5 h-5 text-amber-400 shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-amber-300">Portfolio Analytics</p>
-                  <p className="text-xs text-muted-foreground">Upgrade to Pro to access advanced analytics</p>
+                  <p className="text-sm font-semibold text-amber-300">{t('home.portfolioAnalytics')}</p>
+                  <p className="text-xs text-muted-foreground">{t('home.upgradeToProAnalytics')}</p>
                 </div>
                 <Button variant="premium" size="sm" onClick={() => navigate('/upgrade')}>Pro</Button>
               </div>
@@ -529,14 +538,15 @@ export default function Home() {
         return null;
 
       case 'copytrading':
+        if (!showAdvancedWidgets) return null;
         if (subscription.tier === 'free') {
           return (
             <motion.div key="copytrading" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
               <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 flex items-center gap-3">
                 <Crown className="w-5 h-5 text-amber-400 shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-amber-300">Copy Trading</p>
-                  <p className="text-xs text-muted-foreground">Upgrade to Pro to copy top traders</p>
+                  <p className="text-sm font-semibold text-amber-300">{t('home.copyTrading')}</p>
+                  <p className="text-xs text-muted-foreground">{t('home.upgradeToCopyTraders')}</p>
                 </div>
                 <Button variant="premium" size="sm" onClick={() => navigate('/upgrade')}>Pro</Button>
               </div>
@@ -560,15 +570,15 @@ export default function Home() {
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-muted-foreground">{getTimeGreeting()}</p>
-            <h1 className="text-xl font-bold">{investorType || 'Investor'}</h1>
+            <p className="text-xs text-muted-foreground">{t(getTimeGreetingKey())}, {investorType || t('common.investor')}!</p>
+            <h1 className="text-xl font-bold">{t('home.yourDashboard')}</h1>
           </div>
           <button
             onClick={() => setShowCustomizer(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/60 border border-border/40 hover:bg-secondary transition-all text-xs font-medium text-muted-foreground"
           >
             <Settings2 className="w-3.5 h-3.5" />
-            Widgets
+            {t('home.widgets')}
           </button>
         </div>
 
@@ -580,6 +590,9 @@ export default function Home() {
 
       {/* Widget Grid */}
       <div className="px-6 space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+        <p className="text-[11px] text-muted-foreground/50 text-center mb-3 md:col-span-2">
+          {t('common.lastUpdated')} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </p>
         {widgetOrder.map((widgetId, idx) => renderWidget(widgetId, idx))}
 
         {/* Completed Journey (at the very end) */}
@@ -593,12 +606,17 @@ export default function Home() {
           >
             <div className="flex items-center gap-2 mb-4 px-1">
               <Award className="w-4 h-4 text-primary" />
-              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70">Your Journey</h2>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70">{t('home.yourJourney')}</h2>
             </div>
             <SetupMissions />
           </motion.div>
           </div>
         )}
+      </div>
+
+      {/* DCA Automation Tracker — below main widgets */}
+      <div className="px-6 mt-4">
+        <DCATracker />
       </div>
 
       {/* Widget Customizer Sheet */}
@@ -610,6 +628,7 @@ export default function Home() {
         daysActive={daysActive}
         hasFirstDeposit={hasFirstDeposit}
         subscriptionTier={subscription.tier}
+        t={t}
       />
 
       {/* Deposit Confirm Modal */}

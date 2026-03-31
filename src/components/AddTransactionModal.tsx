@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { z } from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +8,23 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Loader2 } from 'lucide-react';
+
+// Input validation schema — prevents injection and ensures data integrity
+const transactionSchema = z.object({
+    type: z.enum(['buy', 'sell']),
+    asset: z.string()
+        .min(1, 'Asset symbol is required')
+        .max(10, 'Asset symbol too long')
+        .regex(/^[A-Z0-9]+$/i, 'Asset symbol must be alphanumeric only'),
+    amount: z.string()
+        .refine((v) => !isNaN(Number(v)) && Number(v) > 0, 'Amount must be a positive number')
+        .refine((v) => Number(v) <= 1_000_000_000, 'Amount exceeds maximum'),
+    price: z.string()
+        .refine((v) => !isNaN(Number(v)) && Number(v) >= 0, 'Price must be a non-negative number')
+        .refine((v) => Number(v) <= 1_000_000_000, 'Price exceeds maximum'),
+    date: z.string()
+        .refine((v) => !isNaN(Date.parse(v)), 'Invalid date'),
+});
 
 interface AddTransactionModalProps {
     onTransactionAdded: () => void;
@@ -29,23 +47,38 @@ export function AddTransactionModal({ onTransactionAdded }: AddTransactionModalP
         setLoading(true);
 
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            // Validate all inputs with Zod before sending to database
+            const validation = transactionSchema.safeParse({ type, asset, amount, price, date });
+            if (!validation.success) {
+                const firstError = validation.error.errors[0]?.message || 'Invalid input';
+                toast({
+                    title: "Validation Error",
+                    description: firstError,
+                    variant: "destructive"
+                });
+                return;
+            }
+
+            const { data: { session } } = await supabase.auth.getSession();
+            const user = session?.user;
             if (!user) throw new Error("Not authenticated");
+
+            const sanitizedAsset = validation.data.asset.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
             const { error } = await supabase.from('transactions').insert({
                 user_id: user.id,
-                type,
-                asset_symbol: asset.toUpperCase(),
-                amount: Number(amount),
-                price_per_unit: Number(price),
-                date: new Date(date).toISOString(),
+                type: validation.data.type,
+                asset_symbol: sanitizedAsset,
+                amount: Number(validation.data.amount),
+                price_per_unit: Number(validation.data.price),
+                date: new Date(validation.data.date).toISOString(),
             });
 
             if (error) throw error;
 
             toast({
                 title: "Transaction added",
-                description: `Successfully recorded ${type} ${amount} ${asset}`,
+                description: `Successfully recorded ${type} ${Number(amount).toFixed(4)} ${sanitizedAsset}`,
             });
 
             setOpen(false);
@@ -56,7 +89,7 @@ export function AddTransactionModal({ onTransactionAdded }: AddTransactionModalP
         } catch (error: any) {
             toast({
                 title: "Error",
-                description: error.message,
+                description: error.message || 'An unexpected error occurred',
                 variant: "destructive"
             });
         } finally {

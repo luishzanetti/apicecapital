@@ -8,11 +8,20 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+function getCorsHeaders(req?: Request): Record<string, string> {
+  const allowedOrigins = [
+    Deno.env.get('ALLOWED_ORIGIN'),
+    'http://localhost:8080', 'http://localhost:8081',
+    'http://localhost:5173', 'http://localhost:3000',
+  ].filter(Boolean) as string[];
+  const origin = req?.headers.get('origin') || '';
+  const allowOrigin = allowedOrigins.includes(origin) ? origin : (allowedOrigins[0] || '*');
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+}
 
 // ─── Crypto helpers (same as bybit-account) ─────────────────
 
@@ -349,14 +358,19 @@ async function executePlan(
 // ─── Main Handler ───────────────────────────────────────────
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: CORS_HEADERS });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const encryptionKey = Deno.env.get('ENCRYPTION_KEY') || 'apice-capital-default-key-change-in-production';
+    const ENCRYPTION_KEY = Deno.env.get('ENCRYPTION_KEY');
+    if (!ENCRYPTION_KEY) {
+      throw new Error('ENCRYPTION_KEY not configured');
+    }
+    const encryptionKey = ENCRYPTION_KEY;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json().catch(() => ({}));
@@ -368,7 +382,7 @@ Deno.serve(async (req) => {
       if (!authHeader) {
         return new Response(
           JSON.stringify({ error: 'Missing authorization' }),
-          { status: 401, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -380,7 +394,7 @@ Deno.serve(async (req) => {
       if (authError || !user) {
         return new Response(
           JSON.stringify({ error: 'Unauthorized' }),
-          { status: 401, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -388,7 +402,7 @@ Deno.serve(async (req) => {
       if (!planId) {
         return new Response(
           JSON.stringify({ error: 'Missing planId' }),
-          { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -404,7 +418,7 @@ Deno.serve(async (req) => {
       if (planError || !plan) {
         return new Response(
           JSON.stringify({ error: 'Plan not found or inactive' }),
-          { status: 404, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -418,7 +432,7 @@ Deno.serve(async (req) => {
       if (!creds) {
         return new Response(
           JSON.stringify({ error: 'no_credentials', message: 'Connect Bybit first' }),
-          { status: 404, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -427,7 +441,7 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({ data: result }),
-        { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -436,10 +450,17 @@ Deno.serve(async (req) => {
       // This should be called by Supabase Cron with service role
       const cronSecret = req.headers.get('x-cron-secret');
       const expectedSecret = Deno.env.get('CRON_SECRET');
-      if (expectedSecret && cronSecret !== expectedSecret) {
+      if (!expectedSecret) {
+        console.error('[dca-execute] CRON_SECRET not configured');
         return new Response(
-          JSON.stringify({ error: 'Unauthorized cron call' }),
-          { status: 401, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Server configuration error' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (cronSecret !== expectedSecret) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -454,7 +475,7 @@ Deno.serve(async (req) => {
       if (plansError || !duePlans || duePlans.length === 0) {
         return new Response(
           JSON.stringify({ data: { executed: 0, message: 'No plans due' } }),
-          { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -491,7 +512,7 @@ Deno.serve(async (req) => {
             errors: errors.length > 0 ? errors : undefined,
           },
         }),
-        { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -501,7 +522,7 @@ Deno.serve(async (req) => {
       if (!authHeader) {
         return new Response(
           JSON.stringify({ error: 'Missing authorization' }),
-          { status: 401, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -512,7 +533,7 @@ Deno.serve(async (req) => {
       if (!user) {
         return new Response(
           JSON.stringify({ error: 'Unauthorized' }),
-          { status: 401, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -532,19 +553,19 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({ data: executions || [] }),
-        { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     return new Response(
       JSON.stringify({ error: 'Invalid action. Use "execute-plan", "execute-due", or "history".' }),
-      { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
     console.error('[dca-execute] Error:', err);
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: (err as Error).message }),
-      { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

@@ -125,7 +125,7 @@ function TimeRangeSelector({
           key={r}
           onClick={() => onChange(r)}
           className={cn(
-            'px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all',
+            'px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all',
             selected === r
               ? 'bg-primary text-primary-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground'
@@ -166,7 +166,7 @@ function QuickActions({ onNavigate }: { onNavigate: (path: string) => void }) {
           <div className={cn('w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center shrink-0', a.bg)}>
             <a.icon className={cn('w-4 h-4 md:w-[18px] md:h-[18px]', a.color)} />
           </div>
-          <span className="text-[9px] md:text-[11px] font-medium text-muted-foreground">{a.label}</span>
+          <span className="text-[11px] md:text-[11px] font-medium text-muted-foreground">{a.label}</span>
         </motion.button>
       ))}
     </div>
@@ -226,13 +226,14 @@ export function PortfolioSummaryCard() {
 
   const missionProgress = useAppStore((s) => s.missionProgress);
   const hasCreatedBybitAccount = missionProgress.m2_bybitAccountCreated;
+  const hasCompletedMethod = missionProgress.m2_methodologyRead;
   const handleNavigate = useCallback((path: string) => navigate(path), [navigate]);
 
   if (analytics.isLoading) return <SummarySkeleton />;
 
-  if (!analytics.isConnected) {
-    // New user who hasn't gone through the journey yet — show friendly guidance
-    if (!hasCreatedBybitAccount) {
+  // Only show onboarding/connect banners when there are truly no credentials
+  if (analytics.status === 'no_credentials') {
+    if (!hasCreatedBybitAccount && !hasCompletedMethod) {
       return (
         <Card className="overflow-hidden border-dashed border-primary/20">
           <div
@@ -292,10 +293,46 @@ export function PortfolioSummaryCard() {
                 Link your Bybit account to see live balances, auto-invest with DCA, and track performance in real-time.
               </p>
             </div>
-            <Button onClick={() => navigate('/settings')} className="gap-2">
+            <Button onClick={() => navigate('/mission2/api-setup')} className="gap-2">
               <Wallet className="w-4 h-4" />
               Connect Bybit
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // API credentials exist but balance fetch failed — show error with retry
+  if (analytics.status === 'error' && !analytics.isConnected) {
+    return (
+      <Card className="overflow-hidden border-dashed border-amber-500/30">
+        <CardContent className="pt-6 pb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center shrink-0">
+              <RefreshCw className="w-6 h-6 text-amber-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold mb-1">Connection Issue</p>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-2">
+                Your API is configured but we couldn't fetch your balance. This may be temporary.
+              </p>
+              {analytics.error && (
+                <p className="text-[10px] text-red-400/70 font-mono mb-3 break-all">
+                  {analytics.error}
+                </p>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refresh}
+                disabled={isRefreshing}
+                className="gap-2"
+              >
+                <RefreshCw className={cn('w-3.5 h-3.5', isRefreshing && 'animate-spin')} />
+                {isRefreshing ? 'Retrying...' : 'Retry'}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -329,9 +366,9 @@ export function PortfolioSummaryCard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {analytics.isTestnet && (
-                <Badge variant="outline" className="text-[8px] md:text-[9px] border-amber-500/30 text-amber-400 px-1.5 md:px-2 md:py-0.5">TESTNET</Badge>
+                <Badge variant="outline" className="text-[11px] md:text-[11px] border-amber-500/30 text-amber-400 px-1.5 md:px-2 md:py-0.5">TESTNET</Badge>
               )}
-              <Badge variant="outline" className="text-[8px] md:text-[9px] gap-1 border-green-500/30 text-green-400 px-1.5 md:px-2 md:py-0.5">
+              <Badge variant="outline" className="text-[11px] md:text-[11px] gap-1 border-green-500/30 text-green-400 px-1.5 md:px-2 md:py-0.5">
                 <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-green-500 animate-pulse" />
                 Live
               </Badge>
@@ -355,7 +392,7 @@ export function PortfolioSummaryCard() {
 
           {/* Balance */}
           <div>
-            <p className="text-[10px] md:text-[11px] text-muted-foreground uppercase tracking-widest mb-0.5">Total Balance</p>
+            <p className="text-[11px] md:text-[11px] text-muted-foreground uppercase tracking-widest mb-0.5">Total Balance</p>
             <motion.p
               key={hideBalance ? 'hidden' : String(grandTotal)}
               initial={{ opacity: 0, y: -5 }}
@@ -374,7 +411,7 @@ export function PortfolioSummaryCard() {
                 {changePositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                 {hideBalance ? '•••' : `${changePositive ? '+' : ''}${chartChange.pct.toFixed(2)}%`}
               </div>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-[11px] text-muted-foreground">
                 {hideBalance ? '••••' : `${changePositive ? '+' : ''}$${Math.abs(chartChange.abs).toFixed(2)}`} {timeRange}
               </span>
             </div>
@@ -399,7 +436,7 @@ export function PortfolioSummaryCard() {
                 <span className="text-[11px] md:text-xs font-medium text-muted-foreground">Unified</span>
               </div>
               <p className="text-sm md:text-base font-bold tracking-tight">{hideBalance ? '••••' : fmt(totalEquity)}</p>
-              <p className="text-[10px] md:text-[11px] text-muted-foreground">{analytics.spotCount} assets</p>
+              <p className="text-[11px] md:text-[11px] text-muted-foreground">{analytics.spotCount} assets</p>
             </div>
 
             {/* Funding Account Card */}
@@ -412,18 +449,18 @@ export function PortfolioSummaryCard() {
                 <span className="text-[11px] md:text-xs font-medium text-muted-foreground">Funding</span>
               </div>
               <p className="text-sm md:text-base font-bold tracking-tight">{hideBalance ? '••••' : fmt(fundingBalance)}</p>
-              <p className="text-[10px] md:text-[11px] text-muted-foreground">{fundingAssetCount} assets</p>
+              <p className="text-[11px] md:text-[11px] text-muted-foreground">{fundingAssetCount} assets</p>
             </div>
           </div>
 
           {/* Info Bar — Assets & Available Balance */}
           <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 rounded-lg bg-secondary/30 border border-border/20">
-            <span className="text-[10px] md:text-xs text-muted-foreground">
+            <span className="text-[11px] md:text-xs text-muted-foreground">
               {analytics.spotCount} assets{' '}
               <span className="text-muted-foreground/40 mx-0.5">&middot;</span>{' '}
               {analytics.activeDCAPlans} DCA {analytics.activeDCAPlans === 1 ? 'plan' : 'plans'}
             </span>
-            <span className="text-[10px] md:text-xs font-medium text-foreground/80">
+            <span className="text-[11px] md:text-xs font-medium text-foreground/80">
               Available {hideBalance ? '••••' : fmt(analytics.totalAvailableBalance)}
             </span>
           </div>
@@ -433,7 +470,7 @@ export function PortfolioSummaryCard() {
             <>
               <button
                 onClick={() => setShowAccounts(!showAccounts)}
-                className="w-full flex items-center justify-center gap-1.5 py-1 text-[10px] md:text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 py-1 text-[11px] md:text-[11px] text-muted-foreground hover:text-foreground transition-colors"
               >
                 <span>{showAccounts ? 'Hide' : 'Show'} funding details</span>
                 <motion.div animate={{ rotate: showAccounts ? 180 : 0 }}>
@@ -452,8 +489,8 @@ export function PortfolioSummaryCard() {
                     <div className="flex flex-wrap gap-1.5">
                       {analytics.fundingHoldings.slice(0, 6).map((fh) => (
                         <div key={fh.coin} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/5 border border-amber-500/10">
-                          <span className="text-[10px] font-semibold">{fh.coin}</span>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-[11px] font-semibold">{fh.coin}</span>
+                          <span className="text-[11px] text-muted-foreground">
                             {hideBalance ? '•••' : fh.balance.toLocaleString(undefined, { maximumFractionDigits: 4 })}
                           </span>
                         </div>

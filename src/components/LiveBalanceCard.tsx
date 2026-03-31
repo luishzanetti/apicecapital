@@ -133,13 +133,13 @@ export function LiveBalanceCard() {
             </div>
             <div className="flex items-center gap-2">
               {data.testnet && (
-                <Badge variant="outline" className="text-[8px] border-amber-500/30 text-amber-400">
+                <Badge variant="outline" className="text-[11px] border-amber-500/30 text-amber-400">
                   TESTNET
                 </Badge>
               )}
               <Badge
                 variant="outline"
-                className="text-[8px] gap-1 border-green-500/30 text-green-400"
+                className="text-[11px] gap-1 border-green-500/30 text-green-400"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 Live
@@ -172,14 +172,14 @@ export function LiveBalanceCard() {
                 {pnlPositive ? '+' : ''}
                 ${Math.abs(data.totalUnrealizedPnL).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
-              <span className="text-[10px] text-muted-foreground">unrealized P&L</span>
+              <span className="text-[11px] text-muted-foreground">unrealized P&L</span>
             </div>
           </div>
 
           {/* Holdings List */}
           {topHoldings.length > 0 && (
             <div className="space-y-2">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Holdings</p>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Holdings</p>
               {topHoldings.map((holding) => {
                 const pct = data.totalEquity > 0 ? (holding.usdValue / data.totalEquity) * 100 : 0;
                 return (
@@ -192,13 +192,13 @@ export function LiveBalanceCard() {
                           className="w-5 h-5 rounded-full"
                         />
                       ) : (
-                        <div className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center text-[8px] font-bold">
+                        <div className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center text-[11px] font-bold">
                           {holding.coin.slice(0, 2)}
                         </div>
                       )}
                       <div>
                         <span className="text-xs font-medium">{holding.coin}</span>
-                        <span className="text-[10px] text-muted-foreground ml-1.5">
+                        <span className="text-[11px] text-muted-foreground ml-1.5">
                           {holding.balance.toLocaleString(undefined, { maximumFractionDigits: 6 })}
                         </span>
                       </div>
@@ -207,7 +207,7 @@ export function LiveBalanceCard() {
                       <p className="text-xs font-medium">
                         ${holding.usdValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
-                      <p className="text-[9px] text-muted-foreground">{pct.toFixed(1)}%</p>
+                      <p className="text-[11px] text-muted-foreground">{pct.toFixed(1)}%</p>
                     </div>
                   </div>
                 );

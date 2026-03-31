@@ -117,7 +117,7 @@ export function TopCoinsList() {
                                     <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded-full" />
                                     <div>
                                         <p className="font-bold text-sm truncate max-w-[80px]">{coin.symbol.toUpperCase()}</p>
-                                        <p className="text-[10px] text-muted-foreground truncate max-w-[80px]">{coin.name}</p>
+                                        <p className="text-[11px] text-muted-foreground truncate max-w-[80px]">{coin.name}</p>
                                     </div>
                                 </div>
                                 <div className="space-y-1">

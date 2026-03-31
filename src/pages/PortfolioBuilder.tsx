@@ -135,13 +135,13 @@ export default function PortfolioBuilder() {
             {/* Metrics */}
             <div className="grid grid-cols-2 gap-4 text-center">
               <div>
-                <p className="text-[10px] text-muted-foreground mb-1">Total</p>
+                <p className="text-[11px] text-muted-foreground mb-1">Total</p>
                 <p className={`font-semibold ${isValid ? 'text-apice-success' : 'text-destructive'}`}>
                   {totalPercentage}%
                 </p>
               </div>
               <div>
-                <p className="text-[10px] text-muted-foreground mb-1">Diversification</p>
+                <p className="text-[11px] text-muted-foreground mb-1">Diversification</p>
                 <p className="font-semibold">{diversification}</p>
               </div>
             </div>
@@ -197,7 +197,7 @@ export default function PortfolioBuilder() {
       </motion.div>
 
       {/* Fixed CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-5 bg-background border-t border-border safe-bottom">
+      <div className="fixed bottom-[88px] lg:bottom-0 left-0 lg:left-[240px] right-0 z-30 p-5 bg-background/95 backdrop-blur-md border-t border-border/50 safe-bottom">
         <Button
           variant="premium"
           size="lg"

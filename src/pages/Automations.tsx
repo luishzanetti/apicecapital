@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { LockedOverlay } from '@/components/LockedOverlay';
 import { useAppStore } from '@/store/appStore';
 import { copyPortfolios, referralLinks } from '@/data/sampleData';
+import { toast } from 'sonner';
 import {
   Zap,
   Shield,
@@ -203,10 +204,12 @@ export default function Automations() {
                         onClick={(e) => {
                           e.stopPropagation();
                           const bybitLink = referralLinks.find(l => l.id === 'bybit');
-                          if (bybitLink) {
-                            trackLinkClick('bybit');
-                            window.open(bybitLink.url, '_blank');
+                          if (!bybitLink?.url) {
+                            toast.error('Referral link not available');
+                            return;
                           }
+                          trackLinkClick('bybit');
+                          window.open(bybitLink.url, '_blank');
                         }}
                       >
                         <ExternalLink className="w-3 h-3" />

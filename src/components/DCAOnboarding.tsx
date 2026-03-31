@@ -107,10 +107,10 @@ export default function DCAOnboarding({ isOpen, onClose, onComplete }: Props) {
                                         <p className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
                                             {stat.value}
                                         </p>
-                                        <p className="text-[10px] text-muted-foreground mt-1 font-medium">
+                                        <p className="text-[11px] text-muted-foreground mt-1 font-medium">
                                             {stat.label}
                                         </p>
-                                        <p className="text-[9px] text-muted-foreground/70 mt-0.5">
+                                        <p className="text-[11px] text-muted-foreground/70 mt-0.5">
                                             {stat.detail}
                                         </p>
                                     </motion.div>
@@ -140,7 +140,7 @@ export default function DCAOnboarding({ isOpen, onClose, onComplete }: Props) {
                                 Activate My Portfolio
                             </Button>
                         )}
-                        <p className="text-center text-[10px] text-muted-foreground mt-3">
+                        <p className="text-center text-[11px] text-muted-foreground mt-3">
                             {step + 1} of {totalSlides} · {step < totalSlides - 1 ? 'Slide to continue' : 'Ready to start!'}
                         </p>
                     </div>

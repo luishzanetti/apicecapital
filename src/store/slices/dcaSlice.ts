@@ -52,7 +52,8 @@ export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
         newBadges.push('diamond-hands');
 
       // Sync to Supabase (important: must succeed for DCA execution to work)
-      supabase.auth.getUser().then(async ({ data: { user } }) => {
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
+        const user = session?.user;
         if (!user) return;
         const { error } = await supabase
           .from('dca_plans')
@@ -132,7 +133,8 @@ export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
   setWeeklyInvestment: (amount) => {
     set({ weeklyInvestment: amount });
     try {
-      supabase.auth.getUser().then(({ data: { user } }) => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const user = session?.user;
         if (user) {
           supabase
             .from('profiles')
@@ -175,7 +177,8 @@ export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
       const newTotalCommitted = state.dcaGamification.totalAmountCommitted + amount;
 
       try {
-        supabase.auth.getUser().then(({ data: { user } }) => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+        const user = session?.user;
           if (user) {
             supabase
               .from('transactions')

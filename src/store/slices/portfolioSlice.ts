@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import type { SliceCreator, PortfolioSlice, SetupProgress } from '../types';
+import type { SliceCreator, PortfolioSlice, UserPortfolio } from '../types';
 import { defaultSetupProgress } from '../defaults';
 
 export const createPortfolioSlice: SliceCreator<PortfolioSlice> = (set, get) => ({
@@ -11,6 +11,7 @@ export const createPortfolioSlice: SliceCreator<PortfolioSlice> = (set, get) => 
   setupProgress: defaultSetupProgress,
   setupProgressPercent: 0,
   portfolioAccepted: false,
+  userPortfolios: [],
 
   updateSetupProgress: (updates) =>
     set((state) => {
@@ -28,7 +29,8 @@ export const createPortfolioSlice: SliceCreator<PortfolioSlice> = (set, get) => 
       const total = Object.keys(newSetup).length;
 
       try {
-        supabase.auth.getUser().then(async ({ data: { user } }) => {
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
+          const user = session?.user;
           if (user) {
             await supabase
               .from('portfolios')
@@ -64,4 +66,66 @@ export const createPortfolioSlice: SliceCreator<PortfolioSlice> = (set, get) => 
   },
 
   setPortfolioAccepted: (accepted) => set({ portfolioAccepted: accepted }),
+
+  // ─── Multi-Portfolio Management ────────────────────────────
+
+  addPortfolio: (portfolio) => {
+    const newPortfolio: UserPortfolio = {
+      ...portfolio,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+      totalInvested: 0,
+    };
+    set((state) => ({
+      userPortfolios: [...state.userPortfolios, newPortfolio],
+    }));
+
+    try {
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
+          const user = session?.user;
+        if (user) {
+          await supabase.from('portfolios').insert({
+            user_id: user.id,
+            name: newPortfolio.name,
+            allocations: newPortfolio.allocations,
+            is_selected: newPortfolio.isActive,
+            created_at: newPortfolio.createdAt,
+          });
+        }
+      }).catch(console.error);
+    } catch (e) {
+      console.error('Supabase add portfolio error', e);
+    }
+  },
+
+  removePortfolio: (portfolioId) => {
+    set((state) => ({
+      userPortfolios: state.userPortfolios.filter((p) => p.id !== portfolioId),
+    }));
+  },
+
+  updatePortfolio: (portfolioId, updates) => {
+    set((state) => ({
+      userPortfolios: state.userPortfolios.map((p) =>
+        p.id === portfolioId ? { ...p, ...updates } : p
+      ),
+    }));
+  },
+
+  setActivePortfolio: (portfolioId) => {
+    set((state) => {
+      const target = state.userPortfolios.find((p) => p.id === portfolioId);
+      return {
+        userPortfolios: state.userPortfolios.map((p) => ({
+          ...p,
+          isActive: p.id === portfolioId,
+        })),
+        selectedPortfolio: {
+          portfolioId,
+          allocations: target?.allocations || [],
+          selectedAt: new Date().toISOString(),
+        },
+      };
+    });
+  },
 });

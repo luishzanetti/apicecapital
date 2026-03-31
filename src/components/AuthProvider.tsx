@@ -92,15 +92,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (_event, session) => {
-                setSession(session);
-                setUser(session?.user ?? null);
-                setLoading(false);
+            (event, session) => {
+                console.log('[Auth] Event:', event, '| Has session:', !!session);
+
+                // Valid session received (SIGNED_IN, TOKEN_REFRESHED, INITIAL_SESSION, etc.)
                 if (session) {
-                    syncFromSupabase();
-                } else {
-                    resetApp();
+                    setSession(session);
+                    setUser(session.user);
+                    setLoading(false);
+                    if (event === 'SIGNED_IN') {
+                        syncFromSupabase();
+                    } else if (event === 'TOKEN_REFRESHED') {
+                        syncFromSupabase();
+                    }
+                    return;
                 }
+
+                if (event === 'SIGNED_OUT') {
+                    setSession(null);
+                    setUser(null);
+                    setLoading(false);
+                    resetApp();
+                    return;
+                }
+
+                // Session is null, event is not SIGNED_OUT (e.g. INITIAL_SESSION, TOKEN_REFRESHED failure)
+                // Clear auth state but preserve app data
+                setSession(null);
+                setUser(null);
+                setLoading(false);
             }
         );
 

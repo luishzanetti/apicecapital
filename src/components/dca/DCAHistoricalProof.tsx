@@ -62,14 +62,14 @@
                    <span>Invested: ${item.totalInvested.toLocaleString()}</span>
                    <span>Value: ${item.currentValue.toLocaleString()}</span>
                  </div>
-                 <p className="text-[10px] text-muted-foreground mt-2">
+                 <p className="text-[11px] text-muted-foreground mt-2">
                    ${item.weeklyAmount}/week DCA strategy
                  </p>
                </motion.div>
              ))}
            </div>
  
-           <p className="text-[10px] text-center text-muted-foreground mt-4">
+           <p className="text-[11px] text-center text-muted-foreground mt-4">
              Historical data for illustration. Past performance ≠ future results.
            </p>
          </CardContent>
@@ -91,7 +91,7 @@
              <div>
                <p className="text-xs font-medium">{randomQuote.author}</p>
                {randomQuote.role && (
-                 <p className="text-[10px] text-muted-foreground">{randomQuote.role}</p>
+                 <p className="text-[11px] text-muted-foreground">{randomQuote.role}</p>
                )}
              </div>
            </div>

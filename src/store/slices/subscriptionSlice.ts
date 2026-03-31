@@ -7,6 +7,7 @@ export const createSubscriptionSlice: SliceCreator<SubscriptionSlice> = (set) =>
     tier: 'free',
     activeSince: null,
     expiresAt: null,
+    isTrial: false,
   },
   aiTradeWizard: {},
   aiBotWizard: {},
@@ -47,6 +48,7 @@ export const createSubscriptionSlice: SliceCreator<SubscriptionSlice> = (set) =>
           tier,
           activeSince: new Date().toISOString(),
           expiresAt: null,
+          isTrial: false,
         },
         unlockState: newUnlocks,
         learnProgress: {
@@ -54,5 +56,71 @@ export const createSubscriptionSlice: SliceCreator<SubscriptionSlice> = (set) =>
           unlockedTracks: ['foundations', 'portfolio-mastery', 'automation', 'copy-trading'],
         },
       };
+    }),
+
+  startFreeTrial: () =>
+    set((state) => {
+      // Don't start trial if already on a paid plan or already trialing
+      if (state.subscription.tier !== 'free' || state.subscription.isTrial) {
+        return {};
+      }
+
+      const newUnlocks = { ...state.unlockState };
+      newUnlocks.optimizedPortfolios = true;
+      newUnlocks.explosiveList = true;
+      newUnlocks.advancedDcaTemplates = true;
+      newUnlocks.aiTradeGuides = true;
+      newUnlocks.aiBotGuides = true;
+      newUnlocks.copyPortfolios = true;
+      newUnlocks.premiumInsights = true;
+      newUnlocks.weeklyReports = true;
+
+      return {
+        subscription: {
+          tier: 'pro',
+          activeSince: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          isTrial: true,
+        },
+        unlockState: newUnlocks,
+        learnProgress: {
+          ...state.learnProgress,
+          unlockedTracks: ['foundations', 'portfolio-mastery', 'automation', 'copy-trading'],
+        },
+      };
+    }),
+
+  checkTrialExpiry: () =>
+    set((state) => {
+      if (!state.subscription.isTrial || !state.subscription.expiresAt) {
+        return {};
+      }
+
+      const now = Date.now();
+      const expiresAt = new Date(state.subscription.expiresAt).getTime();
+
+      if (now >= expiresAt) {
+        return {
+          subscription: {
+            tier: 'free',
+            activeSince: null,
+            expiresAt: null,
+            isTrial: false,
+          },
+          unlockState: {
+            ...state.unlockState,
+            optimizedPortfolios: false,
+            explosiveList: false,
+            advancedDcaTemplates: false,
+            aiTradeGuides: false,
+            aiBotGuides: false,
+            copyPortfolios: false,
+            premiumInsights: false,
+            weeklyReports: false,
+          },
+        };
+      }
+
+      return {};
     }),
 });

@@ -62,7 +62,7 @@
                  <span className={`text-2xl ${!isEarned ? 'opacity-30 blur-sm' : ''}`}>
                    {badge.icon}
                  </span>
-                 <p className={`text-[10px] font-medium mt-1 ${!isEarned ? 'opacity-30' : ''}`}>
+                 <p className={`text-[11px] font-medium mt-1 ${!isEarned ? 'opacity-30' : ''}`}>
                    {badge.name}
                  </p>
                </motion.div>

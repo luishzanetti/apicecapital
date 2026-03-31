@@ -49,6 +49,7 @@ export interface PortfolioAnalytics {
   isTestnet: boolean;
   isLoading: boolean;
   error: string | null;
+  status: 'idle' | 'loading' | 'connected' | 'no_credentials' | 'error';
 }
 
 const STABLECOINS = ['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'FDUSD'];
@@ -157,6 +158,7 @@ export function usePortfolioAnalytics(): PortfolioAnalytics {
       isTestnet: data?.testnet ?? false,
       isLoading,
       error,
+      status,
     };
   }, [data, isLoading, error, status, dcaPlans]);
 }

@@ -76,7 +76,7 @@
                  </div>
                  <div className="flex-1 min-w-0">
                    <p className="text-sm font-medium truncate">{lesson.title}</p>
-                   <p className="text-[10px] text-muted-foreground">{lesson.readingTime} min read</p>
+                   <p className="text-[11px] text-muted-foreground">{lesson.readingTime} min read</p>
                  </div>
                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
                </motion.button>

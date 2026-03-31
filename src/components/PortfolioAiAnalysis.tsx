@@ -124,11 +124,11 @@ export function PortfolioAiAnalysis() {
 
                         <div className="grid grid-cols-2 gap-3">
                             <div className="p-3 rounded-lg bg-background/50 border border-border/50">
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Target Allocation</p>
+                                <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Target Allocation</p>
                                 <p className="text-xs font-medium">{rec.allocation}</p>
                             </div>
                             <div className="p-3 rounded-lg bg-background/50 border border-border/50">
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Risk Level</p>
+                                <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Risk Level</p>
                                 <div className="flex items-center gap-2">
                                     <Shield className="w-3 h-3 text-muted-foreground" />
                                     <span className="text-xs font-medium">{rec.riskLevel}</span>

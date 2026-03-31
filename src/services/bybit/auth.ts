@@ -1,3 +1,7 @@
+// DEPRECATED: Direct Bybit API calls from frontend are disabled for security.
+// All Bybit operations go through Supabase Edge Functions.
+// This file is kept for reference during migration and will be removed in v1.1.
+
 import crypto from 'crypto-js';
 
 export type BybitAuthHeaders = Record<string, string>;

@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useAppStore } from '@/store/appStore';
+import type { InvestorType } from '@/store/types';
 import { DCAAmountSlider } from '@/components/dca/DCAAmountSlider';
 import { DCAAssetSelector } from '@/components/dca/DCAAssetSelector';
 import { DCARecommendationCard } from '@/components/dca/DCARecommendationCard';
@@ -29,9 +31,54 @@ import {
   TrendingUp,
   ShieldCheck,
   Clock,
+  Trophy,
+  Award,
+  Zap,
 } from 'lucide-react';
 import { referralLinks } from '@/data/sampleData';
 import { useDCAExecution } from '@/hooks/useDCAExecution';
+import { trackEvent, AnalyticsEvents } from '@/lib/analytics';
+
+// Recommended DCA plans per investor type
+const RECOMMENDED_PLANS: Record<InvestorType, {
+  amount: number;
+  frequency: 'weekly';
+  assets: { symbol: string; allocation: number }[];
+  label: string;
+}> = {
+  'Conservative Builder': {
+    amount: 25,
+    frequency: 'weekly',
+    assets: [
+      { symbol: 'BTC', allocation: 65 },
+      { symbol: 'ETH', allocation: 35 },
+    ],
+    label: 'Steady & Safe',
+  },
+  'Balanced Optimizer': {
+    amount: 35,
+    frequency: 'weekly',
+    assets: [
+      { symbol: 'BTC', allocation: 45 },
+      { symbol: 'ETH', allocation: 30 },
+      { symbol: 'SOL', allocation: 15 },
+      { symbol: 'LINK', allocation: 10 },
+    ],
+    label: 'Balanced Growth',
+  },
+  'Growth Seeker': {
+    amount: 50,
+    frequency: 'weekly',
+    assets: [
+      { symbol: 'BTC', allocation: 35 },
+      { symbol: 'ETH', allocation: 25 },
+      { symbol: 'SOL', allocation: 20 },
+      { symbol: 'ARB', allocation: 10 },
+      { symbol: 'INJ', allocation: 10 },
+    ],
+    label: 'Maximum Growth',
+  },
+};
 
 type WizardStep = 'amount' | 'assets' | 'schedule' | 'review';
 
@@ -39,6 +86,7 @@ export default function DCAPlanner() {
   const navigate = useNavigate();
   const dcaPlans = useAppStore((s) => s.dcaPlans);
   const addDcaPlan = useAppStore((s) => s.addDcaPlan);
+  const investorType = useAppStore((s) => s.investorType);
   const trackLinkClick = useAppStore((s) => s.trackLinkClick);
   const linkClicks = useAppStore((s) => s.linkClicks);
   const { executePlan, isExecuting, lastResult, error: execError, clearError } = useDCAExecution();
@@ -47,6 +95,8 @@ export default function DCAPlanner() {
   const [wizardStep, setWizardStep] = useState<WizardStep>('amount');
   const [creatingPlan, setCreatingPlan] = useState(false);
   const [createStatus, setCreateStatus] = useState<'idle' | 'executing' | 'success' | 'error'>('idle');
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationPlanAmount, setCelebrationPlanAmount] = useState(0);
   const [newPlan, setNewPlan] = useState<{
     assets: { symbol: string; allocation: number }[];
     amountPerInterval: number;
@@ -62,6 +112,7 @@ export default function DCAPlanner() {
   });
 
   const handleCreatePlan = async () => {
+    trackEvent(AnalyticsEvents.DCA_PLAN_CREATED, { amount: newPlan.amountPerInterval, frequency: newPlan.frequency });
     setCreatingPlan(true);
     setCreateStatus('executing');
 
@@ -98,7 +149,10 @@ export default function DCAPlanner() {
       setCreateStatus('error');
     }
 
-    // 3. Reset wizard after delay
+    // 3. Show celebration overlay and reset wizard
+    setCelebrationPlanAmount(newPlan.amountPerInterval);
+    setShowCelebration(true);
+
     setTimeout(() => {
       setShowWizard(false);
       setWizardStep('amount');
@@ -111,8 +165,64 @@ export default function DCAPlanner() {
         durationDays: 90,
         isForever: false,
       });
-    }, 3000);
+    }, 1500);
   };
+
+  // Handle activating the recommended plan (one-tap DCA)
+  const handleActivateRecommendedPlan = () => {
+    const type = investorType || 'Balanced Optimizer';
+    const rec = RECOMMENDED_PLANS[type];
+    trackEvent(AnalyticsEvents.DCA_RECOMMENDED_ACTIVATED, { investorType: type, amount: rec.amount });
+
+    addDcaPlan({
+      assets: rec.assets,
+      amountPerInterval: rec.amount,
+      frequency: rec.frequency,
+      durationDays: null,
+      startDate: new Date().toISOString(),
+      isActive: true,
+      totalInvested: 0,
+      nextExecutionDate: new Date().toISOString(),
+    });
+
+    setCelebrationPlanAmount(rec.amount);
+    setShowCelebration(true);
+  };
+
+  // Auto-dismiss celebration after 5 seconds
+  useEffect(() => {
+    if (!showCelebration) return;
+    const timer = setTimeout(() => {
+      setShowCelebration(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [showCelebration]);
+
+  // Fire confetti from both sides when celebration shows
+  useEffect(() => {
+    if (showCelebration) {
+      const end = Date.now() + 2000;
+      const colors = ['#528FFF', '#FFD700', '#8B5CF6'];
+
+      (function frame() {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0, y: 0.7 },
+          colors,
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1, y: 0.7 },
+          colors,
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+    }
+  }, [showCelebration]);
 
   const handleApplyRecommendation = (
     assets: { symbol: string; allocation: number }[],
@@ -177,6 +287,54 @@ export default function DCAPlanner() {
   };
 
   const bybitLink = referralLinks.find(l => l.id === 'bybit');
+  const missionProgress = useAppStore((s) => s.missionProgress);
+
+  // Block DCA Planner until API is connected
+  if (!missionProgress.m2_apiConnected) {
+    return (
+      <div className="min-h-screen bg-background pb-28 flex flex-col">
+        <div className="px-5 py-6 safe-top border-b border-border">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center transition-colors hover:bg-secondary/80"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-lg font-bold">DCA Planner</h1>
+              <p className="text-xs text-muted-foreground">Automated investing</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 flex items-center justify-center px-6">
+          <div className="text-center space-y-5 max-w-xs">
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto">
+              <ShieldCheck className="w-8 h-8 text-amber-400" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold mb-2">Connect Your API First</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                DCA Planner requires a Bybit API connection to execute automated investments on your behalf.
+              </p>
+            </div>
+            <Button
+              variant="premium"
+              size="lg"
+              className="w-full"
+              onClick={() => navigate('/mission2/api-setup')}
+            >
+              Connect Bybit API
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </Button>
+            <p className="text-[11px] text-muted-foreground">
+              Takes about 2 minutes. Step-by-step guide included.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -213,6 +371,72 @@ export default function DCAPlanner() {
       >
         {!showWizard ? (
           <>
+            {/* One-Tap Recommended Plan — shown when no active plans */}
+            {dcaPlans.filter(p => p.isActive).length === 0 && investorType && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="rounded-2xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 p-5"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm">Recommended Plan</h3>
+                    <p className="text-[11px] text-muted-foreground">
+                      Based on your {investorType} profile
+                    </p>
+                  </div>
+                </div>
+
+                {(() => {
+                  const rec = RECOMMENDED_PLANS[investorType];
+                  return (
+                    <>
+                      <div className="flex items-baseline gap-1.5 mb-2">
+                        <span className="text-3xl font-bold text-primary">${rec.amount}</span>
+                        <span className="text-sm text-muted-foreground">/week</span>
+                        <Badge variant="outline" className="ml-auto text-[11px]">
+                          {rec.label}
+                        </Badge>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {rec.assets.map((a) => (
+                          <Badge key={a.symbol} variant="secondary" className="text-[11px] font-medium">
+                            {a.symbol} {a.allocation}%
+                          </Badge>
+                        ))}
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-secondary/40 mb-4">
+                        <p className="text-xs text-muted-foreground text-center">
+                          In 52 weeks: <span className="font-semibold text-foreground">~${(rec.amount * 52).toLocaleString()} invested</span>
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={handleActivateRecommendedPlan}
+                        className="w-full py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-500 transition-all hover:opacity-90 active:scale-[0.98] mb-2"
+                      >
+                        <Sparkles className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
+                        Activate Recommended Plan
+                      </button>
+
+                      <button
+                        onClick={() => setShowWizard(true)}
+                        className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors py-1.5"
+                      >
+                        I want to customize
+                      </button>
+                    </>
+                  );
+                })()}
+              </motion.div>
+            )}
+
             {/* Empty State: No DCA plans */}
             {dcaPlans.length === 0 && (
               <motion.div
@@ -295,19 +519,19 @@ export default function DCAPlanner() {
                 <h3 className="font-semibold text-sm mb-3">How to Execute on Bybit</h3>
                 <div className="space-y-3 text-xs text-muted-foreground">
                   <div className="flex gap-3">
-                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-semibold shrink-0">1</span>
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[11px] font-semibold shrink-0">1</span>
                     <p>Open Bybit and navigate to "Trade" → "Spot"</p>
                   </div>
                   <div className="flex gap-3">
-                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-semibold shrink-0">2</span>
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[11px] font-semibold shrink-0">2</span>
                     <p>Set up a recurring buy order for your chosen assets</p>
                   </div>
                   <div className="flex gap-3">
-                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-semibold shrink-0">3</span>
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[11px] font-semibold shrink-0">3</span>
                     <p>Configure the amount and frequency to match your plan</p>
                   </div>
                   <div className="flex gap-3">
-                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-semibold shrink-0">4</span>
+                    <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[11px] font-semibold shrink-0">4</span>
                     <p>Review and confirm your recurring order</p>
                   </div>
                 </div>
@@ -541,7 +765,7 @@ export default function DCAPlanner() {
                     </div>
 
                     {/* Disclaimer */}
-                    <p className="text-[10px] text-center text-muted-foreground mb-4">
+                    <p className="text-[11px] text-center text-muted-foreground mb-4">
                       Crypto is volatile. Past performance ≠ future results. Only invest what you can afford to lose.
                     </p>
 
@@ -579,7 +803,7 @@ export default function DCAPlanner() {
                       <div className="mt-3 p-3 rounded-xl bg-green-500/10 border border-green-500/20">
                         <p className="text-xs text-green-400 font-medium mb-1">Orders executed on Bybit:</p>
                         {lastResult.executions.map((ex, i) => (
-                          <p key={i} className="text-[10px] text-muted-foreground">
+                          <p key={i} className="text-[11px] text-muted-foreground">
                             {ex.asset}: {ex.status === 'success'
                               ? `Bought${ex.quantity ? ` ${ex.quantity}` : ''} ${ex.price ? `@ $${ex.price}` : `$${ex.amountUsdt.toFixed(2)}`}`
                               : ex.error || 'Failed'
@@ -590,8 +814,8 @@ export default function DCAPlanner() {
                     )}
                     {createStatus === 'error' && execError && (
                       <div className="mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                        <p className="text-[10px] text-red-400">{execError}</p>
-                        <p className="text-[10px] text-muted-foreground mt-1">
+                        <p className="text-[11px] text-red-400">{execError}</p>
+                        <p className="text-[11px] text-muted-foreground mt-1">
                           Plan was saved. Enable Trade (Spot) permission on your Bybit API key and try "Execute Now" from the plan card.
                         </p>
                       </div>
@@ -626,6 +850,83 @@ export default function DCAPlanner() {
           </div>
         )}
       </motion.div>
+
+      {/* Celebration Overlay */}
+      <AnimatePresence>
+        {showCelebration && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowCelebration(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+              className="mx-6 w-full max-w-sm rounded-3xl bg-card border border-border/50 p-8 text-center shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Trophy icon */}
+              <motion.div
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.15 }}
+                className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-amber-500/30"
+              >
+                <Trophy className="w-10 h-10 text-white" />
+              </motion.div>
+
+              <motion.h2
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                className="text-xl font-bold mb-2"
+              >
+                Your DCA Plan is Active!
+              </motion.h2>
+
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="text-sm text-muted-foreground mb-4"
+              >
+                In 52 weeks: ~<span className="font-semibold text-primary">${(celebrationPlanAmount * 52).toLocaleString()}</span> invested
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45 }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 mb-6"
+              >
+                <Award className="w-4 h-4 text-amber-500" />
+                <span className="text-xs font-semibold text-amber-500">Achievement: Disciplined Investor</span>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55 }}
+              >
+                <Button
+                  variant="premium"
+                  className="w-full"
+                  onClick={() => {
+                    setShowCelebration(false);
+                    navigate('/home');
+                  }}
+                >
+                  Back to Dashboard
+                </Button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

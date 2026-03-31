@@ -26,10 +26,10 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
         <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', color)}>
           <Icon className="w-3.5 h-3.5" />
         </div>
-        <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{label}</span>
+        <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">{label}</span>
       </div>
       <p className="text-lg font-bold">{value}</p>
-      {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
+      {sub && <p className="text-[11px] text-muted-foreground">{sub}</p>}
     </div>
   );
 }
@@ -131,7 +131,7 @@ export default function Analytics() {
           </button>
           <div>
             <h1 className="text-lg font-bold">Analytics</h1>
-            <p className="text-[10px] text-muted-foreground">History, operations & performance</p>
+            <p className="text-[11px] text-muted-foreground">History, operations & performance</p>
           </div>
         </div>
 
@@ -258,7 +258,7 @@ export default function Analytics() {
                             </div>
                             <div className="text-right">
                               <span className="text-xs font-medium">{item.pct.toFixed(1)}%</span>
-                              <span className="text-[10px] text-muted-foreground ml-1.5">{fmt(item.value)}</span>
+                              <span className="text-[11px] text-muted-foreground ml-1.5">{fmt(item.value)}</span>
                             </div>
                           </div>
                         ))}
@@ -331,15 +331,15 @@ export default function Analytics() {
                   <div className="grid grid-cols-3 gap-3 mb-4">
                     <div className="text-center p-3 rounded-xl bg-green-500/5 border border-green-500/10">
                       <p className="text-lg font-bold text-green-400">{successfulDCAs}</p>
-                      <p className="text-[10px] text-muted-foreground">Successful</p>
+                      <p className="text-[11px] text-muted-foreground">Successful</p>
                     </div>
                     <div className="text-center p-3 rounded-xl bg-red-500/5 border border-red-500/10">
                       <p className="text-lg font-bold text-red-400">{failedDCAs}</p>
-                      <p className="text-[10px] text-muted-foreground">Failed</p>
+                      <p className="text-[11px] text-muted-foreground">Failed</p>
                     </div>
                     <div className="text-center p-3 rounded-xl bg-primary/5 border border-primary/10">
                       <p className="text-lg font-bold text-primary">{analytics.activeDCAPlans}</p>
-                      <p className="text-[10px] text-muted-foreground">Active Plans</p>
+                      <p className="text-[11px] text-muted-foreground">Active Plans</p>
                     </div>
                   </div>
 
@@ -369,9 +369,9 @@ export default function Analytics() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-semibold truncate">{n.title}</p>
-                            <p className="text-[10px] text-muted-foreground truncate">{n.message}</p>
+                            <p className="text-[11px] text-muted-foreground truncate">{n.message}</p>
                           </div>
-                          <span className="text-[9px] text-muted-foreground/60 shrink-0">
+                          <span className="text-[11px] text-muted-foreground/60 shrink-0">
                             {new Date(n.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                           </span>
                         </div>
@@ -398,19 +398,19 @@ export default function Analytics() {
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-bold">{plan.assets.map((a) => a.symbol).join(', ')}</span>
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-semibold uppercase">
+                              <span className="text-[11px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-semibold uppercase">
                                 {plan.frequency}
                               </span>
                             </div>
                             <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
                           </div>
-                          <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+                          <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
                             <span>{fmt(plan.amountPerInterval)} / interval</span>
                             <span>·</span>
                             <span>Invested: {fmt(plan.totalInvested)}</span>
                           </div>
                           {plan.nextExecutionDate && (
-                            <div className="flex items-center gap-1 mt-1.5 text-[10px] text-muted-foreground/60">
+                            <div className="flex items-center gap-1 mt-1.5 text-[11px] text-muted-foreground/60">
                               <Clock className="w-2.5 h-2.5" />
                               Next: {new Date(plan.nextExecutionDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </div>
@@ -525,13 +525,13 @@ export default function Analytics() {
                         <div key={d.weekId} className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 border border-border/20">
                           <div>
                             <p className="text-xs font-semibold">{d.weekId}</p>
-                            <p className="text-[10px] text-muted-foreground">
+                            <p className="text-[11px] text-muted-foreground">
                               {d.allocations.map((a) => `${a.asset} ${a.percentage}%`).join(' · ')}
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-bold text-green-400">+{fmt(d.amount)}</p>
-                            <p className="text-[9px] text-muted-foreground">
+                            <p className="text-[11px] text-muted-foreground">
                               {new Date(d.confirmedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                             </p>
                           </div>
@@ -579,14 +579,14 @@ export default function Analytics() {
                               </div>
                               <div>
                                 <p className="text-xs font-bold">{holding.coin}</p>
-                                <p className="text-[10px] text-muted-foreground">
+                                <p className="text-[11px] text-muted-foreground">
                                   {holding.balance.toLocaleString(undefined, { maximumFractionDigits: 6 })}
                                 </p>
                               </div>
                             </div>
                             <div className="text-right">
                               <p className="text-xs font-bold">{fmt(holding.usdValue)}</p>
-                              <p className="text-[10px] text-muted-foreground">
+                              <p className="text-[11px] text-muted-foreground">
                                 {analytics.grandTotal > 0 ? ((holding.usdValue / analytics.grandTotal) * 100).toFixed(1) : '0'}%
                               </p>
                             </div>

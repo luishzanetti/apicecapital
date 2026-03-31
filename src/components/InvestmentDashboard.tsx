@@ -79,7 +79,7 @@ export default function InvestmentDashboard({ compact }: Props) {
                                 <DollarSign className="w-4 h-4 text-white" />
                             </div>
                             <div>
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">
                                     Portfolio Value
                                 </p>
                                 <div className="flex items-center gap-2">
@@ -99,13 +99,13 @@ export default function InvestmentDashboard({ compact }: Props) {
                         {weeklyDepositStreak > 0 && (
                             <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-orange-500/10">
                                 <Flame className="w-3 h-3 text-orange-400" />
-                                <span className="text-[10px] text-orange-400 font-bold">{weeklyDepositStreak}w</span>
+                                <span className="text-[11px] text-orange-400 font-bold">{weeklyDepositStreak}w</span>
                             </div>
                         )}
                     </div>
 
                     {/* Mini stats row */}
-                    <div className="flex gap-3 text-[10px]">
+                    <div className="flex gap-3 text-[11px]">
                         <span className="text-muted-foreground">
                             Invested: <span className="text-foreground font-medium">${totalDeposited.toLocaleString()}</span>
                         </span>
@@ -176,7 +176,7 @@ export default function InvestmentDashboard({ compact }: Props) {
                                                     key={preset}
                                                     onClick={() => setTempInvestment(preset)}
                                                     className={cn(
-                                                        'flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all',
+                                                        'flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-all',
                                                         tempInvestment === preset
                                                             ? 'bg-primary/15 text-primary border border-primary/30'
                                                             : 'bg-secondary/40 text-muted-foreground border border-transparent hover:bg-secondary/60'
@@ -202,7 +202,7 @@ export default function InvestmentDashboard({ compact }: Props) {
                                             <span className="text-xs text-muted-foreground">Plan:</span>
                                             <span className="text-sm font-bold text-primary">${weeklyInvestment}</span>
                                             <span
-                                                className="text-[10px] text-muted-foreground/60 cursor-pointer hover:text-muted-foreground transition-colors"
+                                                className="text-[11px] text-muted-foreground/60 cursor-pointer hover:text-muted-foreground transition-colors"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setInvestmentFrequency(investmentFrequency === 'weekly' ? 'monthly' : 'weekly');
@@ -213,7 +213,7 @@ export default function InvestmentDashboard({ compact }: Props) {
                                             <Edit3 className="w-3 h-3 text-muted-foreground/40 group-hover:text-primary transition-colors" />
                                         </button>
                                         {weeklyDepositStreak === 0 && (
-                                            <span className="text-[10px] text-muted-foreground/50">tap to edit</span>
+                                            <span className="text-[11px] text-muted-foreground/50">tap to edit</span>
                                         )}
                                     </motion.div>
                                 )}
@@ -243,7 +243,7 @@ export default function InvestmentDashboard({ compact }: Props) {
             >
                 <CardContent className="pt-5 pb-5">
                     <div className="flex items-center justify-between mb-3">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                        <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">
                             Total Portfolio
                         </p>
                         <button onClick={() => setHideBalance(!hideBalance)}>
@@ -269,15 +269,15 @@ export default function InvestmentDashboard({ compact }: Props) {
                     {/* Stats row */}
                     <div className="grid grid-cols-3 gap-3 mt-4">
                         <div className="p-3 rounded-xl bg-secondary/30">
-                            <p className="text-[10px] text-muted-foreground">Invested</p>
+                            <p className="text-[11px] text-muted-foreground">Invested</p>
                             <p className="text-sm font-bold">{hideBalance ? '•••' : `$${totalDeposited.toLocaleString()}`}</p>
                         </div>
                         <div className="p-3 rounded-xl bg-secondary/30">
-                            <p className="text-[10px] text-muted-foreground">Deposits</p>
+                            <p className="text-[11px] text-muted-foreground">Deposits</p>
                             <p className="text-sm font-bold">{weeklyDepositHistory.length}</p>
                         </div>
                         <div className="p-3 rounded-xl bg-secondary/30">
-                            <p className="text-[10px] text-muted-foreground">Streak</p>
+                            <p className="text-[11px] text-muted-foreground">Streak</p>
                             <p className="text-sm font-bold flex items-center gap-1">
                                 {weeklyDepositStreak}w
                                 {weeklyDepositStreak > 0 && <Flame className="w-3 h-3 text-orange-400" />}
@@ -343,7 +343,7 @@ export default function InvestmentDashboard({ compact }: Props) {
                                         ) : (
                                             <div className="flex flex-wrap gap-1 mt-0.5">
                                                 {deposit.allocations.slice(0, 3).map((a) => (
-                                                    <span key={a.asset} className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">
+                                                    <span key={a.asset} className="text-[11px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">
                                                         {a.asset} ${a.amount.toFixed(0)}
                                                     </span>
                                                 ))}

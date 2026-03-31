@@ -15,12 +15,11 @@ export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
   currentInsightIndex: 0,
   widgetOrder: [
     'nextstep',
-    'journey',
     'insight',
-    'ai-score',
-    'market',
     'quickactions',
-    'dca',
+    'market',
+    'journey',
+    'ai-score',
     'gamification',
     'milestone',
   ],
@@ -59,7 +58,8 @@ export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
     set((state) => {
       const today = new Date().toDateString();
       if (state.lastOpenDate !== today) {
-        supabase.auth.getUser().then(({ data: { user } }) => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          const user = session?.user;
           if (user) {
             supabase
               .from('profiles')
@@ -67,7 +67,10 @@ export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
                 days_active: state.daysActive + 1,
                 updated_at: new Date().toISOString(),
               })
-              .eq('id', user.id);
+              .eq('id', user.id)
+              .then(({ error }) => {
+                if (error) console.error('[appSlice] Failed to sync days_active:', error);
+              });
           }
         });
         return {
@@ -113,7 +116,7 @@ export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
       linkClicks: defaultLinkClicks,
       learnProgress: defaultLearnProgress,
       unlockState: defaultUnlockState,
-      subscription: { tier: 'free', activeSince: null, expiresAt: null },
+      subscription: { tier: 'free', activeSince: null, expiresAt: null, isTrial: false },
       daysActive: 0,
       lastOpenDate: null,
       currentInsightIndex: 0,

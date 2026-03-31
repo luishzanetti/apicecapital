@@ -47,8 +47,8 @@ export function AppHeader() {
     }, []);
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 h-16 glass-nav px-5 flex items-center justify-center">
-          <div className="max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto w-full flex items-center justify-between">
+        <header className="fixed top-0 left-0 right-0 z-50 h-16 glass-nav px-5 flex items-center justify-center lg:hidden">
+          <div className="w-full flex items-center justify-between">
             {/* Logo & Brand / Page Title */}
             <div className="flex items-center gap-3">
                 <button
@@ -79,7 +79,20 @@ export function AppHeader() {
                     </div>
 
                     <AnimatePresence mode="wait">
-                        {!isHome && pageTitle ? (
+                        {isHome || !pageTitle ? (
+                            <motion.div
+                                key="brand"
+                                initial={{ opacity: 0, x: -6 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 6 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <h2 className="text-sm font-bold tracking-tight leading-none">Apice</h2>
+                                <p className="text-[11px] text-muted-foreground uppercase tracking-[0.18em] font-semibold leading-none mt-0.5">
+                                    Capital
+                                </p>
+                            </motion.div>
+                        ) : (
                             <motion.span
                                 key={pageTitle}
                                 initial={{ opacity: 0, x: -6 }}
@@ -90,19 +103,6 @@ export function AppHeader() {
                             >
                                 {pageTitle}
                             </motion.span>
-                        ) : (
-                            <motion.div
-                                key="brand"
-                                initial={{ opacity: 0, x: -6 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 6 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                <h2 className="text-sm font-bold tracking-tight leading-none">Apice</h2>
-                                <p className="text-[9px] text-muted-foreground uppercase tracking-[0.18em] font-semibold leading-none mt-0.5">
-                                    Capital
-                                </p>
-                            </motion.div>
                         )}
                     </AnimatePresence>
                 </button>
@@ -111,6 +111,7 @@ export function AppHeader() {
             {/* Actions */}
             <div className="flex items-center gap-1">
                 <Button
+                    aria-label="Search"
                     variant="ghost"
                     size="icon"
                     className="w-9 h-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all press-scale"

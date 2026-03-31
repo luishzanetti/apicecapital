@@ -198,7 +198,7 @@ export default function CashbackDashboard() {
                                                 <p className="font-semibold text-sm flex items-center gap-2">
                                                     {tx.merchant}
                                                     {tx.isSubscription && (
-                                                        <Badge variant="default" className="text-[10px] px-1.5 py-0">100%</Badge>
+                                                        <Badge variant="default" className="text-[11px] px-1.5 py-0">100%</Badge>
                                                     )}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">{tx.date}</p>
@@ -248,12 +248,12 @@ export default function CashbackDashboard() {
                                             <div className="text-3xl">{partner.logo}</div>
                                             <div>
                                                 <p className="font-semibold text-xs">{partner.name}</p>
-                                                <p className="text-[10px] text-green-500 font-bold">{partner.cashback}</p>
+                                                <p className="text-[11px] text-green-500 font-bold">{partner.cashback}</p>
                                             </div>
                                             {partner.active ? (
-                                                <Badge variant="default" className="text-[10px] w-full">Active</Badge>
+                                                <Badge variant="default" className="text-[11px] w-full">Active</Badge>
                                             ) : (
-                                                <Button size="sm" variant="outline" className="w-full h-7 text-[10px]">
+                                                <Button size="sm" variant="outline" className="w-full h-7 text-[11px]">
                                                     Activate
                                                 </Button>
                                             )}

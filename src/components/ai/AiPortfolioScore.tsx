@@ -41,7 +41,7 @@ export function AiPortfolioScore() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold">AI Portfolio Analysis</p>
-              <p className="text-[10px] text-muted-foreground">Get a score and recommendations</p>
+              <p className="text-[11px] text-muted-foreground">Get a score and recommendations</p>
             </div>
           </div>
           <Button
@@ -105,12 +105,12 @@ export function AiPortfolioScore() {
                   </span>
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-card border-2 border-border flex items-center justify-center">
-                  <span className="text-[8px] font-bold">{analysis.score}</span>
+                  <span className="text-[11px] font-bold">{analysis.score}</span>
                 </div>
               </div>
               <div>
                 <p className="text-sm font-bold">Portfolio Score</p>
-                <p className={cn('text-[10px] font-semibold', gradeConfig.color)}>
+                <p className={cn('text-[11px] font-semibold', gradeConfig.color)}>
                   {gradeConfig.label}
                 </p>
               </div>
@@ -118,7 +118,7 @@ export function AiPortfolioScore() {
             <Button
               variant="ghost"
               size="sm"
-              className="text-[10px] h-7"
+              className="text-[11px] h-7"
               onClick={handleAnalyze}
               disabled={isLoading}
             >
@@ -131,19 +131,19 @@ export function AiPortfolioScore() {
             <div className="p-2.5 rounded-xl bg-green-500/5 border border-green-500/10">
               <div className="flex items-center gap-1.5 mb-1">
                 <CheckCircle2 className="w-3 h-3 text-green-400" />
-                <span className="text-[9px] font-bold text-green-400 uppercase">Strengths</span>
+                <span className="text-[11px] font-bold text-green-400 uppercase">Strengths</span>
               </div>
               {analysis.strengths.slice(0, 2).map((s, i) => (
-                <p key={i} className="text-[10px] text-muted-foreground leading-tight">{s}</p>
+                <p key={i} className="text-[11px] text-muted-foreground leading-tight">{s}</p>
               ))}
             </div>
             <div className="p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/10">
               <div className="flex items-center gap-1.5 mb-1">
                 <AlertTriangle className="w-3 h-3 text-amber-400" />
-                <span className="text-[9px] font-bold text-amber-400 uppercase">Improve</span>
+                <span className="text-[11px] font-bold text-amber-400 uppercase">Improve</span>
               </div>
               {analysis.improvements.slice(0, 2).map((s, i) => (
-                <p key={i} className="text-[10px] text-muted-foreground leading-tight">{s}</p>
+                <p key={i} className="text-[11px] text-muted-foreground leading-tight">{s}</p>
               ))}
             </div>
           </div>
@@ -174,13 +174,13 @@ export function AiPortfolioScore() {
                 <div className="pt-3 space-y-3">
                   {/* Risk Assessment */}
                   <div>
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Risk Assessment</p>
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Risk Assessment</p>
                     <p className="text-xs text-muted-foreground leading-relaxed">{analysis.riskAssessment}</p>
                   </div>
 
                   {/* Outlook */}
                   <div>
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Outlook</p>
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Outlook</p>
                     <p className="text-xs text-muted-foreground leading-relaxed">{analysis.outlook}</p>
                   </div>
 
@@ -189,9 +189,9 @@ export function AiPortfolioScore() {
                     <div className="p-2.5 rounded-xl bg-orange-500/5 border border-orange-500/10">
                       <div className="flex items-center gap-1.5 mb-1">
                         <TrendingUp className="w-3 h-3 text-orange-400" />
-                        <span className="text-[9px] font-bold text-orange-400 uppercase">Rebalance Suggested</span>
+                        <span className="text-[11px] font-bold text-orange-400 uppercase">Rebalance Suggested</span>
                       </div>
-                      <p className="text-[10px] text-muted-foreground">{analysis.rebalanceSuggestion}</p>
+                      <p className="text-[11px] text-muted-foreground">{analysis.rebalanceSuggestion}</p>
                     </div>
                   )}
                 </div>

@@ -47,7 +47,7 @@ export function DCATracker() {
   if (dcaPlans.length === 0) {
     return (
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <Card className="border-dashed border-primary/20">
+        <Card className="border-dashed border-primary/20 backdrop-blur-xl bg-card/80">
           <CardContent className="pt-5 pb-5">
             <div className="flex flex-col items-center text-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
@@ -72,16 +72,18 @@ export function DCATracker() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-      <Card>
+      <Card className="overflow-hidden backdrop-blur-xl bg-card/80 border-border/40">
+        {/* Gradient accent line */}
+        <div className="h-[2px] w-full bg-gradient-to-r from-primary via-violet-500 to-primary/60" />
         <CardContent className="pt-4 pb-4 space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-primary" />
               <span className="text-sm font-bold">DCA Automation</span>
-              <Badge variant="secondary" className="text-[9px]">{activePlans.length} active</Badge>
+              <Badge variant="secondary" className="text-[11px]">{activePlans.length} active</Badge>
             </div>
-            <Button variant="ghost" size="sm" className="text-xs gap-1 h-7" onClick={() => navigate('/dca-planner')}>
+            <Button variant="ghost" size="sm" className="text-xs gap-1 h-7 text-primary" onClick={() => navigate('/dca-planner')}>
               Manage <ChevronRight className="w-3 h-3" />
             </Button>
           </div>
@@ -90,24 +92,24 @@ export function DCATracker() {
           <div className="grid grid-cols-3 gap-2">
             <div className="text-center p-2.5 rounded-xl bg-secondary/30">
               <DollarSign className="w-3.5 h-3.5 text-primary mx-auto mb-1" />
-              <p className="text-xs font-bold">${totalMonthly}</p>
-              <p className="text-[8px] text-muted-foreground uppercase">Monthly</p>
+              <p className="text-lg font-semibold">${totalMonthly}</p>
+              <p className="text-[11px] text-muted-foreground uppercase">Monthly</p>
             </div>
             <div className="text-center p-2.5 rounded-xl bg-secondary/30">
               <TrendingUp className="w-3.5 h-3.5 text-green-400 mx-auto mb-1" />
-              <p className="text-xs font-bold">${totalInvested.toLocaleString()}</p>
-              <p className="text-[8px] text-muted-foreground uppercase">Total Invested</p>
+              <p className="text-lg font-semibold">${totalInvested.toLocaleString()}</p>
+              <p className="text-[11px] text-muted-foreground uppercase">Total Invested</p>
             </div>
             <div className="text-center p-2.5 rounded-xl bg-secondary/30">
               <Calendar className="w-3.5 h-3.5 text-amber-400 mx-auto mb-1" />
-              <p className="text-xs font-bold">{dcaPlans.length}</p>
-              <p className="text-[8px] text-muted-foreground uppercase">Plans</p>
+              <p className="text-lg font-semibold">{dcaPlans.length}</p>
+              <p className="text-[11px] text-muted-foreground uppercase">Plans</p>
             </div>
           </div>
 
           {/* Active Plans Mini List */}
           <div className="space-y-2">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Active Plans</p>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Active Plans</p>
             {activePlans.slice(0, 3).map((plan) => {
               const assetsLabel = plan.assets.map(a => a.symbol).join(', ');
               const nextExec = plan.nextExecutionDate ? new Date(plan.nextExecutionDate) : null;
@@ -125,17 +127,17 @@ export function DCATracker() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-semibold">${plan.amountPerInterval}/{plan.frequency}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">{assetsLabel}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{assetsLabel}</p>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     {isOverdue ? (
-                      <Badge variant="outline" className="text-[8px] border-amber-500/30 text-amber-400 gap-0.5">
+                      <Badge variant="outline" className="text-[11px] border-amber-500/30 text-amber-400 gap-0.5">
                         <Clock className="w-2.5 h-2.5" />
                         Due
                       </Badge>
                     ) : nextExec ? (
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[11px] text-muted-foreground">
                         Next: {nextExec.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
                     ) : null}
@@ -158,7 +160,7 @@ export function DCATracker() {
             <div className="space-y-2 pt-2 border-t border-border/30">
               <div className="flex items-center gap-2">
                 <History className="w-3.5 h-3.5 text-muted-foreground" />
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Recent Executions</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Recent Executions</p>
               </div>
               {loadingHistory ? (
                 <div className="flex justify-center py-3">
@@ -178,11 +180,11 @@ export function DCATracker() {
                           <XCircle className="w-3.5 h-3.5 text-red-400" />
                         )}
                         <span className="text-xs font-medium">{exec.asset_symbol}</span>
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground">
                           ${Number(exec.amount_usdt).toFixed(2)}
                         </span>
                       </div>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[11px] text-muted-foreground">
                         {new Date(exec.executed_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
                     </div>

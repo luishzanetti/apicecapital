@@ -78,9 +78,9 @@ function NotificationItem({ notification, onAction }: { notification: AppNotific
             </div>
             <p className="text-[11px] text-muted-foreground leading-relaxed">{notification.message}</p>
             <div className="flex items-center justify-between mt-2">
-              <span className="text-[10px] text-muted-foreground/60">{timeAgo(notification.timestamp)}</span>
+              <span className="text-[11px] text-muted-foreground/60">{timeAgo(notification.timestamp)}</span>
               {notification.actionRoute && (
-                <span className="text-[10px] text-primary font-semibold flex items-center gap-0.5">
+                <span className="text-[11px] text-primary font-semibold flex items-center gap-0.5">
                   {notification.actionLabel || 'View'}
                   <ArrowRight className="w-2.5 h-2.5" />
                 </span>
@@ -124,10 +124,8 @@ export function NotificationBell() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
-              className="absolute -top-1 -right-1 w-4.5 h-4.5 min-w-[18px] px-1 rounded-full bg-primary text-[9px] font-bold text-primary-foreground flex items-center justify-center"
-            >
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </motion.span>
+              className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500"
+            />
           )}
         </AnimatePresence>
       </button>
@@ -154,7 +152,7 @@ export function NotificationBell() {
               <div className="px-5 pt-10 pb-4 flex items-center justify-between border-b border-border/30">
                 <div>
                   <h2 className="font-bold text-base">Notifications</h2>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-[11px] text-muted-foreground">
                     {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
                   </p>
                 </div>

@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+import { invokeEdgeFunction } from '@/lib/supabaseFunction';
 
 export interface CoinData {
     id: string;
@@ -59,7 +60,7 @@ type TickerData = { lastPrice: string; price24hPcnt: string };
 
 async function fetchTickersViaEdge(symbols?: string[]): Promise<Record<string, TickerData>> {
     try {
-        const { data, error } = await supabase.functions.invoke('market-data', {
+        const { data, error } = await invokeEdgeFunction('market-data', {
             body: {
                 action: 'tickers',
                 ...(symbols ? { symbols } : {}),
@@ -75,7 +76,7 @@ async function fetchTickersViaEdge(symbols?: string[]): Promise<Record<string, T
 
 async function fetchSingleTickerViaEdge(symbol: string): Promise<TickerData | null> {
     try {
-        const { data, error } = await supabase.functions.invoke('market-data', {
+        const { data, error } = await invokeEdgeFunction('market-data', {
             body: { action: 'ticker', symbol },
         });
         if (error) throw error;

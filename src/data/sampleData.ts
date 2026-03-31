@@ -1170,21 +1170,24 @@ export const referralLinks: ReferralLink[] = [
     id: 'bybit',
     name: 'Bybit',
     description: 'Primary exchange for trading and DCA execution.',
-    url: 'https://www.bybit.com/invite?ref=APICE', // Placeholder referral link
+    // TODO: Replace APICE with your real Bybit affiliate ID from https://www.bybit.com/affiliates/
+    url: 'https://www.bybit.com/invite?ref=APICE',
     category: 'exchange',
   },
   {
     id: 'ai-trade',
     name: 'AI Trade Tool',
     description: 'External AI execution tool for automated trading.',
-    url: 'https://example.com/ai-trade?ref=apice', // Placeholder
+    // TODO: Replace with real AI Trade affiliate URL once partnership is finalized
+    url: 'https://example.com/ai-trade?ref=apice',
     category: 'ai-tool',
   },
   {
     id: 'ai-bot',
     name: 'Bitradex AI Bot',
     description: 'AI automation infrastructure for consistent execution.',
-    url: 'https://example.com/bitradex?ref=apice', // Placeholder
+    // TODO: Replace with real Bitradex affiliate URL once partnership is finalized
+    url: 'https://example.com/bitradex?ref=apice',
     category: 'infrastructure',
   },
 ];
@@ -1214,7 +1217,7 @@ export const subscriptionPlans = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '$29',
+    price: '$49.90',
     period: 'per month',
     features: [
       'All Classic & Optimized portfolios',
@@ -1236,7 +1239,7 @@ export const subscriptionPlans = [
   {
     id: 'club',
     name: 'Apice Club',
-    price: '$79',
+    price: '$149.90',
     period: 'per month',
     features: [
       'Everything in Pro',
@@ -1329,13 +1332,11 @@ export const missionDefinitions: MissionDef[] = [
     gradient: 'from-indigo-500 to-blue-500',
     badge: 'Apice Sage',
     badgeIcon: '📚',
-    xpTotal: 600,
+    xpTotal: 550,
     tasks: [
-      { id: 'm2-1', storeKey: 'm2_methodologyRead', title: 'Master the Apice Method', description: 'Internalize the 3 Pillars: DCA + Diversification + Micro-Leverage for explosive performance.', actionLabel: 'Deep Dive', actionRoute: '/mission2/method', xp: 150 },
-      { id: 'm2-2', storeKey: 'm2_whyCryptoExchange', title: 'The Fortress', description: 'Why self-custody and top-tier exchanges like Bybit are your financial fortress.', actionLabel: 'Build Fortress', actionRoute: '/mission2/fortress', xp: 100 },
-      { id: 'm2-3', storeKey: 'm2_bybitAccountCreated', title: 'Gateway Access', description: 'Create your multi-chain gateway on Bybit. This is your primary execution engine.', actionLabel: 'Secure Access', actionRoute: '/mission2/gateway', xp: 150 },
-      { id: 'm2-4', storeKey: 'm2_bybitReferralUsed', title: 'Elite Benefits', description: 'Activate the Apice protocol on your account for fee reduction and exclusive liquidity.', actionLabel: 'Activate Perks', actionRoute: '/mission2/benefits', xp: 100 },
-      { id: 'm2-5', storeKey: 'm2_firstDepositUSDT', title: 'Fuel the Tank', description: 'Fuel your journey with your first USDT deposit. Even the smallest spark starts a fire.', actionLabel: 'Fuel Up', actionRoute: '/mission2/fuel', xp: 100 },
+      { id: 'm2-1', storeKey: 'm2_methodologyRead', title: 'Master the Apice Method', description: 'Internalize the 3 Pillars: DCA + Diversification + Micro-Leverage for explosive performance.', actionLabel: 'Deep Dive', actionRoute: '/mission2/method', xp: 200 },
+      { id: 'm2-2', storeKey: 'm2_apiConnected', title: 'Connect Strategy Engine', description: 'Link your Bybit account via API to enable automated DCA, AI Advisor, and real-time execution.', actionLabel: 'Connect', actionRoute: '/mission2/api-setup', xp: 200 },
+      { id: 'm2-3', storeKey: 'm2_strategiesExplored', title: 'Explore Strategies', description: 'Discover the wealth-building frameworks and automation strategies that power the Apice engine.', actionLabel: 'Explore', actionRoute: '/strategies', xp: 150 },
     ],
   },
   {
@@ -1463,8 +1464,9 @@ export const activationChallenge: ChallengeDay[] = [
 // ============== BYBIT GUIDE ==============
 
 export const bybitGuide = {
+  // TODO: Replace APICE with your real Bybit affiliate ID from https://www.bybit.com/affiliates/
   referralLink: 'https://www.bybit.com/invite?ref=APICE',
-  referralCode: 'APICE',
+  referralCode: 'APICE', // TODO: Replace with real affiliate code
   benefits: [
     { icon: '💰', title: '$30 Bonus', description: 'Earn up to $30 USDT by creating your account with our invite' },
     { icon: '📉', title: 'Reduced Fees', description: 'Discount on trading fees through the Apice partner link' },

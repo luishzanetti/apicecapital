@@ -50,13 +50,13 @@ export default function ActivationChallenge() {
     };
 
     const handleCompleteDay = (day: number) => {
-        if (day >= currentDay) {
+        if (day === currentDay) {
             advanceChallengeDay();
-        }
-        // Move to next day
-        const nextDay = day + 1;
-        if (nextDay <= 7) {
-            setExpandedDay(nextDay);
+            // Move to next day
+            const nextDay = day + 1;
+            if (nextDay <= 7) {
+                setExpandedDay(nextDay);
+            }
         }
     };
 
@@ -118,7 +118,7 @@ export default function ActivationChallenge() {
                                     )}
                                 />
                                 <span className={cn(
-                                    'text-[9px] font-medium',
+                                    'text-[11px] font-medium',
                                     completed ? 'text-green-400' : active ? 'text-primary' : 'text-muted-foreground'
                                 )}>
                                     {day}
@@ -224,20 +224,20 @@ export default function ActivationChallenge() {
                                         <div className="flex items-center gap-2">
                                             <span
                                                 className={cn(
-                                                    'text-[10px] font-bold uppercase tracking-wider',
+                                                    'text-[11px] font-bold uppercase tracking-wider',
                                                     completed ? 'text-green-400' : isActive ? 'text-primary' : 'text-muted-foreground'
                                                 )}
                                             >
                                                 Day {day.day}
                                             </span>
                                             {isActive && (
-                                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium animate-pulse">
+                                                <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium animate-pulse">
                                                     TODAY
                                                 </span>
                                             )}
                                         </div>
                                         <p className={cn('text-sm font-semibold', !unlocked && 'text-muted-foreground')}>{day.title}</p>
-                                        <p className="text-[10px] text-muted-foreground">{day.subtitle}</p>
+                                        <p className="text-[11px] text-muted-foreground">{day.subtitle}</p>
                                     </div>
                                     {(unlocked || completed) && (
                                         <ChevronRight
@@ -281,7 +281,7 @@ export default function ActivationChallenge() {
                                                                     {taskDone ? (
                                                                         <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
                                                                     ) : (
-                                                                        <span className="text-[10px] text-muted-foreground font-medium">
+                                                                        <span className="text-[11px] text-muted-foreground font-medium">
                                                                             {idx + 1}
                                                                         </span>
                                                                     )}
@@ -290,14 +290,14 @@ export default function ActivationChallenge() {
                                                                     <p className={cn('text-xs font-semibold', taskDone && 'text-muted-foreground line-through')}>
                                                                         {task.title}
                                                                     </p>
-                                                                    <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed whitespace-pre-line">
+                                                                    <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed whitespace-pre-line">
                                                                         {task.description}
                                                                     </p>
 
                                                                     {/* Tip */}
                                                                     {task.tip && !taskDone && (
                                                                         <div className="mt-2 p-2 rounded-lg bg-amber-500/5 border border-amber-500/10">
-                                                                            <p className="text-[10px] text-amber-400 flex items-start gap-1.5">
+                                                                            <p className="text-[11px] text-amber-400 flex items-start gap-1.5">
                                                                                 <Star className="w-3 h-3 shrink-0 mt-0.5" />
                                                                                 {task.tip}
                                                                             </p>
@@ -308,7 +308,7 @@ export default function ActivationChallenge() {
                                                                     {!taskDone && (
                                                                         <div className="flex gap-2 mt-2">
                                                                             <button
-                                                                                className="text-[10px] font-semibold px-3 py-1.5 rounded-full bg-primary/10 text-primary active:scale-95 transition-all"
+                                                                                className="text-[11px] font-semibold px-3 py-1.5 rounded-full bg-primary/10 text-primary active:scale-95 transition-all"
                                                                                 onClick={() => {
                                                                                     if (task.actionRoute) {
                                                                                         navigate(task.actionRoute);
@@ -322,7 +322,7 @@ export default function ActivationChallenge() {
                                                                             {/* Special: Bybit link for day 2 tasks */}
                                                                             {(task.id === 'c2-2') && (
                                                                                 <button
-                                                                                    className="text-[10px] font-semibold px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 active:scale-95 transition-all flex items-center gap-1"
+                                                                                    className="text-[11px] font-semibold px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 active:scale-95 transition-all flex items-center gap-1"
                                                                                     onClick={() => setShowBybitGuide(true)}
                                                                                 >
                                                                                     <Gift className="w-3 h-3" />
@@ -350,11 +350,11 @@ export default function ActivationChallenge() {
                                                                 Complete Day {day.day}
                                                             </Button>
                                                         ) : (
-                                                            <p className="text-[10px] text-muted-foreground">
+                                                            <p className="text-[11px] text-muted-foreground">
                                                                 Complete all tasks to advance
                                                             </p>
                                                         )}
-                                                        <p className="text-[10px] text-amber-400 mt-2">{day.reward}</p>
+                                                        <p className="text-[11px] text-amber-400 mt-2">{day.reward}</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -413,7 +413,7 @@ export default function ActivationChallenge() {
                                             >
                                                 <span className="text-lg">{b.icon}</span>
                                                 <p className="text-[11px] font-semibold mt-1">{b.title}</p>
-                                                <p className="text-[10px] text-muted-foreground">{b.description}</p>
+                                                <p className="text-[11px] text-muted-foreground">{b.description}</p>
                                             </div>
                                         ))}
                                     </div>
@@ -428,7 +428,7 @@ export default function ActivationChallenge() {
                                             </div>
                                             <div>
                                                 <p className="text-xs font-semibold">{s.title}</p>
-                                                <p className="text-[10px] text-muted-foreground">{s.description}</p>
+                                                <p className="text-[11px] text-muted-foreground">{s.description}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -448,7 +448,7 @@ export default function ActivationChallenge() {
                                     Create Bybit Account
                                 </Button>
 
-                                <p className="text-[10px] text-center text-muted-foreground mt-3">
+                                <p className="text-[11px] text-center text-muted-foreground mt-3">
                                     Code: <span className="font-mono font-bold text-primary">{bybitGuide.referralCode}</span> · Bonus automatically applied
                                 </p>
                             </div>

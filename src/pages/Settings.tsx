@@ -9,6 +9,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
     Select,
     SelectContent,
@@ -49,14 +50,28 @@ import {
     Check,
     Info,
 } from 'lucide-react';
+import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { encrypt } from '@/lib/crypto';
 import { testBybitApiKey } from '@/hooks/useDCAExecution';
 
+// Bybit API key validation schema
+const bybitCredentialsSchema = z.object({
+    apiKey: z.string()
+        .min(8, 'API Key is too short')
+        .max(128, 'API Key is too long')
+        .regex(/^[A-Za-z0-9]+$/, 'API Key must be alphanumeric only'),
+    apiSecret: z.string()
+        .min(8, 'API Secret is too short')
+        .max(256, 'API Secret is too long')
+        .regex(/^[A-Za-z0-9]+$/, 'API Secret must be alphanumeric only'),
+});
+
 export default function Settings() {
     const navigate = useNavigate();
-    const { user, signOut } = useAuth();
+    const { user, session, signOut } = useAuth();
+    const { t, language, setLanguage } = useTranslation();
     const userProfile = useAppStore((s) => s.userProfile);
     const updateUserProfile = useAppStore((s) => s.updateUserProfile);
     const calculateInvestorType = useAppStore((s) => s.calculateInvestorType);
@@ -107,12 +122,18 @@ export default function Settings() {
         const cleanKey = apiKey.trim();
         const cleanSecret = apiSecret.trim();
 
-        if (!cleanKey || !cleanSecret) {
-            toast.error('API Key and Secret are required');
+        // Validate inputs with Zod to prevent injection and ensure format
+        const validation = bybitCredentialsSchema.safeParse({
+            apiKey: cleanKey,
+            apiSecret: cleanSecret,
+        });
+        if (!validation.success) {
+            const firstError = validation.error.errors[0]?.message || 'Invalid credentials format';
+            toast.error(firstError);
             return;
         }
         if (!user) {
-            toast.error('Please sign in first to connect your exchange');
+            toast.error(t('settings.bybitModal.signInFirst'));
             return;
         }
         setIsConnecting(true);
@@ -120,25 +141,29 @@ export default function Settings() {
 
         try {
             // Step 1: Validate API key and permissions
-            toast.loading('Testing API key...', { id: 'bybit-connect' });
-            const test = await testBybitApiKey(cleanKey, cleanSecret, useTestnet);
+            toast.loading(t('settings.bybitModal.testingApiKey'), { id: 'bybit-connect' });
+            const test = await testBybitApiKey(cleanKey, cleanSecret);
 
             if (!test.valid) {
                 toast.error(test.error || 'Invalid API key', { id: 'bybit-connect' });
                 return;
             }
 
+            // Auto-detected testnet — update toggle to match
+            if (test.isTestnet !== useTestnet) {
+                setUseTestnet(test.isTestnet);
+            }
+
             if (!test.canTrade) {
-                // Save anyway but warn about permissions
                 toast.warning(test.error || 'Key lacks trade permission', {
                     id: 'bybit-connect',
                     duration: 8000,
                 });
             }
 
-            // Step 2: Save credentials
+            // Step 2: Save credentials with auto-detected network
             setConnectionStatus('saving');
-            toast.loading('Saving credentials...', { id: 'bybit-connect' });
+            toast.loading(t('settings.bybitModal.savingCredentials'), { id: 'bybit-connect' });
 
             const encryptedSecret = encrypt(cleanSecret);
             const { error } = await supabase
@@ -147,7 +172,7 @@ export default function Settings() {
                     user_id: user.id,
                     api_key: cleanKey,
                     api_secret_encrypted: encryptedSecret,
-                    testnet: useTestnet,
+                    testnet: test.isTestnet,
                     updated_at: new Date().toISOString()
                 });
             if (error) throw error;
@@ -156,17 +181,23 @@ export default function Settings() {
             setShowBybitModal(false);
 
             if (test.canTrade) {
-                toast.success('Bybit connected with full trade access!', { id: 'bybit-connect' });
+                toast.success(test.isTestnet
+                    ? '✅ Connected to Bybit Testnet! Redirecting to dashboard...'
+                    : t('settings.bybitModal.connectedFull'),
+                    { id: 'bybit-connect' });
             } else {
-                toast.warning('Bybit connected (read-only). Enable Trade (Spot) permission for DCA execution.', {
+                toast.warning(t('settings.bybitModal.connectedReadOnly'), {
                     id: 'bybit-connect',
                     duration: 10000,
                 });
             }
             setApiKey('');
             setApiSecret('');
+
+            // Redirect to dashboard after connecting
+            setTimeout(() => navigate('/home'), 1500);
         } catch (error: any) {
-            toast.error(error.message || 'Connection failed', { id: 'bybit-connect' });
+            toast.error(error.message || t('settings.bybitModal.connectionFailed'), { id: 'bybit-connect' });
         } finally {
             setIsConnecting(false);
             setConnectionStatus('idle');
@@ -174,15 +205,19 @@ export default function Settings() {
     };
 
     const handleDisconnectBybit = async () => {
+        if (!user) return;
+
+        const confirmed = window.confirm(t('settings.bybitModal.disconnectConfirm'));
+        if (!confirmed) return;
+
         try {
-            if (!user) return;
             const { error } = await supabase
                 .from('bybit_credentials')
                 .delete()
                 .eq('user_id', user.id);
             if (error) throw error;
             setIsConnected(false);
-            toast.success('Bybit disconnected');
+            toast.success(t('settings.bybitModal.disconnected'));
         } catch (error: any) {
             toast.error(error.message);
         }
@@ -192,9 +227,9 @@ export default function Settings() {
         try {
             updateUserProfile({ [key]: value });
             calculateInvestorType();
-            toast.success("Preference updated");
+            toast.success(t('settings.preferenceUpdated'));
         } catch (error) {
-            toast.error("Failed to update");
+            toast.error(t('settings.failedToUpdate'));
         }
     };
 
@@ -208,79 +243,79 @@ export default function Settings() {
 
     const menuSections = [
         {
-            title: "Account & Security",
+            title: t('settings.accountAndSecurity'),
             items: [
                 {
                     icon: User,
-                    label: "Personal Details",
-                    sub: "View account info",
+                    label: t('settings.personalDetails'),
+                    sub: t('settings.viewAccountInfo'),
                     action: () => setShowPersonalModal(true),
                 },
                 {
                     icon: LinkIcon,
-                    label: "Bybit Connection",
-                    sub: isConnected ? "Verified & Active" : "Connect for automation",
+                    label: t('settings.bybitConnection'),
+                    sub: isConnected ? t('settings.verifiedActive') : t('settings.connectForAutomation'),
                     action: () => isConnected ? handleDisconnectBybit() : setShowBybitModal(true),
-                    badge: isConnected ? "CONNECTED" : null,
+                    badge: isConnected ? t('settings.connected') : null,
                     badgeColor: isConnected ? "bg-green-500/10 text-green-500" : ""
                 },
                 {
                     icon: CreditCard,
-                    label: "Subscription",
-                    sub: subscription.tier.toUpperCase() + " Member",
+                    label: t('settings.subscription'),
+                    sub: subscription.tier.toUpperCase() + " " + t('settings.member'),
                     action: () => navigate('/upgrade'),
                 },
             ]
         },
         {
-            title: "App Settings",
+            title: t('settings.appSettings'),
             items: [
                 {
                     icon: Bell,
-                    label: "Notifications",
-                    sub: "Push preferences",
+                    label: t('settings.notifications'),
+                    sub: t('settings.pushPreferences'),
                     action: () => setShowNotifModal(true),
                 },
                 {
                     icon: Moon,
-                    label: "Appearance",
-                    sub: "Dark mode — Active",
+                    label: t('settings.appearance'),
+                    sub: t('settings.darkModeActive'),
                     action: () => setShowAppearanceModal(true),
                 },
                 {
                     icon: Globe,
-                    label: "Language",
-                    sub: "English (US)",
+                    label: t('settings.language'),
+                    sub: t('settings.languageSub'),
                     action: () => setShowLanguageModal(true),
                 },
             ]
         },
         {
-            title: "Help & Extras",
+            title: t('settings.helpAndExtras'),
             items: [
                 {
                     icon: Headphones,
-                    label: "Support",
-                    sub: "Get help from our team",
+                    label: t('nav.support'),
+                    sub: t('settings.getHelp'),
                     action: () => navigate('/support'),
                 },
                 {
                     icon: Star,
-                    label: "Referral Links",
-                    sub: "Exchange & tool perks",
+                    label: t('settings.referralLinks'),
+                    sub: t('settings.exchangePerks'),
                     action: () => navigate('/referrals'),
                 },
             ]
         },
         {
-            title: "Journey Reset",
+            title: t('settings.journeyReset'),
             items: [
                 {
                     icon: RotateCcw,
-                    label: "Retake Onboarding Quiz",
-                    sub: "Reset your investor profile",
+                    label: t('settings.retakeQuiz'),
+                    sub: t('settings.resetProfile'),
                     action: () => {
-                        if (window.confirm("This will reset your profile preferences. Progress in missions will be kept. Proceed?")) {
+                        if (window.confirm(t('settings.resetConfirm'))) {
                             navigate('/quiz');
                         }
                     },
@@ -302,8 +337,8 @@ export default function Settings() {
                     className="pt-5 pb-2"
                     style={{ background: 'linear-gradient(180deg, hsl(var(--primary) / 0.05) 0%, transparent 100%)' }}
                 >
-                    <p className="text-xs text-muted-foreground font-medium">Manage your account</p>
-                    <h1 className="text-2xl font-bold tracking-tight mt-0.5">Settings</h1>
+                    <p className="text-xs text-muted-foreground font-medium">{t('settings.manageAccount')}</p>
+                    <h1 className="text-2xl font-bold tracking-tight mt-0.5">{t('settings.title')}</h1>
                 </div>
 
                 {/* Profile Card */}
@@ -323,11 +358,11 @@ export default function Settings() {
                         </div>
                         <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-base truncate">
-                                {user?.email?.split('@')[0] || 'Investor'}
+                                {user?.email?.split('@')[0] || t('common.investor')}
                             </h3>
                             <p className="text-xs text-muted-foreground truncate mt-0.5">{user?.email}</p>
                             <div className="flex items-center gap-2 mt-2">
-                                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border"
+                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full border"
                                     style={{
                                         background: subscription.tier === 'free' ? 'hsl(var(--secondary))' : subscription.tier === 'pro' ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--apice-gold) / 0.1)',
                                         borderColor: subscription.tier === 'free' ? 'hsl(var(--border))' : subscription.tier === 'pro' ? 'hsl(var(--primary) / 0.3)' : 'hsl(var(--apice-gold) / 0.3)',
@@ -336,9 +371,9 @@ export default function Settings() {
                                 >
                                     {subscription.tier.toUpperCase()}
                                 </span>
-                                <span className="text-[9px] text-muted-foreground font-medium">{daysActive} days active</span>
+                                <span className="text-[11px] text-muted-foreground font-medium">{daysActive} {t('common.daysActive').toLowerCase()}</span>
                                 {investorType && (
-                                    <span className="text-[9px] text-primary font-medium">• {investorType}</span>
+                                    <span className="text-[11px] text-primary font-medium">• {investorType}</span>
                                 )}
                             </div>
                         </div>
@@ -350,7 +385,7 @@ export default function Settings() {
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 px-1">
                         <FlaskConical className="w-4 h-4 text-primary" />
-                        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70">Personalization</h2>
+                        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70">{t('settings.personalization')}</h2>
                     </div>
 
                     <Card className="border-border/40 bg-card/50 overflow-hidden rounded-3xl">
@@ -361,8 +396,8 @@ export default function Settings() {
                                         <Zap className="w-4 h-4 text-orange-500" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold">Risk Tolerance</p>
-                                        <p className="text-[10px] text-muted-foreground capitalize">{userProfile.riskTolerance} Risk</p>
+                                        <p className="text-sm font-semibold">{t('settings.riskTolerance')}</p>
+                                        <p className="text-[11px] text-muted-foreground capitalize">{t('settings.riskLevel').replace('{level}', userProfile.riskTolerance || '')}</p>
                                     </div>
                                 </div>
                                 <Select
@@ -373,9 +408,9 @@ export default function Settings() {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-xl">
-                                        <SelectItem value="low">Low</SelectItem>
-                                        <SelectItem value="medium">Medium</SelectItem>
-                                        <SelectItem value="high">High</SelectItem>
+                                        <SelectItem value="low">{t('settings.riskLow')}</SelectItem>
+                                        <SelectItem value="medium">{t('settings.riskMedium')}</SelectItem>
+                                        <SelectItem value="high">{t('settings.riskHigh')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -386,8 +421,8 @@ export default function Settings() {
                                         <Target className="w-4 h-4 text-blue-500" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold">Main Goal</p>
-                                        <p className="text-[10px] text-muted-foreground capitalize">{userProfile.goal?.replace('-', ' ')}</p>
+                                        <p className="text-sm font-semibold">{t('settings.mainGoal')}</p>
+                                        <p className="text-[11px] text-muted-foreground capitalize">{userProfile.goal?.replace('-', ' ')}</p>
                                     </div>
                                 </div>
                                 <Select
@@ -398,10 +433,10 @@ export default function Settings() {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-xl">
-                                        <SelectItem value="growth">Growth</SelectItem>
-                                        <SelectItem value="balanced">Balanced</SelectItem>
-                                        <SelectItem value="protection">Protection</SelectItem>
-                                        <SelectItem value="passive-income">Income</SelectItem>
+                                        <SelectItem value="growth">{t('settings.goalGrowth')}</SelectItem>
+                                        <SelectItem value="balanced">{t('settings.goalBalanced')}</SelectItem>
+                                        <SelectItem value="protection">{t('settings.goalProtection')}</SelectItem>
+                                        <SelectItem value="passive-income">{t('settings.goalIncome')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -413,7 +448,7 @@ export default function Settings() {
                 {menuSections.map((section, idx) => (
                     <div key={idx} className="space-y-2">
                         <div className="flex items-center gap-3 px-1 mb-1">
-                            <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/60 whitespace-nowrap">{section.title}</h2>
+                            <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground/60 whitespace-nowrap">{section.title}</h2>
                             <div className="flex-1 h-px bg-border/40" />
                         </div>
                         <div className="space-y-1.5">
@@ -440,14 +475,14 @@ export default function Settings() {
                                                 )}>{item.label}</p>
                                                 {item.badge && (
                                                     <span className={cn(
-                                                        "text-[8px] font-bold px-1.5 py-0.5 rounded-full border",
+                                                        "text-[11px] font-bold px-1.5 py-0.5 rounded-full border",
                                                         item.badgeColor
                                                     )}>
                                                         {item.badge}
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{item.sub}</p>
+                                            <p className="text-[11px] text-muted-foreground font-medium mt-0.5">{item.sub}</p>
                                         </div>
                                     </div>
                                     <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary/60 transition-colors" />
@@ -466,12 +501,28 @@ export default function Settings() {
                     }}
                 >
                     <LogOut className="w-4 h-4 text-red-500" />
-                    <span className="text-sm font-bold text-red-500 uppercase tracking-wider">Sign Out</span>
+                    <span className="text-sm font-bold text-red-500 uppercase tracking-wider">{t('common.signOut')}</span>
                 </button>
 
+                <div className="flex items-center justify-center gap-3 pt-2">
+                    <button
+                        onClick={() => navigate('/terms')}
+                        className="text-[11px] text-muted-foreground/60 hover:text-primary transition-colors font-medium"
+                    >
+                        {t('common.termsOfService')}
+                    </button>
+                    <span className="text-muted-foreground/30">|</span>
+                    <button
+                        onClick={() => navigate('/privacy')}
+                        className="text-[11px] text-muted-foreground/60 hover:text-primary transition-colors font-medium"
+                    >
+                        {t('common.privacyPolicy')}
+                    </button>
+                </div>
+
                 <div className="text-center space-y-1 py-4">
-                    <p className="text-[10px] text-muted-foreground/50 font-bold uppercase tracking-[0.2em]">Apice Capital v1.0.2</p>
-                    <p className="text-[9px] text-muted-foreground/30">Secure &amp; Private Wealth Management</p>
+                    <p className="text-[11px] text-muted-foreground/50 font-bold uppercase tracking-[0.2em]">Apice Capital v1.0.2</p>
+                    <p className="text-[11px] text-muted-foreground/30">{t('settings.secureWealth')}</p>
                 </div>
             </motion.div>
 
@@ -479,8 +530,8 @@ export default function Settings() {
             <Dialog open={showPersonalModal} onOpenChange={setShowPersonalModal}>
                 <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-border/40 rounded-3xl">
                     <DialogHeader>
-                        <DialogTitle>Personal Details</DialogTitle>
-                        <DialogDescription className="text-xs">Your account information</DialogDescription>
+                        <DialogTitle>{t('settings.personalDetailsModal.title')}</DialogTitle>
+                        <DialogDescription className="text-xs">{t('settings.personalDetailsModal.subtitle')}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-2">
                         {/* Avatar */}
@@ -491,14 +542,14 @@ export default function Settings() {
                                 </span>
                             </div>
                             <div>
-                                <p className="font-bold text-sm">{user?.email?.split('@')[0] || 'Investor'}</p>
-                                <p className="text-xs text-muted-foreground">{investorType || 'Balanced Optimizer'}</p>
+                                <p className="font-bold text-sm">{user?.email?.split('@')[0] || t('common.investor')}</p>
+                                <p className="text-xs text-muted-foreground">{investorType || t('settings.goalBalanced')}</p>
                             </div>
                         </div>
 
                         {/* Email */}
                         <div className="space-y-1.5">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email</Label>
+                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('settings.personalDetailsModal.email')}</Label>
                             <div className="flex items-center gap-2">
                                 <div className="flex-1 px-3 py-2.5 rounded-xl bg-secondary/50 text-sm text-muted-foreground">
                                     {user?.email}
@@ -516,25 +567,25 @@ export default function Settings() {
                         <div className="grid grid-cols-3 gap-3">
                             <div className="p-3 rounded-xl bg-secondary/30 text-center">
                                 <p className="text-xs font-bold capitalize">{subscription.tier}</p>
-                                <p className="text-[10px] text-muted-foreground">Plan</p>
+                                <p className="text-[11px] text-muted-foreground">{t('common.plan')}</p>
                             </div>
                             <div className="p-3 rounded-xl bg-secondary/30 text-center">
                                 <p className="text-xs font-bold">{daysActive}</p>
-                                <p className="text-[10px] text-muted-foreground">Days Active</p>
+                                <p className="text-[11px] text-muted-foreground">{t('common.daysActive')}</p>
                             </div>
                             <div className="p-3 rounded-xl bg-secondary/30 text-center">
                                 <p className="text-xs font-bold capitalize">{userProfile.riskTolerance || '—'}</p>
-                                <p className="text-[10px] text-muted-foreground">Risk</p>
+                                <p className="text-[11px] text-muted-foreground">{t('common.risk')}</p>
                             </div>
                         </div>
 
-                        <p className="text-[10px] text-muted-foreground text-center px-2">
-                            To update your email or password, contact our support team.
+                        <p className="text-[11px] text-muted-foreground text-center px-2">
+                            {t('settings.personalDetailsModal.contactSupport')}
                         </p>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" className="w-full rounded-xl" onClick={() => setShowPersonalModal(false)}>
-                            Close
+                            {t('common.close')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -544,40 +595,40 @@ export default function Settings() {
             <Dialog open={showNotifModal} onOpenChange={setShowNotifModal}>
                 <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-border/40 rounded-3xl">
                     <DialogHeader>
-                        <DialogTitle>Notifications</DialogTitle>
-                        <DialogDescription className="text-xs">Manage your push preferences</DialogDescription>
+                        <DialogTitle>{t('settings.notificationsModal.title')}</DialogTitle>
+                        <DialogDescription className="text-xs">{t('settings.notificationsModal.subtitle')}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3 py-2">
                         <div className="flex items-center justify-between p-4 rounded-2xl bg-secondary/30">
                             <div>
-                                <p className="text-sm font-semibold">Weekly Deposit Reminders</p>
-                                <p className="text-[10px] text-muted-foreground">Get reminded to make your weekly DCA</p>
+                                <p className="text-sm font-semibold">{t('settings.notificationsModal.weeklyReminders')}</p>
+                                <p className="text-[11px] text-muted-foreground">{t('settings.notificationsModal.weeklyRemindersDesc')}</p>
                             </div>
                             <Switch
                                 checked={notifEnabled}
                                 onCheckedChange={(v) => {
                                     setNotifEnabled(v);
-                                    toast.success(v ? 'Notifications enabled' : 'Notifications disabled');
+                                    toast.success(v ? t('settings.notificationsModal.notificationsEnabled') : t('settings.notificationsModal.notificationsDisabled'));
                                 }}
                             />
                         </div>
                         <div className="flex items-center justify-between p-4 rounded-2xl bg-secondary/30 opacity-60">
                             <div>
-                                <p className="text-sm font-semibold">Market Alerts</p>
-                                <p className="text-[10px] text-muted-foreground">Coming soon — crash alerts & opportunities</p>
+                                <p className="text-sm font-semibold">{t('settings.notificationsModal.marketAlerts')}</p>
+                                <p className="text-[11px] text-muted-foreground">{t('settings.notificationsModal.marketAlertsDesc')}</p>
                             </div>
-                            <Badge variant="outline" className="text-[9px]">Soon</Badge>
+                            <Badge variant="outline" className="text-[11px]">{t('common.soon')}</Badge>
                         </div>
                         <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-start gap-2">
                             <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                            <p className="text-[10px] text-muted-foreground">
-                                For full notification control, go to your device Settings → Apps → Apice to manage permissions.
+                            <p className="text-[11px] text-muted-foreground">
+                                {t('settings.notificationsModal.deviceSettings')}
                             </p>
                         </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" className="w-full rounded-xl" onClick={() => setShowNotifModal(false)}>
-                            Done
+                            {t('common.done')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -587,8 +638,8 @@ export default function Settings() {
             <Dialog open={showAppearanceModal} onOpenChange={setShowAppearanceModal}>
                 <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-border/40 rounded-3xl">
                     <DialogHeader>
-                        <DialogTitle>Appearance</DialogTitle>
-                        <DialogDescription className="text-xs">Theme & display settings</DialogDescription>
+                        <DialogTitle>{t('settings.appearanceModal.title')}</DialogTitle>
+                        <DialogDescription className="text-xs">{t('settings.appearanceModal.subtitle')}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3 py-2">
                         <div className="flex items-center justify-between p-4 rounded-2xl bg-secondary/30">
@@ -597,8 +648,8 @@ export default function Settings() {
                                     <Moon className="w-4 h-4 text-primary" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-semibold">Dark Mode</p>
-                                    <p className="text-[10px] text-muted-foreground">Currently active</p>
+                                    <p className="text-sm font-semibold">{t('settings.appearanceModal.darkMode')}</p>
+                                    <p className="text-[11px] text-muted-foreground">{t('settings.appearanceModal.currentlyActive')}</p>
                                 </div>
                             </div>
                             <Switch checked={true} disabled />
@@ -609,19 +660,19 @@ export default function Settings() {
                                     <SettingsIcon className="w-4 h-4 text-muted-foreground" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-semibold">Light Mode</p>
-                                    <p className="text-[10px] text-muted-foreground">Coming in future update</p>
+                                    <p className="text-sm font-semibold">{t('settings.appearanceModal.lightMode')}</p>
+                                    <p className="text-[11px] text-muted-foreground">{t('settings.appearanceModal.comingFuture')}</p>
                                 </div>
                             </div>
-                            <Badge variant="outline" className="text-[9px]">Soon</Badge>
+                            <Badge variant="outline" className="text-[11px]">{t('common.soon')}</Badge>
                         </div>
-                        <p className="text-[10px] text-muted-foreground text-center px-2 mt-4">
-                            Apice is designed for dark mode. Light mode and custom themes are on the roadmap.
+                        <p className="text-[11px] text-muted-foreground text-center px-2 mt-4">
+                            {t('settings.appearanceModal.designedDark')}
                         </p>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" className="w-full rounded-xl" onClick={() => setShowAppearanceModal(false)}>
-                            Got it
+                            {t('common.gotIt')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -631,26 +682,23 @@ export default function Settings() {
             <Dialog open={showLanguageModal} onOpenChange={setShowLanguageModal}>
                 <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-border/40 rounded-3xl">
                     <DialogHeader>
-                        <DialogTitle>Language</DialogTitle>
-                        <DialogDescription className="text-xs">Choose your preferred language</DialogDescription>
+                        <DialogTitle>{t('settings.languageModal.title')}</DialogTitle>
+                        <DialogDescription className="text-xs">{t('settings.languageModal.subtitle')}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3 py-2">
                         {[
-                            { code: 'en', label: 'English', sublabel: 'English (US)', flag: '🇺🇸', active: true },
-                            { code: 'pt', label: 'Português', sublabel: 'Português (Brasil)', flag: '🇧🇷', active: false },
+                            { code: 'en' as const, label: 'English', sublabel: t('settings.languageModal.englishUS'), flag: '\u{1F1FA}\u{1F1F8}' },
+                            { code: 'pt' as const, label: 'Português', sublabel: t('settings.languageModal.portugueseBR'), flag: '\u{1F1E7}\u{1F1F7}' },
                         ].map((lang) => (
                             <button
                                 key={lang.code}
                                 onClick={() => {
-                                    if (!lang.active) {
-                                        toast.info('Português — coming soon!', { description: 'We are adding full PT-BR support in the next update.' });
-                                    } else {
-                                        setShowLanguageModal(false);
-                                    }
+                                    setLanguage(lang.code);
+                                    setShowLanguageModal(false);
                                 }}
                                 className={cn(
                                     "w-full flex items-center justify-between p-4 rounded-2xl border transition-all",
-                                    lang.active
+                                    lang.code === language
                                         ? "border-primary/30 bg-primary/5"
                                         : "border-border/40 bg-secondary/20 hover:bg-secondary/40"
                                 )}
@@ -659,23 +707,20 @@ export default function Settings() {
                                     <span className="text-2xl">{lang.flag}</span>
                                     <div className="text-left">
                                         <p className="text-sm font-semibold">{lang.label}</p>
-                                        <p className="text-[10px] text-muted-foreground">{lang.sublabel}</p>
+                                        <p className="text-[11px] text-muted-foreground">{lang.sublabel}</p>
                                     </div>
                                 </div>
-                                {lang.active && (
+                                {lang.code === language && (
                                     <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
                                         <Check className="w-3 h-3 text-white" />
                                     </div>
-                                )}
-                                {!lang.active && (
-                                    <Badge variant="outline" className="text-[9px]">Soon</Badge>
                                 )}
                             </button>
                         ))}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" className="w-full rounded-xl" onClick={() => setShowLanguageModal(false)}>
-                            Close
+                            {t('common.close')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -685,18 +730,18 @@ export default function Settings() {
             <Dialog open={showBybitModal} onOpenChange={setShowBybitModal}>
                 <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-border/40 rounded-3xl">
                     <DialogHeader>
-                        <DialogTitle>Connect Bybit Account</DialogTitle>
+                        <DialogTitle>{t('settings.bybitModal.title')}</DialogTitle>
                         <DialogDescription className="text-xs">
-                            Enable direct execution and real-time portfolio management.
+                            {t('settings.bybitModal.subtitle')}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="api-key" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">API Key</Label>
+                            <Label htmlFor="api-key" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('settings.bybitModal.apiKey')}</Label>
                             <Input
                                 id="api-key"
-                                placeholder="Enter API Key"
+                                placeholder={t('settings.bybitModal.enterApiKey')}
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
                                 className="bg-secondary/50 border-none rounded-xl"
@@ -704,11 +749,11 @@ export default function Settings() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="api-secret" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">API Secret</Label>
+                            <Label htmlFor="api-secret" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('settings.bybitModal.apiSecret')}</Label>
                             <Input
                                 id="api-secret"
                                 type="password"
-                                placeholder="Enter API Secret"
+                                placeholder={t('settings.bybitModal.enterApiSecret')}
                                 value={apiSecret}
                                 onChange={(e) => setApiSecret(e.target.value)}
                                 className="bg-secondary/50 border-none rounded-xl"
@@ -717,8 +762,8 @@ export default function Settings() {
 
                         <div className="flex items-center justify-between p-3 rounded-xl bg-orange-500/10 border border-orange-500/20">
                             <div className="space-y-0.5">
-                                <Label htmlFor="testnet" className="text-xs font-bold">Use Testnet</Label>
-                                <p className="text-[10px] text-muted-foreground">Recommended for first-time use</p>
+                                <Label htmlFor="testnet" className="text-xs font-bold">{t('settings.bybitModal.useTestnet')}</Label>
+                                <p className="text-[11px] text-muted-foreground">{t('settings.bybitModal.recommendedFirstTime')}</p>
                             </div>
                             <Switch
                                 id="testnet"
@@ -730,13 +775,13 @@ export default function Settings() {
 
                     {/* Permission Guide */}
                     <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                        <p className="text-[10px] font-bold text-blue-400 mb-1">Required API Permissions:</p>
-                        <ul className="text-[10px] text-muted-foreground space-y-0.5">
-                            <li>Read (Account Info, Balance)</li>
-                            <li>Trade → Spot (for DCA auto-buy)</li>
+                        <p className="text-[11px] font-bold text-blue-400 mb-1">{t('settings.bybitModal.requiredPermissions')}</p>
+                        <ul className="text-[11px] text-muted-foreground space-y-0.5">
+                            <li>{t('settings.bybitModal.readPermission')}</li>
+                            <li>{t('settings.bybitModal.tradePermission')}</li>
                         </ul>
-                        <p className="text-[10px] text-muted-foreground mt-1">
-                            Bybit → Account → API Management → Create/Edit Key
+                        <p className="text-[11px] text-muted-foreground mt-1">
+                            {t('settings.bybitModal.bybitApiPath')}
                         </p>
                     </div>
 
@@ -749,17 +794,17 @@ export default function Settings() {
                             {connectionStatus === 'testing' ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Testing permissions...
+                                    {t('settings.bybitModal.testingPermissions')}
                                 </>
                             ) : connectionStatus === 'saving' ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Saving...
+                                    {t('settings.bybitModal.saving')}
                                 </>
                             ) : (
                                 <>
                                     <Zap className="w-4 h-4 mr-2 fill-current" />
-                                    Test & Connect
+                                    {t('settings.bybitModal.testAndConnect')}
                                 </>
                             )}
                         </Button>

@@ -27,6 +27,8 @@ export interface MissionProgress {
   m1_onboardingCompleted: boolean;
   m1_profileQuizDone: boolean;
   m2_methodologyRead: boolean;
+  m2_strategiesExplored: boolean;
+  m2_apiConnected: boolean;
   m2_whyCryptoExchange: boolean;
   m2_bybitAccountCreated: boolean;
   m2_bybitReferralUsed: boolean;
@@ -49,6 +51,17 @@ export interface SelectedPortfolio {
   portfolioId: string | null;
   allocations: { asset: string; percentage: number; color?: string }[];
   selectedAt: string | null;
+}
+
+export interface UserPortfolio {
+  id: string;
+  name: string;
+  allocations: { asset: string; percentage: number; color?: string }[];
+  isActive: boolean;
+  isCustom: boolean;
+  templateId?: string;
+  createdAt: string;
+  totalInvested: number;
 }
 
 // ─── DCA ────────────────────────────────────────────────────
@@ -130,6 +143,7 @@ export interface SubscriptionState {
   tier: 'free' | 'pro' | 'club';
   activeSince: string | null;
   expiresAt: string | null;
+  isTrial: boolean;
 }
 
 // ─── Notifications ──────────────────────────────────────────
@@ -188,6 +202,13 @@ export interface PortfolioSlice {
   selectPortfolio: (portfolioId: string, allocations: { asset: string; percentage: number; color?: string }[]) => void;
   updateSetupProgress: (updates: Partial<SetupProgress>) => void;
   setPortfolioAccepted: (accepted: boolean) => void;
+
+  // Multi-portfolio management
+  userPortfolios: UserPortfolio[];
+  addPortfolio: (portfolio: Omit<UserPortfolio, 'id' | 'createdAt' | 'totalInvested'>) => void;
+  removePortfolio: (portfolioId: string) => void;
+  updatePortfolio: (portfolioId: string, updates: Partial<UserPortfolio>) => void;
+  setActivePortfolio: (portfolioId: string) => void;
 }
 
 export interface DCASlice {
@@ -222,6 +243,8 @@ export interface SubscriptionSlice {
   aiBotWizard: { [step: string]: boolean };
   unlockFeature: (feature: keyof UnlockState) => void;
   setSubscription: (tier: 'free' | 'pro' | 'club') => void;
+  startFreeTrial: () => void;
+  checkTrialExpiry: () => void;
   completeWizardStep: (wizard: 'aiTrade' | 'aiBot', step: string) => void;
 }
 

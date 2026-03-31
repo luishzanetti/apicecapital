@@ -64,11 +64,11 @@ export default function ActionPlanWidget() {
                         <Sparkles className="w-4 h-4 text-primary" />
                         <span className="text-sm font-bold">AI Action Plan</span>
                     </div>
-                    <Badge variant="outline" className="text-[9px] border-primary/30 text-primary">
+                    <Badge variant="outline" className="text-[11px] border-primary/30 text-primary">
                         {completedSteps}/{actionPlanSteps.length}
                     </Badge>
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1">
+                <p className="text-[11px] text-muted-foreground mt-1">
                     Build a diversified portfolio step by step with AI guidance
                 </p>
                 {/* Progress bar */}
@@ -106,7 +106,7 @@ export default function ActionPlanWidget() {
                                     ) : (
                                         <div
                                             className={cn(
-                                                'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold',
+                                                'w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold',
                                                 status === 'active' ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground'
                                             )}
                                         >
@@ -121,7 +121,7 @@ export default function ActionPlanWidget() {
                                             {step.title}
                                         </span>
                                     </div>
-                                    <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+                                    <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
                                         {step.description}
                                     </p>
                                 </div>

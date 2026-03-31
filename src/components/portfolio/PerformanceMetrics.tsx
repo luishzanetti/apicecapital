@@ -143,13 +143,13 @@ export function PerformanceMetrics() {
             </div>
             <div className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-lg', healthBg)}>
               <span className={cn('text-sm font-bold', healthColor)}>{healthScore}</span>
-              <span className={cn('text-[10px] font-medium', healthColor)}>/100</span>
+              <span className={cn('text-[11px] font-medium', healthColor)}>/100</span>
             </div>
           </div>
 
           {/* Health Bar */}
           <div>
-            <div className="flex justify-between text-[9px] text-muted-foreground mb-1.5">
+            <div className="flex justify-between text-[11px] text-muted-foreground mb-1.5">
               <span>{healthLabel}</span>
               <span>{healthScore}%</span>
             </div>
@@ -169,8 +169,8 @@ export function PerformanceMetrics() {
                 { label: 'Reserves', score: Math.round(stableScore), max: 25 },
               ].map((item) => (
                 <div key={item.label} className="text-center">
-                  <p className="text-[8px] text-muted-foreground">{item.label}</p>
-                  <p className="text-[10px] font-semibold">{item.score}/{item.max}</p>
+                  <p className="text-[11px] text-muted-foreground">{item.label}</p>
+                  <p className="text-[11px] font-semibold">{item.score}/{item.max}</p>
                 </div>
               ))}
             </div>
@@ -179,7 +179,7 @@ export function PerformanceMetrics() {
           {/* Insights */}
           {insights.length > 0 && (
             <div className="space-y-2 pt-2 border-t border-border/30">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Insights</p>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Insights</p>
               {insights.map((insight, i) => (
                 <div
                   key={i}
@@ -190,7 +190,7 @@ export function PerformanceMetrics() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold">{insight.title}</p>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed mt-0.5">{insight.description}</p>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">{insight.description}</p>
                   </div>
                 </div>
               ))}

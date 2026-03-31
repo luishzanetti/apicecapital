@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAiAdvisor, type AiInsight } from '@/hooks/useAiAdvisor';
 import {
   Sparkles, TrendingUp, BookOpen, Target, Zap, AlertTriangle,
@@ -44,14 +45,20 @@ export function AiInsightCard() {
     return (
       <Card className="border-none" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.04))' }}>
         <CardContent className="pt-4 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Loader2 className="w-5 h-5 text-primary animate-spin" />
+          <div className="flex items-center gap-3 mb-3">
+            <Skeleton className="w-9 h-9 rounded-xl" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-2.5 w-20" />
+              <Skeleton className="h-3.5 w-36" />
             </div>
-            <div className="flex-1">
-              <div className="h-3 bg-secondary/50 rounded-full w-32 mb-2 animate-pulse" />
-              <div className="h-2 bg-secondary/30 rounded-full w-48 animate-pulse" />
-            </div>
+          </div>
+          <div className="space-y-2 mb-3">
+            <Skeleton className="h-2.5 w-full" />
+            <Skeleton className="h-2.5 w-4/5" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-5 w-16 rounded-full" />
+            <Skeleton className="h-5 w-14 rounded-full" />
           </div>
         </CardContent>
       </Card>
@@ -76,8 +83,8 @@ export function AiInsightCard() {
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">AI Insight</p>
-                  <Badge variant="outline" className="text-[8px] px-1.5 py-0">
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">AI Insight</p>
+                  <Badge variant="outline" className="text-[11px] px-1.5 py-0">
                     <Sparkles className="w-2 h-2 mr-0.5" />
                     Live
                   </Badge>
@@ -101,20 +108,20 @@ export function AiInsightCard() {
 
           {/* Tags Row */}
           <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <Badge variant="outline" className={cn('text-[8px] gap-1', typeConfig.color)}>
+            <Badge variant="outline" className={cn('text-[11px] gap-1', typeConfig.color)}>
               <Icon className="w-2.5 h-2.5" />
               {typeConfig.label}
             </Badge>
-            <Badge variant="outline" className={cn('text-[8px]', sentimentConfig.text)}>
+            <Badge variant="outline" className={cn('text-[11px]', sentimentConfig.text)}>
               {sentimentConfig.label}
             </Badge>
             {insight.urgency === 'high' && (
-              <Badge variant="outline" className="text-[8px] text-red-400 border-red-500/30">
+              <Badge variant="outline" className="text-[11px] text-red-400 border-red-500/30">
                 Urgent
               </Badge>
             )}
             {insight.relatedAssets.map(asset => (
-              <span key={asset} className="text-[9px] font-medium text-muted-foreground bg-secondary/50 px-1.5 py-0.5 rounded">
+              <span key={asset} className="text-[11px] font-medium text-muted-foreground bg-secondary/50 px-1.5 py-0.5 rounded">
                 {asset}
               </span>
             ))}

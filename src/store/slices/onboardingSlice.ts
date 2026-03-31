@@ -12,7 +12,8 @@ export const createOnboardingSlice: SliceCreator<OnboardingSlice> = (set, get) =
 
   syncFromSupabase: async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) return;
 
       const { data: profile } = await supabase
@@ -87,7 +88,8 @@ export const createOnboardingSlice: SliceCreator<OnboardingSlice> = (set, get) =
   skipOnboarding: () => {
     set({ onboardingSkipped: true, hasCompletedOnboarding: false });
     try {
-      supabase.auth.getUser().then(({ data: { user } }) => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const user = session?.user;
         if (user) {
           supabase
             .from('profiles')
@@ -108,7 +110,8 @@ export const createOnboardingSlice: SliceCreator<OnboardingSlice> = (set, get) =
     set((state) => {
       const newProfile = { ...state.userProfile, ...updates };
       try {
-        supabase.auth.getUser().then(({ data: { user } }) => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+        const user = session?.user;
           if (user) {
             supabase
               .from('profiles')
@@ -146,7 +149,8 @@ export const createOnboardingSlice: SliceCreator<OnboardingSlice> = (set, get) =
       },
     });
     try {
-      supabase.auth.getUser().then(({ data: { user } }) => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const user = session?.user;
         if (user) {
           supabase
             .from('profiles')
@@ -178,7 +182,8 @@ export const createOnboardingSlice: SliceCreator<OnboardingSlice> = (set, get) =
     }
     set({ investorType: type });
     try {
-      supabase.auth.getUser().then(({ data: { user } }) => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const user = session?.user;
         if (user) {
           supabase
             .from('profiles')

@@ -151,7 +151,7 @@
                  </div>
                )}
                <p className="font-semibold text-sm">{asset.symbol}</p>
-               <p className="text-[10px] text-muted-foreground truncate">{asset.name}</p>
+               <p className="text-[11px] text-muted-foreground truncate">{asset.name}</p>
                {asset.riskLevel === 'high' && (
                  <AlertTriangle className="w-3 h-3 text-apice-warning absolute bottom-2 right-2" />
                )}

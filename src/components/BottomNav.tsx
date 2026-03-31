@@ -1,94 +1,227 @@
-import { NavLink, useLocation } from 'react-router-dom';
-import { Home, PieChart, Compass, BookOpen, Settings } from 'lucide-react';
+import { useState } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Home, PieChart, Compass, BookOpen, MoreHorizontal, BarChart3, CalendarClock, Crown, Headphones, User, Gift, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-
-const navItems = [
-  { to: '/home', icon: Home, label: 'Home' },
-  { to: '/portfolio', icon: PieChart, label: 'Portfolio' },
-  { to: '/strategies', icon: Compass, label: 'Strategies' },
-  { to: '/learn', icon: BookOpen, label: 'Learn' },
-  { to: '/settings', icon: Settings, label: 'Settings' },
-];
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function BottomNav() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [showMore, setShowMore] = useState(false);
+  const { t } = useTranslation();
+
+  const navItems = [
+    { to: '/home', icon: Home, label: t('nav.home') },
+    { to: '/portfolio', icon: PieChart, label: t('nav.portfolio') },
+    { to: '/strategies', icon: Compass, label: t('nav.strategies') },
+    { to: '/learn', icon: BookOpen, label: t('nav.learn') },
+    { to: '__more__', icon: MoreHorizontal, label: t('nav.more') },
+  ];
+
+  const moreMenuItems = [
+    { to: '/analytics', icon: BarChart3, label: t('nav.analytics'), desc: t('nav.analyticsDesc') },
+    { to: '/dca-planner', icon: CalendarClock, label: t('nav.dcaPlanner'), desc: t('nav.dcaPlannerDesc') },
+    { to: '/settings', icon: User, label: t('nav.profileSettings'), desc: t('nav.profileSettingsDesc') },
+    { to: '/upgrade', icon: Crown, label: t('nav.upgrade'), desc: t('nav.upgradeDesc') },
+    { to: '/referrals', icon: Gift, label: t('nav.referrals'), desc: t('nav.referralsDesc') },
+    { to: '/support', icon: Headphones, label: t('nav.support'), desc: t('nav.supportDesc') },
+  ];
+
+  const isMoreActive = moreMenuItems.some(
+    (m) => location.pathname === m.to || location.pathname.startsWith(m.to + '/')
+  );
 
   return (
-    <div className="fixed bottom-4 left-0 right-0 z-40 px-5 pointer-events-none flex justify-center">
-      <nav className="pointer-events-auto flex items-center glass-nav px-1.5 py-1.5 rounded-[22px] shadow-2xl shadow-black/25 max-w-lg md:max-w-xl w-full">
-        {navItems.map((item) => {
-          const isActive =
-            location.pathname === item.to ||
-            location.pathname.startsWith(item.to + '/') ||
-            (item.to === '/home' && location.pathname === '/');
-
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={cn(
-                'relative flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-[18px] transition-all duration-200 press-scale',
-                isActive
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
+    <>
+      {/* More Menu Bottom Sheet */}
+      <AnimatePresence>
+        {showMore && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowMore(false)}
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl overflow-hidden"
+              style={{
+                background: 'rgba(15, 18, 35, 0.95)',
+                backdropFilter: 'blur(40px) saturate(180%)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderBottom: 'none',
+              }}
             >
-              {/* Active background pill */}
-              <AnimatePresence>
+              {/* Handle bar */}
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 rounded-full bg-white/20" />
+              </div>
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 pb-3">
+                <h3 className="text-sm font-semibold text-foreground">{t('nav.more')}</h3>
+                <button
+                  onClick={() => setShowMore(false)}
+                  className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center"
+                  aria-label="Close menu"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+
+              {/* Menu Items */}
+              <div className="px-4 pb-8 space-y-1">
+                {moreMenuItems.map((item) => {
+                  const isActive =
+                    location.pathname === item.to ||
+                    location.pathname.startsWith(item.to + '/');
+
+                  return (
+                    <button
+                      key={item.to}
+                      onClick={() => {
+                        setShowMore(false);
+                        setTimeout(() => navigate(item.to), 150);
+                      }}
+                      className={cn(
+                        'w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition-colors',
+                        isActive
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-foreground hover:bg-white/5'
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          'w-9 h-9 rounded-xl flex items-center justify-center shrink-0',
+                          isActive ? 'bg-primary/15' : 'bg-white/5'
+                        )}
+                      >
+                        <item.icon
+                          className={cn(
+                            'w-[18px] h-[18px]',
+                            isActive ? 'text-primary' : 'text-muted-foreground'
+                          )}
+                          strokeWidth={1.8}
+                        />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-[13px] font-medium">{item.label}</p>
+                        <p className="text-[11px] text-muted-foreground">{item.desc}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Bottom Nav Bar */}
+      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-40px)] max-w-[380px]">
+        <nav
+          className="flex items-center justify-between px-4 py-2.5 rounded-[22px]"
+          style={{
+            background: 'rgba(15, 18, 35, 0.72)',
+            backdropFilter: 'blur(40px) saturate(200%)',
+            WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow:
+              '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+          }}
+        >
+          {navItems.map((item) => {
+            const isMore = item.to === '__more__';
+            const isActive = isMore
+              ? isMoreActive
+              : location.pathname === item.to ||
+                location.pathname.startsWith(item.to + '/') ||
+                (item.to === '/home' && location.pathname === '/');
+
+            if (isMore) {
+              return (
+                <button
+                  key="more"
+                  onClick={() => setShowMore(true)}
+                  aria-label="More options"
+                  className="relative flex flex-col items-center gap-1 px-2 py-1 press-scale"
+                >
+                  <motion.div
+                    animate={isActive ? { scale: 1.1, y: -1 } : { scale: 1, y: 0 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                  >
+                    <MoreHorizontal
+                      className={cn(
+                        'w-[22px] h-[22px] transition-colors duration-200',
+                        isActive ? 'text-white' : 'text-white/40'
+                      )}
+                      strokeWidth={isActive ? 2.2 : 1.8}
+                    />
+                  </motion.div>
+                  <span
+                    className={cn(
+                      'text-[11px] font-medium tracking-wide transition-colors duration-200',
+                      isActive ? 'text-white' : 'text-white/40'
+                    )}
+                  >
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="navGlow"
+                      className="absolute -bottom-1 w-5 h-0.5 rounded-full bg-primary"
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                </button>
+              );
+            }
+
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                aria-label={item.label}
+                className="relative flex flex-col items-center gap-1 px-2 py-1 press-scale"
+              >
+                <motion.div
+                  animate={isActive ? { scale: 1.1, y: -1 } : { scale: 1, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                >
+                  <item.icon
+                    className={cn(
+                      'w-[22px] h-[22px] transition-colors duration-200',
+                      isActive ? 'text-white' : 'text-white/40'
+                    )}
+                    strokeWidth={isActive ? 2.2 : 1.8}
+                  />
+                </motion.div>
+                <span
+                  className={cn(
+                    'text-[11px] font-medium tracking-wide transition-colors duration-200',
+                    isActive ? 'text-white' : 'text-white/40'
+                  )}
+                >
+                  {item.label}
+                </span>
                 {isActive && (
                   <motion.div
-                    layoutId="activeTabPill"
-                    className="absolute inset-0 rounded-[18px]"
-                    style={{
-                      background: 'linear-gradient(145deg, hsl(var(--primary) / 0.14), hsl(var(--primary) / 0.06))',
-                      border: '1px solid hsl(var(--primary) / 0.2)',
-                    }}
-                    initial={{ opacity: 0, scale: 0.92 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.92 }}
-                    transition={{ type: 'spring', stiffness: 480, damping: 30 }}
+                    layoutId="navGlow"
+                    className="absolute -bottom-1 w-5 h-0.5 rounded-full bg-primary"
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
                 )}
-              </AnimatePresence>
-
-              {/* Icon */}
-              <motion.div
-                animate={isActive ? { scale: 1.1, y: -1 } : { scale: 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                className="relative z-10"
-              >
-                <item.icon
-                  className={cn(
-                    'w-5 h-5 transition-colors duration-200',
-                    isActive ? 'text-primary' : 'text-muted-foreground'
-                  )}
-                  strokeWidth={isActive ? 2.2 : 1.8}
-                />
-              </motion.div>
-
-              {/* Label */}
-              <span
-                className={cn(
-                  'text-[9px] font-semibold uppercase tracking-wide relative z-10 transition-colors duration-200',
-                  isActive ? 'text-primary' : 'text-muted-foreground'
-                )}
-              >
-                {item.label}
-              </span>
-
-              {/* Active dot indicator */}
-              {isActive && (
-                <motion.div
-                  layoutId="bottomNavIndicator"
-                  className="absolute -bottom-0.5 w-4 h-0.5 rounded-full bg-primary"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              )}
-            </NavLink>
-          );
-        })}
-      </nav>
-    </div>
+              </NavLink>
+            );
+          })}
+        </nav>
+      </div>
+    </>
   );
 }

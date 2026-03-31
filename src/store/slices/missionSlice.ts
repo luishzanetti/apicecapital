@@ -36,7 +36,8 @@ export const createMissionSlice: SliceCreator<MissionSlice> = (set, get) => ({
         };
       }
 
-      supabase.auth.getUser().then(({ data: { user } }) => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const user = session?.user;
         if (user) {
           supabase
             .from('profiles')
@@ -46,7 +47,10 @@ export const createMissionSlice: SliceCreator<MissionSlice> = (set, get) => ({
                 (newState as any).hasCompletedOnboarding ?? state.hasCompletedOnboarding,
               updated_at: new Date().toISOString(),
             })
-            .eq('id', user.id);
+            .eq('id', user.id)
+            .then(({ error }) => {
+              if (error) console.error('[missionSlice] Failed to save mission progress:', error);
+            });
         }
       });
 

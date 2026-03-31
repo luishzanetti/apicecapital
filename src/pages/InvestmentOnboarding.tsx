@@ -77,6 +77,7 @@ export default function InvestmentOnboarding() {
     const investorType = useAppStore((s) => s.investorType);
     const setWeeklyInvestment = useAppStore((s) => s.setWeeklyInvestment);
     const completeOnboarding = useAppStore((s) => s.completeOnboarding);
+    const startFreeTrial = useAppStore((s) => s.startFreeTrial);
 
     const tiers = useMemo(
         () => getPersonalizedTiers(userProfile.capitalRange, investorType),
@@ -88,8 +89,8 @@ export default function InvestmentOnboarding() {
     const [customMode, setCustomMode] = useState(false);
     const [step, setStep] = useState<'select' | 'confirm'>('select');
 
-    const annualRate = getReturnRateForInvestorType(investorType);
-    const returnLabel = getReturnLabel(investorType);
+    const annualRate = getReturnRateForInvestorType(investorType) || 0.10;
+    const returnLabel = getReturnLabel(investorType) || 'Moderate';
 
     const projectionData = useMemo(() => generateProjections(selectedAmount, annualRate), [selectedAmount, annualRate]);
     const fiveYearProjected = projectionData[projectionData.length - 1]?.projected || 0;
@@ -103,6 +104,7 @@ export default function InvestmentOnboarding() {
         setWeeklyInvestment(selectedAmount);
         if (!useAppStore.getState().hasCompletedOnboarding) {
             completeOnboarding();
+            startFreeTrial();
         }
         navigate('/profile-result');
     };
@@ -174,7 +176,7 @@ export default function InvestmentOnboarding() {
                                     >
                                         {tier.recommended && (
                                             <div className="absolute top-0 right-0">
-                                                <Badge className="rounded-none rounded-bl-lg text-[9px] px-2 py-0.5 bg-primary">
+                                                <Badge className="rounded-none rounded-bl-lg text-[11px] px-2 py-0.5 bg-primary">
                                                     RECOMMENDED
                                                 </Badge>
                                             </div>
@@ -184,7 +186,7 @@ export default function InvestmentOnboarding() {
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-0.5">
                                                     <h3 className="font-semibold text-sm">{tier.label}</h3>
-                                                    <Badge variant="secondary" className="text-[9px] px-1.5 py-0">
+                                                    <Badge variant="secondary" className="text-[11px] px-1.5 py-0">
                                                         {tier.tag}
                                                     </Badge>
                                                 </div>
@@ -192,7 +194,7 @@ export default function InvestmentOnboarding() {
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-lg font-bold text-primary">${tier.amount}</p>
-                                                <p className="text-[10px] text-muted-foreground">/week</p>
+                                                <p className="text-[11px] text-muted-foreground">/week</p>
                                             </div>
                                         </div>
                                     </motion.button>
@@ -268,15 +270,15 @@ export default function InvestmentOnboarding() {
                                 </div>
                                 <div className="grid grid-cols-3 gap-3 text-center">
                                     <div>
-                                        <p className="text-[10px] text-muted-foreground uppercase">Invested</p>
+                                        <p className="text-[11px] text-muted-foreground uppercase">Invested</p>
                                         <p className="text-sm font-bold">${fiveYearInvested.toLocaleString()}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] text-muted-foreground uppercase">Projected</p>
+                                        <p className="text-[11px] text-muted-foreground uppercase">Projected</p>
                                         <p className="text-sm font-bold text-primary">${fiveYearProjected.toLocaleString()}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] text-muted-foreground uppercase">Return</p>
+                                        <p className="text-[11px] text-muted-foreground uppercase">Return</p>
                                         <p className="text-sm font-bold text-green-500">+{fiveYearReturn}%</p>
                                     </div>
                                 </div>
@@ -307,7 +309,7 @@ export default function InvestmentOnboarding() {
                                 Continue with ${selectedAmount}/week
                                 <ArrowRight className="w-4 h-4 ml-1" />
                             </Button>
-                            <p className="text-center text-[10px] text-muted-foreground mt-3">
+                            <p className="text-center text-[11px] text-muted-foreground mt-3">
                                 You can change this anytime in your portfolio settings.
                             </p>
                         </div>
@@ -393,7 +395,7 @@ export default function InvestmentOnboarding() {
                                     className="flex items-center gap-3"
                                 >
                                     <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                        <span className="text-[10px] font-bold text-primary">{item.step}</span>
+                                        <span className="text-[11px] font-bold text-primary">{item.step}</span>
                                     </div>
                                     <p className="text-xs text-muted-foreground">{item.text}</p>
                                 </motion.div>

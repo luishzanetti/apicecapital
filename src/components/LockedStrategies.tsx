@@ -11,11 +11,11 @@ export default function LockedStrategies() {
             <div className="flex items-center gap-2">
                 <Lock className="w-4 h-4 text-muted-foreground" />
                 <h3 className="text-sm font-semibold">Upcoming Strategies</h3>
-                <Badge variant="secondary" className="text-[9px]">
+                <Badge variant="secondary" className="text-[11px]">
                     Coming Soon
                 </Badge>
             </div>
-            <p className="text-[10px] text-muted-foreground -mt-1">
+            <p className="text-[11px] text-muted-foreground -mt-1">
                 Unlock advanced strategies as you evolve in Apice
             </p>
 
@@ -53,23 +53,23 @@ export default function LockedStrategies() {
                                         <div className="flex items-center gap-3 mb-3">
                                             <div className="flex items-center gap-1">
                                                 <TrendingUp className="w-3 h-3 text-green-400" />
-                                                <span className="text-[10px] text-green-400 font-medium">{strategy.expectedReturn}</span>
+                                                <span className="text-[11px] text-green-400 font-medium">{strategy.expectedReturn}</span>
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <Shield className="w-3 h-3 text-muted-foreground" />
-                                                <span className="text-[10px] text-muted-foreground">{strategy.risk}</span>
+                                                <span className="text-[11px] text-muted-foreground">{strategy.risk}</span>
                                             </div>
                                         </div>
 
                                         {/* Unlock requirements */}
                                         <div className="space-y-1.5">
-                                            <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">
+                                            <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">
                                                 To unlock:
                                             </p>
                                             {strategy.unlockRequirements.map((req, j) => (
                                                 <div key={j} className="flex items-center gap-2">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 shrink-0" />
-                                                    <span className="text-[10px] text-muted-foreground">{req}</span>
+                                                    <span className="text-[11px] text-muted-foreground">{req}</span>
                                                 </div>
                                             ))}
                                         </div>

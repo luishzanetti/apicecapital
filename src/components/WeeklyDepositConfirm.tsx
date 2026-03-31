@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -80,6 +81,14 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
         confirmWeeklyDeposit(currentWeekId, weeklyInvestment, allocations);
         setIsSyncing(false);
         setConfirmed(true);
+
+        // Celebration confetti burst
+        confetti({
+            particleCount: 50,
+            spread: 60,
+            origin: { y: 0.7 },
+            colors: ['#528FFF', '#FFD700', '#8B5CF6'],
+        });
 
         toast.success('Synced with Bybit! 🎉', {
             description: `$${weeklyInvestment} reported and matched with your exchange.`,
@@ -250,7 +259,7 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                     <ExternalLink className="w-4 h-4 text-primary shrink-0" />
                                     <div className="flex-1">
                                         <p className="text-xs font-medium">Configure DCA on Bybit</p>
-                                        <p className="text-[10px] text-muted-foreground">Open DCA tool on the exchange</p>
+                                        <p className="text-[11px] text-muted-foreground">Open DCA tool on the exchange</p>
                                     </div>
                                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                                 </a>
@@ -258,7 +267,7 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                 {/* Trust */}
                                 <div className="flex items-center gap-2 mb-5">
                                     <Shield className="w-3 h-3 text-muted-foreground shrink-0" />
-                                    <p className="text-[10px] text-muted-foreground">
+                                    <p className="text-[11px] text-muted-foreground">
                                         This logs your investment for tracking. Your funds stay on your exchange — Apice never has access to your wallet. For extra purchases outside DCA, simply log them here too.
                                     </p>
                                 </div>

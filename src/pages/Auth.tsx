@@ -1,13 +1,25 @@
 import { useState, useEffect, useCallback } from "react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Loader2, Lock, Mail, Eye, EyeOff, ArrowRight, Shield } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
+import { useAppStore } from "@/store/appStore";
+
+// Auth input validation schema
+const authSchema = z.object({
+  email: z.string()
+    .email('Please enter a valid email address')
+    .max(254, 'Email is too long'),
+  password: z.string()
+    .min(6, 'Password must be at least 6 characters')
+    .max(128, 'Password is too long'),
+});
 
 const TRANSITION_SMOOTH = [0.16, 1, 0.3, 1] as const;
 
@@ -19,9 +31,19 @@ const containerVariants = {
   },
 };
 
+const containerVariantsReduced = {
+  hidden: { opacity: 1 },
+  visible: { opacity: 1 },
+};
+
 const itemVariants = {
   hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: TRANSITION_SMOOTH } },
+};
+
+const itemVariantsReduced = {
+  hidden: { opacity: 1 },
+  visible: { opacity: 1 },
 };
 
 export default function Auth() {
@@ -33,6 +55,11 @@ export default function Auth() {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const navigate = useNavigate();
   const { session, demoSignIn, isDemoMode } = useAuth();
+  const prefersReducedMotion = useReducedMotion();
+  const hasCompletedOnboarding = useAppStore((s) => s.hasCompletedOnboarding);
+
+  // Animation helpers for reduced motion
+  const animDuration = prefersReducedMotion ? 0 : undefined;
 
   useEffect(() => {
     if (session) navigate("/home", { replace: true });
@@ -43,11 +70,24 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      // Validate inputs with Zod before sending to auth provider
+      const validation = authSchema.safeParse({ email, password });
+      if (!validation.success) {
+        const firstError = validation.error.errors[0]?.message || "Invalid input";
+        toast.error(firstError);
+        return;
+      }
+
       // Demo mode: skip Supabase, use local session
       if (isDemoMode) {
-        demoSignIn(email);
+        demoSignIn(validation.data.email);
         toast.success(isSignUp ? "Account created (demo mode)!" : "Welcome back (demo mode)!");
-        navigate("/home");
+        // After signup, redirect to onboarding if not completed
+        if (isSignUp && !hasCompletedOnboarding) {
+          navigate("/onboarding");
+        } else {
+          navigate("/home");
+        }
         return;
       }
 
@@ -55,8 +95,9 @@ export default function Auth() {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
         if (data?.session) {
-          toast.success("Welcome to Apice Capital! 🚀");
-          navigate("/onboarding");
+          toast.success("Welcome to Apice Capital!");
+          // Redirect to onboarding if not already completed, otherwise home
+          navigate(hasCompletedOnboarding ? "/home" : "/onboarding");
         } else {
           toast.success("Account created!", {
             description: "Please check your email to confirm your account.",
@@ -90,11 +131,11 @@ export default function Auth() {
     } finally {
       setLoading(false);
     }
-  }, [email, password, isSignUp, navigate]);
+  }, [email, password, isSignUp, navigate, isDemoMode, demoSignIn, hasCompletedOnboarding]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative overflow-hidden">
-      {/* Ambient Background — layered orbs */}
+      {/* Ambient Background — layered orbs (hidden with reduced motion) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
           className="absolute inset-0"
@@ -102,45 +143,56 @@ export default function Auth() {
             background: 'radial-gradient(ellipse 80% 50% at 50% -20%, hsl(var(--primary) / 0.08), transparent 60%)',
           }}
         />
-        <motion.div
-          className="absolute w-[60vw] h-[60vw] max-w-[500px] max-h-[500px] rounded-full"
-          style={{
-            top: '-15%', left: '-15%',
-            background: 'radial-gradient(circle, hsl(var(--primary) / 0.07), transparent 65%)',
-            filter: 'blur(80px)',
-          }}
-          animate={{ x: [0, 20, 0], y: [0, -15, 0], scale: [1, 1.05, 1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute w-[50vw] h-[50vw] max-w-[400px] max-h-[400px] rounded-full"
-          style={{
-            bottom: '-10%', right: '-10%',
-            background: 'radial-gradient(circle, hsl(var(--apice-gradient-end) / 0.06), transparent 65%)',
-            filter: 'blur(80px)',
-          }}
-          animate={{ x: [0, -15, 0], y: [0, 18, 0], scale: [1, 0.96, 1] }}
-          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
-        />
+        {!prefersReducedMotion && (
+          <>
+            <motion.div
+              className="absolute w-[60vw] h-[60vw] max-w-[500px] max-h-[500px] rounded-full"
+              style={{
+                top: '-15%', left: '-15%',
+                background: 'radial-gradient(circle, hsl(var(--primary) / 0.07), transparent 65%)',
+                filter: 'blur(80px)',
+              }}
+              animate={{ x: [0, 20, 0], y: [0, -15, 0], scale: [1, 1.05, 1] }}
+              transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="absolute w-[50vw] h-[50vw] max-w-[400px] max-h-[400px] rounded-full"
+              style={{
+                bottom: '-10%', right: '-10%',
+                background: 'radial-gradient(circle, hsl(var(--apice-gradient-end) / 0.06), transparent 65%)',
+                filter: 'blur(80px)',
+              }}
+              animate={{ x: [0, -15, 0], y: [0, 18, 0], scale: [1, 0.96, 1] }}
+              transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </>
+        )}
         {/* Subtle noise texture overlay */}
         <div className="absolute inset-0 opacity-[0.015]" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
         }} />
       </div>
 
+      {/* Demo Mode Banner */}
+      {isDemoMode && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500/90 text-black text-center py-1.5 text-xs font-semibold">
+          Demo Mode — Data is stored locally only
+        </div>
+      )}
+
       {/* Content */}
       <motion.div
-        variants={containerVariants}
+        variants={prefersReducedMotion ? containerVariantsReduced : containerVariants}
         initial="hidden"
         animate="visible"
         className="w-full max-w-sm relative z-10 flex flex-col items-center"
       >
         {/* Logo */}
-        <motion.div variants={itemVariants} className="flex flex-col items-center gap-3 mb-10">
+        <motion.div variants={prefersReducedMotion ? itemVariantsReduced : itemVariants} className="flex flex-col items-center gap-3 mb-10">
           <motion.div
             className="w-16 h-16 rounded-[20px] apice-gradient-primary flex items-center justify-center shadow-2xl relative"
-            whileHover={{ scale: 1.05, rotate: 2 }}
-            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+            whileHover={prefersReducedMotion ? {} : { scale: 1.05, rotate: 2 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 15 }}
           >
             <div className="absolute inset-0 rounded-[20px] glow-primary opacity-60" />
             <svg width="30" height="30" viewBox="0 0 40 40" fill="none" className="text-white relative z-10">
@@ -152,10 +204,10 @@ export default function Auth() {
           <AnimatePresence mode="wait">
             <motion.div
               key={isSignUp ? "signup" : "signin"}
-              initial={{ opacity: 0, y: 8 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.3 }}
+              exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
               className="text-center"
             >
               <h1 className="font-display text-2xl font-bold tracking-tight">
@@ -171,7 +223,7 @@ export default function Auth() {
         </motion.div>
 
         {/* Form Card */}
-        <motion.div variants={itemVariants} className="w-full">
+        <motion.div variants={prefersReducedMotion ? itemVariantsReduced : itemVariants} className="w-full">
           <div className="glass-card rounded-3xl p-6 apice-shadow-elevated">
             <form onSubmit={handleAuth} className="space-y-5">
               {/* Email */}
@@ -240,7 +292,7 @@ export default function Auth() {
               </div>
 
               {/* Submit */}
-              <motion.div whileTap={{ scale: 0.98 }}>
+              <motion.div whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}>
                 <Button
                   disabled={loading}
                   className="w-full h-12 rounded-2xl apice-gradient-primary text-white font-semibold text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 group"
@@ -256,6 +308,20 @@ export default function Auth() {
                 </Button>
               </motion.div>
             </form>
+
+            {/* Legal agreement for sign-up */}
+            {isSignUp && (
+              <p className="text-[11px] text-muted-foreground/60 text-center mt-4 px-2 leading-relaxed">
+                By signing up, you agree to our{' '}
+                <Link to="/terms" className="text-primary hover:text-primary/80 transition-colors font-medium">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link to="/privacy" className="text-primary hover:text-primary/80 transition-colors font-medium">
+                  Privacy Policy
+                </Link>.
+              </p>
+            )}
 
             {/* Toggle */}
             <div className="mt-6 pt-4 border-t border-border/20">
@@ -277,11 +343,11 @@ export default function Auth() {
 
         {/* Trust badge */}
         <motion.div
-          variants={itemVariants}
+          variants={prefersReducedMotion ? itemVariantsReduced : itemVariants}
           className="flex items-center gap-2 mt-8 text-muted-foreground/40"
         >
           <Shield className="w-3 h-3" />
-          <span className="text-[10px] tracking-wide">
+          <span className="text-[11px] tracking-wide">
             {isDemoMode ? "Demo mode • No Supabase configured • Data saved locally" : "End-to-end encrypted • Your keys, your crypto"}
           </span>
         </motion.div>

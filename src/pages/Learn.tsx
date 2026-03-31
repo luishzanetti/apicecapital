@@ -122,7 +122,7 @@ export default function Learn() {
                   transition={{ duration: 0.6 }}
                 />
               </div>
-              <div className="flex justify-between text-[10px] text-muted-foreground">
+              <div className="flex justify-between text-[11px] text-muted-foreground">
                 <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-amber-400" />{totalXP} XP</span>
                 <span>{level.nextLevel ? `${level.nextLevel.xpRequired - totalXP} XP to Level ${level.nextLevel.level}` : '🏆 Max Level!'}</span>
               </div>
@@ -138,7 +138,7 @@ export default function Learn() {
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-lg font-bold">{s.value}</p>
-                <p className="text-[10px] text-muted-foreground">{s.label}</p>
+                <p className="text-[11px] text-muted-foreground">{s.label}</p>
               </div>
             ))}
           </div>
@@ -160,9 +160,9 @@ export default function Learn() {
                   <PlayCircle className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-semibold text-white/70 uppercase tracking-wider mb-0.5">Continue Learning</p>
+                  <p className="text-[11px] font-semibold text-white/70 uppercase tracking-wider mb-0.5">Continue Learning</p>
                   <p className="text-sm font-bold text-white truncate">{nextLessonUp.lesson.title}</p>
-                  <p className="text-[10px] text-white/70">{nextLessonUp.track.name} · +{XP_PER_LESSON} XP</p>
+                  <p className="text-[11px] text-white/70">{nextLessonUp.track.name} · +{XP_PER_LESSON} XP</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-white/70 shrink-0" />
               </div>
@@ -177,7 +177,7 @@ export default function Learn() {
               <Trophy className="w-4 h-4 text-amber-400" />
               <h2 className="font-semibold text-sm">Achievements</h2>
             </div>
-            <span className="text-[10px] text-muted-foreground">{earnedBadgeIds.length}/{learnBadges.length}</span>
+            <span className="text-[11px] text-muted-foreground">{earnedBadgeIds.length}/{learnBadges.length}</span>
           </div>
 
           {/* Next badge callout */}
@@ -190,7 +190,7 @@ export default function Learn() {
               <span className="text-2xl">{nextBadge.icon}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold">Next: {nextBadge.name}</p>
-                <p className="text-[10px] text-muted-foreground">{nextBadge.requirement}</p>
+                <p className="text-[11px] text-muted-foreground">{nextBadge.requirement}</p>
               </div>
               <Target className="w-4 h-4 text-primary shrink-0" />
             </motion.div>
@@ -216,7 +216,7 @@ export default function Learn() {
                     </div>
                   )}
                   <span className={cn('text-xl', !isEarned && 'opacity-10')}>{badge.icon}</span>
-                  <p className={cn('text-[9px] font-medium mt-0.5 leading-tight', !isEarned && 'opacity-10')}>{badge.name}</p>
+                  <p className={cn('text-[11px] font-medium mt-0.5 leading-tight', !isEarned && 'opacity-10')}>{badge.name}</p>
                 </motion.div>
               );
             })}
@@ -290,10 +290,10 @@ export default function Learn() {
                               </Badge>
                             )}
                             {isTrackComplete && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-medium shrink-0">DONE</span>
+                              <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-medium shrink-0">DONE</span>
                             )}
                           </div>
-                          <p className="text-[10px] text-muted-foreground truncate">{track.description}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{track.description}</p>
                           <div className="flex items-center gap-2 mt-1.5">
                             <div className="flex-1 h-1 bg-secondary rounded-full overflow-hidden">
                               <motion.div
@@ -302,7 +302,7 @@ export default function Learn() {
                                 transition={{ duration: 0.5 }}
                               />
                             </div>
-                            <span className="text-[10px] text-muted-foreground shrink-0">{completedInTrack}/{track.lessons.length}</span>
+                            <span className="text-[11px] text-muted-foreground shrink-0">{completedInTrack}/{track.lessons.length}</span>
                           </div>
                         </div>
 
@@ -356,14 +356,14 @@ export default function Learn() {
                                     <div className="flex-1 min-w-0">
                                       <p className="text-xs font-medium truncate">{lesson.title}</p>
                                       <div className="flex items-center gap-2 mt-0.5">
-                                        {isNextUp && <span className="text-[10px] text-primary font-semibold">▶ Up next</span>}
-                                        {hasQuiz && !isNextUp && <span className="text-[9px] text-primary/70 flex items-center gap-0.5"><Brain className="w-2.5 h-2.5" />Quiz</span>}
-                                        {hasChallenge && !isNextUp && <span className="text-[9px] text-amber-400/70 flex items-center gap-0.5"><Target className="w-2.5 h-2.5" />Challenge</span>}
+                                        {isNextUp && <span className="text-[11px] text-primary font-semibold">▶ Up next</span>}
+                                        {hasQuiz && !isNextUp && <span className="text-[11px] text-primary/70 flex items-center gap-0.5"><Brain className="w-2.5 h-2.5" />Quiz</span>}
+                                        {hasChallenge && !isNextUp && <span className="text-[11px] text-amber-400/70 flex items-center gap-0.5"><Target className="w-2.5 h-2.5" />Challenge</span>}
                                       </div>
                                     </div>
                                     <div className="flex items-center gap-1.5 shrink-0">
-                                      {isCompleted && <span className="text-[10px] text-green-400 font-medium">+{XP_PER_LESSON}</span>}
-                                      <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                                      {isCompleted && <span className="text-[11px] text-green-400 font-medium">+{XP_PER_LESSON}</span>}
+                                      <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground">
                                         <Clock className="w-2.5 h-2.5" />{lesson.readingTime}m
                                       </span>
                                     </div>
@@ -393,7 +393,7 @@ export default function Learn() {
               <Flame className="w-8 h-8 text-orange-400" />
               <div>
                 <p className="text-sm font-bold">Start Your Streak Today</p>
-                <p className="text-xs text-muted-foreground">Complete a lesson daily to build your learning habit and earn bonus XP.</p>
+                <p className="text-xs text-muted-foreground">Every expert was once a beginner. Complete one lesson daily to build your investing knowledge and earn bonus XP.</p>
               </div>
             </div>
             {nextLessonUp && (

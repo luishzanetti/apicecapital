@@ -125,7 +125,7 @@ export function AllocationEngine({ weeklyAmount, onAccept, onCustomize, compact 
                             <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: alloc.color }} />
                             <span className="text-xs">{alloc.asset}</span>
                             <span className="text-xs text-muted-foreground ml-auto">{alloc.percentage}%</span>
-                            <span className="text-[10px] text-muted-foreground">${((weeklyAmount * alloc.percentage) / 100).toFixed(0)}</span>
+                            <span className="text-[11px] text-muted-foreground">${((weeklyAmount * alloc.percentage) / 100).toFixed(0)}</span>
                         </div>
                     ))}
                 </div>
@@ -141,11 +141,11 @@ export function AllocationEngine({ weeklyAmount, onAccept, onCustomize, compact 
                         <Sparkles className="w-4 h-4 text-primary" />
                         <h3 className="text-sm font-bold">Smart Allocation</h3>
                     </div>
-                    <Badge variant="outline" className="text-[9px] border-primary/30 text-primary">
+                    <Badge variant="outline" className="text-[11px] border-primary/30 text-primary">
                         {recommendation.source === 'portfolio' ? 'Portfolio-based' : 'AI Recommended'}
                     </Badge>
                 </div>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                     Personalized for: {contextFactors.join(' · ')}
                 </p>
             </div>
@@ -160,7 +160,7 @@ export function AllocationEngine({ weeklyAmount, onAccept, onCustomize, compact 
                     <Badge
                         variant="secondary"
                         className={cn(
-                            'text-[9px]',
+                            'text-[11px]',
                             recommendation.riskLevel === 'Low Risk' && 'bg-green-500/10 text-green-400',
                             recommendation.riskLevel === 'Medium Risk' && 'bg-amber-500/10 text-amber-400',
                             recommendation.riskLevel === 'High Risk' && 'bg-red-500/10 text-red-400',

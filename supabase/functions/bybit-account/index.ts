@@ -5,11 +5,28 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { crypto } from 'https://deno.land/std@0.208.0/crypto/mod.ts';
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+// Dynamic CORS: accept production domain + localhost for dev
+function getCorsHeaders(req?: Request): Record<string, string> {
+  const allowedOrigins = [
+    Deno.env.get('ALLOWED_ORIGIN'),
+    'http://localhost:8080',
+    'http://localhost:8081',
+    'http://localhost:5173',
+    'http://localhost:3000',
+  ].filter(Boolean) as string[];
+
+  const origin = req?.headers.get('origin') || '';
+  const allowOrigin = allowedOrigins.includes(origin) ? origin : (allowedOrigins[0] || '*');
+
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-user-token',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+}
+
+// Legacy constant for backwards compatibility within handler
+const CORS_HEADERS = getCorsHeaders();
 
 // ─── AES Decryption (compatible with CryptoJS) ─────────────
 
@@ -250,43 +267,96 @@ async function bybitAuthGet(
 // ─── Main Handler ───────────────────────────────────────────
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: CORS_HEADERS });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    // Verify JWT and get user
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
+    // Get user token — prefer x-user-token (sent by client to bypass gateway JWT validation)
+    // Fall back to authorization header for backward compatibility
+    const userToken = req.headers.get('x-user-token') || req.headers.get('authorization');
+    if (!userToken) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization' }),
-        { status: 401, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const encryptionKey = Deno.env.get('ENCRYPTION_KEY') || 'apice-capital-default-key-change-in-production';
+    const ENCRYPTION_KEY = Deno.env.get('ENCRYPTION_KEY');
+    if (!ENCRYPTION_KEY) {
+      throw new Error('ENCRYPTION_KEY not configured');
+    }
+    const encryptionKey = ENCRYPTION_KEY;
 
     // Create admin client to read credentials
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Create user client to verify JWT
+    // Create user client to verify JWT from x-user-token
+    const bearerToken = userToken.startsWith('Bearer ') ? userToken : `Bearer ${userToken}`;
     const supabaseUser = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
-      global: { headers: { Authorization: authHeader } },
+      global: { headers: { Authorization: bearerToken } },
     });
 
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Parse request
     const body = await req.json().catch(() => ({}));
     const action = body.action || 'balance';
+
+    // ─── Action: test-credentials (plaintext from form, before DB lookup) ──
+    if (action === 'test-credentials') {
+      const { apiKey: testKey, apiSecret: testSecret } = body;
+      if (!testKey || !testSecret) {
+        return new Response(
+          JSON.stringify({ error: 'API key and secret are required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Use the provided plaintext credentials to test connection
+      const isTestnet = body.isTestnet || body.testnet || false;
+      const baseUrl = isTestnet ? 'https://api-testnet.bybit.com' : 'https://api.bybit.com';
+
+      // Test with GET /v5/account/info
+      const timestamp = Date.now().toString();
+      const recvWindow = '20000';
+      const queryString = '';
+      const signPayload = timestamp + testKey + recvWindow + queryString;
+      const signature = await hmacSHA256(testSecret, signPayload);
+
+      const testResp = await fetch(`${baseUrl}/v5/account/info`, {
+        headers: {
+          'X-BAPI-API-KEY': testKey,
+          'X-BAPI-TIMESTAMP': timestamp,
+          'X-BAPI-RECV-WINDOW': recvWindow,
+          'X-BAPI-SIGN': signature,
+        },
+      });
+
+      const testResult = await testResp.json();
+
+      if (testResult.retCode === 0) {
+        return new Response(
+          JSON.stringify({ data: { valid: true, unifiedMarginStatus: testResult.result?.unifiedMarginStatus } }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } else {
+        return new Response(
+          JSON.stringify({ data: { valid: false, error: testResult.retMsg } }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     // Fetch encrypted credentials
     const { data: creds, error: credError } = await supabaseAdmin
@@ -298,7 +368,7 @@ Deno.serve(async (req) => {
     if (credError || !creds) {
       return new Response(
         JSON.stringify({ error: 'no_credentials', message: 'Bybit account not connected' }),
-        { status: 404, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -319,7 +389,7 @@ Deno.serve(async (req) => {
       if (!account) {
         return new Response(
           JSON.stringify({ error: 'No account data returned' }),
-          { status: 502, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -377,7 +447,7 @@ Deno.serve(async (req) => {
             grandTotal: totalEquity + fundingBalance,
           },
         }),
-        { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -402,7 +472,7 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({ data: { positions } }),
-        { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -412,25 +482,26 @@ Deno.serve(async (req) => {
         await bybitAuthGet(apiKey, apiSecret, testnet, '/v5/account/info');
         return new Response(
           JSON.stringify({ data: { connected: true, testnet } }),
-          { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       } catch (err) {
+        console.error('[bybit-account] Connection test failed:', err);
         return new Response(
-          JSON.stringify({ data: { connected: false, error: (err as Error).message } }),
-          { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          JSON.stringify({ data: { connected: false, error: 'Connection test failed' } }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
     }
 
     return new Response(
-      JSON.stringify({ error: 'Invalid action. Use "balance", "positions", or "test".' }),
-      { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Invalid action. Use "balance", "positions", "test", or "test-credentials".' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
     console.error('[bybit-account] Error:', err);
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: (err as Error).message }),
-      { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

@@ -2,15 +2,23 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/store/appStore';
+import { useAuth } from '@/components/AuthProvider';
+import { supabase } from '@/integrations/supabase/client';
+import { encrypt } from '@/lib/crypto';
+import { testBybitApiKey } from '@/hooks/useDCAExecution';
 import {
   ArrowLeft, ChevronRight, Shield, Zap, TrendingUp,
   PieChart, Lock, ExternalLink, Copy, Check,
   DollarSign, Landmark, ArrowRightLeft, Sparkles,
-  Target, Layers, BarChart3, CheckCircle2
+  Target, Layers, BarChart3, CheckCircle2,
+  Key, Eye, EyeOff, AlertTriangle, Wifi, Bot,
+  Clock, ShieldCheck, Loader2, Clipboard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { portfolios } from '@/data/sampleData';
 
 // ─── Step 1: The Apice Method ───────────────────────────────────────────────
 
@@ -179,7 +187,7 @@ function ApiceMethodStep({ onComplete }: { onComplete: () => void }) {
                       {pillar.stats.map((stat) => (
                         <div key={stat.label} className="p-3 rounded-xl bg-secondary/40 border border-border/20">
                           <p className={cn('text-xl font-bold', pillar.textColor)}>{stat.value}</p>
-                          <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{stat.label}</p>
+                          <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{stat.label}</p>
                         </div>
                       ))}
                     </div>
@@ -225,7 +233,7 @@ function ApiceMethodStep({ onComplete }: { onComplete: () => void }) {
           {allViewed && <Check className="w-4 h-4 ml-2" />}
         </Button>
         {!allViewed && (
-          <p className="text-[10px] text-muted-foreground text-center mt-2">
+          <p className="text-[11px] text-muted-foreground text-center mt-2">
             Tap each pillar above to unlock completion
           </p>
         )}
@@ -234,7 +242,333 @@ function ApiceMethodStep({ onComplete }: { onComplete: () => void }) {
   );
 }
 
-// ─── Step 2: The Fortress ───────────────────────────────────────────────────
+// ─── Step 2: API Setup — Strategy Engine Connection ─────────────────────────
+
+function APISetupStep({ onComplete }: { onComplete: () => void }) {
+  const { user } = useAuth();
+  const investorType = useAppStore((s) => s.investorType);
+  const addPortfolio = useAppStore((s) => s.addPortfolio);
+  const userPortfolios = useAppStore((s) => s.userPortfolios);
+  const [phase, setPhase] = useState<'learn' | 'guide' | 'connect'>('learn');
+  const [apiKey, setApiKey] = useState('');
+  const [apiSecret, setApiSecret] = useState('');
+  const [showSecret, setShowSecret] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'saving' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [useTestnet, setUseTestnet] = useState(false);
+  const [currentGuideStep, setCurrentGuideStep] = useState(0);
+
+  const whyReasons = [
+    { icon: <Clock className="w-5 h-5" />, title: '24/7 Execution', desc: 'The crypto market never sleeps. Your strategy needs to operate while you sleep, work, or travel. The API connects your plan to the market in real time.', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+    { icon: <Bot className="w-5 h-5" />, title: 'AI in Control', desc: 'Our AI Advisor analyzes your portfolio, suggests rebalancing, and executes DCA automatically. No emotion, no hesitation — data-driven decisions.', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { icon: <ShieldCheck className="w-5 h-5" />, title: 'Total Security', desc: 'Your API key has read and trade permissions only — NEVER withdrawal. Your funds stay on Bybit, protected. Apice never has access to your money.', color: 'text-amber-400', bg: 'bg-amber-500/10' },
+    { icon: <TrendingUp className="w-5 h-5" />, title: 'Superior Performance', desc: 'Investors using automated DCA via API achieve 15-30% better results than manual execution. Consistency eliminates the most common mistakes.', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+  ];
+
+  const guideSteps = [
+    { num: 1, title: 'Open Bybit', instruction: 'Go to bybit.com and log in to your account. If you don\'t have one yet, create one first.', detail: 'Navigate to the top-right menu (your profile icon).', tip: null, action: { label: 'Open Bybit', url: 'https://www.bybit.com' } },
+    { num: 2, title: 'API Management', instruction: 'In the profile menu, click "API" or "API Management".', detail: 'Path: Profile → Account & Security → API Management', tip: 'Can\'t find it? Use Bybit\'s search bar and type "API".', action: null },
+    { num: 3, title: 'Create New API Key', instruction: 'Click "Create New Key" and select "System-generated API Keys".', detail: 'Name it "Apice Capital" for easy identification.', tip: 'Do NOT select "Self-generated" — always use "System-generated".', action: null },
+    { num: 4, title: 'Set Permissions', instruction: 'Configure permissions EXACTLY like this:', detail: '✅ Read — Enabled\n✅ Trade — Enabled (Spot Trade)\n❌ Withdraw — DISABLED\n❌ Transfer — DISABLED', tip: '⚠️ CRITICAL: NEVER enable "Withdraw". This protects your funds even if the key is leaked.', action: null },
+    { num: 5, title: 'IP Restriction', instruction: 'Under "IP Access Restriction", select "No restriction" for now.', detail: 'You can add specific IPs later for extra security.', tip: 'For maximum security in the future, restrict to the Apice server IP.', action: null },
+    { num: 6, title: 'Copy Your Keys', instruction: 'After confirming (2FA), Bybit will show your API Key and Secret.', detail: '🔑 API Key: alphanumeric string (e.g., AbCdEf123...)\n🔐 API Secret: shown ONLY ONCE — copy it now!', tip: '⚠️ The Secret is only displayed at this moment. If you lose it, you\'ll need to create a new key.', action: null },
+  ];
+
+  const handleConnect = async () => {
+    const cleanKey = apiKey.trim();
+    const cleanSecret = apiSecret.trim();
+
+    if (!cleanKey || !cleanSecret) {
+      toast.error('Please fill in both API Key and Secret');
+      return;
+    }
+    if (!/^[A-Za-z0-9]+$/.test(cleanKey) || !/^[A-Za-z0-9]+$/.test(cleanSecret)) {
+      toast.error('Keys must contain only letters and numbers');
+      return;
+    }
+    if (!user) {
+      toast.error('Please sign in first');
+      return;
+    }
+
+    setConnectionStatus('testing');
+    setErrorMessage('');
+
+    try {
+      toast.loading('Testing Bybit connection...', { id: 'api-test' });
+      const test = await testBybitApiKey(cleanKey, cleanSecret);
+
+      if (!test.valid) {
+        setConnectionStatus('error');
+        setErrorMessage(test.error || 'Invalid API Key. Please check and try again.');
+        toast.error(test.error || 'Connection failed', { id: 'api-test' });
+        return;
+      }
+
+      setConnectionStatus('saving');
+      toast.loading('Saving encrypted credentials...', { id: 'api-test' });
+
+      const encryptedSecret = encrypt(cleanSecret);
+      const { error } = await supabase
+        .from('bybit_credentials')
+        .upsert({
+          user_id: user.id,
+          api_key: cleanKey,
+          api_secret_encrypted: encryptedSecret,
+          testnet: test.isTestnet,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+
+      setConnectionStatus('success');
+
+      // Auto-create portfolio based on investor profile
+      if (userPortfolios.length === 0) {
+        const profileToTemplate: Record<string, string> = {
+          'Conservative Builder': 'conservative-core',
+          'Growth Seeker': 'growth-core',
+        };
+        const templateId = profileToTemplate[investorType || ''] || 'classic-core';
+        const template = portfolios.find((p) => p.id === templateId);
+        if (template) {
+          addPortfolio({
+            name: template.name,
+            allocations: template.allocations.map((a) => ({ asset: a.asset, percentage: a.percentage, color: a.color })),
+            isActive: true,
+            isCustom: false,
+            templateId: template.id,
+          });
+        }
+      }
+
+      toast.success(
+        test.canTrade
+          ? '🎉 Connected! Portfolio created based on your profile.'
+          : '✅ Connected in read-only. Portfolio created.',
+        { id: 'api-test', duration: 5000 }
+      );
+
+      setTimeout(() => onComplete(), 2000);
+    } catch (err: unknown) {
+      setConnectionStatus('error');
+      const msg = err instanceof Error ? err.message : 'Failed to save credentials';
+      setErrorMessage(msg);
+      toast.error(msg, { id: 'api-test' });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center space-y-3">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mx-auto shadow-lg shadow-cyan-500/20">
+          <Key className="w-8 h-8 text-white" />
+        </div>
+        <h1 className="text-2xl font-bold">Connect Your Strategy Engine</h1>
+        <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+          The API is what connects Apice intelligence to your Bybit account. Without it, strategies can't execute.
+        </p>
+      </div>
+
+      <div className="flex gap-1 p-1 rounded-xl bg-secondary/40 border border-border/20">
+        {[
+          { id: 'learn' as const, label: 'Why API?', icon: <Bot className="w-3.5 h-3.5" /> },
+          { id: 'guide' as const, label: 'Step by Step', icon: <Clipboard className="w-3.5 h-3.5" /> },
+          { id: 'connect' as const, label: 'Connect', icon: <Wifi className="w-3.5 h-3.5" /> },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setPhase(tab.id)}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold transition-all',
+              phase === tab.id ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        {phase === 'learn' && (
+          <motion.div key="learn" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-3">
+            <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20">
+              <p className="text-xs font-medium text-center">Why do the best investors connect via API instead of trading manually?</p>
+            </div>
+            {whyReasons.map((reason, idx) => (
+              <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.08 }} className="p-4 rounded-2xl border border-border/40 bg-card">
+                <div className="flex items-start gap-3">
+                  <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', reason.bg)}>
+                    <span className={reason.color}>{reason.icon}</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold mb-1">{reason.title}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{reason.desc}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+            <Button variant="premium" size="lg" className="w-full" onClick={() => setPhase('guide')}>
+              Got it — Let's Connect
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </Button>
+          </motion.div>
+        )}
+
+        {phase === 'guide' && (
+          <motion.div key="guide" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-4">
+            <div className="flex gap-1">
+              {guideSteps.map((_, i) => (
+                <div key={i} className={cn('flex-1 h-1.5 rounded-full transition-colors duration-300 cursor-pointer', i < currentGuideStep ? 'bg-green-400' : i === currentGuideStep ? 'bg-primary' : 'bg-border/40')} onClick={() => setCurrentGuideStep(i)} />
+              ))}
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div key={currentGuideStep} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
+                {(() => {
+                  const step = guideSteps[currentGuideStep];
+                  return (
+                    <div className="p-5 rounded-2xl border border-primary/20 bg-primary/5 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-sm font-bold text-primary-foreground">{step.num}</div>
+                        <div>
+                          <h3 className="text-base font-bold">{step.title}</h3>
+                          <p className="text-[11px] text-muted-foreground">Step {step.num} of {guideSteps.length}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm font-medium leading-relaxed">{step.instruction}</p>
+                      <div className="p-3 rounded-xl bg-secondary/60 border border-border/20">
+                        <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{step.detail}</p>
+                      </div>
+                      {step.tip && (
+                        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                            <p className="text-xs text-amber-200/90 leading-relaxed">{step.tip}</p>
+                          </div>
+                        </div>
+                      )}
+                      {step.action && (
+                        <Button variant="outline" size="sm" className="w-full" onClick={() => window.open(step.action!.url, '_blank')}>
+                          <ExternalLink className="w-3.5 h-3.5 mr-2" />
+                          {step.action.label}
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })()}
+              </motion.div>
+            </AnimatePresence>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="flex-1" disabled={currentGuideStep === 0} onClick={() => setCurrentGuideStep(prev => prev - 1)}>
+                <ArrowLeft className="w-4 h-4 mr-1" /> Back
+              </Button>
+              {currentGuideStep < guideSteps.length - 1 ? (
+                <Button variant="premium" size="sm" className="flex-1" onClick={() => setCurrentGuideStep(prev => prev + 1)}>
+                  Next <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              ) : (
+                <Button variant="premium" size="sm" className="flex-1" onClick={() => setPhase('connect')}>
+                  <Key className="w-4 h-4 mr-1" /> Connect Now
+                </Button>
+              )}
+            </div>
+            <div className="space-y-1.5 pt-2">
+              <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">All steps:</p>
+              {guideSteps.map((step, i) => (
+                <button key={i} onClick={() => setCurrentGuideStep(i)} className={cn('w-full flex items-center gap-2.5 p-2 rounded-lg text-left transition-all', i === currentGuideStep ? 'bg-primary/10 border border-primary/20' : i < currentGuideStep ? 'opacity-60' : 'opacity-40')}>
+                  <div className={cn('w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0', i < currentGuideStep ? 'bg-green-500/20 text-green-400' : i === currentGuideStep ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')}>
+                    {i < currentGuideStep ? <Check className="w-3 h-3" /> : step.num}
+                  </div>
+                  <span className="text-xs font-medium">{step.title}</span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {phase === 'connect' && (
+          <motion.div key="connect" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-4">
+            {connectionStatus === 'success' ? (
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-8 space-y-4">
+                <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-10 h-10 text-green-400" />
+                </div>
+                <h2 className="text-xl font-bold">Strategy Engine Connected!</h2>
+                <p className="text-sm text-muted-foreground">Your Bybit account is linked to Apice. Automated DCA, AI Advisor, and rebalancing are ready.</p>
+                <div className="flex items-center justify-center gap-2 text-xs text-green-400">
+                  <Wifi className="w-3.5 h-3.5" />
+                  <span>Active encrypted connection</span>
+                </div>
+              </motion.div>
+            ) : (
+              <>
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                  <div className="flex items-start gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-semibold text-emerald-400">AES-256 Encryption</p>
+                      <p className="text-[11px] text-muted-foreground">Your keys are encrypted before saving. Apice NEVER has withdrawal access to your balance.</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold flex items-center gap-1.5"><Key className="w-3.5 h-3.5 text-muted-foreground" /> API Key</label>
+                  <Input type="text" placeholder="Paste your API Key here" value={apiKey} onChange={(e) => { setApiKey(e.target.value); setConnectionStatus('idle'); setErrorMessage(''); }} className="font-mono text-sm" autoComplete="off" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-muted-foreground" /> API Secret</label>
+                  <div className="relative">
+                    <Input type={showSecret ? 'text' : 'password'} placeholder="Paste your API Secret here" value={apiSecret} onChange={(e) => { setApiSecret(e.target.value); setConnectionStatus('idle'); setErrorMessage(''); }} className="font-mono text-sm pr-10" autoComplete="off" />
+                    <button type="button" onClick={() => setShowSecret(!showSecret)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                      {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                {connectionStatus === 'error' && errorMessage && (
+                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-xs font-semibold text-red-400">Connection Error</p>
+                        <p className="text-[11px] text-muted-foreground">{errorMessage}</p>
+                        <button onClick={() => setPhase('guide')} className="text-[11px] text-primary underline mt-1">Review the step-by-step guide</button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+                <div className="p-3 rounded-xl bg-secondary/40 border border-border/20 space-y-2">
+                  <p className="text-xs font-semibold">Permissions checklist:</p>
+                  {[
+                    { label: 'Read — Enabled', ok: true },
+                    { label: 'Trade (Spot) — Enabled', ok: true },
+                    { label: 'Withdraw — DISABLED', ok: true },
+                    { label: 'Transfer — DISABLED', ok: true },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className={cn('w-4 h-4 rounded-full flex items-center justify-center', item.ok ? 'bg-green-500/20' : 'bg-red-500/20')}>
+                        <Check className={cn('w-2.5 h-2.5', item.ok ? 'text-green-400' : 'text-red-400')} />
+                      </div>
+                      <span className="text-[11px] text-muted-foreground">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <Button variant="premium" size="lg" className="w-full" disabled={!apiKey.trim() || !apiSecret.trim() || connectionStatus === 'testing' || connectionStatus === 'saving'} onClick={handleConnect}>
+                  {(connectionStatus === 'testing' || connectionStatus === 'saving') && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  {connectionStatus === 'testing' ? 'Testing connection...' : connectionStatus === 'saving' ? 'Saving credentials...' : 'Connect Strategy Engine'}
+                  {connectionStatus === 'idle' && <Wifi className="w-4 h-4 ml-2" />}
+                </Button>
+                <p className="text-[11px] text-muted-foreground text-center">You can skip and set this up later in Settings</p>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Step 3: The Fortress ───────────────────────────────────────────────────
 
 function FortressStep({ onComplete }: { onComplete: () => void }) {
   const [sectionsRead, setSectionsRead] = useState<Set<number>>(new Set());
@@ -303,7 +637,7 @@ function FortressStep({ onComplete }: { onComplete: () => void }) {
             transition={{ duration: 1, delay: 0.3 }}
           />
         </div>
-        <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
+        <div className="flex justify-between mt-2 text-[11px] text-muted-foreground">
           <span>Cold wallet custody</span>
           <span>$300M+ insurance</span>
           <span>Top 3 global</span>
@@ -373,6 +707,7 @@ function GatewayAccessStep({ onComplete }: { onComplete: () => void }) {
 
   const handleOpenBybit = () => {
     trackLinkClick('bybit');
+    // TODO: Replace APICE with your real Bybit affiliate ID from https://www.bybit.com/affiliates/
     window.open('https://www.bybit.com/invite?ref=APICE', '_blank');
   };
 
@@ -412,7 +747,7 @@ function GatewayAccessStep({ onComplete }: { onComplete: () => void }) {
           <div key={b.label} className="p-3 rounded-xl bg-secondary/40 border border-border/20 text-center">
             <span className="text-xl">{b.icon}</span>
             <p className="text-xs font-semibold mt-1">{b.label}</p>
-            <p className="text-[10px] text-muted-foreground">{b.desc}</p>
+            <p className="text-[11px] text-muted-foreground">{b.desc}</p>
           </div>
         ))}
       </div>
@@ -523,7 +858,7 @@ function GatewayAccessStep({ onComplete }: { onComplete: () => void }) {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 1.4 + i * 0.15 }}
-                    className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-semibold text-primary"
+                    className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[11px] font-semibold text-primary"
                   >
                     {feat}
                   </motion.span>
@@ -592,7 +927,7 @@ function EliteBenefitsStep({ onComplete }: { onComplete: () => void }) {
 
       {/* Impact Summary */}
       <div className="p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-violet-500/10 border border-primary/20 text-center">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Estimated annual advantage</p>
+        <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Estimated annual advantage</p>
         <p className="text-3xl font-bold text-primary">$200–$1,500+</p>
         <p className="text-xs text-muted-foreground mt-1">Based on $5k–$50k annual volume</p>
       </div>
@@ -612,7 +947,7 @@ function EliteBenefitsStep({ onComplete }: { onComplete: () => void }) {
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="text-sm font-bold">{b.title}</h3>
-                  <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{b.value}</span>
+                  <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{b.value}</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">{b.desc}</p>
               </div>
@@ -716,7 +1051,7 @@ function FuelTankStep({ onComplete }: { onComplete: () => void }) {
 
       {/* Suggested Amount */}
       <div className="p-4 rounded-2xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 text-center">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Suggested first deposit</p>
+        <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Suggested first deposit</p>
         <p className="text-3xl font-bold text-green-400">
           ${weeklyInvestment > 0 ? Math.max(weeklyInvestment * 4, 50) : 100}
         </p>
@@ -762,7 +1097,7 @@ function FuelTankStep({ onComplete }: { onComplete: () => void }) {
                   <span className="text-xl">{method.icon}</span>
                   <div>
                     <h3 className="text-sm font-semibold">{method.title}</h3>
-                    <p className="text-[10px] text-muted-foreground">{method.time}</p>
+                    <p className="text-[11px] text-muted-foreground">{method.time}</p>
                   </div>
                 </div>
                 <ChevronRight className={cn(
@@ -782,7 +1117,7 @@ function FuelTankStep({ onComplete }: { onComplete: () => void }) {
                   <div className="px-4 pb-3 pt-2 space-y-2">
                     {method.steps.map((step, si) => (
                       <div key={si} className="flex items-start gap-2">
-                        <span className="text-[10px] font-bold text-primary bg-primary/10 w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-[11px] font-bold text-primary bg-primary/10 w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                           {si + 1}
                         </span>
                         <p className="text-xs text-muted-foreground">{step}</p>
@@ -806,7 +1141,7 @@ function FuelTankStep({ onComplete }: { onComplete: () => void }) {
         <DollarSign className="w-4 h-4 mr-2" />
         I've Made My First Deposit
       </Button>
-      <p className="text-[10px] text-muted-foreground text-center">
+      <p className="text-[11px] text-muted-foreground text-center">
         You can always come back and complete this step later
       </p>
     </div>
@@ -849,9 +1184,17 @@ export default function MethodologyMission() {
     }
   };
 
+  // Standalone handler for api-setup (not part of sequential flow)
+  const handleApiSetupComplete = () => {
+    completeMissionTask('m2_apiConnected');
+    toast.success('+200 XP — Strategy Engine connected!');
+    navigate('/home');
+  };
+
   const renderStep = () => {
     switch (step) {
       case 'method': return <ApiceMethodStep onComplete={handleComplete} />;
+      case 'api-setup': return <APISetupStep onComplete={handleApiSetupComplete} />;
       case 'fortress': return <FortressStep onComplete={handleComplete} />;
       case 'gateway': return <GatewayAccessStep onComplete={handleComplete} />;
       case 'benefits': return <EliteBenefitsStep onComplete={handleComplete} />;
@@ -872,7 +1215,7 @@ export default function MethodologyMission() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Mission 2</p>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Mission 2</p>
             <p className="text-xs font-semibold">{config.title}</p>
           </div>
           <div className="w-10" />

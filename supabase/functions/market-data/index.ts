@@ -4,11 +4,20 @@
 
 const BYBIT_BASE = 'https://api.bybit.com/v5/market/tickers';
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+function getCorsHeaders(req?: Request): Record<string, string> {
+  const allowedOrigins = [
+    Deno.env.get('ALLOWED_ORIGIN'),
+    'http://localhost:8080', 'http://localhost:8081',
+    'http://localhost:5173', 'http://localhost:3000',
+  ].filter(Boolean) as string[];
+  const origin = req?.headers.get('origin') || '';
+  const allowOrigin = allowedOrigins.includes(origin) ? origin : (allowedOrigins[0] || '*');
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+}
 
 // In-memory cache (persists across warm invocations)
 let tickerCache: { data: Record<string, { lastPrice: string; price24hPcnt: string }>; timestamp: number } | null = null;
@@ -46,9 +55,10 @@ async function fetchAllTickers(): Promise<Record<string, { lastPrice: string; pr
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: CORS_HEADERS });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
@@ -57,7 +67,7 @@ Deno.serve(async (req) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -84,7 +94,7 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({ data: result, cached: tickerCache?.timestamp === Date.now() }),
-        { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=15' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=15' } }
       );
     }
 
@@ -94,7 +104,7 @@ Deno.serve(async (req) => {
       if (!symbol || !SUPPORTED_SYMBOLS.has(symbol)) {
         return new Response(
           JSON.stringify({ error: 'Invalid or unsupported symbol' }),
-          { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -103,19 +113,19 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({ data: ticker }),
-        { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=15' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=15' } }
       );
     }
 
     return new Response(
       JSON.stringify({ error: 'Invalid action. Use "tickers" or "ticker".' }),
-      { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
     console.error('[market-data] Error:', err);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

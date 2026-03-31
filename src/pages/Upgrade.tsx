@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
@@ -5,13 +6,27 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAppStore } from '@/store/appStore';
 import { subscriptionPlans } from '@/data/sampleData';
-import { Check, ArrowLeft, Star, Zap } from 'lucide-react';
+import { Check, ArrowLeft, Star, Zap, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { trackEvent, AnalyticsEvents } from '@/lib/analytics';
 
 export default function Upgrade() {
   const navigate = useNavigate();
   const setSubscription = useAppStore((s) => s.setSubscription);
-  const currentTier = useAppStore((s) => s.subscription.tier);
+  const checkTrialExpiry = useAppStore((s) => s.checkTrialExpiry);
+  const subscription = useAppStore((s) => s.subscription);
+  const currentTier = subscription.tier;
+
+  // Check trial expiry on mount
+  useEffect(() => {
+    checkTrialExpiry();
+    trackEvent(AnalyticsEvents.UPGRADE_PAGE_VIEWED);
+  }, [checkTrialExpiry]);
+
+  // Calculate trial days remaining
+  const trialDaysLeft = subscription.isTrial && subscription.expiresAt
+    ? Math.max(0, Math.ceil((new Date(subscription.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : null;
 
   const handleUpgrade = (tier: 'free' | 'pro' | 'club') => {
     setSubscription(tier);
@@ -33,6 +48,24 @@ export default function Upgrade() {
       </div>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-5 py-6 space-y-4">
+        {trialDaysLeft !== null && trialDaysLeft > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-3 p-4 rounded-xl bg-primary/10 border border-primary/20"
+          >
+            <Clock className="w-5 h-5 text-primary shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                Pro Trial: {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} remaining
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Upgrade now to keep all Pro features after your trial ends.
+              </p>
+            </div>
+          </motion.div>
+        )}
+
         {subscriptionPlans.map((plan, i) => {
           const isCurrentPlan = plan.id === currentTier;
           const isRecommended = plan.id === 'pro';

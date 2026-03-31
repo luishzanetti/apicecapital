@@ -5,13 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { portfolios } from '@/data/sampleData';
 import { useAppStore } from '@/store/appStore';
-import { ArrowLeft, Check, Shield, AlertTriangle, PieChart } from 'lucide-react';
+import { ArrowLeft, Check, Shield, AlertTriangle, PieChart, Plus, Trash2 } from 'lucide-react';
 
 export default function PortfolioDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const setSelectedPortfolio = useAppStore((s) => s.setSelectedPortfolio);
   const selectedPortfolio = useAppStore((s) => s.selectedPortfolio);
+  const userPortfolios = useAppStore((s) => s.userPortfolios);
+  const addPortfolio = useAppStore((s) => s.addPortfolio);
+  const removePortfolio = useAppStore((s) => s.removePortfolio);
+  const setActivePortfolio = useAppStore((s) => s.setActivePortfolio);
 
   const portfolio = portfolios.find((p) => p.id === id);
 
@@ -23,7 +27,11 @@ export default function PortfolioDetail() {
     );
   }
 
+  const allocations = portfolio?.allocations || [];
   const isSelected = selectedPortfolio.portfolioId === portfolio.id;
+  const userPortfolio = userPortfolios.find((p) => p.templateId === portfolio.id);
+  const isInUserPortfolios = !!userPortfolio;
+  const isActiveUserPortfolio = userPortfolio?.isActive ?? false;
 
   const getRiskVariant = (risk: string) => {
     switch (risk) {
@@ -35,8 +43,30 @@ export default function PortfolioDetail() {
   };
 
   const handleSelect = () => {
-    setSelectedPortfolio(portfolio.id, portfolio.allocations);
+    setSelectedPortfolio(portfolio.id, allocations);
     navigate('/home');
+  };
+
+  const handleAddToPortfolios = () => {
+    addPortfolio({
+      name: portfolio.name,
+      allocations: portfolio.allocations.map((a) => ({ asset: a.asset, percentage: a.percentage, color: a.color })),
+      isActive: userPortfolios.length === 0,
+      isCustom: false,
+      templateId: portfolio.id,
+    });
+  };
+
+  const handleRemoveFromPortfolios = () => {
+    if (userPortfolio) {
+      removePortfolio(userPortfolio.id);
+    }
+  };
+
+  const handleSetActive = () => {
+    if (userPortfolio) {
+      setActivePortfolio(userPortfolio.id);
+    }
   };
 
   return (
@@ -74,7 +104,7 @@ export default function PortfolioDetail() {
             
             {/* Allocation Bar */}
             <div className="flex gap-1 h-4 rounded-full overflow-hidden mb-4">
-              {portfolio.allocations.map((alloc, i) => (
+              {allocations.map((alloc, i) => (
                 <div
                   key={i}
                   className="h-full transition-all"
@@ -88,7 +118,7 @@ export default function PortfolioDetail() {
 
             {/* Allocation Legend */}
             <div className="grid grid-cols-2 gap-3">
-              {portfolio.allocations.map((alloc, i) => (
+              {allocations.map((alloc, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <div 
                     className="w-3 h-3 rounded-full"
@@ -128,11 +158,11 @@ export default function PortfolioDetail() {
         {/* Key Metrics */}
         <div className="grid grid-cols-2 gap-3">
           <Card className="text-center py-4">
-            <p className="text-[10px] text-muted-foreground mb-1">Min. Capital</p>
+            <p className="text-[11px] text-muted-foreground mb-1">Min. Capital</p>
             <p className="font-semibold text-primary">{portfolio.minCapital}</p>
           </Card>
           <Card className="text-center py-4">
-            <p className="text-[10px] text-muted-foreground mb-1">Risk Level</p>
+            <p className="text-[11px] text-muted-foreground mb-1">Risk Level</p>
             <p className="font-semibold capitalize">{portfolio.risk}</p>
           </Card>
         </div>
@@ -140,7 +170,7 @@ export default function PortfolioDetail() {
         {/* Risk Warning */}
         <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/5 border border-destructive/10">
           <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             <strong className="text-foreground">Risk Disclosure:</strong> This is a framework, not financial advice. 
             Past performance does not guarantee future results. Only invest what you can afford to lose.
           </p>
@@ -156,16 +186,51 @@ export default function PortfolioDetail() {
       </motion.div>
 
       {/* Fixed CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-5 bg-background border-t border-border safe-bottom">
-        <Button
-          variant={isSelected ? 'secondary' : 'premium'}
-          size="lg"
-          className="w-full"
-          onClick={handleSelect}
-          disabled={isSelected}
-        >
-          {isSelected ? 'Currently Selected' : 'Select This Portfolio'}
-        </Button>
+      <div className="fixed bottom-[88px] lg:bottom-0 left-0 lg:left-[240px] right-0 z-30 p-5 bg-background/95 backdrop-blur-md border-t border-border/50 safe-bottom">
+        <div className="flex gap-2">
+          {isInUserPortfolios ? (
+            <>
+              {isActiveUserPortfolio ? (
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="flex-1"
+                  disabled
+                >
+                  <Check className="w-4 h-4 mr-2" />
+                  Active Portfolio
+                </Button>
+              ) : (
+                <Button
+                  variant="premium"
+                  size="lg"
+                  className="flex-1"
+                  onClick={handleSetActive}
+                >
+                  Set as Active
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="lg"
+                className="text-destructive hover:text-destructive shrink-0"
+                onClick={handleRemoveFromPortfolios}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="premium"
+              size="lg"
+              className="w-full"
+              onClick={handleAddToPortfolios}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add to My Portfolios
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

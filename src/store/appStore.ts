@@ -21,6 +21,7 @@ export type {
   DCAGamification,
   DCABadge,
   SelectedPortfolio,
+  UserPortfolio,
   LinkClick,
   WeeklyDeposit,
   LearnProgress,
@@ -46,6 +47,21 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'apice-storage',
+      version: 2, // Increment this when schema changes
+      migrate: (persistedState: any, version: number) => {
+        if (version === 0 || version === 1) {
+          // Migration from v1 to v2: ensure new fields exist
+          return {
+            ...persistedState,
+            userPortfolios: persistedState.userPortfolios || [],
+            subscription: {
+              ...persistedState.subscription,
+              isTrial: persistedState.subscription?.isTrial ?? false,
+            },
+          };
+        }
+        return persistedState as any;
+      },
     }
   )
 );

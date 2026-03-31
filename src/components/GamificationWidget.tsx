@@ -79,7 +79,7 @@ export function GamificationWidget() {
                             </div>
                             <div>
                                 <h3 className="text-base font-bold leading-none">Level {currentLevel}</h3>
-                                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest mt-0.5">
+                                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-widest mt-0.5">
                                     {info.name}
                                 </p>
                             </div>
@@ -91,7 +91,7 @@ export function GamificationWidget() {
                                 <Zap className="w-3.5 h-3.5 text-primary fill-primary" />
                                 <span className="text-sm font-bold text-primary">{totalXP.toLocaleString()} XP</span>
                             </div>
-                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
                                 {(xpForNextLevel - totalXP).toLocaleString()} to Lv {currentLevel + 1}
                             </p>
                         </div>
@@ -110,7 +110,7 @@ export function GamificationWidget() {
                                 transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
                             />
                         </div>
-                        <div className="flex justify-between text-[9px] text-muted-foreground font-semibold uppercase tracking-wide">
+                        <div className="flex justify-between text-[11px] text-muted-foreground font-semibold uppercase tracking-wide">
                             <span>Progress</span>
                             <span>{progressToNextLevel}%</span>
                         </div>
@@ -122,7 +122,7 @@ export function GamificationWidget() {
             <div className="grid grid-cols-2 gap-3">
                 {/* Badges */}
                 <div className="rounded-3xl bg-card border border-border/40 p-4">
-                    <h4 className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                    <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
                         <Trophy className="w-3 h-3" />
                         Badges
                     </h4>
@@ -137,7 +137,7 @@ export function GamificationWidget() {
                                     {badge.icon}
                                 </div>
                             ))
-                            : <p className="text-[10px] text-muted-foreground/60 italic leading-relaxed">Complete missions to earn badges</p>
+                            : <p className="text-[11px] text-muted-foreground/60 italic leading-relaxed">Complete missions to earn badges</p>
                         }
                         {/* Locked slots */}
                         {Array.from({ length: Math.max(0, 4 - earnedBadges.length) }).map((_, i) => (
@@ -153,7 +153,7 @@ export function GamificationWidget() {
 
                 {/* Membership */}
                 <div className="rounded-3xl bg-card border border-border/40 p-4">
-                    <h4 className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                    <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
                         <Crown className="w-3 h-3" />
                         Plan
                     </h4>
@@ -164,7 +164,7 @@ export function GamificationWidget() {
                         )}>
                             <span className={cn('text-sm font-bold', tier.textColor)}>{tier.label}</span>
                         </div>
-                        <p className="text-[10px] text-muted-foreground leading-snug">
+                        <p className="text-[11px] text-muted-foreground leading-snug">
                             {subscription.tier === 'free'
                                 ? 'Upgrade to unlock Pro features'
                                 : 'Premium account active ✓'}

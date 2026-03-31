@@ -39,7 +39,7 @@ function ContentBlockView({ block }: { block: ContentBlock }) {
       <div className="flex items-center gap-4 p-4 rounded-xl bg-secondary/50 border border-border/50">
         <div className="text-center min-w-[80px]">
           <p className="text-2xl font-bold text-primary">{block.value}</p>
-          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide leading-tight mt-0.5">{block.label}</p>
+          <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide leading-tight mt-0.5">{block.label}</p>
         </div>
         <div className="w-px h-10 bg-border/50" />
         <p className="text-xs text-muted-foreground leading-relaxed">{block.content}</p>
@@ -241,7 +241,7 @@ function ChallengeCard({ challenge }: { challenge: LessonChallenge }) {
               <div className="space-y-1.5">
                 {challenge.steps.map((step, i) => (
                   <div key={i} className="flex items-start gap-2">
-                    <span className="w-5 h-5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                    <span className="w-5 h-5 rounded-full bg-amber-500/10 text-amber-400 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
                     <p className="text-xs text-muted-foreground">{step}</p>
                   </div>
                 ))}
@@ -312,6 +312,10 @@ export default function LessonDetail() {
   const handleQuizComplete = (score: number) => {
     setQuizDone(true);
     setQuizScore(score);
+    // Persist quiz completion by marking the lesson as complete in the store
+    if (lesson && !isCompleted) {
+      completeLesson(lesson.id);
+    }
   };
 
   const tabs = [
@@ -376,7 +380,7 @@ export default function LessonDetail() {
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{track.name} · {lessonNumber}/{totalInTrack}</p>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wider">{track.name} · {lessonNumber}/{totalInTrack}</p>
             <h1 className="text-base font-bold leading-tight truncate">{lesson.title}</h1>
           </div>
           {isCompleted && (
@@ -446,7 +450,7 @@ export default function LessonDetail() {
         key={activeTab}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-5 py-5 space-y-4 pb-32"
+        className="px-5 py-5 space-y-4 pb-44 lg:pb-24"
       >
         {activeTab === 'lesson' && (
           <>
@@ -522,9 +526,9 @@ export default function LessonDetail() {
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] text-muted-foreground mb-1">Next Lesson</p>
+                      <p className="text-[11px] text-muted-foreground mb-1">Next Lesson</p>
                       <p className="font-medium text-sm">{nextLesson.title}</p>
-                      <p className="text-[10px] text-primary mt-0.5">+{XP_PER_LESSON} XP</p>
+                      <p className="text-[11px] text-primary mt-0.5">+{XP_PER_LESSON} XP</p>
                     </div>
                     <ArrowRight className="w-5 h-5 text-muted-foreground" />
                   </div>
@@ -582,20 +586,22 @@ export default function LessonDetail() {
         )}
       </motion.div>
 
-      {/* Fixed CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t border-border/50 safe-bottom">
-        <Button
-          variant={isCompleted ? 'secondary' : 'premium'}
-          size="lg"
-          className="w-full"
-          onClick={handleComplete}
-        >
-          {isCompleted ? (
-            <>Review Complete <Check className="w-4 h-4 ml-1" /></>
-          ) : (
-            <>Complete & Earn {XP_PER_LESSON} XP <Zap className="w-4 h-4 ml-1" /></>
-          )}
-        </Button>
+      {/* Fixed CTA — respects sidebar on desktop, above BottomNav on mobile */}
+      <div className="fixed bottom-[88px] lg:bottom-0 left-0 lg:left-[240px] right-0 z-30 p-4 bg-background/95 backdrop-blur-md border-t border-border/50 safe-bottom">
+        <div className="max-w-2xl lg:max-w-3xl mx-auto">
+          <Button
+            variant={isCompleted ? 'secondary' : 'premium'}
+            size="lg"
+            className="w-full"
+            onClick={handleComplete}
+          >
+            {isCompleted ? (
+              <>Review Complete <Check className="w-4 h-4 ml-1" /></>
+            ) : (
+              <>Complete & Earn {XP_PER_LESSON} XP <Zap className="w-4 h-4 ml-1" /></>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

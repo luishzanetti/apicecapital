@@ -2,13 +2,40 @@
 // Real AI-powered investment advisor using Claude API + live market data
 // Actions: "recommend", "insight", "analyze-portfolio", "chat"
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+function getCorsHeaders(req?: Request): Record<string, string> {
+  const allowedOrigins = [
+    Deno.env.get('ALLOWED_ORIGIN'),
+    'http://localhost:8080', 'http://localhost:8081',
+    'http://localhost:5173', 'http://localhost:3000',
+  ].filter(Boolean) as string[];
+  const origin = req?.headers.get('origin') || '';
+  const allowOrigin = allowedOrigins.includes(origin) ? origin : (allowedOrigins[0] || '*');
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+}
 
 const BYBIT_TICKERS_URL = 'https://api.bybit.com/v5/market/tickers?category=spot';
+
+// ─── Rate Limiting ───────────────────────────────────────────
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 20; // requests per minute
+const RATE_WINDOW = 60_000; // 1 minute
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
+}
 
 // ─── Apice Capital Methodology (system context for Claude) ─────
 
@@ -148,13 +175,17 @@ function formatMarketContext(tickers: MarketTicker[]): string {
 
 async function callClaude(
   systemPrompt: string,
-  userMessage: string,
+  userMessageOrMessages: string | Array<{role: string; content: string}>,
   maxTokens = 1024
 ): Promise<string> {
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
   if (!apiKey) {
     throw new Error('ANTHROPIC_API_KEY not configured');
   }
+
+  const messages = typeof userMessageOrMessages === 'string'
+    ? [{ role: 'user', content: userMessageOrMessages }]
+    : userMessageOrMessages;
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -167,7 +198,7 @@ async function callClaude(
       model: 'claude-haiku-4-5-20251001',
       max_tokens: maxTokens,
       system: systemPrompt,
-      messages: [{ role: 'user', content: userMessage }],
+      messages,
     }),
   });
 
@@ -353,7 +384,7 @@ Respond in this exact JSON format (no markdown, no code blocks, just raw JSON):
   }
 }
 
-async function handleChat(userContext: UserContext, message: string): Promise<any> {
+async function handleChat(userContext: UserContext, message: string, history?: Array<{role: string; content: string}>): Promise<any> {
   const market = await fetchMarketData();
   const marketContext = formatMarketContext(market);
 
@@ -372,7 +403,21 @@ ${marketContext}
 
 Respond concisely (max 3-4 sentences). Be helpful, use market data when relevant, and stay aligned with the Apice methodology. If the user asks about specific assets, provide data-driven responses. Never provide financial advice — frame as education and strategy suggestions within the Apice framework. Respond in the same language the user writes in.`;
 
-  const response = await callClaude(systemPrompt, message, 500);
+  // Build messages array with conversation history
+  const messages: Array<{role: string; content: string}> = [];
+
+  // Add last 10 messages of history
+  if (history && history.length > 0) {
+    const recentHistory = history.slice(-10);
+    for (const msg of recentHistory) {
+      messages.push({ role: msg.role, content: msg.content });
+    }
+  }
+
+  // Add current message
+  messages.push({ role: 'user', content: message });
+
+  const response = await callClaude(systemPrompt, messages, 500);
 
   return {
     message: response,
@@ -383,8 +428,9 @@ Respond concisely (max 3-4 sentences). Be helpful, use market data when relevant
 // ─── Main Handler ──────────────────────────────────────────────
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: CORS_HEADERS });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
@@ -392,7 +438,24 @@ Deno.serve(async (req) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Extract user ID from JWT for rate limiting
+    let userId = 'anonymous';
+    try {
+      const token = authHeader.replace('Bearer ', '');
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userId = payload.sub || 'anonymous';
+    } catch {
+      // If JWT parsing fails, fall back to anonymous rate limiting
+    }
+
+    if (!checkRateLimit(userId)) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -402,7 +465,7 @@ Deno.serve(async (req) => {
     if (!action) {
       return new Response(
         JSON.stringify({ error: 'Missing action. Use: recommend, insight, analyze-portfolio, chat' }),
-        { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -422,21 +485,21 @@ Deno.serve(async (req) => {
         if (!message) {
           return new Response(
             JSON.stringify({ error: 'Missing message for chat action' }),
-            { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        result = await handleChat(userContext || {}, message);
+        result = await handleChat(userContext || {}, message, body.history);
         break;
       default:
         return new Response(
           JSON.stringify({ error: `Unknown action: ${action}` }),
-          { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
     }
 
     return new Response(
       JSON.stringify({ data: result }),
-      { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
     console.error('[ai-advisor] Error:', err);
@@ -449,13 +512,13 @@ Deno.serve(async (req) => {
           fallback: true,
           data: null,
         }),
-        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     return new Response(
-      JSON.stringify({ error: err.message || 'Internal server error' }),
-      { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

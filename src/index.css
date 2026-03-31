@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* Apice Design System — Premium Fintech */
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap');
 
 @layer base {
   :root {
@@ -259,11 +259,11 @@
 
   /* ─── Interactive states ─── */
   .press-scale {
-    transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.1s ease;
   }
 
   .press-scale:active {
-    transform: scale(0.96);
+    transform: scale(0.97);
   }
 }
 
@@ -558,4 +558,21 @@
 .xp-bar-fill {
   animation: progress-fill 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards,
     bar-glow 2s ease-in-out infinite 0.8s;
+}
+
+/* Accessibility: reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Accessibility: keyboard focus */
+:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 8px;
 }

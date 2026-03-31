@@ -1,18 +1,16 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { LockedOverlay } from '@/components/LockedOverlay';
 import { useAppStore } from '@/store/appStore';
-import { Progress } from '@/components/ui/progress';
 import {
   Compass,
   Shield,
   Calendar,
   Bot,
   Copy,
-  ChevronRight,
   CreditCard,
   TrendingUp,
   Zap,
@@ -21,7 +19,13 @@ import {
   Lock,
   BarChart3,
   Target,
-  Infinity
+  ChevronRight,
+  CheckCircle2,
+  PieChart,
+  ArrowRightLeft,
+  Layers,
+  DollarSign,
+  Rocket
 } from 'lucide-react';
 
 interface StrategyCard {
@@ -41,6 +45,260 @@ interface StrategyCard {
   category: 'wealth-building' | 'automation' | 'advanced';
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Strategy Onboarding — Visual walkthrough on first visit from Mission 2
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const ONBOARDING_SLIDES = [
+  {
+    id: 'intro',
+    icon: Layers,
+    iconGradient: 'from-indigo-500 to-violet-500',
+    title: 'Welcome to the Apice Arsenal',
+    subtitle: 'Your wealth-building strategy system',
+    body: 'Apice isn\'t a single strategy — it\'s a complete system. Every piece is designed to work together, transforming consistent contributions into real wealth in the crypto market.',
+    highlight: null,
+  },
+  {
+    id: 'dca',
+    icon: ArrowRightLeft,
+    iconGradient: 'from-blue-500 to-cyan-500',
+    title: 'DCA Accumulation',
+    subtitle: 'The foundation — accumulate with consistency',
+    body: 'Dollar-Cost Averaging is the foundation of everything. You set a weekly amount (starting from $5) and the system buys automatically, without emotion. When the market drops, you buy more. When it rises, you buy less. Over 4 years, BTC DCA investors had positive returns in 94% of cases.',
+    highlight: { stat: '+138%', label: 'Average BTC DCA return over 4 years' },
+  },
+  {
+    id: 'cashback',
+    icon: CreditCard,
+    iconGradient: 'from-amber-500 to-orange-500',
+    title: 'Cashback Machine',
+    subtitle: 'Turn everyday spending into Bitcoin',
+    body: 'Every purchase you normally make becomes a micro-accumulation of BTC. Earn 2-10% cashback in Bitcoin on your daily purchases. $2,000/month in spending can generate $50-200/month in BTC — zero extra effort.',
+    highlight: { stat: '$2,400+', label: 'BTC accumulated per year in cashback' },
+  },
+  {
+    id: 'copy',
+    icon: PieChart,
+    iconGradient: 'from-violet-500 to-purple-500',
+    title: 'Copy Portfolios',
+    subtitle: 'Expert-curated portfolios',
+    body: 'Follow portfolios built and rebalanced by experienced traders. Three risk profiles: Core (conservative), Optimized (balanced), and Explosive (aggressive). Your funds, their strategy. Automatic quarterly rebalancing keeps your allocation optimized.',
+    highlight: { stat: '35-60%', label: 'Target annual return (varies by profile)' },
+  },
+  {
+    id: 'ai',
+    icon: Bot,
+    iconGradient: 'from-emerald-500 to-green-500',
+    title: 'AI Trade & Automation',
+    subtitle: 'Artificial intelligence in command',
+    body: 'Our AI Advisor analyzes your portfolio in real time, suggests rebalancing, and identifies opportunities. AI Trade Setup uses algorithmic analysis for optimized entries with automatic risk management. AI eliminates the emotional factor — the investor\'s biggest enemy.',
+    highlight: { stat: '24/7', label: 'Non-stop monitoring and execution' },
+  },
+  {
+    id: 'synergy',
+    icon: Rocket,
+    iconGradient: 'from-rose-500 to-pink-500',
+    title: 'The Multiplier Effect',
+    subtitle: 'How it all connects',
+    body: 'Alone, each strategy delivers results. Together, they create a multiplier effect:',
+    highlight: null,
+    synergy: [
+      { icon: ArrowRightLeft, color: 'text-blue-400', bg: 'bg-blue-500/10', title: 'DCA builds the foundation', desc: 'Consistent weekly contributions accumulate wealth automatically' },
+      { icon: CreditCard, color: 'text-amber-400', bg: 'bg-amber-500/10', title: 'Cashback accelerates', desc: 'Every purchase becomes more BTC with zero extra investment' },
+      { icon: PieChart, color: 'text-violet-400', bg: 'bg-violet-500/10', title: 'Portfolios diversify', desc: 'Intelligent allocation reduces risk and maximizes returns' },
+      { icon: Bot, color: 'text-emerald-400', bg: 'bg-emerald-500/10', title: 'AI optimizes everything', desc: 'Automated rebalancing and timing 24/7' },
+      { icon: DollarSign, color: 'text-green-400', bg: 'bg-green-500/10', title: 'Compounding multiplies', desc: 'Reinvested gains generate gains on gains — exponentially' },
+    ],
+  },
+];
+
+function StrategyOnboarding({
+  onComplete,
+  investorType,
+}: {
+  onComplete: () => void;
+  investorType: string | null;
+}) {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slide = ONBOARDING_SLIDES[currentSlide];
+  const isLast = currentSlide === ONBOARDING_SLIDES.length - 1;
+  const Icon = slide.icon;
+
+  return (
+    <div className="min-h-screen bg-background px-5 py-6 pb-28 safe-top flex flex-col">
+      {/* Progress dots */}
+      <div className="flex gap-1.5 mb-6">
+        {ONBOARDING_SLIDES.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrentSlide(i)}
+            className={`flex-1 h-1.5 rounded-full transition-all duration-300 ${
+              i < currentSlide ? 'bg-green-400' :
+              i === currentSlide ? 'bg-primary' :
+              'bg-border/40'
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Slide content */}
+      <div className="flex-1">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={slide.id}
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-5"
+          >
+            {/* Icon */}
+            <div className="text-center">
+              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${slide.iconGradient} flex items-center justify-center mx-auto shadow-lg`}>
+                <Icon className="w-8 h-8 text-white" />
+              </div>
+            </div>
+
+            {/* Title */}
+            <div className="text-center space-y-1">
+              <h1 className="text-2xl font-bold">{slide.title}</h1>
+              <p className="text-sm text-muted-foreground">{slide.subtitle}</p>
+            </div>
+
+            {/* Investor context */}
+            {currentSlide === 0 && investorType && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-primary/10 border border-primary/20 mx-auto max-w-xs">
+                <Target className="w-4 h-4 text-primary shrink-0" />
+                <p className="text-xs text-primary font-medium">
+                  Personalizado para seu perfil: {investorType}
+                </p>
+              </div>
+            )}
+
+            {/* Body text */}
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {slide.body}
+            </p>
+
+            {/* Highlight stat */}
+            {slide.highlight && (
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 text-center"
+              >
+                <p className="text-3xl font-bold text-primary">{slide.highlight.stat}</p>
+                <p className="text-xs text-muted-foreground mt-1">{slide.highlight.label}</p>
+              </motion.div>
+            )}
+
+            {/* Synergy section (last slide) */}
+            {'synergy' in slide && slide.synergy && (
+              <div className="space-y-2.5">
+                {slide.synergy.map((item, i) => {
+                  const SynergyIcon = item.icon;
+                  return (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.15 + i * 0.08 }}
+                      className="flex items-start gap-3 p-3 rounded-xl bg-card border border-border/30"
+                    >
+                      <div className={`w-8 h-8 rounded-lg ${item.bg} flex items-center justify-center shrink-0`}>
+                        <SynergyIcon className={`w-4 h-4 ${item.color}`} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold">{item.title}</p>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed">{item.desc}</p>
+                      </div>
+                      {i < slide.synergy!.length - 1 && (
+                        <div className="absolute -bottom-1.5 left-7 w-px h-3 bg-border/30" />
+                      )}
+                    </motion.div>
+                  );
+                })}
+
+                {/* Final multiplier callout */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="p-4 rounded-2xl bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-teal-500/10 border border-green-500/20 text-center"
+                >
+                  <p className="text-xs font-semibold text-green-400 mb-1">The result?</p>
+                  <p className="text-lg font-bold">
+                    DCA + Cashback + Portfolios + AI = Exponential Wealth
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Each strategy feeds the next. Time does the rest.
+                  </p>
+                </motion.div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Navigation */}
+      <div className="pt-4 space-y-3">
+        <div className="flex gap-2">
+          {currentSlide > 0 && (
+            <Button
+              variant="outline"
+              size="lg"
+              className="flex-shrink-0"
+              onClick={() => setCurrentSlide(prev => prev - 1)}
+            >
+              Back
+            </Button>
+          )}
+          <Button
+            variant="premium"
+            size="lg"
+            className="flex-1"
+            onClick={() => {
+              if (isLast) {
+                onComplete();
+              } else {
+                setCurrentSlide(prev => prev + 1);
+              }
+            }}
+          >
+            {isLast ? (
+              <>
+                Explore My Strategies
+                <Rocket className="w-4 h-4 ml-2" />
+              </>
+            ) : (
+              <>
+                Next
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Skip option */}
+        {!isLast && (
+          <button
+            onClick={onComplete}
+            className="w-full text-center text-[11px] text-muted-foreground hover:text-foreground transition-colors py-1"
+          >
+            Skip and view strategies directly
+          </button>
+        )}
+
+        <p className="text-[11px] text-muted-foreground text-center">
+          {currentSlide + 1} de {ONBOARDING_SLIDES.length}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function Strategies() {
   const navigate = useNavigate();
   const unlockState = useAppStore((s) => s.unlockState);
@@ -48,11 +306,17 @@ export default function Strategies() {
   const subscription = useAppStore((s) => s.subscription);
   const investorType = useAppStore((s) => s.investorType);
   const missionProgress = useAppStore((s) => s.missionProgress);
+  const completeMissionTask = useAppStore((s) => s.completeMissionTask);
   const hasCompletedOnboarding = useAppStore((s) => s.hasCompletedOnboarding);
 
-  // Mission 2 completion check — need methodology + Bybit account
-  const isMission2Done = missionProgress.m2_methodologyRead && missionProgress.m2_bybitAccountCreated;
-  const isStrategiesLocked = !hasCompletedOnboarding || !isMission2Done;
+  // Show strategy onboarding if mission task not yet completed
+  const showOnboarding = !missionProgress.m2_strategiesExplored;
+
+  // Strategies fully unlocked after completing the strategy onboarding or the general onboarding
+  const isStrategiesLocked = !hasCompletedOnboarding && !missionProgress.m2_strategiesExplored;
+
+  // Show welcome/connect banner only before "Master the Apice Method" is done
+  const showWelcomeBanner = !missionProgress.m2_methodologyRead;
 
   const strategies: StrategyCard[] = [
     {
@@ -149,140 +413,13 @@ export default function Strategies() {
     show: { opacity: 1, y: 0 },
   };
 
-  // ─── LOCKED SCREEN: Mission 2 Required ───
-  if (isStrategiesLocked) {
-    const completedSteps = [
-      hasCompletedOnboarding,
-      missionProgress.m1_profileQuizDone,
-      missionProgress.m2_methodologyRead,
-      missionProgress.m2_bybitAccountCreated,
-    ].filter(Boolean).length;
-    const totalSteps = 4;
-    const lockProgress = (completedSteps / totalSteps) * 100;
-
+  // ── Strategy Onboarding Flow ──
+  if (showOnboarding) {
     return (
-      <div className="min-h-screen bg-background px-5 py-6 pb-28 safe-top">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-              <Lock className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">Strategies</h1>
-              <p className="text-muted-foreground text-xs">Complete your missions to unlock</p>
-            </div>
-          </div>
-
-          {/* Unlock Progress Card */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="overflow-hidden border-primary/20">
-              <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at top, rgba(99,102,241,0.08), transparent 70%)' }} />
-              <CardContent className="pt-6 pb-6 relative">
-                <div className="flex flex-col items-center text-center gap-4">
-                  <motion.div
-                    animate={{ scale: [1, 1.08, 1], rotate: [0, 5, -5, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                    className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-violet-500/20 flex items-center justify-center"
-                  >
-                    <Sparkles className="w-10 h-10 text-primary" />
-                  </motion.div>
-                  <div>
-                    <h2 className="text-lg font-bold mb-1">Unlock Your Strategies</h2>
-                    <p className="text-xs text-muted-foreground max-w-[280px]">
-                      Complete Mission 2 — Master the Apice methodology and create your Bybit account to access all strategies.
-                    </p>
-                  </div>
-
-                  {/* Progress */}
-                  <div className="w-full space-y-2">
-                    <div className="flex justify-between text-[10px] text-muted-foreground">
-                      <span>{completedSteps}/{totalSteps} steps completed</span>
-                      <span>{Math.round(lockProgress)}%</span>
-                    </div>
-                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-primary to-violet-500"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${lockProgress}%` }}
-                        transition={{ duration: 0.8, delay: 0.3 }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Steps */}
-                  <div className="w-full space-y-2 mt-2">
-                    {[
-                      { done: hasCompletedOnboarding, label: 'Complete onboarding', route: '/onboarding' },
-                      { done: missionProgress.m1_profileQuizDone, label: 'Investor DNA analysis', route: '/onboarding' },
-                      { done: missionProgress.m2_methodologyRead, label: 'Master the Apice Method', route: '/mission2/1' },
-                      { done: missionProgress.m2_bybitAccountCreated, label: 'Create Bybit account', route: '/mission2/3' },
-                    ].map((s, i) => (
-                      <button
-                        key={i}
-                        onClick={() => !s.done && navigate(s.route)}
-                        disabled={s.done}
-                        className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
-                          s.done
-                            ? 'bg-green-500/5 border-green-500/20 opacity-60'
-                            : 'bg-card border-primary/20 hover:border-primary/40 active:scale-[0.98]'
-                        }`}
-                      >
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
-                          s.done ? 'bg-green-500/20' : 'bg-primary/10'
-                        }`}>
-                          {s.done ? (
-                            <ChevronRight className="w-3 h-3 text-green-400" />
-                          ) : (
-                            <span className="text-[10px] font-bold text-primary">{i + 1}</span>
-                          )}
-                        </div>
-                        <span className={`text-xs font-medium flex-1 ${s.done ? 'line-through text-muted-foreground' : ''}`}>
-                          {s.label}
-                        </span>
-                        {!s.done && <ArrowRight className="w-3.5 h-3.5 text-primary" />}
-                      </button>
-                    ))}
-                  </div>
-
-                  <Button variant="premium" className="w-full mt-2" onClick={() => {
-                    if (!hasCompletedOnboarding) navigate('/onboarding');
-                    else if (!missionProgress.m2_methodologyRead) navigate('/mission2/1');
-                    else navigate('/mission2/3');
-                  }}>
-                    <Zap className="w-4 h-4 mr-1.5" />
-                    Continue Mission
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Preview of locked strategies */}
-          <div className="space-y-3 opacity-40 pointer-events-none">
-            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-              <Lock className="w-3 h-3" />
-              Available After Unlock
-            </h2>
-            {strategies.slice(0, 3).map((strategy) => (
-              <Card key={strategy.id} className="overflow-hidden">
-                <CardContent className="pt-4 pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${strategy.iconGradient} flex items-center justify-center shrink-0 opacity-50`}>
-                      <strategy.icon className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold">{strategy.title}</h3>
-                      <p className="text-[10px] text-muted-foreground">{strategy.subtitle}</p>
-                    </div>
-                    <Lock className="w-4 h-4 text-muted-foreground ml-auto" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </motion.div>
-      </div>
+      <StrategyOnboarding
+        onComplete={() => completeMissionTask('m2_strategiesExplored')}
+        investorType={investorType}
+      />
     );
   }
 
@@ -308,6 +445,26 @@ export default function Strategies() {
             </div>
           </div>
         </motion.div>
+
+        {/* Welcome Banner — disappears after Master the Apice Method */}
+        {showWelcomeBanner && (
+          <motion.div variants={itemVariants}>
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-indigo-500/10 border border-primary/20 space-y-3">
+              <p className="text-sm font-semibold">Welcome to your Strategy Hub</p>
+              <p className="text-xs text-muted-foreground">
+                Complete "Master the Apice Method" in Mission 2 to understand how these strategies work together. Then connect your API to start executing.
+              </p>
+              <Button
+                variant="premium"
+                size="sm"
+                onClick={() => navigate('/mission2/method')}
+              >
+                Start Mission 2
+                <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
 
         {/* Profile Context Banner */}
         {investorType && (
@@ -338,6 +495,7 @@ export default function Strategies() {
                 strategy={strategy}
                 index={i}
                 onNavigate={navigate}
+                missionLocked={isStrategiesLocked}
               />
             ))}
           </div>
@@ -356,6 +514,7 @@ export default function Strategies() {
                 strategy={strategy}
                 index={i}
                 onNavigate={navigate}
+                missionLocked={isStrategiesLocked}
               />
             ))}
           </div>
@@ -372,19 +531,19 @@ export default function Strategies() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 rounded-xl bg-secondary/50 text-center">
                   <p className="text-2xl font-bold text-primary">94%</p>
-                  <p className="text-[10px] text-muted-foreground">4yr BTC DCA = positive returns</p>
+                  <p className="text-[11px] text-muted-foreground">4yr BTC DCA = positive returns</p>
                 </div>
                 <div className="p-3 rounded-xl bg-secondary/50 text-center">
                   <p className="text-2xl font-bold text-primary">∞</p>
-                  <p className="text-[10px] text-muted-foreground">Compounding never stops</p>
+                  <p className="text-[11px] text-muted-foreground">Compounding never stops</p>
                 </div>
                 <div className="p-3 rounded-xl bg-secondary/50 text-center">
                   <p className="text-2xl font-bold text-primary">5+</p>
-                  <p className="text-[10px] text-muted-foreground">Diversification strategies</p>
+                  <p className="text-[11px] text-muted-foreground">Diversification strategies</p>
                 </div>
                 <div className="p-3 rounded-xl bg-secondary/50 text-center">
                   <p className="text-2xl font-bold text-primary">$5</p>
-                  <p className="text-[10px] text-muted-foreground">Minimum to start</p>
+                  <p className="text-[11px] text-muted-foreground">Minimum to start</p>
                 </div>
               </div>
             </CardContent>
@@ -409,16 +568,21 @@ export default function Strategies() {
 function StrategyCardComponent({
   strategy,
   index,
-  onNavigate
+  onNavigate,
+  missionLocked,
 }: {
   strategy: StrategyCard;
   index: number;
   onNavigate: (path: string) => void;
+  missionLocked: boolean;
 }) {
+  // A strategy's action is blocked if the per-strategy lock is set OR the global mission gate is active
+  const isActionBlocked = strategy.isLocked || missionLocked;
+
   const content = (
     <Card
       className="cursor-pointer hover:border-primary/20 transition-all duration-300 overflow-hidden group"
-      onClick={() => !strategy.isLocked && onNavigate(strategy.route)}
+      onClick={() => !isActionBlocked && onNavigate(strategy.route)}
     >
       <CardContent className="pt-5">
         <div className="flex items-start gap-4">
@@ -452,7 +616,7 @@ function StrategyCardComponent({
               {strategy.features.slice(0, 3).map((feature, i) => (
                 <span
                   key={i}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground"
+                  className="text-[11px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground"
                 >
                   {feature}
                 </span>
@@ -463,32 +627,31 @@ function StrategyCardComponent({
             {strategy.projection && (
               <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 mb-3">
                 <TrendingUp className="w-3 h-3 text-primary shrink-0" />
-                <p className="text-[10px] text-primary font-medium">{strategy.projection}</p>
+                <p className="text-[11px] text-primary font-medium">{strategy.projection}</p>
               </div>
             )}
 
-            {/* CTA */}
-            <Button variant="premium" size="sm" className="w-full">
-              {strategy.isLocked ? 'Unlock with Pro' : 'Explore Strategy'}
-              <ArrowRight className="w-3 h-3" />
-            </Button>
+            {/* CTA — locked when mission incomplete or per-strategy lock */}
+            {isActionBlocked ? (
+              <Button variant="premium" size="sm" className="w-full opacity-60 cursor-not-allowed" disabled title={
+                strategy.isLocked
+                  ? (strategy.lockMessage || 'Upgrade to unlock')
+                  : 'Complete Mission 2 to unlock'
+              }>
+                <Lock className="w-3 h-3 mr-1.5" />
+                {strategy.isLocked ? 'Unlock with Pro' : 'Complete Mission 2 to unlock'}
+              </Button>
+            ) : (
+              <Button variant="premium" size="sm" className="w-full">
+                Explore Strategy
+                <ArrowRight className="w-3 h-3" />
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
     </Card>
   );
-
-  if (strategy.isLocked) {
-    return (
-      <LockedOverlay
-        isLocked={true}
-        message={strategy.lockMessage || 'Upgrade to unlock'}
-        onUnlock={() => onNavigate('/upgrade')}
-      >
-        {content}
-      </LockedOverlay>
-    );
-  }
 
   return content;
 }
