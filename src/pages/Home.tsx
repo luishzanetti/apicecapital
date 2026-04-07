@@ -222,19 +222,42 @@ export default function Home() {
           {todayDate}
         </motion.p>
 
+        {/* ── Full-width Hero: Portfolio Board ──────────────────────────── */}
+        <div className="px-4 md:px-6">
+          <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp}>
+            <ExecutivePortfolioBoard />
+          </motion.div>
+        </div>
+
         {/* ── Desktop 2-Column / Mobile Single Column ─────────────────────── */}
-        <div className="px-5 lg:grid lg:grid-cols-5 lg:gap-5">
+        <div className="px-4 md:px-6 mt-5 xl:grid xl:grid-cols-3 xl:gap-6">
 
           {/* ── LEFT COLUMN (main content) ──────────────────────────────── */}
-          <div className="lg:col-span-3 space-y-5">
+          <div className="xl:col-span-2 space-y-5">
 
-            {/* 1. Executive Portfolio Board */}
-            <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp}>
-              <ExecutivePortfolioBoard />
+            {/* Quick Actions — horizontal on desktop, 2x2 on mobile */}
+            <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
+              <SectionHeader icon={Zap} label="Quick Actions" />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {quickActions.map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={item.action}
+                    className="flex items-center gap-3 p-4 rounded-2xl glass-card border border-border/20 text-left hover:border-primary/20 transition-all press-scale hover-lift group min-h-[56px]"
+                  >
+                    <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', item.bg)}>
+                      <item.icon className={cn('w-5 h-5', item.color)} />
+                    </div>
+                    <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">
+                      {item.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </motion.div>
 
-            {/* 2. Today's Context */}
-            <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
+            {/* Today's Context */}
+            <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp}>
               <SectionHeader icon={Sparkles} label="Today's Context" />
               <button
                 onClick={() => navigate(getInsightRoute(todayInsight.type))}
@@ -257,46 +280,25 @@ export default function Home() {
               </button>
             </motion.div>
 
-            {/* 3. Market Movers */}
-            <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp}>
+            {/* Market Movers */}
+            <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
               <SectionHeader icon={TrendingUp} label="Market Movers" />
               <div className="rounded-2xl glass-card border border-border/20 overflow-hidden">
                 <TopCoinsList />
               </div>
             </motion.div>
 
-            {/* 4. AI Insight */}
-            <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
+            {/* AI Insight */}
+            <motion.div initial="hidden" animate="visible" custom={5} variants={fadeUp}>
               <SectionHeader icon={Sparkles} label="AI Insight" />
               <AiInsightCard />
             </motion.div>
           </div>
 
           {/* ── RIGHT COLUMN (sidebar) ──────────────────────────────────── */}
-          <div className="lg:col-span-2 space-y-5 mt-5 lg:mt-0">
+          <div className="xl:col-span-1 space-y-5 mt-5 xl:mt-0">
 
-            {/* 5. Quick Actions */}
-            <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
-              <SectionHeader icon={Zap} label="Quick Actions" />
-              <div className="grid grid-cols-2 gap-3">
-                {quickActions.map((item) => (
-                  <button
-                    key={item.label}
-                    onClick={item.action}
-                    className="flex items-center gap-3 p-4 rounded-2xl glass-card border border-border/20 text-left hover:border-primary/20 transition-all press-scale hover-lift group min-h-[56px]"
-                  >
-                    <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', item.bg)}>
-                      <item.icon className={cn('w-5 h-5', item.color)} />
-                    </div>
-                    <span className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors">
-                      {item.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* 6. DCA Status */}
+            {/* DCA Status */}
             <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp}>
               <SectionHeader icon={TrendingUp} label="DCA Automation" />
               <div className="rounded-2xl glass-card border border-border/20 overflow-hidden">
@@ -304,22 +306,13 @@ export default function Home() {
               </div>
             </motion.div>
 
-            {/* 7. Setup Missions */}
+            {/* Setup Missions */}
             <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
-              {!isJourneyCompleted ? (
-                <>
-                  <SectionHeader icon={Target} label="Setup Missions" />
-                  <SetupMissions />
-                </>
-              ) : (
-                <>
-                  <SectionHeader icon={Award} label="Your Journey" />
-                  <SetupMissions />
-                </>
-              )}
+              <SectionHeader icon={Target} label={isJourneyCompleted ? 'Your Journey' : 'Setup Missions'} />
+              <SetupMissions />
             </motion.div>
 
-            {/* 8. Gamification */}
+            {/* Gamification */}
             <motion.div initial="hidden" animate="visible" custom={5} variants={fadeUp}>
               {isGamificationUnlocked ? (
                 <>
@@ -337,7 +330,7 @@ export default function Home() {
               )}
             </motion.div>
 
-            {/* 9. AI Portfolio Score */}
+            {/* AI Portfolio Score */}
             <motion.div initial="hidden" animate="visible" custom={6} variants={fadeUp}>
               <SectionHeader icon={Sparkles} label="AI Portfolio Score" />
               <AiPortfolioScore />
