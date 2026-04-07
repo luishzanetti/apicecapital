@@ -23,6 +23,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
+import { MarketRegimeBadge, DailyBriefingCard, SmartAlertsList, SmartDCACard, BehavioralScoreCard, RebalanceAlertCard, WarChestCard, UpgradeRecommendation } from '@/components/intelligence';
+import { useMarketIntelligence } from '@/hooks/useMarketIntelligence';
+import { PortfolioTierSelector } from '@/components/portfolio/PortfolioTierSelector';
 
 function getCurrentWeekId(): string {
   const now = new Date();
@@ -143,9 +146,41 @@ const WIDGET_DEFINITIONS: WidgetDef[] = [
     premiumRequired: null,
   },
   {
+    id: 'intelligence',
+    label: 'widgets.intelligence',
+    icon: '🧠',
+    description: 'widgets.marketRegimeAlerts',
+    lockType: null,
+    premiumRequired: null,
+  },
+  {
+    id: 'war-chest',
+    label: 'widgets.warChest',
+    icon: '🛡️',
+    description: 'widgets.capitalDeGuerra',
+    lockType: null,
+    premiumRequired: null,
+  },
+  {
+    id: 'smart-dca',
+    label: 'widgets.smartDCA',
+    icon: '🎯',
+    description: 'widgets.dynamicDCAStrategy',
+    lockType: null,
+    premiumRequired: null,
+  },
+  {
+    id: 'behavioral-score',
+    label: 'widgets.behavioralScore',
+    icon: '📊',
+    description: 'widgets.investorEvolution',
+    lockType: null,
+    premiumRequired: null,
+  },
+  {
     id: 'ai-score',
     label: 'widgets.aiPortfolioScore',
-    icon: '🧠',
+    icon: '🤖',
     description: 'widgets.aiAnalysis',
     lockType: null,
     premiumRequired: null,
@@ -359,16 +394,17 @@ export default function Home() {
   const totalDeposited = weeklyDepositHistory.reduce((sum, d) => sum + d.amount, 0);
   const hasFirstDeposit = weeklyDepositHistory.length > 0;
   const todayInsight = dailyInsights[currentInsightIndex % dailyInsights.length];
-  const todayDate = new Intl.DateTimeFormat('pt-BR', {
+  const dateLocale = language === 'pt' ? 'pt-BR' : language === 'es' ? 'es' : 'en-US';
+  const todayDate = new Intl.DateTimeFormat(dateLocale, {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
   }).format(new Date());
 
   const milestones = [
-    { threshold: 0, label: 'Início', icon: '🌱' },
-    { threshold: 500, label: 'Construtor', icon: '🔨' },
-    { threshold: 2000, label: 'Otimizador', icon: '⚡' },
+    { threshold: 0, label: 'Start', icon: '🌱' },
+    { threshold: 500, label: 'Builder', icon: '🔨' },
+    { threshold: 2000, label: 'Optimizer', icon: '⚡' },
     { threshold: 5000, label: 'Pro', icon: '🚀' },
     { threshold: 10000, label: 'Elite', icon: '💎' },
   ];
@@ -460,6 +496,39 @@ export default function Home() {
       case 'dca':
         // DCA is now rendered separately below the widget grid
         return null;
+
+      case 'intelligence':
+        return (
+          <motion.div key="intelligence" className="md:col-span-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+            <div className="space-y-3">
+              <DailyBriefingCard />
+              <UpgradeRecommendation />
+              <SmartAlertsList maxAlerts={3} compact />
+              <RebalanceAlertCard />
+            </div>
+          </motion.div>
+        );
+
+      case 'war-chest':
+        return (
+          <motion.div key="war-chest" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+            <WarChestCard />
+          </motion.div>
+        );
+
+      case 'smart-dca':
+        return (
+          <motion.div key="smart-dca" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+            <SmartDCACard />
+          </motion.div>
+        );
+
+      case 'behavioral-score':
+        return (
+          <motion.div key="behavioral-score" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+            <BehavioralScoreCard />
+          </motion.div>
+        );
 
       case 'ai-score':
         return (
@@ -610,7 +679,10 @@ export default function Home() {
           <div>
             <p className="text-xs text-muted-foreground">{t(getTimeGreetingKey())}, {investorType || t('common.investor')}!</p>
             <h1 className="text-xl font-bold">{t('home.yourDashboard')}</h1>
-            <p className="mt-1 text-[11px] capitalize text-muted-foreground/80">{todayDate}</p>
+            <div className="mt-1 flex items-center gap-2">
+              <p className="text-[11px] capitalize text-muted-foreground/80">{todayDate}</p>
+              <MarketRegimeBadge size="sm" />
+            </div>
           </div>
           <button
             onClick={() => setShowCustomizer(true)}
