@@ -5,7 +5,7 @@ import { Area, AreaChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, YAx
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PortfolioSummaryCard } from '@/components/portfolio/PortfolioSummaryCard';
+
 import { usePortfolioAnalytics } from '@/hooks/usePortfolioAnalytics';
 import { useAppStore } from '@/store/appStore';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -171,7 +171,7 @@ export function ExecutivePortfolioBoard() {
     [language]
   );
   const userPortfolios = useAppStore((s) => s.userPortfolios);
-  const showLegacyCard =
+  const showFallback =
     analytics.isLoading ||
     analytics.status === 'no_credentials' ||
     (analytics.status === 'error' && !analytics.isConnected);
@@ -246,8 +246,52 @@ export function ExecutivePortfolioBoard() {
     },
   ] as const;
 
-  if (showLegacyCard) {
-    return <PortfolioSummaryCard />;
+  if (showFallback) {
+    // Single clean fallback — no duplicate cards
+    if (analytics.isLoading) {
+      return (
+        <Card className="relative overflow-hidden border-0 shadow-2xl shadow-primary/5">
+          <CardContent className="p-6">
+            <div className="animate-pulse space-y-4">
+              <div className="h-3 w-32 rounded bg-secondary/60" />
+              <div className="h-10 w-48 rounded bg-secondary/40" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="h-20 rounded-2xl bg-secondary/30" />
+                <div className="h-20 rounded-2xl bg-secondary/30" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+    return (
+      <Card className="relative overflow-hidden border-0 shadow-2xl shadow-primary/5">
+        <CardContent className="p-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+              <Wallet className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">{copy.consolidated}</p>
+              <p className="text-xs text-muted-foreground">
+                {analytics.status === 'no_credentials' ? 'Connect Bybit to see live data' : 'Tap refresh to load balance'}
+              </p>
+            </div>
+          </div>
+          {analytics.status === 'no_credentials' ? (
+            <Button variant="outline" size="sm" onClick={() => navigate('/settings')} className="gap-2">
+              Connect
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={analytics.refresh} disabled={analytics.isRefreshing} className="gap-2">
+              <RefreshCw className={cn('w-3.5 h-3.5', analytics.isRefreshing && 'animate-spin')} />
+              Retry
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
