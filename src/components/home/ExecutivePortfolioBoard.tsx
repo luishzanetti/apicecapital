@@ -238,18 +238,11 @@ export function ExecutivePortfolioBoard() {
       badge: 'bg-amber-500/10',
     },
     {
-      label: copy.spot,
-      value: analytics.spotBalance,
-      helper: `${analytics.spotCount} ${copy.assets}`,
+      label: 'Unified',
+      value: analytics.totalEquity,
+      helper: `${analytics.spotCount} ${copy.assets}${analytics.futuresPositionCount > 0 ? ` · ${analytics.futuresPositionCount} pos.` : ''}`,
       tone: 'text-sky-400',
       badge: 'bg-sky-500/10',
-    },
-    {
-      label: copy.futures,
-      value: analytics.futuresBalance,
-      helper: `${analytics.futuresPositionCount} pos. · ${hideBalance ? '••••' : formatCurrency(analytics.futuresUnrealizedPnl, false)}`,
-      tone: futuresPositive ? 'text-green-400' : 'text-red-400',
-      badge: futuresPositive ? 'bg-green-500/10' : 'bg-red-500/10',
     },
   ] as const;
 
