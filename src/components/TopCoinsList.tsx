@@ -81,8 +81,8 @@ export function TopCoinsList() {
         return (
             <div className="p-6 rounded-2xl border border-border/30 bg-secondary/20 flex flex-col items-center gap-2 text-center">
                 <WifiOff className="w-6 h-6 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Nao foi possivel carregar os dados de mercado</p>
-                <button onClick={() => window.location.reload()} className="text-xs text-primary font-medium">Toque para tentar novamente</button>
+                <p className="text-sm text-muted-foreground">Unable to load market data</p>
+                <button onClick={() => window.location.reload()} className="text-xs text-primary font-medium">Tap to retry</button>
             </div>
         );
     }
@@ -90,7 +90,7 @@ export function TopCoinsList() {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
-                <h2 className="text-lg font-bold">Movimentacoes do mercado</h2>
+                <h2 className="text-lg font-bold">Market Movers</h2>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => fetchCoins(true)}
@@ -99,7 +99,7 @@ export function TopCoinsList() {
                     >
                         <RefreshCw className={`w-3.5 h-3.5 text-muted-foreground ${refreshing ? 'animate-spin' : ''}`} />
                     </button>
-                    <Badge variant="outline" className="text-xs">Ao vivo</Badge>
+                    <Badge variant="outline" className="text-xs">Live</Badge>
                 </div>
             </div>
 

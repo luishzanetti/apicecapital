@@ -149,7 +149,7 @@ export function AiPortfolioScore() {
           </div>
 
           <div className="mb-3 grid grid-cols-2 gap-2">
-            <div className="rounded-xl border border-green-500/10 bg-green-500/5 p-2.5">
+            <div className="rounded-xl glass-light border-green-500/10 p-2.5">
               <div className="mb-1 flex items-center gap-1.5">
                 <CheckCircle2 className="h-3 w-3 text-green-400" />
                 <span className="text-[11px] font-bold uppercase text-green-400">{copy.strengths}</span>
@@ -158,7 +158,7 @@ export function AiPortfolioScore() {
                 <p key={index} className="text-[11px] leading-tight text-muted-foreground">{item}</p>
               ))}
             </div>
-            <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-2.5">
+            <div className="rounded-xl glass-light border-amber-500/10 p-2.5">
               <div className="mb-1 flex items-center gap-1.5">
                 <AlertTriangle className="h-3 w-3 text-amber-400" />
                 <span className="text-[11px] font-bold uppercase text-amber-400">{copy.improve}</span>
@@ -169,7 +169,7 @@ export function AiPortfolioScore() {
             </div>
           </div>
 
-          <div className="mb-3 flex items-center gap-2 rounded-xl border border-primary/10 bg-primary/5 p-2.5">
+          <div className="mb-3 flex items-center gap-2 rounded-xl glass-light border-primary/10 p-2.5">
             <Zap className="h-3.5 w-3.5 shrink-0 text-primary" />
             <p className="text-[11px] font-medium text-primary">{analysis.nextAction}</p>
           </div>
@@ -202,7 +202,7 @@ export function AiPortfolioScore() {
                   </div>
 
                   {analysis.rebalanceNeeded && analysis.rebalanceSuggestion && (
-                    <div className="rounded-xl border border-orange-500/10 bg-orange-500/5 p-2.5">
+                    <div className="rounded-xl glass-light border-orange-500/10 p-2.5">
                       <div className="mb-1 flex items-center gap-1.5">
                         <TrendingUp className="h-3 w-3 text-orange-400" />
                         <span className="text-[11px] font-bold uppercase text-orange-400">{copy.rebalance}</span>

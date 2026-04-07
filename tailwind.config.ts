@@ -76,6 +76,11 @@ export default {
           warning: "hsl(var(--apice-warning))",
           surface: "hsl(var(--apice-surface))",
           "surface-elevated": "hsl(var(--apice-surface-elevated))",
+          "neon-blue": "hsl(var(--apice-neon-blue, 222 100% 68%))",
+          "neon-purple": "hsl(var(--apice-neon-purple, 265 90% 68%))",
+          "neon-cyan": "hsl(var(--apice-neon-cyan, 190 95% 60%))",
+          profit: "hsl(var(--apice-profit, 152 69% 50%))",
+          loss: "hsl(var(--apice-loss, 0 75% 58%))",
         },
       },
       borderRadius: {
@@ -117,6 +122,21 @@ export default {
           from: { transform: "translateY(100%)" },
           to: { transform: "translateY(0)" },
         },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "0.6", filter: "blur(20px)" },
+          "50%": { opacity: "1", filter: "blur(24px)" },
+        },
+        "celebration": {
+          "0%": { transform: "scale(1)" },
+          "15%": { transform: "scale(1.15)" },
+          "30%": { transform: "scale(0.95)" },
+          "45%": { transform: "scale(1.05)" },
+          "100%": { transform: "scale(1)" },
+        },
+        "count-up": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -125,6 +145,9 @@ export default {
         "fade-up": "fade-up 0.4s ease-out forwards",
         "scale-in": "scale-in 0.3s ease-out forwards",
         "slide-up": "slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "glow-pulse": "glow-pulse 3s ease-in-out infinite",
+        "celebration": "celebration 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "count-up": "count-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards",
       },
       transitionTimingFunction: {
         'smooth': 'cubic-bezier(0.16, 1, 0.3, 1)',

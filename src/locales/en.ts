@@ -90,6 +90,7 @@ export const en = {
         quickActions: {
             analysis: "Analysis",
             portfolio: "Portfolio",
+            dca: "DCA",
             learn: "Learn",
             upgrade: "Upgrade",
         },

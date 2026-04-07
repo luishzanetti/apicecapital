@@ -73,7 +73,7 @@ function TierCard({
       <div className="absolute -top-2.5 right-3 flex gap-1.5">
         {isRecommended && (
           <span className="px-2 py-0.5 text-[10px] font-bold bg-primary text-white rounded-full">
-            RECOMENDADO
+            RECOMMENDED
           </span>
         )}
         {tier.isPro && (
@@ -122,9 +122,9 @@ function TierCard({
           <div className="flex items-center gap-3 mt-2 text-[10px] text-zinc-500">
             <span>{tier.riskLabel}</span>
             <span>•</span>
-            <span>{tier.targetAnnualReturn} a.a.</span>
+            <span>{tier.targetAnnualReturn} p.a.</span>
             <span>•</span>
-            <span>A partir de {tier.minCapitalLabel}</span>
+            <span>From {tier.minCapitalLabel}</span>
           </div>
         </div>
 
@@ -174,7 +174,7 @@ function QuickSetup({
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-4 mt-3">
         {/* Amount */}
         <div>
-          <p className="text-xs text-zinc-400 mb-2">Quanto por aporte?</p>
+          <p className="text-xs text-zinc-400 mb-2">How much per contribution?</p>
           <div className="flex flex-wrap gap-2">
             {presets.map((amount) => (
               <button
@@ -194,13 +194,13 @@ function QuickSetup({
 
         {/* Frequency */}
         <div>
-          <p className="text-xs text-zinc-400 mb-2">Frequência</p>
+          <p className="text-xs text-zinc-400 mb-2">Frequency</p>
           <div className="grid grid-cols-4 gap-2">
             {[
-              { value: 'daily', label: 'Diário' },
-              { value: 'weekly', label: 'Semanal' },
-              { value: 'biweekly', label: 'Quinzenal' },
-              { value: 'monthly', label: 'Mensal' },
+              { value: 'daily', label: 'Daily' },
+              { value: 'weekly', label: 'Weekly' },
+              { value: 'biweekly', label: 'Biweekly' },
+              { value: 'monthly', label: 'Monthly' },
             ].map((freq) => (
               <button
                 key={freq.value}
@@ -220,21 +220,21 @@ function QuickSetup({
         {/* Summary */}
         <div className="bg-zinc-800/50 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-400">Aporte por período</span>
+            <span className="text-zinc-400">Amount per period</span>
             <span className="text-white font-bold">${selectedAmount}</span>
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-400">Estimativa mensal</span>
+            <span className="text-zinc-400">Monthly estimate</span>
             <span className="text-white font-bold">${monthlyEstimate}</span>
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-400">Capital de Guerra</span>
+            <span className="text-zinc-400">War Chest</span>
             <span className="text-emerald-400 font-bold">{tier.warChestPct}% (${Math.round(selectedAmount * tier.warChestPct / 100)})</span>
           </div>
 
           {/* Allocation preview */}
           <div className="pt-2 border-t border-zinc-700/50">
-            <p className="text-[10px] text-zinc-500 mb-1.5">Distribuição por aporte de ${selectedAmount}:</p>
+            <p className="text-[10px] text-zinc-500 mb-1.5">Allocation per ${selectedAmount} contribution:</p>
             {tier.assets.map((asset) => {
               const assetAmount = (selectedAmount * asset.percentage / 100).toFixed(2);
               return (
@@ -261,11 +261,11 @@ function QuickSetup({
             disabled:opacity-50
           `}
         >
-          {isActivating ? 'Ativando...' : `Ativar ${tier.name} — DCA Automático`}
+          {isActivating ? 'Activating...' : `Activate ${tier.name} — Auto DCA`}
         </button>
 
         <p className="text-[10px] text-zinc-600 text-center">
-          Smart DCA ativado • Execução automática • Cancele quando quiser
+          Smart DCA activated • Automatic execution • Cancel anytime
         </p>
       </div>
     </motion.div>
@@ -349,22 +349,22 @@ export function PortfolioTierSelector() {
         className="bg-gradient-to-br from-green-500/10 to-emerald-600/5 border border-green-500/30 rounded-2xl p-6 text-center space-y-3"
       >
         <span className="text-4xl">✅</span>
-        <h3 className="text-lg font-bold text-white">{selectedTier?.name} Ativado!</h3>
+        <h3 className="text-lg font-bold text-white">{selectedTier?.name} Activated!</h3>
         <p className="text-sm text-zinc-400">
-          Seu DCA automático está configurado. O sistema executa sozinho — você só precisa manter saldo na Bybit.
+          Your auto DCA is configured. The system runs on its own — you just need to keep a balance on Bybit.
         </p>
         <div className="flex gap-2 pt-2">
           <button
             onClick={() => navigate('/home')}
             className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-primary/10 text-primary border border-primary/20"
           >
-            Ir para Dashboard
+            Go to Dashboard
           </button>
           <button
             onClick={() => navigate('/dca-planner')}
             className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-zinc-800 text-zinc-300"
           >
-            Ver Meus Planos
+            View My Plans
           </button>
         </div>
       </motion.div>
@@ -376,8 +376,8 @@ export function PortfolioTierSelector() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-white">Escolha sua Estratégia</h2>
-          <p className="text-xs text-zinc-500">Selecione, configure o valor e ative com 1 clique</p>
+          <h2 className="text-lg font-bold text-white">Choose your Strategy</h2>
+          <p className="text-xs text-zinc-500">Select, configure the amount, and activate with 1 click</p>
         </div>
         <MarketRegimeBadge size="sm" />
       </div>
@@ -422,7 +422,7 @@ export function PortfolioTierSelector() {
             onClick={() => setSelectedTierId(upgradeRec.toTier)}
             className="mt-2 text-xs text-amber-400 font-semibold"
           >
-            Ver {PORTFOLIO_TIERS.find(t => t.id === upgradeRec.toTier)?.name} →
+            View {PORTFOLIO_TIERS.find(t => t.id === upgradeRec.toTier)?.name} →
           </button>
         </motion.div>
       )}

@@ -536,7 +536,7 @@ export default function DCAPlanner() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="rounded-2xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 p-5"
+                className="rounded-2xl glass-card border-glow-blue p-5"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
@@ -570,7 +570,7 @@ export default function DCAPlanner() {
                         ))}
                       </div>
 
-                      <div className="p-3 rounded-xl bg-secondary/40 mb-4">
+                      <div className="p-3 rounded-xl glass-light mb-4">
                         <p className="text-xs text-muted-foreground text-center">
                           <span className="font-semibold text-foreground">{copy.projection52Weeks(rec.amount * 52)}</span>
                         </p>
@@ -602,7 +602,7 @@ export default function DCAPlanner() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="rounded-2xl bg-card/50 border border-border/50 p-6 text-center"
+                className="rounded-2xl glass-card p-6 text-center"
               >
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
                   <TrendingUp className="w-8 h-8 text-primary" />
@@ -888,7 +888,7 @@ export default function DCAPlanner() {
                     </div>
 
                     {/* Duration */}
-                    <div className="p-3 rounded-xl bg-secondary/50 text-center mb-4">
+                    <div className="p-3 rounded-xl glass-light text-center mb-4">
                       {newPlan.isForever ? (
                         <div className="flex items-center justify-center gap-2">
                           <InfinityIcon className="w-5 h-5 text-primary" />
@@ -903,7 +903,7 @@ export default function DCAPlanner() {
 
                     {/* Projections */}
                     <div className="grid grid-cols-2 gap-3 mb-4">
-                      <div className="p-3 rounded-xl bg-secondary/30 text-center">
+                      <div className="p-3 rounded-xl glass-light text-center">
                         <p className="text-xs text-muted-foreground">{copy.monthly}</p>
                         <p className="text-lg font-bold">
                           ${(newPlan.amountPerInterval * (
@@ -961,7 +961,7 @@ export default function DCAPlanner() {
 
                     {/* Execution result feedback */}
                     {createStatus === 'success' && lastResult && (
-                      <div className="mt-3 p-3 rounded-xl bg-green-500/10 border border-green-500/20">
+                      <div className="mt-3 p-3 rounded-xl glass-light border-glow-success">
                         <p className="text-xs text-green-400 font-medium mb-1">{copy.ordersExecuted}</p>
                         {lastResult.executions.map((ex, i) => (
                           <p key={i} className="text-[11px] text-muted-foreground">
@@ -1027,7 +1027,7 @@ export default function DCAPlanner() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-              className="mx-6 w-full max-w-sm rounded-3xl bg-card border border-border/50 p-8 text-center shadow-2xl"
+              className="mx-6 w-full max-w-sm rounded-3xl glass-heavy p-8 text-center apice-shadow-elevated"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Trophy icon */}

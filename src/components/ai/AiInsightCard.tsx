@@ -12,18 +12,18 @@ import {
 import { cn } from '@/lib/utils';
 
 const TYPE_CONFIG: Record<string, { icon: typeof Sparkles; color: string; label: string }> = {
-  market: { icon: TrendingUp, color: 'text-blue-400', label: 'Mercado' },
-  portfolio: { icon: Target, color: 'text-purple-400', label: 'Portfólio' },
-  education: { icon: BookOpen, color: 'text-green-400', label: 'Aprender' },
-  discipline: { icon: Zap, color: 'text-amber-400', label: 'Disciplina' },
-  opportunity: { icon: AlertTriangle, color: 'text-orange-400', label: 'Oportunidade' },
+  market: { icon: TrendingUp, color: 'text-blue-400', label: 'Market' },
+  portfolio: { icon: Target, color: 'text-purple-400', label: 'Portfolio' },
+  education: { icon: BookOpen, color: 'text-green-400', label: 'Learn' },
+  discipline: { icon: Zap, color: 'text-amber-400', label: 'Discipline' },
+  opportunity: { icon: AlertTriangle, color: 'text-orange-400', label: 'Opportunity' },
 };
 
 const SENTIMENT_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  bullish: { bg: 'bg-green-500/10', text: 'text-green-400', label: 'Positivo' },
-  bearish: { bg: 'bg-red-500/10', text: 'text-red-400', label: 'Negativo' },
-  neutral: { bg: 'bg-gray-500/10', text: 'text-gray-400', label: 'Neutro' },
-  cautious: { bg: 'bg-amber-500/10', text: 'text-amber-400', label: 'Cauteloso' },
+  bullish: { bg: 'bg-green-500/10', text: 'text-green-400', label: 'Bullish' },
+  bearish: { bg: 'bg-red-500/10', text: 'text-red-400', label: 'Bearish' },
+  neutral: { bg: 'bg-gray-500/10', text: 'text-gray-400', label: 'Neutral' },
+  cautious: { bg: 'bg-amber-500/10', text: 'text-amber-400', label: 'Cautious' },
 };
 
 export function AiInsightCard() {
@@ -43,7 +43,7 @@ export function AiInsightCard() {
 
   if (!loaded && isLoading) {
     return (
-      <Card className="border-none" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.04))' }}>
+      <Card className="border-none glass-card">
         <CardContent className="pt-4 pb-4">
           <div className="flex items-center gap-3 mb-3">
             <Skeleton className="w-9 h-9 rounded-xl" />
@@ -73,7 +73,7 @@ export function AiInsightCard() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-      <Card className="border-none overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.04))' }}>
+      <Card className="border-none overflow-hidden glass-card">
         <CardContent className="pt-4 pb-4">
           {/* Header */}
           <div className="flex items-start justify-between mb-3">
@@ -83,10 +83,10 @@ export function AiInsightCard() {
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Insight de IA</p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">AI Insight</p>
                   <Badge variant="outline" className="text-[11px] px-1.5 py-0">
                     <Sparkles className="w-2 h-2 mr-0.5" />
-                    Ao vivo
+                    Live
                   </Badge>
                 </div>
                 <h3 className="text-sm font-bold mt-0.5">{insight.title}</h3>
@@ -117,7 +117,7 @@ export function AiInsightCard() {
             </Badge>
             {insight.urgency === 'high' && (
               <Badge variant="outline" className="text-[11px] text-red-400 border-red-500/30">
-                Urgente
+                Urgent
               </Badge>
             )}
             {insight.relatedAssets.map(asset => (
@@ -129,7 +129,7 @@ export function AiInsightCard() {
 
           {/* Action */}
           {insight.action && (
-            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-primary/5 border border-primary/10">
+            <div className="flex items-center gap-2 p-2.5 rounded-xl glass-light border-primary/10">
               <Zap className="w-3.5 h-3.5 text-primary shrink-0" />
               <p className="text-[11px] text-primary font-medium flex-1">{insight.action}</p>
               <ArrowRight className="w-3 h-3 text-primary/60" />

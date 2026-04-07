@@ -83,7 +83,7 @@ export function AiAdvisorChat() {
             exit={{ scale: 0, opacity: 0 }}
             aria-label="Open AI advisor"
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-[100px] right-4 z-50 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 shadow-lg shadow-violet-500/20 flex items-center justify-center border border-white/10"
+            className="fixed bottom-[100px] right-4 z-50 w-11 h-11 rounded-xl apice-gradient-primary shadow-lg shadow-primary/25 flex items-center justify-center border border-white/10 hover-lift press-scale"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.92 }}
           >
@@ -113,12 +113,15 @@ export function AiAdvisorChat() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-white/10 overflow-hidden"
+              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl overflow-hidden"
               style={{
                 height: '75vh',
                 maxHeight: '600px',
-                background: 'rgba(15, 18, 35, 0.92)',
-                backdropFilter: 'blur(40px) saturate(180%)',
+                background: 'hsl(228 25% 9% / 0.92)',
+                backdropFilter: 'blur(40px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+                border: '1px solid hsl(var(--border) / 0.15)',
+                borderBottom: 'none',
               }}
             >
               {/* Header */}
@@ -138,7 +141,7 @@ export function AiAdvisorChat() {
                     <button
                       aria-label="Clear chat"
                       onClick={clearChat}
-                      className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
+                      className="w-8 h-8 rounded-lg glass-light flex items-center justify-center hover:bg-secondary/60 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
                     </button>
@@ -146,7 +149,7 @@ export function AiAdvisorChat() {
                   <button
                     aria-label="Close chat"
                     onClick={() => setIsOpen(false)}
-                    className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
+                    className="w-8 h-8 rounded-lg glass-light flex items-center justify-center hover:bg-secondary/60 transition-colors"
                   >
                     <X className="w-4 h-4 text-muted-foreground" />
                   </button>
@@ -174,7 +177,7 @@ export function AiAdvisorChat() {
                           key={prompt}
                           onClick={() => handleQuickPrompt(prompt)}
                           disabled={isLoading}
-                          className="rounded-full bg-white/[0.06] border border-white/10 px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:bg-white/[0.1] hover:text-foreground transition-all active:scale-95 whitespace-nowrap"
+                          className="rounded-full glass-light px-3 py-1.5 text-[12px] font-medium text-muted-foreground hover:bg-white/[0.1] hover:text-foreground transition-all press-scale whitespace-nowrap"
                         >
                           {prompt}
                         </button>
@@ -259,7 +262,7 @@ export function AiAdvisorChat() {
               </div>
 
               {/* Input Area */}
-              <div className="px-5 py-3 bg-white/[0.04] border-t border-white/5">
+              <div className="px-5 py-3 glass-light border-t border-border/10">
                 <div className="flex gap-2">
                   <input
                     ref={inputRef}

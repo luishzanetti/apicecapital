@@ -47,7 +47,7 @@ export function getProjectionData(weeklyAmount: number): ChartPoint[] {
 }
 
 // ─── Strategy Definitions ───────────────────────────────────
-// Each strategy includes a mandatory stablecoin "War Chest" (Capital de Guerra).
+// Each strategy includes a mandatory stablecoin "War Chest" (War Chest).
 // The War Chest is NOT idle money — it's strategic ammunition that the
 // Intelligence System deploys during market opportunities (e.g. CAPITULATION).
 
@@ -58,7 +58,7 @@ const strategies: Record<string, Strategy> = {
     allocations: [
       { asset: 'BTC', percentage: 55 },
       { asset: 'ETH', percentage: 20 },
-      { asset: 'USDT', percentage: 15 },  // War Chest — Capital de Guerra
+      { asset: 'USDT', percentage: 15 },  // War Chest — War Chest
       { asset: 'SOL', percentage: 10 },
     ],
   },
@@ -69,7 +69,7 @@ const strategies: Record<string, Strategy> = {
       { asset: 'BTC', percentage: 45 },
       { asset: 'ETH', percentage: 22 },
       { asset: 'SOL', percentage: 13 },
-      { asset: 'USDT', percentage: 12 },  // War Chest — Capital de Guerra
+      { asset: 'USDT', percentage: 12 },  // War Chest — War Chest
       { asset: 'LINK', percentage: 8 },
     ],
   },
@@ -80,14 +80,14 @@ const strategies: Record<string, Strategy> = {
       { asset: 'BTC', percentage: 35 },
       { asset: 'ETH', percentage: 20 },
       { asset: 'SOL', percentage: 18 },
-      { asset: 'USDT', percentage: 10 },  // War Chest — Capital de Guerra
+      { asset: 'USDT', percentage: 10 },  // War Chest — War Chest
       { asset: 'AVAX', percentage: 9 },
       { asset: 'LINK', percentage: 8 },
     ],
   },
 };
 
-// ─── War Chest (Capital de Guerra) — Dynamic Reserve by Regime ─────
+// ─── War Chest (War Chest) — Dynamic Reserve by Regime ─────
 // The War Chest % adjusts based on market regime. In CAPITULATION,
 // most of the reserve is deployed into assets (buy the blood).
 

@@ -62,23 +62,23 @@
   }
 
   .dark {
-    /* Dark mode - premium fintech */
-    --background: 225 20% 8%;
+    /* Dark mode - premium fintech v2 */
+    --background: 228 22% 6%;
     --foreground: 210 40% 98%;
 
-    --card: 225 25% 10%;
+    --card: 228 25% 9%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 225 25% 10%;
+    --popover: 228 25% 9%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 222 89% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 225 25% 15%;
+    --secondary: 228 25% 14%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 225 25% 14%;
+    --muted: 228 25% 13%;
     --muted-foreground: 215 20% 65%;
 
     --accent: 45 93% 52%;
@@ -87,30 +87,53 @@
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 225 25% 17%;
-    --input: 225 25% 18%;
+    --border: 228 20% 15%;
+    --input: 228 25% 16%;
     --ring: 222 89% 60%;
 
-    /* Apice custom tokens - dark */
+    /* Apice custom tokens - dark v2 */
     --apice-gold: 45 93% 52%;
     --apice-gold-soft: 45 70% 45%;
     --apice-success: 152 69% 45%;
     --apice-warning: 38 92% 55%;
-    --apice-surface: 225 25% 8%;
-    --apice-surface-elevated: 225 25% 12%;
+    --apice-surface: 228 22% 6%;
+    --apice-surface-elevated: 228 25% 11%;
     --apice-gradient-start: 222 89% 60%;
     --apice-gradient-end: 250 84% 58%;
     --apice-text-primary: 210 40% 98%;
     --apice-text-secondary: 215 20% 80%;
     --apice-text-tertiary: 215 20% 60%;
 
-    --sidebar-background: 240 5.9% 10%;
+    /* v2: Neon accent tokens */
+    --apice-neon-blue: 222 100% 68%;
+    --apice-neon-purple: 265 90% 68%;
+    --apice-neon-cyan: 190 95% 60%;
+    --apice-profit: 152 69% 50%;
+    --apice-loss: 0 75% 58%;
+
+    /* v2: Glass tokens (3 levels) */
+    --glass-blur-light: 12px;
+    --glass-blur-medium: 20px;
+    --glass-blur-heavy: 28px;
+    --glass-bg-light: 0.55;
+    --glass-bg-medium: 0.70;
+    --glass-bg-heavy: 0.82;
+    --glass-border: 0.12;
+    --glass-saturate: 180%;
+
+    /* v2: Depth layers */
+    --layer-base: 228 22% 6%;
+    --layer-1: 228 25% 9%;
+    --layer-2: 228 25% 12%;
+    --layer-3: 228 25% 16%;
+
+    --sidebar-background: 228 22% 6%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent: 228 25% 14%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-border: 228 20% 15%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
@@ -162,24 +185,69 @@
     background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--secondary) / 0.4));
   }
 
-  /* ─── Glassmorphism ─── */
-  .apice-glass {
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  /* ─── Glassmorphism v2 — 3-tier system ─── */
+
+  /* Level 1: Light — subtle depth for inline elements */
+  .glass-light {
+    backdrop-filter: blur(var(--glass-blur-light, 12px)) saturate(var(--glass-saturate, 180%));
+    -webkit-backdrop-filter: blur(var(--glass-blur-light, 12px)) saturate(var(--glass-saturate, 180%));
+    background: hsl(var(--card) / var(--glass-bg-light, 0.55));
+    border: 1px solid hsl(var(--border) / var(--glass-border, 0.12));
   }
 
+  /* Level 2: Medium — cards, panels, popovers */
   .glass-card {
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
-    background: hsl(var(--card) / 0.75);
-    border: 1px solid hsl(var(--border) / 0.5);
+    backdrop-filter: blur(var(--glass-blur-medium, 20px)) saturate(var(--glass-saturate, 180%));
+    -webkit-backdrop-filter: blur(var(--glass-blur-medium, 20px)) saturate(var(--glass-saturate, 180%));
+    background: hsl(var(--card) / var(--glass-bg-medium, 0.70));
+    border: 1px solid hsl(var(--border) / var(--glass-border, 0.12));
+    box-shadow: 0 4px 24px -4px hsl(0 0% 0% / 0.2);
   }
 
-  .glass-nav {
-    backdrop-filter: blur(28px) saturate(180%);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
-    background: hsl(var(--card) / 0.80);
-    border: 1px solid hsl(var(--border) / 0.35);
+  /* Level 3: Heavy — nav bars, modals, overlays */
+  .glass-heavy {
+    backdrop-filter: blur(var(--glass-blur-heavy, 28px)) saturate(var(--glass-saturate, 180%));
+    -webkit-backdrop-filter: blur(var(--glass-blur-heavy, 28px)) saturate(var(--glass-saturate, 180%));
+    background: hsl(var(--card) / var(--glass-bg-heavy, 0.82));
+    border: 1px solid hsl(var(--border) / 0.18);
+    box-shadow: 0 8px 32px -8px hsl(0 0% 0% / 0.3);
+  }
+
+  /* Legacy aliases */
+  .apice-glass { @apply glass-card; }
+  .glass-nav { @apply glass-heavy; }
+
+  /* ─── Glass variants with glow ─── */
+  .glass-card-glow {
+    @apply glass-card;
+    box-shadow:
+      0 4px 24px -4px hsl(0 0% 0% / 0.2),
+      0 0 0 1px hsl(var(--primary) / 0.08),
+      inset 0 1px 0 0 hsl(var(--foreground) / 0.04);
+  }
+
+  .glass-card-gold {
+    @apply glass-card;
+    border-color: hsl(var(--apice-gold) / 0.15);
+    box-shadow:
+      0 4px 24px -4px hsl(0 0% 0% / 0.2),
+      0 0 20px -4px hsl(var(--apice-gold) / 0.12);
+  }
+
+  /* ─── Neon glow borders ─── */
+  .border-glow-blue {
+    border: 1px solid hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 12px hsl(var(--primary) / 0.15), inset 0 0 12px hsl(var(--primary) / 0.05);
+  }
+
+  .border-glow-gold {
+    border: 1px solid hsl(var(--apice-gold) / 0.3);
+    box-shadow: 0 0 12px hsl(var(--apice-gold) / 0.15), inset 0 0 12px hsl(var(--apice-gold) / 0.05);
+  }
+
+  .border-glow-success {
+    border: 1px solid hsl(var(--apice-success) / 0.3);
+    box-shadow: 0 0 12px hsl(var(--apice-success) / 0.15), inset 0 0 12px hsl(var(--apice-success) / 0.05);
   }
 
   /* ─── Shadows ─── */
@@ -257,6 +325,58 @@
     background-clip: text;
   }
 
+  /* ─── v2: Premium gradients ─── */
+  .apice-gradient-neon {
+    background: linear-gradient(135deg, hsl(222 89% 60%), hsl(265 90% 68%), hsl(190 95% 60%));
+    background-size: 200% 200%;
+  }
+
+  .apice-gradient-dark-card {
+    background: linear-gradient(
+      145deg,
+      hsl(var(--layer-1, 228 25% 9%)),
+      hsl(var(--layer-2, 228 25% 12%) / 0.6)
+    );
+  }
+
+  .apice-gradient-profit {
+    background: linear-gradient(135deg, hsl(152 69% 40%), hsl(152 69% 55%));
+  }
+
+  .apice-gradient-loss {
+    background: linear-gradient(135deg, hsl(0 75% 50%), hsl(0 75% 62%));
+  }
+
+  .apice-gradient-mesh {
+    background:
+      radial-gradient(at 20% 80%, hsl(222 89% 60% / 0.15) 0%, transparent 50%),
+      radial-gradient(at 80% 20%, hsl(265 90% 68% / 0.12) 0%, transparent 50%),
+      radial-gradient(at 50% 50%, hsl(190 95% 60% / 0.08) 0%, transparent 60%),
+      hsl(var(--background));
+  }
+
+  /* ─── v2: Depth surface system ─── */
+  .surface-base { background: hsl(var(--layer-base, var(--background))); }
+  .surface-1 { background: hsl(var(--layer-1, var(--card))); }
+  .surface-2 { background: hsl(var(--layer-2, var(--secondary))); }
+  .surface-3 { background: hsl(var(--layer-3, var(--muted))); }
+
+  /* ─── v2: Neon text ─── */
+  .text-neon-blue {
+    color: hsl(var(--apice-neon-blue, 222 100% 68%));
+    text-shadow: 0 0 12px hsl(222 100% 68% / 0.5);
+  }
+
+  .text-neon-gold {
+    color: hsl(var(--apice-gold));
+    text-shadow: 0 0 12px hsl(45 93% 52% / 0.5);
+  }
+
+  .text-neon-cyan {
+    color: hsl(var(--apice-neon-cyan, 190 95% 60%));
+    text-shadow: 0 0 12px hsl(190 95% 60% / 0.5);
+  }
+
   /* ─── Interactive states ─── */
   .press-scale {
     transition: transform 0.1s ease;
@@ -264,6 +384,28 @@
 
   .press-scale:active {
     transform: scale(0.97);
+  }
+
+  /* v2: Enhanced interactive states */
+  .hover-lift {
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px -8px hsl(0 0% 0% / 0.25);
+  }
+
+  .hover-glow {
+    transition: box-shadow 0.3s ease;
+  }
+
+  .hover-glow:hover {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.2), 0 0 8px hsl(var(--primary) / 0.12);
+  }
+
+  .hover-glow-gold:hover {
+    box-shadow: 0 0 20px hsl(var(--apice-gold) / 0.25), 0 0 8px hsl(var(--apice-gold) / 0.15);
   }
 }
 
@@ -408,6 +550,66 @@
   }
 }
 
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    filter: blur(20px);
+  }
+
+  50% {
+    opacity: 1;
+    filter: blur(24px);
+  }
+}
+
+@keyframes border-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes count-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes celebration {
+  0% {
+    transform: scale(1);
+  }
+
+  15% {
+    transform: scale(1.15);
+  }
+
+  30% {
+    transform: scale(0.95);
+  }
+
+  45% {
+    transform: scale(1.05);
+  }
+
+  60% {
+    transform: scale(0.98);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
 @keyframes gradient-shift {
   0% {
     background-position: 0% 50%;
@@ -498,6 +700,25 @@
 .animate-gradient {
   background-size: 200% 200%;
   animation: gradient-shift 4s ease infinite;
+}
+
+/* v2: Premium animations */
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.animate-border-flow {
+  background: linear-gradient(90deg, hsl(var(--primary) / 0.5), hsl(var(--apice-gold) / 0.5), hsl(var(--primary) / 0.5));
+  background-size: 200% 100%;
+  animation: border-flow 3s linear infinite;
+}
+
+.animate-count-up {
+  animation: count-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-celebration {
+  animation: celebration 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 /* ══════════════════════════════════════

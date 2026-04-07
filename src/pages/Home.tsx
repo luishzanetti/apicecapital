@@ -272,7 +272,7 @@ function WidgetCustomizer({
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border/50 rounded-t-3xl max-h-[80vh] overflow-hidden"
+            className="fixed bottom-0 left-0 right-0 z-50 glass-heavy rounded-t-3xl max-h-[80vh] overflow-hidden"
           >
             {/* Handle */}
             <div className="flex justify-center pt-3 pb-1">
@@ -348,7 +348,7 @@ function WidgetCustomizer({
               </div>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-card/95 backdrop-blur-sm border-t border-border/30">
+            <div className="absolute bottom-0 left-0 right-0 p-4 glass-heavy border-t border-border/20">
               <Button variant="premium" size="lg" className="w-full" onClick={save}>
                 <Check className="w-4 h-4 mr-1.5" />
                 {t('common.saveLayout')}
@@ -450,7 +450,7 @@ export default function Home() {
         if (!isMilestoneUnlocked) {
           return (
             <motion.div key="milestone" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-              <div className="p-4 rounded-2xl border border-border/30 bg-secondary/20 flex items-center gap-3 opacity-60">
+              <div className="p-4 rounded-2xl glass-light flex items-center gap-3 opacity-60">
                 <Lock className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-semibold text-muted-foreground">{t('home.milestoneTracker')}</p>
@@ -557,7 +557,7 @@ export default function Home() {
           <motion.div key="nextstep" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
             <button
               onClick={() => nextStep.task.actionRoute && navigate(nextStep.task.actionRoute)}
-              className="w-full p-4 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 to-violet-500/5 text-left group hover:border-primary/40 transition-all active:scale-[0.99]"
+              className="w-full p-4 rounded-2xl glass-card border-glow-blue text-left group hover-lift press-scale"
             >
               <div className="flex items-center gap-1.5 mb-2">
                 <Target className="w-3.5 h-3.5 text-primary" />
@@ -594,7 +594,7 @@ export default function Home() {
                 <button
                   key={item.label}
                   onClick={item.action}
-                  className="flex flex-col items-center gap-2 py-3 rounded-xl bg-card border border-border/50 hover:border-primary/20 transition-all active:scale-95"
+                  className="flex flex-col items-center gap-2 py-3 rounded-xl glass-light hover:border-primary/20 transition-all press-scale hover-lift"
                 >
                   <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', item.color)}>
                     <item.icon className="w-4 h-4" />
@@ -610,7 +610,7 @@ export default function Home() {
         if (!isGamificationUnlocked) {
           return (
             <motion.div key="gamification" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-              <div className="p-4 rounded-2xl border border-border/30 bg-secondary/20 flex items-center gap-3 opacity-60">
+              <div className="p-4 rounded-2xl glass-light flex items-center gap-3 opacity-60">
                 <Lock className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-semibold text-muted-foreground">{t('home.levelsAndBadges')}</p>
@@ -631,7 +631,7 @@ export default function Home() {
         if (subscription.tier === 'free') {
           return (
             <motion.div key="analytics" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-              <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 flex items-center gap-3">
+              <div className="p-4 rounded-2xl glass-light border-glow-gold flex items-center gap-3">
                 <Crown className="w-5 h-5 text-amber-400 shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-amber-300">{t('home.portfolioAnalytics')}</p>
@@ -649,7 +649,7 @@ export default function Home() {
         if (subscription.tier === 'free') {
           return (
             <motion.div key="copytrading" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-              <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 flex items-center gap-3">
+              <div className="p-4 rounded-2xl glass-light border-glow-gold flex items-center gap-3">
                 <Crown className="w-5 h-5 text-amber-400 shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-amber-300">{t('home.copyTrading')}</p>
@@ -669,13 +669,19 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background pb-28">
-      {/* Hero Header */}
+      {/* Hero Header — Mesh gradient background */}
       <div
-        className="px-6 pt-8 pb-5 space-y-4"
-        style={{ background: 'linear-gradient(180deg, rgba(99,102,241,0.08) 0%, transparent 100%)' }}
+        className="relative px-6 pt-8 pb-6 space-y-4 overflow-hidden"
       >
+        {/* Ambient background orbs */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-primary/[0.07] blur-[80px] animate-glow-pulse" />
+          <div className="absolute -bottom-10 -left-20 w-48 h-48 rounded-full bg-accent/[0.05] blur-[60px] animate-glow-pulse" style={{ animationDelay: '1.5s' }} />
+          <div className="absolute top-1/2 right-1/4 w-32 h-32 rounded-full bg-purple-500/[0.04] blur-[50px] animate-glow-pulse" style={{ animationDelay: '3s' }} />
+        </div>
+
         {/* Top bar */}
-        <div className="flex items-center justify-between">
+        <div className="relative flex items-center justify-between">
           <div>
             <p className="text-xs text-muted-foreground">{t(getTimeGreetingKey())}, {investorType || t('common.investor')}!</p>
             <h1 className="text-xl font-bold">{t('home.yourDashboard')}</h1>
@@ -686,7 +692,7 @@ export default function Home() {
           </div>
           <button
             onClick={() => setShowCustomizer(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/60 border border-border/40 hover:bg-secondary transition-all text-xs font-medium text-muted-foreground"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-light hover:bg-secondary/60 transition-all text-xs font-medium text-muted-foreground press-scale"
           >
             <Settings2 className="w-3.5 h-3.5" />
             {t('home.widgets')}
@@ -697,16 +703,18 @@ export default function Home() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
           <ExecutivePortfolioBoard />
         </motion.div>
+
+        {/* Daily insight card — glass style */}
         <motion.button
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.14 }}
           onClick={() => navigate(getInsightRoute(todayInsight.type))}
-          className="w-full rounded-3xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 text-left"
+          className="relative w-full rounded-2xl glass-card border-glow-blue p-4 text-left hover-lift"
         >
           <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-primary/80">
             <span>{t('home.todaysContext')}</span>
-            <span className="rounded-full border border-primary/20 px-2 py-0.5 tracking-[0.12em] text-primary/70">
+            <span className="rounded-full glass-light px-2 py-0.5 tracking-[0.12em] text-primary/90 text-[10px] font-semibold">
               {getInsightTypeLabel(todayInsight.type, language)}
             </span>
           </div>
@@ -721,9 +729,9 @@ export default function Home() {
         </motion.button>
       </div>
 
-      {/* Widget Grid */}
-      <div className="px-6 space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
-        <p className="text-[11px] text-muted-foreground/50 text-center mb-3 md:col-span-2">
+      {/* Widget Grid — Bento layout */}
+      <div className="px-6 space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
+        <p className="text-[11px] text-muted-foreground/40 text-center mb-2 md:col-span-2">
           {t('common.lastUpdated')} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </p>
         {widgetOrder.map((widgetId, idx) => renderWidget(widgetId, idx))}

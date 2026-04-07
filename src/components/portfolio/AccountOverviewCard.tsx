@@ -54,17 +54,17 @@ export function AccountOverviewCard() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-primary/10 bg-primary/5 p-3">
+            <div className="rounded-xl glass-light border-primary/10 p-3">
               <p className="mb-1 text-[11px] uppercase tracking-wider text-muted-foreground">{copy.primary}</p>
               <p className="text-sm font-bold">{fmt(analytics.spotBalance)}</p>
             </div>
 
-            <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-3">
+            <div className="rounded-xl glass-light border-amber-500/10 p-3">
               <p className="mb-1 text-[11px] uppercase tracking-wider text-amber-400">{copy.secondary}</p>
               <p className="text-sm font-bold">{fmt(secondaryValue)}</p>
             </div>
 
-            <div className="rounded-xl border border-border/30 bg-secondary/40 p-3">
+            <div className="rounded-xl glass-light p-3">
               <div className="mb-1 flex items-center gap-1.5">
                 {analytics.hasLiveBalance ? (
                   <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
@@ -100,7 +100,7 @@ export function AccountOverviewCard() {
               </p>
             </div>
 
-            <div className="col-span-2 rounded-xl border border-border/30 bg-secondary/40 p-3">
+            <div className="col-span-2 rounded-xl glass-light p-3">
               <p className="mb-1 text-[11px] uppercase tracking-wider text-muted-foreground">{copy.footer}</p>
               <p className="text-sm font-bold">{fmt(footerValue)}</p>
             </div>

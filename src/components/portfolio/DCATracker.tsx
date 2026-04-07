@@ -47,7 +47,7 @@ export function DCATracker() {
   if (dcaPlans.length === 0) {
     return (
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <Card className="border-dashed border-primary/20 backdrop-blur-xl bg-card/80">
+        <Card className="border-dashed border-primary/20 glass-light">
           <CardContent className="pt-5 pb-5">
             <div className="flex flex-col items-center text-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
@@ -72,7 +72,7 @@ export function DCATracker() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-      <Card className="overflow-hidden backdrop-blur-xl bg-card/80 border-border/40">
+      <Card className="overflow-hidden glass-card">
         {/* Gradient accent line */}
         <div className="h-[2px] w-full bg-gradient-to-r from-primary via-violet-500 to-primary/60" />
         <CardContent className="pt-4 pb-4 space-y-4">

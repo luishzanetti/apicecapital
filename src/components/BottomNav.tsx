@@ -52,9 +52,10 @@ export function BottomNav() {
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
               className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl overflow-hidden"
               style={{
-                background: 'rgba(15, 18, 35, 0.95)',
-                backdropFilter: 'blur(40px) saturate(180%)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'hsl(228 25% 9% / 0.92)',
+                backdropFilter: 'blur(40px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+                border: '1px solid hsl(var(--border) / 0.15)',
                 borderBottom: 'none',
               }}
             >
@@ -128,12 +129,12 @@ export function BottomNav() {
         <nav
           className="flex items-center justify-between px-4 py-2.5 rounded-[22px]"
           style={{
-            background: 'rgba(15, 18, 35, 0.72)',
+            background: 'hsl(228 25% 9% / 0.72)',
             backdropFilter: 'blur(40px) saturate(200%)',
             WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            border: '1px solid hsl(var(--border) / 0.15)',
             boxShadow:
-              '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+              '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px hsl(var(--primary) / 0.04), inset 0 1px 0 hsl(var(--foreground) / 0.04)',
           }}
         >
           {navItems.map((item) => {

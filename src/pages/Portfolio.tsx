@@ -165,11 +165,12 @@ export default function Portfolio() {
 
   return (
     <div className="min-h-screen bg-background pb-28">
-      {/* Header */}
+      {/* Header — ambient glow */}
       <div
-        className="px-5 pt-6 pb-4"
+        className="relative px-5 pt-6 pb-4 overflow-hidden"
         style={{ background: 'linear-gradient(180deg, hsl(var(--primary) / 0.07) 0%, transparent 100%)' }}
       >
+        <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-primary/[0.06] blur-[60px] animate-glow-pulse pointer-events-none" aria-hidden="true" />
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-xs text-muted-foreground font-medium">{t('portfolio.investmentEngine')}</p>
@@ -196,7 +197,7 @@ export default function Portfolio() {
         </div>
 
         {/* Tab bar */}
-        <div className="flex bg-secondary/40 rounded-2xl p-1 gap-1 relative">
+        <div className="flex glass-light rounded-2xl p-1 gap-1 relative">
           {([
             { key: 'overview', label: t('portfolio.tabs.overview') },
             { key: 'strategies', label: t('portfolio.tabs.strategies') },
@@ -240,7 +241,7 @@ export default function Portfolio() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
-                  className="rounded-2xl bg-card/50 border border-border/50 p-6 text-center"
+                  className="rounded-2xl glass-card p-6 text-center"
                 >
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
                     <Rocket className="w-8 h-8 text-primary" />
@@ -383,10 +384,7 @@ export default function Portfolio() {
               {weeklyInvestment > 0 && !thisWeekDeposited && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
                   <button onClick={() => setShowDepositConfirm(true)} className="w-full press-scale">
-                    <div
-                      className="p-4 rounded-2xl border border-primary/30 hover:border-primary/50 transition-all"
-                      style={{ background: 'linear-gradient(135deg, hsl(var(--primary) / 0.09), hsl(250 84% 60% / 0.06))' }}
-                    >
+                    <div className="p-4 rounded-2xl glass-card border-glow-blue hover-lift">
                       <div className="flex items-center gap-3">
                         <div className="w-11 h-11 rounded-xl bg-primary/12 flex items-center justify-center shrink-0 glow-primary">
                           <Wallet className="w-5 h-5 text-primary" />
@@ -407,7 +405,7 @@ export default function Portfolio() {
               )}
 
               {thisWeekDeposited && (
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/5 border border-green-500/20">
+                <div className="flex items-center gap-3 p-4 rounded-xl glass-light border-glow-success">
                   <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-green-400">{t('portfolio.depositConfirmed')}</p>

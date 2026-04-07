@@ -19,10 +19,10 @@ interface WarChestStatus {
 }
 
 const ACTION_CONFIG = {
-  ACCUMULATE: { icon: '🛡️', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', label: 'Acumulando' },
-  HOLD: { icon: '⏳', color: 'text-zinc-400', bg: 'bg-zinc-500/10 border-zinc-500/20', label: 'Em Espera' },
-  DEPLOY: { icon: '🚀', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20 animate-pulse', label: 'DEPLOYAR!' },
-  PARTIAL_DEPLOY: { icon: '⚡', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20', label: 'Deploy Parcial' },
+  ACCUMULATE: { icon: '🛡️', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', label: 'Accumulating' },
+  HOLD: { icon: '⏳', color: 'text-zinc-400', bg: 'bg-zinc-500/10 border-zinc-500/20', label: 'Holding' },
+  DEPLOY: { icon: '🚀', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20 animate-pulse', label: 'DEPLOY!' },
+  PARTIAL_DEPLOY: { icon: '⚡', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20', label: 'Partial Deploy' },
 };
 
 export function WarChestCard() {
@@ -72,7 +72,7 @@ export function WarChestCard() {
         <div className="flex items-center gap-2">
           <span className="text-xl">{config.icon}</span>
           <div>
-            <h3 className="text-sm font-semibold text-white">Capital de Guerra</h3>
+            <h3 className="text-sm font-semibold text-white">War Chest</h3>
             <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{config.label}</p>
           </div>
         </div>
@@ -89,7 +89,7 @@ export function WarChestCard() {
       {/* Reserve bar */}
       <div className="space-y-1">
         <div className="flex items-center justify-between text-[10px] text-zinc-500">
-          <span>Reserva atual</span>
+          <span>Current reserve</span>
           <span>Target: {status.targetReservePct}%</span>
         </div>
         <div className="w-full bg-zinc-800 rounded-full h-2.5 relative overflow-hidden">
@@ -118,7 +118,7 @@ export function WarChestCard() {
       {/* Deploy targets (shown only when deploying) */}
       {isDeploy && status.deployTargets.length > 0 && (
         <div className="bg-zinc-900/50 rounded-lg p-3 space-y-2">
-          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Destino do Deploy</p>
+          <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Deploy Targets</p>
           {status.deployTargets.map((target) => (
             <div key={target.asset} className="flex items-center justify-between text-xs">
               <span className="text-white font-medium">{target.asset}</span>
@@ -135,7 +135,7 @@ export function WarChestCard() {
           ))}
           {status.deployableUsd > 0 && (
             <p className="text-xs text-amber-300 font-medium pt-1 border-t border-zinc-700/50">
-              ${status.deployableUsd.toLocaleString()} disponível para deploy
+              ${status.deployableUsd.toLocaleString()} available to deploy
             </p>
           )}
         </div>
@@ -159,13 +159,13 @@ export function WarChestCard() {
           disabled={isDeploying}
           className="w-full py-3 rounded-lg font-semibold text-sm transition-all bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white active:scale-[0.98] disabled:opacity-50"
         >
-          {isDeploying ? 'Deployando...' : `Deployar $${status.deployableUsd.toLocaleString()} Agora`}
+          {isDeploying ? 'Deploying...' : `Deploy $${status.deployableUsd.toLocaleString()} Now`}
         </button>
       )}
 
       {deployed && (
         <div className="w-full py-3 rounded-lg text-center text-sm font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
-          Deploy registrado! Aplique no seu próximo aporte DCA.
+          Deploy registered! Apply it on your next DCA contribution.
         </div>
       )}
 
@@ -174,7 +174,7 @@ export function WarChestCard() {
           onClick={() => navigate('/dca-planner')}
           className="w-full py-2.5 rounded-lg text-xs font-medium transition-all bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20"
         >
-          Configurar DCA com Capital de Guerra →
+          Configure DCA with War Chest →
         </button>
       )}
 
@@ -186,7 +186,7 @@ export function WarChestCard() {
           </span>
         </span>
         <span className="text-zinc-600">
-          Perfil: {status.profileType}
+          Profile: {status.profileType}
         </span>
       </div>
     </div>

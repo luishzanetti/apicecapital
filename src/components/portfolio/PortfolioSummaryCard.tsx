@@ -446,7 +446,7 @@ export function PortfolioSummaryCard() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-      <Card className="overflow-hidden border-0 shadow-xl shadow-primary/5">
+      <Card className="overflow-hidden glass-card border-0 apice-shadow-elevated">
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -528,7 +528,7 @@ export function PortfolioSummaryCard() {
           {/* Account Summary — Mini Cards */}
           <div className="grid grid-cols-2 gap-2 md:gap-3">
             {/* Unified Account Card */}
-            <div className="rounded-xl bg-primary/5 border border-primary/10 p-3 md:p-4 space-y-1">
+            <div className="rounded-xl glass-light border-primary/10 p-3 md:p-4 space-y-1">
               <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-sm shadow-primary/40" />
                 <span className="text-[11px] md:text-xs font-medium text-muted-foreground">{copy.unified}</span>
@@ -552,7 +552,7 @@ export function PortfolioSummaryCard() {
           </div>
 
           {/* Info Bar — Assets & Available Balance */}
-          <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 rounded-lg bg-secondary/30 border border-border/20">
+          <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 rounded-lg glass-light">
             <span className="text-[11px] md:text-xs text-muted-foreground">
               {analytics.spotCount} {copy.holdings}{' '}
               <span className="text-muted-foreground/40 mx-0.5">&middot;</span>{' '}
