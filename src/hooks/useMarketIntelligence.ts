@@ -181,8 +181,8 @@ export function useMarketIntelligence() {
         setCache('regime', info);
         return info;
       }
-    } catch (e) {
-      console.error('Failed to fetch regime:', e);
+    } catch {
+      // Intelligence system tables not yet deployed — graceful degradation
     }
     return null;
   }, []);
@@ -202,8 +202,8 @@ export function useMarketIntelligence() {
         setCache('marketData', data);
         return data;
       }
-    } catch (e) {
-      console.error('Failed to fetch market data:', e);
+    } catch {
+      // Intelligence tables not deployed yet
     }
     return [];
   }, []);
@@ -228,8 +228,8 @@ export function useMarketIntelligence() {
         setCache('userIntel', data);
         return data;
       }
-    } catch (e) {
-      console.error('Failed to fetch user intelligence:', e);
+    } catch {
+      // Intelligence tables not deployed yet
     }
     return null;
   }, []);
@@ -365,8 +365,8 @@ export function useMarketIntelligence() {
         event_data: eventData || {},
         market_regime: regime?.regime || null,
       });
-    } catch (e) {
-      console.error('Failed to log behavior event:', e);
+    } catch {
+      // Intelligence tables not deployed yet
     }
   }, [regime]);
 

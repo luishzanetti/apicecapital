@@ -30,15 +30,15 @@ export function SmartAlertsList({ maxAlerts = 5, compact = false }: SmartAlertsL
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchAlerts();
+    try { fetchAlerts(); } catch { /* intelligence system not yet deployed */ }
   }, [fetchAlerts]);
 
-  const visibleAlerts = alerts.slice(0, maxAlerts);
+  const visibleAlerts = (alerts || []).slice(0, maxAlerts);
 
   if (visibleAlerts.length === 0) {
     return compact ? null : (
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <p className="text-xs text-zinc-500 text-center">Nenhum alerta no momento</p>
+        <p className="text-xs text-zinc-500 text-center">No alerts right now</p>
       </div>
     );
   }
@@ -58,9 +58,9 @@ export function SmartAlertsList({ maxAlerts = 5, compact = false }: SmartAlertsL
       {!compact && (
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium text-white flex items-center gap-2">
-            <span>🔔</span> Alertas Inteligentes
+            <span>🔔</span> Smart Alerts
           </h3>
-          <span className="text-xs text-zinc-500">{visibleAlerts.length} alerta(s)</span>
+          <span className="text-xs text-zinc-500">{visibleAlerts.length} alert(s)</span>
         </div>
       )}
 
@@ -69,7 +69,7 @@ export function SmartAlertsList({ maxAlerts = 5, compact = false }: SmartAlertsL
           key={alert.id}
           className={`
             border-l-2 rounded-r-lg p-3 cursor-pointer
-            transition-all hover:bg-zinc-800/50
+            transition-all hover:bg-secondary/30
             ${SEVERITY_STYLES[alert.severity]}
             ${alert.is_read ? 'opacity-70' : ''}
           `}
