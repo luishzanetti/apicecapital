@@ -95,17 +95,6 @@ export function useExchangeBalance() {
     }));
 
     try {
-      // Refresh session to get a fresh access token
-      const { data: { session: freshSession } } = await supabase.auth.refreshSession();
-      if (!freshSession?.access_token) {
-        // Can't refresh — try with existing session anyway
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-        if (!existingSession?.access_token) {
-          setState({ data: null, isLoading: false, isRefreshing: false, error: null, status: 'no_credentials' });
-          return;
-        }
-      }
-
       const { data: creds } = await supabase
         .from('bybit_credentials')
         .select('api_key, testnet')
