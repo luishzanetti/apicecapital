@@ -86,9 +86,9 @@ export function useExchangeBalance() {
       return;
     }
 
-    // Always get fresh session — don't rely on stale context values
-    const { data: { session: currentSession } } = await supabase.auth.getSession();
-    if (!currentSession?.user) {
+    // getUser() validates token server-side and triggers auto-refresh if expired
+    const { data: { user: freshUser }, error: authError } = await supabase.auth.getUser();
+    if (authError || !freshUser) {
       setState({ data: null, isLoading: false, isRefreshing: false, error: null, status: 'no_credentials' });
       return;
     }
@@ -105,7 +105,7 @@ export function useExchangeBalance() {
       const { data: creds } = await supabase
         .from('bybit_credentials')
         .select('api_key, testnet')
-        .eq('user_id', currentSession.user.id)
+        .eq('user_id', freshUser.id)
         .maybeSingle();
 
       if (!creds) {
