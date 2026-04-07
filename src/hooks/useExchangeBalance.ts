@@ -81,7 +81,14 @@ export function useExchangeBalance() {
   });
 
   const fetchBalance = useCallback(async (isRefresh = false) => {
-    if (!isSupabaseConfigured || !user || !session?.access_token) {
+    if (!isSupabaseConfigured) {
+      setState({ data: null, isLoading: false, isRefreshing: false, error: null, status: 'no_credentials' });
+      return;
+    }
+
+    // Always get fresh session — don't rely on stale context values
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    if (!currentSession?.user) {
       setState({ data: null, isLoading: false, isRefreshing: false, error: null, status: 'no_credentials' });
       return;
     }
@@ -98,7 +105,7 @@ export function useExchangeBalance() {
       const { data: creds } = await supabase
         .from('bybit_credentials')
         .select('api_key, testnet')
-        .eq('user_id', user.id)
+        .eq('user_id', currentSession.user.id)
         .maybeSingle();
 
       if (!creds) {
@@ -134,7 +141,7 @@ export function useExchangeBalance() {
         status: 'error',
       }));
     }
-  }, [user, session?.access_token]);
+  }, []);
 
   useEffect(() => {
     fetchBalance();
