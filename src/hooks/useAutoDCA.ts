@@ -61,45 +61,45 @@ export function useAutoDCA() {
             addNotification({
               type: 'success',
               category: 'dca',
-              title: 'DCA executado',
-              message: `$${result.totalSpent.toFixed(2)} investidos em ${assets}`,
+              title: 'DCA executed',
+              message: `$${result.totalSpent.toFixed(2)} invested in ${assets}`,
               actionRoute: '/portfolio',
-              actionLabel: 'Ver portfólio',
+              actionLabel: 'View portfolio',
             });
           } else if (successCount > 0 && failCount > 0) {
             addNotification({
               type: 'warning',
               category: 'dca',
-              title: 'Execução parcial',
-              message: `${successCount} ativos executados e ${failCount} falharam. Revise o Planejador DCA.`,
+              title: 'Partial execution',
+              message: `${successCount} assets executed and ${failCount} failed. Review the DCA Planner.`,
               actionRoute: '/dca-planner',
-              actionLabel: 'Ver detalhes',
+              actionLabel: 'View details',
             });
           } else {
-            const firstError = result.executions.find(e => e.error)?.error || 'Erro desconhecido';
+            const firstError = result.executions.find(e => e.error)?.error || 'Unknown error';
             const isPermError = firstError.toLowerCase().includes('permission') ||
                                firstError.toLowerCase().includes('invalid api');
             addNotification({
               type: 'error',
               category: 'dca',
-              title: 'Falha no DCA',
+              title: 'DCA failed',
               message: isPermError
-                ? 'A chave da API não tem permissão de Trade (Spot). Atualize em Configurações > Conexão Bybit.'
+                ? 'API key doesn\'t have Trade (Spot) permission. Update in Settings > Bybit Connection.'
                 : firstError,
               actionRoute: isPermError ? '/settings' : '/dca-planner',
-              actionLabel: isPermError ? 'Corrigir configuração' : 'Ver detalhes',
+              actionLabel: isPermError ? 'Fix settings' : 'View details',
             });
           }
         }
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'A execução automática falhou de forma inesperada.';
+        const message = err instanceof Error ? err.message : 'Automatic execution failed unexpectedly.';
         addNotification({
           type: 'error',
           category: 'dca',
-          title: 'Erro no DCA',
+          title: 'DCA error',
           message,
           actionRoute: '/dca-planner',
-          actionLabel: 'Revisar planos',
+          actionLabel: 'Review plans',
         });
       }
     }

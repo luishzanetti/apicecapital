@@ -578,7 +578,7 @@ export function ExecutivePortfolioBoard() {
                   <div className="mb-3 flex items-center justify-between">
                     <div>
                       <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{copy.stablecoins}</p>
-                      <p className="text-xs text-muted-foreground">Reserva tática e caixa de oportunidade.</p>
+                      <p className="text-xs text-muted-foreground">Tactical reserve and opportunity vault.</p>
                     </div>
                     <Badge variant="outline" className="border-green-500/20 text-[11px] text-green-400">
                       {stablecoinHoldings.length}

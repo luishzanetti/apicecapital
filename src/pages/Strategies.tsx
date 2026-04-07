@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAppStore } from '@/store/appStore';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   Compass,
   Shield,
@@ -121,6 +122,7 @@ function StrategyOnboarding({
   investorType: string | null;
 }) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { language } = useTranslation();
   const slide = ONBOARDING_SLIDES[currentSlide];
   const isLast = currentSlide === ONBOARDING_SLIDES.length - 1;
   const Icon = slide.icon;
@@ -171,7 +173,7 @@ function StrategyOnboarding({
               <div className="flex items-center gap-2 p-3 rounded-xl bg-primary/10 border border-primary/20 mx-auto max-w-xs">
                 <Target className="w-4 h-4 text-primary shrink-0" />
                 <p className="text-xs text-primary font-medium">
-                  Personalizado para seu perfil: {investorType}
+                  {language === 'pt' ? `Personalizado para seu perfil: ${investorType}` : `Tailored to your profile: ${investorType}`}
                 </p>
               </div>
             )}
@@ -292,7 +294,7 @@ function StrategyOnboarding({
         )}
 
         <p className="text-[11px] text-muted-foreground text-center">
-          {currentSlide + 1} de {ONBOARDING_SLIDES.length}
+          {currentSlide + 1} of {ONBOARDING_SLIDES.length}
         </p>
       </div>
     </div>
@@ -372,7 +374,7 @@ export default function Strategies() {
       description: 'Harness artificial intelligence for strategic financial leverage. AI-optimized entries, risk-managed positions, and algorithmic execution that adapts to market conditions in real-time.',
       icon: Bot,
       iconGradient: 'from-emerald-500 to-green-500',
-      route: '/strategies/ai-trade',
+      route: '/onboarding',
       badge: 'Featured',
       badgeVariant: 'recommended',
       features: ['AI-powered market analysis', 'Smart leverage optimization', 'Real-time risk management', 'Guided setup wizard'],

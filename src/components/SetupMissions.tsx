@@ -87,7 +87,7 @@ export default function SetupMissions() {
                     <div>
                         <p className="text-sm font-bold">Your Apice Journey</p>
                         <p className="text-[11px] text-muted-foreground">
-                            {totalXP} / {totalPossibleXP} XP · {overallPercent}% complete
+                            {totalXP} / {totalPossibleXP} XP · {overallPercent}% completed
                         </p>
                     </div>
                 </div>
@@ -311,7 +311,7 @@ export default function SetupMissions() {
                                                                         completeMissionTask(
                                                                             task.storeKey as keyof MissionProgress
                                                                         );
-                                                                        toast.success(`Mission accomplished! +${task.xp} XP`);
+                                                                        toast.success(`Mission complete! +${task.xp} XP`);
                                                                     }
                                                                 }}
                                                             >

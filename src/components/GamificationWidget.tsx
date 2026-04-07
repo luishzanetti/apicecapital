@@ -3,175 +3,235 @@ import { motion } from 'framer-motion';
 import { Trophy, Star, Zap, Shield, Crown, Medal, Lock } from 'lucide-react';
 import { useAppStore, type MissionProgress } from '@/store/appStore';
 import { missionDefinitions } from '@/data/sampleData';
+import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
 
 export function GamificationWidget() {
-    const missionProgress = useAppStore((s) => s.missionProgress);
-    const subscription = useAppStore((s) => s.subscription);
+  const missionProgress = useAppStore((state) => state.missionProgress);
+  const subscription = useAppStore((state) => state.subscription);
+  const { language } = useTranslation();
 
-    const { totalXP, earnedBadges, currentLevel, xpForNextLevel, progressToNextLevel } = useMemo(() => {
-        let xp = 0;
-        const badges: { title: string; icon: string; color: string }[] = [];
+  const { totalXP, earnedBadges, currentLevel, xpForNextLevel, progressToNextLevel } = useMemo(() => {
+    let xp = 0;
+    const badges: { title: string; icon: string; color: string }[] = [];
 
-        missionDefinitions.forEach((mission) => {
-            const completedTasks = mission.tasks.filter(
-                (t) => missionProgress[t.storeKey as keyof MissionProgress]
-            );
-            const missionXP = completedTasks.reduce((sum, t) => sum + t.xp, 0);
-            xp += missionXP;
-            if (completedTasks.length === mission.tasks.length) {
-                badges.push({ title: mission.badge, icon: mission.badgeIcon, color: mission.color });
-            }
-        });
+    missionDefinitions.forEach((mission) => {
+      const completedTasks = mission.tasks.filter(
+        (task) => missionProgress[task.storeKey as keyof MissionProgress]
+      );
+      const missionXP = completedTasks.reduce((sum, task) => sum + task.xp, 0);
+      xp += missionXP;
 
-        const levelThresholds = [0, 500, 1200, 2500, 5000];
-        let level = 1;
-        for (let i = levelThresholds.length - 1; i >= 0; i--) {
-            if (xp >= levelThresholds[i]) { level = i + 1; break; }
-        }
+      if (completedTasks.length === mission.tasks.length) {
+        badges.push({ title: mission.badge, icon: mission.badgeIcon, color: mission.color });
+      }
+    });
 
-        const nextThreshold = levelThresholds[level] || levelThresholds[level - 1] * 2;
-        const currentThreshold = levelThresholds[level - 1];
-        const xpProgress = xp - currentThreshold;
-        const neededForNext = nextThreshold - currentThreshold;
-        const percent = Math.min(Math.round((xpProgress / neededForNext) * 100), 100);
+    const levelThresholds = [0, 500, 1200, 2500, 5000];
+    let level = 1;
 
-        return { totalXP: xp, earnedBadges: badges, currentLevel: level, xpForNextLevel: nextThreshold, progressToNextLevel: percent };
-    }, [missionProgress]);
+    for (let index = levelThresholds.length - 1; index >= 0; index -= 1) {
+      if (xp >= levelThresholds[index]) {
+        level = index + 1;
+        break;
+      }
+    }
 
-    const levelInfo = [
-        { name: 'Novice', icon: Shield, gradient: 'from-slate-500 to-slate-400', ring: 'ring-slate-500/20' },
-        { name: 'Apprentice', icon: Star, gradient: 'from-blue-600 to-blue-400', ring: 'ring-blue-500/25' },
-        { name: 'Navigator', icon: Zap, gradient: 'from-indigo-600 to-indigo-400', ring: 'ring-indigo-500/25' },
-        { name: 'Veteran', icon: Medal, gradient: 'from-purple-600 to-purple-400', ring: 'ring-purple-500/25' },
-        { name: 'Master', icon: Crown, gradient: 'from-amber-500 to-yellow-400', ring: 'ring-amber-500/30' },
-    ];
+    const nextThreshold = levelThresholds[level] || levelThresholds[level - 1] * 2;
+    const currentThreshold = levelThresholds[level - 1];
+    const xpProgress = xp - currentThreshold;
+    const neededForNext = nextThreshold - currentThreshold;
+    const percent = Math.min(Math.round((xpProgress / neededForNext) * 100), 100);
 
-    const info = levelInfo[currentLevel - 1] || levelInfo[levelInfo.length - 1];
-    const LevelIcon = info.icon;
-
-    const tierConfig: Record<string, { label: string; gradient: string; textColor: string; borderColor: string }> = {
-        free: { label: 'Free', gradient: 'from-slate-700/30 to-slate-600/20', textColor: 'text-slate-300', borderColor: 'border-slate-500/20' },
-        pro: { label: 'Pro', gradient: 'from-primary/15 to-primary/5', textColor: 'text-primary', borderColor: 'border-primary/25' },
-        elite: { label: 'Elite ✦', gradient: 'from-amber-500/15 to-amber-400/5', textColor: 'text-amber-400', borderColor: 'border-amber-500/25' },
+    return {
+      totalXP: xp,
+      earnedBadges: badges,
+      currentLevel: level,
+      xpForNextLevel: nextThreshold,
+      progressToNextLevel: percent,
     };
-    const tier = tierConfig[subscription.tier] || tierConfig.free;
+  }, [missionProgress]);
 
-    return (
-        <div className="space-y-3">
-            {/* Level & XP Card */}
-            <div className="relative overflow-hidden rounded-3xl bg-card border border-border/40 p-5 apice-shadow-card">
-                {/* Subtle bg orbs */}
-                <div className="absolute top-0 right-0 -mr-10 -mt-10 w-36 h-36 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute bottom-0 left-0 -ml-10 -mb-10 w-28 h-28 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+  const copy = useMemo(
+    () =>
+      language === 'pt'
+        ? {
+            level: 'Nível',
+            progress: 'Progresso',
+            achievements: 'Conquistas',
+            plan: 'Plano',
+            lockedBadges: 'Conclua missões para ganhar conquistas',
+            nextLevel: 'para o nível',
+            premiumUpsell: 'Faça upgrade para desbloquear recursos Pro',
+            premiumActive: 'Conta premium ativa ✓',
+            tierLabels: {
+              free: 'Gratuito',
+              pro: 'Pro',
+              elite: 'Elite ✦',
+            },
+            levelNames: ['Iniciante', 'Aprendiz', 'Navegador', 'Veterano', 'Mestre'],
+          }
+        : {
+            level: 'Level',
+            progress: 'Progress',
+            achievements: 'Achievements',
+            plan: 'Plan',
+            lockedBadges: 'Complete missions to unlock achievements',
+            nextLevel: 'to level',
+            premiumUpsell: 'Upgrade to unlock Pro features',
+            premiumActive: 'Premium account active ✓',
+            tierLabels: {
+              free: 'Free',
+              pro: 'Pro',
+              elite: 'Elite ✦',
+            },
+            levelNames: ['Beginner', 'Apprentice', 'Navigator', 'Veteran', 'Master'],
+          },
+    [language]
+  );
 
-                <div className="relative z-10">
-                    {/* Level row */}
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            {/* Icon with gradient ring */}
-                            <div className={cn(
-                                'w-12 h-12 rounded-2xl flex items-center justify-center ring-2',
-                                `bg-gradient-to-br ${info.gradient}`,
-                                info.ring
-                            )}>
-                                <LevelIcon className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                                <h3 className="text-base font-bold leading-none">Level {currentLevel}</h3>
-                                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-widest mt-0.5">
-                                    {info.name}
-                                </p>
-                            </div>
-                        </div>
+  const levelInfo = [
+    { name: copy.levelNames[0], icon: Shield, gradient: 'from-slate-500 to-slate-400', ring: 'ring-slate-500/20' },
+    { name: copy.levelNames[1], icon: Star, gradient: 'from-blue-600 to-blue-400', ring: 'ring-blue-500/25' },
+    { name: copy.levelNames[2], icon: Zap, gradient: 'from-indigo-600 to-indigo-400', ring: 'ring-indigo-500/25' },
+    { name: copy.levelNames[3], icon: Medal, gradient: 'from-purple-600 to-purple-400', ring: 'ring-purple-500/25' },
+    { name: copy.levelNames[4], icon: Crown, gradient: 'from-amber-500 to-yellow-400', ring: 'ring-amber-500/30' },
+  ];
 
-                        {/* XP display */}
-                        <div className="text-right">
-                            <div className="flex items-center gap-1 justify-end">
-                                <Zap className="w-3.5 h-3.5 text-primary fill-primary" />
-                                <span className="text-sm font-bold text-primary">{totalXP.toLocaleString()} XP</span>
-                            </div>
-                            <p className="text-[11px] text-muted-foreground mt-0.5">
-                                {(xpForNextLevel - totalXP).toLocaleString()} to Lv {currentLevel + 1}
-                            </p>
-                        </div>
-                    </div>
+  const info = levelInfo[currentLevel - 1] || levelInfo[levelInfo.length - 1];
+  const LevelIcon = info.icon;
 
-                    {/* XP Bar */}
-                    <div className="space-y-1.5">
-                        <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                            <motion.div
-                                className="h-full rounded-full"
-                                style={{
-                                    background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(250 84% 60%))',
-                                }}
-                                initial={{ width: 0 }}
-                                animate={{ width: `${progressToNextLevel}%` }}
-                                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-                            />
-                        </div>
-                        <div className="flex justify-between text-[11px] text-muted-foreground font-semibold uppercase tracking-wide">
-                            <span>Progress</span>
-                            <span>{progressToNextLevel}%</span>
-                        </div>
-                    </div>
-                </div>
+  const tierConfig: Record<string, { label: string; gradient: string; textColor: string; borderColor: string }> = {
+    free: {
+      label: copy.tierLabels.free,
+      gradient: 'from-slate-700/30 to-slate-600/20',
+      textColor: 'text-slate-300',
+      borderColor: 'border-slate-500/20',
+    },
+    pro: {
+      label: copy.tierLabels.pro,
+      gradient: 'from-primary/15 to-primary/5',
+      textColor: 'text-primary',
+      borderColor: 'border-primary/25',
+    },
+    elite: {
+      label: copy.tierLabels.elite,
+      gradient: 'from-amber-500/15 to-amber-400/5',
+      textColor: 'text-amber-400',
+      borderColor: 'border-amber-500/25',
+    },
+  };
+  const tier = tierConfig[subscription.tier] || tierConfig.free;
+
+  return (
+    <div className="space-y-3">
+      <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-card p-5 apice-shadow-card">
+        <div className="pointer-events-none absolute top-0 right-0 -mr-10 -mt-10 h-36 w-36 rounded-full bg-primary/5 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-0 -ml-10 -mb-10 h-28 w-28 rounded-full bg-purple-500/5 blur-3xl" />
+
+        <div className="relative z-10">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className={cn(
+                  'flex h-12 w-12 items-center justify-center rounded-2xl ring-2',
+                  `bg-gradient-to-br ${info.gradient}`,
+                  info.ring
+                )}
+              >
+                <LevelIcon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold leading-none">
+                  {copy.level} {currentLevel}
+                </h3>
+                <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  {info.name}
+                </p>
+              </div>
             </div>
 
-            {/* Badges + Membership */}
-            <div className="grid grid-cols-2 gap-3">
-                {/* Badges */}
-                <div className="rounded-3xl bg-card border border-border/40 p-4">
-                    <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                        <Trophy className="w-3 h-3" />
-                        Badges
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                        {earnedBadges.length > 0
-                            ? earnedBadges.map((badge, i) => (
-                                <div
-                                    key={i}
-                                    title={badge.title}
-                                    className="w-10 h-10 rounded-xl bg-secondary/50 border border-border/40 flex items-center justify-center text-xl shadow-sm hover:scale-110 transition-transform cursor-default"
-                                >
-                                    {badge.icon}
-                                </div>
-                            ))
-                            : <p className="text-[11px] text-muted-foreground/60 italic leading-relaxed">Complete missions to earn badges</p>
-                        }
-                        {/* Locked slots */}
-                        {Array.from({ length: Math.max(0, 4 - earnedBadges.length) }).map((_, i) => (
-                            <div
-                                key={`locked-${i}`}
-                                className="w-10 h-10 rounded-xl bg-secondary/20 border border-dashed border-border/30 flex items-center justify-center opacity-30"
-                            >
-                                <Lock className="w-3.5 h-3.5 text-muted-foreground" />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Membership */}
-                <div className="rounded-3xl bg-card border border-border/40 p-4">
-                    <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                        <Crown className="w-3 h-3" />
-                        Plan
-                    </h4>
-                    <div className="space-y-2">
-                        <div className={cn(
-                            'px-3 py-2.5 rounded-xl border bg-gradient-to-r flex items-center gap-2',
-                            tier.gradient, tier.borderColor
-                        )}>
-                            <span className={cn('text-sm font-bold', tier.textColor)}>{tier.label}</span>
-                        </div>
-                        <p className="text-[11px] text-muted-foreground leading-snug">
-                            {subscription.tier === 'free'
-                                ? 'Upgrade to unlock Pro features'
-                                : 'Premium account active ✓'}
-                        </p>
-                    </div>
-                </div>
+            <div className="text-right">
+              <div className="flex items-center justify-end gap-1">
+                <Zap className="h-3.5 w-3.5 fill-primary text-primary" />
+                <span className="text-sm font-bold text-primary">{totalXP.toLocaleString()} XP</span>
+              </div>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                {(xpForNextLevel - totalXP).toLocaleString()} {copy.nextLevel} {currentLevel + 1}
+              </p>
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="h-2 overflow-hidden rounded-full bg-secondary">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(250 84% 60%))' }}
+                initial={{ width: 0 }}
+                animate={{ width: `${progressToNextLevel}%` }}
+                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+              />
+            </div>
+            <div className="flex justify-between text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <span>{copy.progress}</span>
+              <span>{progressToNextLevel}%</span>
+            </div>
+          </div>
         </div>
-    );
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-3xl border border-border/40 bg-card p-4">
+          <h4 className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            <Trophy className="h-3 w-3" />
+            {copy.achievements}
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {earnedBadges.length > 0 ? (
+              earnedBadges.map((badge, index) => (
+                <div
+                  key={index}
+                  title={badge.title}
+                  className="flex h-10 w-10 cursor-default items-center justify-center rounded-xl border border-border/40 bg-secondary/50 text-xl shadow-sm transition-transform hover:scale-110"
+                >
+                  {badge.icon}
+                </div>
+              ))
+            ) : (
+              <p className="text-[11px] italic leading-relaxed text-muted-foreground/60">{copy.lockedBadges}</p>
+            )}
+            {Array.from({ length: Math.max(0, 4 - earnedBadges.length) }).map((_, index) => (
+              <div
+                key={`locked-${index}`}
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-border/30 bg-secondary/20 opacity-30"
+              >
+                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-border/40 bg-card p-4">
+          <h4 className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            <Crown className="h-3 w-3" />
+            {copy.plan}
+          </h4>
+          <div className="space-y-2">
+            <div
+              className={cn(
+                'flex items-center gap-2 rounded-xl border bg-gradient-to-r px-3 py-2.5',
+                tier.gradient,
+                tier.borderColor
+              )}
+            >
+              <span className={cn('text-sm font-bold', tier.textColor)}>{tier.label}</span>
+            </div>
+            <p className="text-[11px] leading-snug text-muted-foreground">
+              {subscription.tier === 'free' ? copy.premiumUpsell : copy.premiumActive}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

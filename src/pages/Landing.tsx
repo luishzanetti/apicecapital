@@ -1,1009 +1,185 @@
-import { useNavigate, Link } from 'react-router-dom';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import {
   ArrowRight,
-  ArrowUp,
+  BarChart3,
   Bot,
-  Calendar,
-  Gamepad2,
-  Users,
-  ClipboardList,
-  Sparkles,
-  TrendingUp,
-  Shield,
-  ChevronDown,
-  Check,
-  Zap,
-  HelpCircle,
-  ArrowUpRight,
   Brain,
-  X,
+  CheckCircle2,
+  Clock3,
+  Layers3,
+  Radar,
+  Shield,
+  Sparkles,
+  Target,
+  TrendingUp,
 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/components/AuthProvider';
+import { useAppStore } from '@/store/appStore';
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics';
 
-/* ─── Animation Variants ─── */
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 },
-};
-
-const fadeIn = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-};
-
-const staggerContainer = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.12 },
-  },
-};
-
-/* ─── Data ─── */
-const features = [
+const promisePoints = [
   {
-    icon: Bot,
-    title: 'AI Investment Advisor',
-    description:
-      'Personalized recommendations powered by Claude AI with live market data from 20+ crypto assets.',
-    gradient: 'from-blue-500/20 to-indigo-500/20',
+    icon: Brain,
+    title: 'Strategic AI',
+    body: 'Market reads reduce noise, adjust context, and support decisions with method.',
   },
   {
-    icon: Calendar,
-    title: 'Smart DCA Planner',
-    description:
-      'Create automated investment plans tailored to your risk profile. Set it once, build wealth consistently.',
-    gradient: 'from-emerald-500/20 to-teal-500/20',
+    icon: Layers3,
+    title: 'Smart diversification',
+    body: 'We distribute capital across complementary structures so you never depend on a single narrative.',
   },
   {
-    icon: Gamepad2,
-    title: 'Gamified Learning',
-    description:
-      '30+ lessons, XP system, badges, and streaks that make learning crypto investing genuinely fun.',
-    gradient: 'from-amber-500/20 to-orange-500/20',
-  },
-  {
-    icon: Users,
-    title: '3 Investor Profiles',
-    description:
-      'Conservative, Balanced, or Growth — your strategy, your rules. AI adapts to match your comfort zone.',
-    gradient: 'from-purple-500/20 to-pink-500/20',
+    icon: Clock3,
+    title: '24/7 operations',
+    body: 'While the market never sleeps, the setup keeps monitoring execution, risk, and opportunity.',
   },
 ];
 
-const steps = [
+const methodologySteps = [
   {
-    number: '01',
-    icon: ClipboardList,
-    title: 'Take the Quiz',
-    description:
-      '60-second investor profile quiz to understand your risk tolerance and goals.',
+    step: '01',
+    title: 'Understand the strategy',
+    body: 'You learn how the Apice vision combines AI, discipline, and diversification to build wealth more intelligently.',
   },
   {
-    number: '02',
-    icon: Sparkles,
-    title: 'Get Your Plan',
-    description:
-      'AI-recommended DCA strategy based on your unique investor profile.',
+    step: '02',
+    title: 'Build and configure the tool',
+    body: 'We define the ideal setup, connect operations to your profile, and guide you to guest access at the right time.',
   },
   {
-    number: '03',
-    icon: TrendingUp,
-    title: 'Build Wealth',
-    description:
-      'Consistent weekly investments with direct Bybit integration. You stay in control.',
+    step: '03',
+    title: 'Analyze and grow every day',
+    body: 'The routine continues with daily result reads, allocation adjustments, and strategic recommendations from our AI.',
   },
 ];
 
-const pricingPlans = [
+const whyItWorks = [
   {
-    id: 'free',
-    name: 'Free',
-    price: '$0',
-    period: 'forever',
-    description: 'Get started with the essentials',
-    features: [
-      'Investor profile & path',
-      '1 Classic portfolio',
-      'Basic DCA planner',
-      'Limited daily insights',
-      'Foundational lessons',
-    ],
-    cta: 'Start Free',
-    highlighted: false,
+    title: 'Diversification reduces dependence on a single win',
+    body: 'When the portfolio relies on multiple fronts with their own logic, the growth curve becomes less fragile to isolated mistakes.',
   },
   {
-    id: 'pro',
-    name: 'Pro',
-    price: '$49.90',
-    period: '/month',
-    description: 'Unlock the full AI-powered experience',
-    features: [
-      'Everything in Free',
-      'All Classic & Optimized portfolios',
-      'Advanced DCA templates',
-      'AI Trade setup guides',
-      'Premium daily insights',
-      'All learning tracks',
-      'Copy portfolios',
-    ],
-    cta: 'Start Free Trial',
-    highlighted: true,
-    badge: '30 days free',
+    title: 'AI helps maintain coherence through market cycles',
+    body: 'Instead of reacting on impulse, you operate with reads, criteria, and a consistent framework to adapt the plan.',
   },
   {
-    id: 'club',
-    name: 'Club',
-    price: '$149.90',
-    period: '/month',
-    description: 'For serious crypto investors',
-    features: [
-      'Everything in Pro',
-      'Exclusive community access',
-      'Advanced risk configurations',
-      'Early access to new features',
-      'Direct strategy team contact',
-      'Custom portfolio consulting',
-    ],
-    cta: 'Join the Club',
-    highlighted: false,
+    title: '24/7 creates continuity where the average investor loses timing',
+    body: 'The edge is not staring at charts all day, but having a system that sustains monitoring and execution continuously.',
+  },
+];
+
+const dailyLoop = [
+  {
+    title: 'Daily scenario read',
+    body: 'We track context, risk, and asset momentum to know when to hold, reinforce, or adjust the structure.',
+  },
+  {
+    title: 'Objective next-action recommendation',
+    body: 'AI delivers what to do next: reinforce the base, diversify, review protection, or rebalance the setup.',
+  },
+  {
+    title: 'Continuous portfolio evolution',
+    body: 'Growth stops being improvisation and becomes a data-driven incremental improvement routine.',
   },
 ];
 
 const faqs = [
   {
-    question: 'Is this financial advice?',
+    question: 'Is this a guaranteed return promise?',
     answer:
-      'No. Apice Capital is an educational platform that provides AI-powered tools and market data to help you make informed decisions. We do not provide financial advice, and all investment decisions are yours alone.',
+      'No. Apice works with education, methodology, and operational intelligence. The logic is to build a process advantage, not promise fixed results.',
   },
   {
-    question: 'Where are my funds stored?',
+    question: 'Why does AI make a difference in this setup?',
     answer:
-      'Your funds always remain in your own Bybit exchange account. Apice Capital is non-custodial — we never hold, access, or control your crypto. You maintain full ownership at all times.',
+      'Because it helps maintain consistency, context reads, and discipline. The goal is to reduce improvisation and accelerate decision quality.',
   },
   {
-    question: 'How does the AI advisor work?',
+    question: 'Do my funds stay with Apice?',
     answer:
-      'Our AI advisor is powered by Claude AI and analyzes real-time market data from 20+ crypto assets. It considers your investor profile, risk tolerance, and market conditions to provide personalized DCA strategy recommendations.',
+      'No. Apice\'s vision is non-custodial: you operate on your own infrastructure and remain in control of your capital.',
   },
   {
-    question: 'Can I cancel anytime?',
+    question: 'Is the focus a single setup or portfolio building?',
     answer:
-      'Absolutely. There are no lock-in contracts. You can downgrade to the Free tier at any time and keep access to basic features forever. Your data and progress are always preserved.',
-  },
-  {
-    question: 'What is DCA and why does it work?',
-    answer:
-      'Dollar-Cost Averaging (DCA) means investing a fixed amount at regular intervals regardless of price. It removes the emotion and guesswork from investing. Historical data shows Bitcoin DCA strategies over 4+ years have averaged 250%+ returns.',
+      'Both. The setup works as an execution engine, but always within a broader vision of wealth, allocation, and sustainable growth.',
   },
 ];
 
-/* ─── FAQ Item Component ─── */
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <motion.div
-      variants={fadeUp}
-      className="border border-border rounded-2xl overflow-hidden"
-    >
+    <div className="border-t border-white/10 py-5">
       <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between p-5 text-left hover:bg-secondary/30 transition-colors"
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-start justify-between gap-4 text-left"
       >
-        <span className="font-medium text-sm md:text-base pr-4">{question}</span>
-        <motion.div
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="shrink-0"
-        >
-          <ChevronDown className="w-5 h-5 text-muted-foreground" />
-        </motion.div>
+        <span className="text-base font-semibold text-white">{question}</span>
+        <span className="pt-1 text-xs text-white/50">{open ? 'close' : 'open'}</span>
       </button>
-      <motion.div
-        initial={false}
-        animate={{
-          height: open ? 'auto' : 0,
-          opacity: open ? 1 : 0,
-        }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="overflow-hidden"
-      >
-        <p className="px-5 pb-5 text-sm text-muted-foreground leading-relaxed">
+      {open && (
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-white/70">
           {answer}
         </p>
-      </motion.div>
-    </motion.div>
+      )}
+    </div>
   );
 }
 
-/* ─── Main Landing Page ─── */
 export default function Landing() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const { session } = useAuth();
+  const hasCompletedOnboarding = useAppStore((state) => state.hasCompletedOnboarding);
+  const prefersReducedMotion = useReducedMotion();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ['start start', 'end start'],
   });
-  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, 80]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.35]);
 
-  const [showBackToTop, setShowBackToTop] = useState(false);
+  function goToPrimaryFlow() {
+    trackEvent(AnalyticsEvents.LANDING_CTA_CLICKED, {
+      origin: 'ai-trade-setup-landing',
+    });
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowBackToTop(window.scrollY > window.innerHeight);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    if (session) {
+      navigate(hasCompletedOnboarding ? '/home' : '/onboarding');
+      return;
+    }
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const scrollToFeatures = () => {
-    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleCTA = () => {
-    trackEvent(AnalyticsEvents.LANDING_CTA_CLICKED);
     navigate('/auth');
-  };
+  }
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate('/auth');
-  };
+  function scrollToSection(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden scroll-smooth">
-      {/* ════════════════════════════════════════
-          Navigation Bar
-      ════════════════════════════════════════ */}
-      <motion.nav
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="fixed top-0 left-0 right-0 z-50 glass-nav"
+    <div className="min-h-screen overflow-x-hidden bg-[#050816] text-white">
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(82,143,255,0.18),transparent_30%),radial-gradient(circle_at_80%_20%,rgba(234,179,8,0.1),transparent_20%),linear-gradient(180deg,#050816_0%,#081120_38%,#050816_100%)]" />
+        <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:96px_96px]" />
+      </div>
+
+      <section
+        ref={heroRef}
+        className="relative min-h-[100svh] px-6 pb-16 pt-8 md:px-10 md:pb-20 md:pt-10"
       >
-        <div className="max-w-7xl mx-auto px-5 md:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl apice-gradient-primary flex items-center justify-center">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 40 40"
-                fill="none"
-                className="text-white"
-              >
-                <path
-                  d="M20 4L36 34H4L20 4Z"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-              </svg>
-            </div>
-            <span className="font-semibold text-lg tracking-tight">
-              Apice <span className="text-muted-foreground font-normal text-sm">Capital</span>
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-            <a href="#features" className="hover:text-foreground transition-colors">
-              Features
-            </a>
-            <a href="#how-it-works" className="hover:text-foreground transition-colors">
-              How It Works
-            </a>
-            <a href="#pricing" className="hover:text-foreground transition-colors">
-              Pricing
-            </a>
-            <a href="#faq" className="hover:text-foreground transition-colors">
-              FAQ
-            </a>
-          </div>
-          <Button
-            variant="premium"
-            size="sm"
-            onClick={handleCTA}
-            className="text-xs"
-          >
-            Get Started
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Button>
-        </div>
-      </motion.nav>
-
-      {/* ════════════════════════════════════════
-          Section 1: Hero
-      ════════════════════════════════════════ */}
-      <section id="hero" ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-16">
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'radial-gradient(ellipse 80% 50% at 50% -20%, hsl(var(--primary) / 0.15), transparent 70%)',
-            }}
-          />
-          {/* Floating orbs */}
-          <motion.div
-            className="absolute w-96 h-96 rounded-full pointer-events-none"
-            style={{
-              top: '10%',
-              left: '-5%',
-              background:
-                'radial-gradient(circle, hsl(var(--primary) / 0.1), transparent 70%)',
-              filter: 'blur(60px)',
-            }}
-            animate={{
-              x: [0, 30, -10, 0],
-              y: [0, -20, 15, 0],
-            }}
-            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          <motion.div
-            className="absolute w-80 h-80 rounded-full pointer-events-none"
-            style={{
-              bottom: '10%',
-              right: '-5%',
-              background:
-                'radial-gradient(circle, hsl(250 84% 60% / 0.08), transparent 70%)',
-              filter: 'blur(60px)',
-            }}
-            animate={{
-              x: [0, -20, 10, 0],
-              y: [0, 15, -10, 0],
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          <motion.div
-            className="absolute w-64 h-64 rounded-full pointer-events-none"
-            style={{
-              top: '40%',
-              right: '20%',
-              background:
-                'radial-gradient(circle, hsl(var(--apice-gold) / 0.06), transparent 70%)',
-              filter: 'blur(50px)',
-            }}
-            animate={{
-              x: [0, 15, -8, 0],
-              y: [0, -12, 8, 0],
-            }}
-            transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        </div>
-
-        <motion.div
-          style={{ opacity: heroOpacity, y: heroY }}
-          className="relative z-10 max-w-4xl mx-auto px-5 md:px-8 text-center"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <Badge
-              variant="outline"
-              className="mb-6 px-4 py-1.5 text-xs border-primary/30 text-primary bg-primary/5"
-            >
-              <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-              AI-Powered Crypto Investing
-            </Badge>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6"
-          >
-            Build Crypto Wealth.{' '}
-            <br className="hidden sm:block" />
-            <span className="text-gradient-primary">One Week at a Time.</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
-          >
-            The AI-powered platform that turns anyone into a disciplined crypto
-            investor with proven DCA strategies.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12"
-          >
-            <Button
-              variant="premium"
-              size="lg"
-              onClick={handleCTA}
-              className="w-full sm:w-auto min-w-[200px] hover:scale-105 transition-transform duration-200"
-            >
-              Get Started Free
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={scrollToFeatures}
-              className="w-full sm:w-auto min-w-[200px] hover:scale-105 transition-transform duration-200"
-            >
-              See How It Works
-              <ChevronDown className="w-4 h-4" />
-            </Button>
-          </motion.div>
-
-          {/* Trust bar */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs md:text-sm text-muted-foreground/70"
-          >
-            <span className="flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-primary/70" />
-              Non-custodial
-            </span>
-            <span className="w-1 h-1 rounded-full bg-border hidden sm:block" />
-            <span className="flex items-center gap-1.5">
-              <Brain className="w-3.5 h-3.5 text-primary/70" />
-              AI-Powered
-            </span>
-            <span className="w-1 h-1 rounded-full bg-border hidden sm:block" />
-            <span className="flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-primary/70" />
-              Free to Start
-            </span>
-          </motion.div>
-        </motion.div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2, duration: 0.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <ChevronDown className="w-5 h-5 text-muted-foreground/40" />
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* ════════════════════════════════════════
-          Section 2: Problem / Solution
-      ════════════════════════════════════════ */}
-      <section className="py-20 md:py-32 relative">
-        <div className="max-w-5xl mx-auto px-5 md:px-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={staggerContainer}
-            className="grid md:grid-cols-2 gap-12 md:gap-16 items-center"
-          >
-            {/* Problem */}
-            <motion.div variants={fadeUp} transition={{ duration: 0.6 }}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-destructive/10 text-destructive text-xs font-medium mb-6">
-                <X className="w-3.5 h-3.5" />
-                The Problem
-              </div>
-              <h2 className="text-2xl md:text-4xl font-bold tracking-tight mb-4 leading-tight">
-                95% of crypto traders{' '}
-                <span className="text-destructive">lose money.</span>
-              </h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Emotional trading, FOMO buying, panic selling. Trying to time the
-                market is a losing game for most investors. The data is clear:
-                active trading destroys wealth for the vast majority.
-              </p>
-            </motion.div>
-
-            {/* Solution */}
-            <motion.div variants={fadeUp} transition={{ duration: 0.6 }}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium mb-6">
-                <Check className="w-3.5 h-3.5" />
-                The Solution
-              </div>
-              <h2 className="text-2xl md:text-4xl font-bold tracking-tight mb-4 leading-tight">
-                The other 5% use{' '}
-                <span className="text-gradient-primary">DCA.</span>
-              </h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Dollar-Cost Averaging removes emotion from the equation. Invest a
-                fixed amount every week, regardless of price. Simple, disciplined,
-                and historically proven.
-              </p>
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10">
-                <TrendingUp className="w-5 h-5 text-primary shrink-0" />
-                <p className="text-sm font-medium">
-                  Bitcoin DCA over 4 years ={' '}
-                  <span className="text-gradient-primary font-bold">250%+ average returns</span>
-                </p>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════
-          Section 3: Features Grid
-      ════════════════════════════════════════ */}
-      <section id="features" className="py-20 md:py-32 relative">
-        <div className="max-w-6xl mx-auto px-5 md:px-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={staggerContainer}
-            className="text-center mb-16"
-          >
-            <motion.div variants={fadeUp} transition={{ duration: 0.6 }}>
-              <Badge
-                variant="outline"
-                className="mb-4 px-4 py-1.5 text-xs border-primary/30 text-primary bg-primary/5"
-              >
-                Platform Features
-              </Badge>
-            </motion.div>
-            <motion.h2
-              variants={fadeUp}
-              transition={{ duration: 0.6 }}
-              className="text-3xl md:text-5xl font-bold tracking-tight mb-4"
-            >
-              Everything you need to{' '}
-              <span className="text-gradient-primary">invest smarter</span>
-            </motion.h2>
-            <motion.p
-              variants={fadeUp}
-              transition={{ duration: 0.6 }}
-              className="text-muted-foreground text-lg max-w-2xl mx-auto"
-            >
-              Professional-grade tools made simple. No experience required.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={staggerContainer}
-            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5"
-          >
-            {features.map((feature) => (
-              <motion.div
-                key={feature.title}
-                variants={fadeUp}
-                transition={{ duration: 0.5 }}
-              >
-                <Card
-                  variant="glass"
-                  className="h-full hover:border-primary/20 transition-all duration-300 group"
-                >
-                  <CardContent className="p-6 md:p-8">
-                    <div
-                      className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}
-                    >
-                      <feature.icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════
-          Section 4: How It Works
-      ════════════════════════════════════════ */}
-      <section id="how-it-works" className="py-20 md:py-32 relative">
-        {/* Subtle background accent */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(ellipse 60% 40% at 50% 50%, hsl(var(--primary) / 0.04), transparent 70%)',
-          }}
-        />
-
-        <div className="relative max-w-5xl mx-auto px-5 md:px-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={staggerContainer}
-            className="text-center mb-16"
-          >
-            <motion.div variants={fadeUp} transition={{ duration: 0.6 }}>
-              <Badge
-                variant="outline"
-                className="mb-4 px-4 py-1.5 text-xs border-primary/30 text-primary bg-primary/5"
-              >
-                3 Simple Steps
-              </Badge>
-            </motion.div>
-            <motion.h2
-              variants={fadeUp}
-              transition={{ duration: 0.6 }}
-              className="text-3xl md:text-5xl font-bold tracking-tight mb-4"
-            >
-              Start building wealth{' '}
-              <span className="text-gradient-primary">in minutes</span>
-            </motion.h2>
-            <motion.p
-              variants={fadeUp}
-              transition={{ duration: 0.6 }}
-              className="text-muted-foreground text-lg max-w-2xl mx-auto"
-            >
-              No complicated setup. No crypto experience needed.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={staggerContainer}
-            className="grid md:grid-cols-3 gap-8"
-          >
-            {steps.map((step, i) => (
-              <motion.div
-                key={step.number}
-                variants={fadeUp}
-                transition={{ duration: 0.5 }}
-                className="relative"
-              >
-                {/* Connector line */}
-                {i < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-10 left-[calc(50%+40px)] w-[calc(100%-80px)] h-px bg-gradient-to-r from-primary/30 to-transparent" />
-                )}
-                <div className="text-center">
-                  <div className="relative inline-flex mb-6">
-                    <div className="w-20 h-20 rounded-3xl bg-secondary flex items-center justify-center">
-                      <step.icon className="w-8 h-8 text-primary" />
-                    </div>
-                    <span className="absolute -top-2 -right-2 w-7 h-7 rounded-lg apice-gradient-primary text-white text-xs font-bold flex items-center justify-center">
-                      {step.number}
-                    </span>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
-                    {step.description}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            transition={{ duration: 0.6 }}
-            className="text-center mt-12"
-          >
-            <Button variant="premium" size="lg" onClick={handleCTA} className="hover:scale-105 transition-transform duration-200">
-              Start Your Journey
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════
-          Section 5: Social Proof / Stats
-      ════════════════════════════════════════ */}
-      <section className="py-16 md:py-24 border-y border-border/50">
-        <div className="max-w-5xl mx-auto px-5 md:px-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={staggerContainer}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12"
-          >
-            {[
-              { value: 'Bybit', label: 'Powered by', icon: ArrowUpRight },
-              { value: '20+', label: 'Crypto Assets Tracked', icon: TrendingUp },
-              { value: 'AI', label: 'Real-Time Market Data', icon: Brain },
-              { value: '30+', label: 'Interactive Lessons', icon: Gamepad2 },
-            ].map((stat) => (
-              <motion.div
-                key={stat.label}
-                variants={fadeUp}
-                transition={{ duration: 0.5 }}
-                className="text-center"
-              >
-                <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-secondary mb-3">
-                  <stat.icon className="w-5 h-5 text-primary" />
-                </div>
-                <div className="text-2xl md:text-3xl font-bold text-gradient-primary mb-1">
-                  {stat.value}
-                </div>
-                <div className="text-xs md:text-sm text-muted-foreground">
-                  {stat.label}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════
-          Section 6: Pricing
-      ════════════════════════════════════════ */}
-      <section id="pricing" className="py-20 md:py-32 relative">
-        <div className="max-w-6xl mx-auto px-5 md:px-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={staggerContainer}
-            className="text-center mb-16"
-          >
-            <motion.div variants={fadeUp} transition={{ duration: 0.6 }}>
-              <Badge
-                variant="outline"
-                className="mb-4 px-4 py-1.5 text-xs border-primary/30 text-primary bg-primary/5"
-              >
-                Simple Pricing
-              </Badge>
-            </motion.div>
-            <motion.h2
-              variants={fadeUp}
-              transition={{ duration: 0.6 }}
-              className="text-3xl md:text-5xl font-bold tracking-tight mb-4"
-            >
-              Start free.{' '}
-              <span className="text-gradient-primary">Upgrade when ready.</span>
-            </motion.h2>
-            <motion.p
-              variants={fadeUp}
-              transition={{ duration: 0.6 }}
-              className="text-muted-foreground text-lg max-w-2xl mx-auto"
-            >
-              Start with 30 days of Pro — free, no credit card required.
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={staggerContainer}
-            className="grid md:grid-cols-3 gap-5 items-start"
-          >
-            {pricingPlans.map((plan) => (
-              <motion.div
-                key={plan.id}
-                variants={fadeUp}
-                transition={{ duration: 0.5 }}
-              >
-                <Card
-                  variant={plan.highlighted ? 'premium' : 'default'}
-                  className={`relative overflow-hidden ${
-                    plan.highlighted ? 'md:-mt-4 md:mb-4 ring-1 ring-primary/30' : ''
-                  }`}
-                >
-                  {plan.badge && (
-                    <div className="absolute top-0 right-0 px-3 py-1 rounded-bl-xl apice-gradient-primary text-white text-xs font-semibold">
-                      {plan.badge}
-                    </div>
-                  )}
-                  <CardContent className="p-6 md:p-8">
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold mb-1">{plan.name}</h3>
-                      <p className="text-xs text-muted-foreground mb-4">
-                        {plan.description}
-                      </p>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl md:text-4xl font-bold">
-                          {plan.price}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {plan.period}
-                        </span>
-                      </div>
-                    </div>
-                    <ul className="space-y-3 mb-8">
-                      {plan.features.map((feature) => (
-                        <li
-                          key={feature}
-                          className="flex items-start gap-2.5 text-sm"
-                        >
-                          <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                          <span className="text-muted-foreground">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      variant={plan.highlighted ? 'premium' : 'outline'}
-                      size="lg"
-                      className="w-full"
-                      onClick={handleCTA}
-                    >
-                      {plan.cta}
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════
-          Section 7: FAQ
-      ════════════════════════════════════════ */}
-      <section id="faq" className="py-20 md:py-32">
-        <div className="max-w-3xl mx-auto px-5 md:px-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={staggerContainer}
-            className="text-center mb-12"
-          >
-            <motion.div variants={fadeUp} transition={{ duration: 0.6 }}>
-              <Badge
-                variant="outline"
-                className="mb-4 px-4 py-1.5 text-xs border-primary/30 text-primary bg-primary/5"
-              >
-                <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
-                FAQ
-              </Badge>
-            </motion.div>
-            <motion.h2
-              variants={fadeUp}
-              transition={{ duration: 0.6 }}
-              className="text-3xl md:text-5xl font-bold tracking-tight mb-4"
-            >
-              Frequently asked{' '}
-              <span className="text-gradient-primary">questions</span>
-            </motion.h2>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={staggerContainer}
-            className="space-y-3"
-          >
-            {faqs.map((faq) => (
-              <FAQItem key={faq.question} {...faq} />
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════
-          Section 8: Final CTA
-      ════════════════════════════════════════ */}
-      <section className="py-20 md:py-32 relative">
-        {/* Background glow */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(ellipse 70% 50% at 50% 50%, hsl(var(--primary) / 0.06), transparent 70%)',
-          }}
-        />
-
-        <div className="relative max-w-3xl mx-auto px-5 md:px-8 text-center">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={staggerContainer}
-          >
-            <motion.div
-              variants={fadeUp}
-              transition={{ duration: 0.6 }}
-              className="mb-8"
-            >
-              <div className="w-16 h-16 rounded-2xl apice-gradient-primary flex items-center justify-center mx-auto mb-6 glow-primary">
+        <div className="mx-auto flex min-h-[calc(100svh-2rem)] max-w-7xl flex-col justify-between gap-14 md:min-h-[calc(100svh-3rem)]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 shadow-[0_0_40px_rgba(82,143,255,0.25)] backdrop-blur">
                 <svg
-                  width="32"
-                  height="32"
-                  viewBox="0 0 40 40"
-                  fill="none"
-                  className="text-white"
-                >
-                  <path
-                    d="M20 4L36 34H4L20 4Z"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinejoin="round"
-                    fill="none"
-                  />
-                  <path
-                    d="M20 13L30 32H10L20 13Z"
-                    fill="currentColor"
-                    opacity="0.28"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
-                Ready to build your{' '}
-                <span className="text-gradient-primary">crypto wealth?</span>
-              </h2>
-              <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                Free forever. Upgrade when you're ready.
-              </p>
-            </motion.div>
-
-            <motion.form
-              variants={fadeUp}
-              transition={{ duration: 0.6 }}
-              onSubmit={handleEmailSubmit}
-              className="flex flex-col sm:flex-row items-center gap-3 max-w-md mx-auto mb-6"
-            >
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-14 rounded-2xl bg-secondary/50 border-border/50 text-base px-5"
-              />
-              <Button
-                type="submit"
-                variant="premium"
-                size="lg"
-                className="w-full sm:w-auto whitespace-nowrap"
-              >
-                Join Now
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </motion.form>
-
-            <motion.p
-              variants={fadeIn}
-              transition={{ duration: 0.6 }}
-              className="text-xs text-muted-foreground/60"
-            >
-              No credit card required. Start investing in minutes.
-            </motion.p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════
-          Footer
-      ════════════════════════════════════════ */}
-      <footer className="border-t border-border/50 py-8">
-        <div className="max-w-6xl mx-auto px-5 md:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg apice-gradient-primary flex items-center justify-center">
-                <svg
-                  width="14"
-                  height="14"
+                  width="22"
+                  height="22"
                   viewBox="0 0 40 40"
                   fill="none"
                   className="text-white"
@@ -1015,47 +191,325 @@ export default function Landing() {
                     strokeLinejoin="round"
                     fill="none"
                   />
+                  <path
+                    d="M20 13L30 32H10L20 13Z"
+                    fill="currentColor"
+                    opacity="0.24"
+                  />
                 </svg>
               </div>
-              <span className="text-sm font-medium">Apice Capital</span>
+              <div>
+                <p className="font-display text-xl font-semibold tracking-tight">Apice</p>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-white/45">AI Trade Setup</p>
+              </div>
             </div>
-            <div className="flex items-center gap-6 text-xs text-muted-foreground">
-              <Link
-                to="/terms"
-                className="hover:text-foreground transition-colors"
+
+            <Badge className="border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-white/70 backdrop-blur hover:bg-white/5">
+              Apice Methodology
+            </Badge>
+          </div>
+
+          <div className="grid flex-1 items-center gap-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
+            <motion.div
+              style={prefersReducedMotion ? undefined : { y: heroY, opacity: heroOpacity }}
+              className="max-w-3xl"
+            >
+              <Badge className="mb-5 border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 backdrop-blur hover:bg-white/5">
+                AI-powered diversification. 24/7 operations. Growth with method.
+              </Badge>
+
+              <h1 className="font-display text-5xl font-semibold leading-[0.95] tracking-[-0.04em] text-white md:text-7xl">
+                The setup that turns strategic vision into wealth every day.
+              </h1>
+
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72 md:text-xl">
+                Apice organizes your entry into the AI Trade Setup with a clear narrative:
+                understand the strategy, configure the tool the right way, analyze
+                results, and grow your portfolio with strategic recommendations from our AI.
+              </p>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Button
+                  variant="premium"
+                  size="xl"
+                  className="h-14 rounded-2xl px-8 text-base"
+                  onClick={goToPrimaryFlow}
+                >
+                  Build my setup
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="xl"
+                  className="h-14 rounded-2xl border-white/15 bg-white/5 px-8 text-base text-white hover:bg-white/10 hover:text-white"
+                  onClick={() => scrollToSection('metodologia')}
+                >
+                  See how it works
+                </Button>
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-6 text-sm text-white/56">
+                <span className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-[#f6c85b]" />
+                  You stay in control of your capital
+                </span>
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#6aa6ff]" />
+                  AI applied to reads and execution
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={prefersReducedMotion ? undefined : { opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.7, ease: [0.16, 1, 0.3, 1] }}
+              className="relative"
+            >
+              <div className="absolute -left-12 top-10 h-28 w-28 rounded-full bg-[#528fff]/20 blur-3xl" />
+              <div className="absolute -right-10 bottom-4 h-36 w-36 rounded-full bg-[#f6c85b]/12 blur-3xl" />
+
+              <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/6 p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+                <div className="flex items-center justify-between border-b border-white/10 pb-5">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.24em] text-white/45">Operations panel</p>
+                    <p className="mt-2 text-2xl font-semibold tracking-tight">Apice Wealth Engine</p>
+                  </div>
+                  <div className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300">
+                    active 24/7
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-6">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {promisePoints.map((item) => (
+                      <div key={item.title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <item.icon className="mb-4 w-5 h-5 text-[#78aaff]" />
+                        <p className="text-sm font-semibold">{item.title}</p>
+                        <p className="mt-2 text-xs leading-6 text-white/58">{item.body}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(82,143,255,0.14),rgba(6,9,21,0.4))] p-5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.22em] text-white/40">Growth cycle</p>
+                        <p className="mt-2 text-lg font-semibold">Strategy, configuration, and daily growth</p>
+                      </div>
+                      <TrendingUp className="w-5 h-5 text-[#f6c85b]" />
+                    </div>
+
+                    <div className="mt-5 space-y-4">
+                      {methodologySteps.map((item) => (
+                        <div key={item.step} className="grid grid-cols-[48px_1fr] gap-4 border-t border-white/8 pt-4 first:border-t-0 first:pt-0">
+                          <div className="text-2xl font-semibold tracking-tight text-white/28">{item.step}</div>
+                          <div>
+                            <p className="font-medium text-white">{item.title}</p>
+                            <p className="mt-1 text-sm leading-7 text-white/64">{item.body}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <p className="text-xs uppercase tracking-[0.2em] text-white/40">AI Radar</p>
+                      <div className="mt-4 space-y-3 text-sm text-white/72">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-2"><Radar className="w-4 h-4 text-[#78aaff]" /> context</span>
+                          <span>monitored</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-2"><Bot className="w-4 h-4 text-[#78aaff]" /> execution</span>
+                          <span>assisted</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-2"><Shield className="w-4 h-4 text-[#78aaff]" /> risk</span>
+                          <span>protected</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <p className="text-xs uppercase tracking-[0.2em] text-white/40">Apice Vision</p>
+                      <p className="mt-4 text-sm leading-7 text-white/68">
+                        Smart growth is not about betting more. It is about organizing capital,
+                        timing, risk, and consistency within a system that keeps
+                        working even when you are not watching.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative px-6 py-20 md:px-10">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-8 md:grid-cols-3">
+            {whyItWorks.map((item) => (
+              <div key={item.title} className="border-t border-white/10 pt-5">
+                <p className="text-sm font-semibold text-white">{item.title}</p>
+                <p className="mt-3 text-sm leading-7 text-white/62">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="metodologia" className="relative px-6 py-20 md:px-10">
+        <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.85fr_1.15fr]">
+          <div>
+            <Badge className="border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/60 hover:bg-white/5">
+              How it works
+            </Badge>
+            <h2 className="mt-5 font-display text-4xl font-semibold leading-tight tracking-[-0.03em] text-white md:text-5xl">
+              The Apice methodology creates clarity before accelerating capital.
+            </h2>
+            <p className="mt-5 max-w-xl text-base leading-8 text-white/66">
+              We don't start with the tool. We start with the logic. You understand the
+              game, receive a setup aligned with your profile, and only then move to practical
+              operations with a structure that makes sense for the long term.
+            </p>
+          </div>
+
+          <div className="space-y-5">
+            {methodologySteps.map((item) => (
+              <div
+                key={item.step}
+                className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 backdrop-blur"
               >
-                Terms
-              </Link>
-              <Link
-                to="/privacy"
-                className="hover:text-foreground transition-colors"
-              >
-                Privacy
-              </Link>
-              <span>2026 Apice Capital. All rights reserved.</span>
+                <div className="flex items-center gap-4">
+                  <span className="text-3xl font-semibold tracking-tight text-white/28">{item.step}</span>
+                  <div className="h-px flex-1 bg-white/10" />
+                </div>
+                <p className="mt-5 text-xl font-semibold tracking-tight text-white">{item.title}</p>
+                <p className="mt-3 text-sm leading-7 text-white/64">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative px-6 py-20 md:px-10">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-10 lg:grid-cols-[1fr_1fr]">
+            <div>
+              <p className="text-sm uppercase tracking-[0.24em] text-white/42">Onboarding mission</p>
+              <h2 className="mt-4 font-display text-4xl font-semibold leading-tight tracking-[-0.03em] text-white">
+                From understanding to execution in one journey.
+              </h2>
+            </div>
+
+            <div className="space-y-5">
+              <div className="flex gap-4 border-t border-white/10 pt-5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/6">
+                  <Target className="w-5 h-5 text-[#78aaff]" />
+                </div>
+                <div>
+                  <p className="font-semibold">Right profile before the tool</p>
+                  <p className="mt-2 text-sm leading-7 text-white/64">
+                    Onboarding starts by aligning goals, risk, capital, and execution intensity.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 border-t border-white/10 pt-5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/6">
+                  <BarChart3 className="w-5 h-5 text-[#78aaff]" />
+                </div>
+                <div>
+                  <p className="font-semibold">Setup with portfolio logic</p>
+                  <p className="mt-2 text-sm leading-7 text-white/64">
+                    The configuration shows why diversifying with AI is different from just plugging into a bot.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 border-t border-white/10 pt-5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/6">
+                  <CheckCircle2 className="w-5 h-5 text-[#78aaff]" />
+                </div>
+                <div>
+                  <p className="font-semibold">Clear next action</p>
+                  <p className="mt-2 text-sm leading-7 text-white/64">
+                    At the end of the journey, you know exactly where to access, configure, validate, and monitor.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </footer>
+      </section>
 
-      {/* ════════════════════════════════════════
-          Back to Top Button
-      ════════════════════════════════════════ */}
-      <AnimatePresence>
-        {showBackToTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.2 }}
-            onClick={scrollToTop}
-            className="fixed bottom-6 right-6 z-50 w-10 h-10 rounded-full apice-gradient-primary text-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform duration-200"
-            aria-label="Back to top"
-          >
-            <ArrowUp className="w-5 h-5" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      <section className="relative px-6 py-20 md:px-10">
+        <div className="mx-auto max-w-6xl rounded-[36px] border border-white/10 bg-white/[0.04] p-8 backdrop-blur md:p-12">
+          <div className="max-w-3xl">
+            <p className="text-sm uppercase tracking-[0.24em] text-white/42">Growth routine</p>
+            <h2 className="mt-4 font-display text-4xl font-semibold leading-tight tracking-[-0.03em] text-white md:text-5xl">
+              After setup, AI steps in to sustain daily evolution.
+            </h2>
+          </div>
+
+          <div className="mt-10 grid gap-8 md:grid-cols-3">
+            {dailyLoop.map((item, index) => (
+              <div key={item.title}>
+                <p className="text-2xl font-semibold tracking-tight text-white/25">0{index + 1}</p>
+                <p className="mt-4 text-lg font-semibold text-white">{item.title}</p>
+                <p className="mt-3 text-sm leading-7 text-white/64">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative px-6 py-20 md:px-10">
+        <div className="mx-auto max-w-4xl">
+          <p className="text-sm uppercase tracking-[0.24em] text-white/42">Key questions</p>
+          <div className="mt-6 rounded-[30px] border border-white/10 bg-white/[0.04] px-6 py-3 backdrop-blur md:px-8">
+            {faqs.map((faq) => (
+              <FAQItem key={faq.question} question={faq.question} answer={faq.answer} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative px-6 pb-20 pt-8 md:px-10">
+        <div className="mx-auto max-w-5xl rounded-[40px] border border-white/10 bg-[linear-gradient(145deg,rgba(82,143,255,0.16),rgba(5,8,22,0.3))] px-8 py-10 text-center backdrop-blur md:px-12 md:py-14">
+          <p className="text-sm uppercase tracking-[0.28em] text-white/45">Ready to activate</p>
+          <h2 className="mt-4 font-display text-4xl font-semibold leading-tight tracking-[-0.03em] text-white md:text-5xl">
+            Enter the Apice onboarding and build your AI Trade Setup the right way.
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/66">
+            The journey is designed to explain the method, configure operations, and open
+            the daily portfolio growth routine with strategic AI support.
+          </p>
+
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button
+              variant="premium"
+              size="xl"
+              className="h-14 rounded-2xl px-8 text-base"
+              onClick={goToPrimaryFlow}
+            >
+              Start onboarding
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="xl"
+              className="h-14 rounded-2xl border-white/15 bg-white/5 px-8 text-base text-white hover:bg-white/10 hover:text-white"
+              onClick={() => scrollToSection('metodologia')}
+            >
+              Review methodology
+            </Button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

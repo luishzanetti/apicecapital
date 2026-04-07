@@ -9,14 +9,15 @@ import { useEffect, lazy, Suspense } from "react";
 import { AuthProvider, useAuth } from "@/components/AuthProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { useTranslation } from "@/hooks/useTranslation";
 
-const Landing = lazy(() => import("./pages/Landing"));
+const Landing = lazy(() => import("./pages/AiTradeLanding"));
 const Splash = lazy(() => import("./pages/Splash"));
 const Welcome = lazy(() => import("./pages/Welcome"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Quiz = lazy(() => import("./pages/Quiz"));
 const ProfileResult = lazy(() => import("./pages/ProfileResult"));
-const ApiceOnboarding = lazy(() => import("./pages/ApiceOnboarding"));
+const ApiceOnboarding = lazy(() => import("./pages/AiTradeOnboarding"));
 const Home = lazy(() => import("./pages/Home"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
 const PortfolioDetail = lazy(() => import("./pages/PortfolioDetail"));
@@ -38,12 +39,12 @@ const MethodologyMission = lazy(() => import("./pages/MethodologyMission"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const UnifiedOnboarding = lazy(() => import("./pages/UnifiedOnboarding"));
 
 const queryClient = new QueryClient();
 
 // Branded loading screen with Apice logo
 function AppLoading() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-5">
       <div className="w-14 h-14 rounded-2xl apice-gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 animate-pulse">
@@ -68,7 +69,7 @@ function AppLoading() {
           />
         </svg>
       </div>
-      <p className="text-sm text-muted-foreground font-medium">Loading...</p>
+      <p className="text-sm text-muted-foreground font-medium">{t('common.loading')}</p>
     </div>
   );
 }
@@ -92,7 +93,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function AppContent() {
   const incrementDaysActive = useAppStore((s) => s.incrementDaysActive);
   const checkTrialExpiry = useAppStore((s) => s.checkTrialExpiry);
-  const { session } = useAuth();
 
   useEffect(() => {
     incrementDaysActive();
@@ -116,6 +116,7 @@ function AppContent() {
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/portfolio/:id" element={<PortfolioDetail />} />
         <Route path="/strategies" element={<Strategies />} />
+        <Route path="/strategies/ai-trade" element={<Navigate to="/onboarding" replace />} />
         <Route path="/learn" element={<Learn />} />
         <Route path="/learn/:trackId/:lessonId" element={<LessonDetail />} />
         <Route path="/settings" element={<Settings />} />

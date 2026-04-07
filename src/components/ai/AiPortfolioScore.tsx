@@ -1,28 +1,75 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAiAdvisor, type AiPortfolioAnalysis } from '@/hooks/useAiAdvisor';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   Brain, Loader2, ChevronDown, ChevronUp,
   CheckCircle2, AlertTriangle, TrendingUp, Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const GRADE_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
-  A: { color: 'text-green-400', bg: 'bg-green-500/10', label: 'Excellent' },
-  B: { color: 'text-blue-400', bg: 'bg-blue-500/10', label: 'Good' },
-  C: { color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'Fair' },
-  D: { color: 'text-orange-400', bg: 'bg-orange-500/10', label: 'Needs Work' },
-  F: { color: 'text-red-400', bg: 'bg-red-500/10', label: 'Critical' },
-};
-
 export function AiPortfolioScore() {
   const { analyzePortfolio, isLoading } = useAiAdvisor();
+  const { language } = useTranslation();
   const [analysis, setAnalysis] = useState<AiPortfolioAnalysis | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
+
+  const copy = useMemo(
+    () =>
+      language === 'pt'
+        ? {
+            grades: {
+              A: { color: 'text-green-400', bg: 'bg-green-500/10', label: 'Excelente' },
+              B: { color: 'text-blue-400', bg: 'bg-blue-500/10', label: 'Bom' },
+              C: { color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'Regular' },
+              D: { color: 'text-orange-400', bg: 'bg-orange-500/10', label: 'Precisa melhorar' },
+              F: { color: 'text-red-400', bg: 'bg-red-500/10', label: 'Crítico' },
+            },
+            title: 'Análise de Portfólio por IA',
+            subtitle: 'Receba uma nota e recomendações',
+            analyzing: 'Analisando com IA...',
+            analyze: 'Analisar meu portfólio',
+            empty: 'Não há planos DCA ativos para analisar. Crie um plano primeiro.',
+            retry: 'Tentar novamente',
+            score: 'Score do portfólio',
+            refresh: 'Atualizar',
+            strengths: 'Pontos fortes',
+            improve: 'Melhorar',
+            detailsOpen: 'Menos detalhes',
+            detailsClosed: 'Análise completa',
+            risk: 'Avaliação de risco',
+            outlook: 'Perspectiva',
+            rebalance: 'Rebalanceamento sugerido',
+          }
+        : {
+            grades: {
+              A: { color: 'text-green-400', bg: 'bg-green-500/10', label: 'Excellent' },
+              B: { color: 'text-blue-400', bg: 'bg-blue-500/10', label: 'Good' },
+              C: { color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'Fair' },
+              D: { color: 'text-orange-400', bg: 'bg-orange-500/10', label: 'Needs improvement' },
+              F: { color: 'text-red-400', bg: 'bg-red-500/10', label: 'Critical' },
+            },
+            title: 'AI Portfolio Analysis',
+            subtitle: 'Get a score and clear recommendations',
+            analyzing: 'Analyzing with AI...',
+            analyze: 'Analyze my portfolio',
+            empty: 'There are no active DCA plans to analyze yet. Create one first.',
+            retry: 'Try again',
+            score: 'Portfolio score',
+            refresh: 'Refresh',
+            strengths: 'Strengths',
+            improve: 'Improve',
+            detailsOpen: 'Fewer details',
+            detailsClosed: 'Full analysis',
+            risk: 'Risk assessment',
+            outlook: 'Outlook',
+            rebalance: 'Suggested rebalance',
+          },
+    [language]
+  );
 
   const handleAnalyze = async () => {
     const result = await analyzePortfolio();
@@ -35,31 +82,25 @@ export function AiPortfolioScore() {
     return (
       <Card className="border-primary/10">
         <CardContent className="pt-4 pb-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Brain className="w-4.5 h-4.5 text-primary" />
+          <div className="mb-3 flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+              <Brain className="h-4.5 w-4.5 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold">AI Portfolio Analysis</p>
-              <p className="text-[11px] text-muted-foreground">Get a score and recommendations</p>
+              <p className="text-sm font-bold">{copy.title}</p>
+              <p className="text-[11px] text-muted-foreground">{copy.subtitle}</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full text-xs"
-            onClick={handleAnalyze}
-            disabled={isLoading}
-          >
+          <Button variant="outline" size="sm" className="w-full text-xs" onClick={handleAnalyze} disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
-                Analyzing with AI...
+                <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+                {copy.analyzing}
               </>
             ) : (
               <>
-                <Brain className="w-3 h-3 mr-1.5" />
-                Analyze My Portfolio
+                <Brain className="mr-1.5 h-3 w-3" />
+                {copy.analyze}
               </>
             )}
           </Button>
@@ -72,95 +113,73 @@ export function AiPortfolioScore() {
     return (
       <Card className="border-primary/10">
         <CardContent className="pt-4 pb-4 text-center">
-          <p className="text-xs text-muted-foreground">No active DCA plans to analyze. Create a plan first.</p>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs mt-2"
-            onClick={() => setHasAnalyzed(false)}
-          >
-            Try Again
+          <p className="text-xs text-muted-foreground">{copy.empty}</p>
+          <Button variant="ghost" size="sm" className="mt-2 text-xs" onClick={() => setHasAnalyzed(false)}>
+            {copy.retry}
           </Button>
         </CardContent>
       </Card>
     );
   }
 
-  const gradeConfig = GRADE_CONFIG[analysis.grade] || GRADE_CONFIG.C;
+  const gradeConfig = copy.grades[analysis.grade as keyof typeof copy.grades] || copy.grades.C;
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-      <Card className="border-primary/10 overflow-hidden">
+      <Card className="overflow-hidden border-primary/10">
         <CardContent className="pt-4 pb-4">
-          {/* Score Header */}
-          <div className="flex items-center justify-between mb-3">
+          <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className={cn(
-                  'w-14 h-14 rounded-2xl flex items-center justify-center',
-                  gradeConfig.bg
-                )}>
-                  <span className={cn('text-2xl font-black', gradeConfig.color)}>
-                    {analysis.grade}
-                  </span>
+                <div className={cn('flex h-14 w-14 items-center justify-center rounded-2xl', gradeConfig.bg)}>
+                  <span className={cn('text-2xl font-black', gradeConfig.color)}>{analysis.grade}</span>
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-card border-2 border-border flex items-center justify-center">
+                <div className="absolute -right-1 -bottom-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-border bg-card">
                   <span className="text-[11px] font-bold">{analysis.score}</span>
                 </div>
               </div>
               <div>
-                <p className="text-sm font-bold">Portfolio Score</p>
-                <p className={cn('text-[11px] font-semibold', gradeConfig.color)}>
-                  {gradeConfig.label}
-                </p>
+                <p className="text-sm font-bold">{copy.score}</p>
+                <p className={cn('text-[11px] font-semibold', gradeConfig.color)}>{gradeConfig.label}</p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-[11px] h-7"
-              onClick={handleAnalyze}
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Refresh'}
+            <Button variant="ghost" size="sm" className="h-7 text-[11px]" onClick={handleAnalyze} disabled={isLoading}>
+              {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : copy.refresh}
             </Button>
           </div>
 
-          {/* Quick Summary */}
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            <div className="p-2.5 rounded-xl bg-green-500/5 border border-green-500/10">
-              <div className="flex items-center gap-1.5 mb-1">
-                <CheckCircle2 className="w-3 h-3 text-green-400" />
-                <span className="text-[11px] font-bold text-green-400 uppercase">Strengths</span>
+          <div className="mb-3 grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-green-500/10 bg-green-500/5 p-2.5">
+              <div className="mb-1 flex items-center gap-1.5">
+                <CheckCircle2 className="h-3 w-3 text-green-400" />
+                <span className="text-[11px] font-bold uppercase text-green-400">{copy.strengths}</span>
               </div>
-              {analysis.strengths.slice(0, 2).map((s, i) => (
-                <p key={i} className="text-[11px] text-muted-foreground leading-tight">{s}</p>
+              {analysis.strengths.slice(0, 2).map((item, index) => (
+                <p key={index} className="text-[11px] leading-tight text-muted-foreground">{item}</p>
               ))}
             </div>
-            <div className="p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/10">
-              <div className="flex items-center gap-1.5 mb-1">
-                <AlertTriangle className="w-3 h-3 text-amber-400" />
-                <span className="text-[11px] font-bold text-amber-400 uppercase">Improve</span>
+            <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-2.5">
+              <div className="mb-1 flex items-center gap-1.5">
+                <AlertTriangle className="h-3 w-3 text-amber-400" />
+                <span className="text-[11px] font-bold uppercase text-amber-400">{copy.improve}</span>
               </div>
-              {analysis.improvements.slice(0, 2).map((s, i) => (
-                <p key={i} className="text-[11px] text-muted-foreground leading-tight">{s}</p>
+              {analysis.improvements.slice(0, 2).map((item, index) => (
+                <p key={index} className="text-[11px] leading-tight text-muted-foreground">{item}</p>
               ))}
             </div>
           </div>
 
-          {/* Next Action */}
-          <div className="p-2.5 rounded-xl bg-primary/5 border border-primary/10 flex items-center gap-2 mb-3">
-            <Zap className="w-3.5 h-3.5 text-primary shrink-0" />
-            <p className="text-[11px] text-primary font-medium">{analysis.nextAction}</p>
+          <div className="mb-3 flex items-center gap-2 rounded-xl border border-primary/10 bg-primary/5 p-2.5">
+            <Zap className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <p className="text-[11px] font-medium text-primary">{analysis.nextAction}</p>
           </div>
 
-          {/* Expand Details */}
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 text-xs text-muted-foreground font-medium w-full justify-center"
+            className="flex w-full items-center justify-center gap-1 text-xs font-medium text-muted-foreground"
           >
-            {expanded ? 'Less details' : 'Full analysis'}
-            {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            {expanded ? copy.detailsOpen : copy.detailsClosed}
+            {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
           </button>
 
           <AnimatePresence>
@@ -171,25 +190,22 @@ export function AiPortfolioScore() {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="pt-3 space-y-3">
-                  {/* Risk Assessment */}
+                <div className="space-y-3 pt-3">
                   <div>
-                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Risk Assessment</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{analysis.riskAssessment}</p>
+                    <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{copy.risk}</p>
+                    <p className="text-xs leading-relaxed text-muted-foreground">{analysis.riskAssessment}</p>
                   </div>
 
-                  {/* Outlook */}
                   <div>
-                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Outlook</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{analysis.outlook}</p>
+                    <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{copy.outlook}</p>
+                    <p className="text-xs leading-relaxed text-muted-foreground">{analysis.outlook}</p>
                   </div>
 
-                  {/* Rebalance */}
                   {analysis.rebalanceNeeded && analysis.rebalanceSuggestion && (
-                    <div className="p-2.5 rounded-xl bg-orange-500/5 border border-orange-500/10">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <TrendingUp className="w-3 h-3 text-orange-400" />
-                        <span className="text-[11px] font-bold text-orange-400 uppercase">Rebalance Suggested</span>
+                    <div className="rounded-xl border border-orange-500/10 bg-orange-500/5 p-2.5">
+                      <div className="mb-1 flex items-center gap-1.5">
+                        <TrendingUp className="h-3 w-3 text-orange-400" />
+                        <span className="text-[11px] font-bold uppercase text-orange-400">{copy.rebalance}</span>
                       </div>
                       <p className="text-[11px] text-muted-foreground">{analysis.rebalanceSuggestion}</p>
                     </div>

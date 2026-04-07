@@ -77,6 +77,8 @@ export interface DCAPlan {
   nextExecutionDate: string;
 }
 
+export type DCAPlanDraft = Omit<DCAPlan, 'id'> & { id?: string };
+
 export interface DCAGamification {
   totalPlansCreated: number;
   totalAmountCommitted: number;
@@ -218,7 +220,7 @@ export interface DCASlice {
   investmentFrequency: 'weekly' | 'monthly';
   weeklyDepositHistory: WeeklyDeposit[];
   weeklyDepositStreak: number;
-  addDcaPlan: (plan: Omit<DCAPlan, 'id'>) => void;
+  addDcaPlan: (plan: DCAPlanDraft) => Promise<DCAPlan>;
   updateDcaPlan: (id: string, updates: Partial<DCAPlan>) => void;
   deleteDcaPlan: (id: string) => void;
   updateDcaGamification: (updates: Partial<DCAGamification>) => void;

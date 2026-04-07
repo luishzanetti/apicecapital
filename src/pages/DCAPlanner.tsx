@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { getNextExecutionDate } from '@/lib/dca';
 import { useAppStore } from '@/store/appStore';
 import type { InvestorType } from '@/store/types';
 import { DCAAmountSlider } from '@/components/dca/DCAAmountSlider';
@@ -21,7 +22,7 @@ import {
   Plus,
   ChevronRight,
   ChevronLeft,
-  Infinity,
+  Infinity as InfinityIcon,
   Sparkles,
   Check,
   ExternalLink,
@@ -37,7 +38,9 @@ import {
 } from 'lucide-react';
 import { referralLinks } from '@/data/sampleData';
 import { useDCAExecution } from '@/hooks/useDCAExecution';
+import { isSupabaseConfigured } from '@/integrations/supabase/client';
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // Recommended DCA plans per investor type
 const RECOMMENDED_PLANS: Record<InvestorType, {
@@ -53,7 +56,7 @@ const RECOMMENDED_PLANS: Record<InvestorType, {
       { symbol: 'BTC', allocation: 65 },
       { symbol: 'ETH', allocation: 35 },
     ],
-    label: 'Steady & Safe',
+    label: 'Stable and secure',
   },
   'Balanced Optimizer': {
     amount: 35,
@@ -64,7 +67,7 @@ const RECOMMENDED_PLANS: Record<InvestorType, {
       { symbol: 'SOL', allocation: 15 },
       { symbol: 'LINK', allocation: 10 },
     ],
-    label: 'Balanced Growth',
+    label: 'Balanced growth',
   },
   'Growth Seeker': {
     amount: 50,
@@ -76,7 +79,7 @@ const RECOMMENDED_PLANS: Record<InvestorType, {
       { symbol: 'ARB', allocation: 10 },
       { symbol: 'INJ', allocation: 10 },
     ],
-    label: 'Maximum Growth',
+    label: 'Maximum growth',
   },
 };
 
@@ -84,12 +87,14 @@ type WizardStep = 'amount' | 'assets' | 'schedule' | 'review';
 
 export default function DCAPlanner() {
   const navigate = useNavigate();
+  const { language } = useTranslation();
   const dcaPlans = useAppStore((s) => s.dcaPlans);
   const addDcaPlan = useAppStore((s) => s.addDcaPlan);
+  const updateDcaPlan = useAppStore((s) => s.updateDcaPlan);
   const investorType = useAppStore((s) => s.investorType);
   const trackLinkClick = useAppStore((s) => s.trackLinkClick);
   const linkClicks = useAppStore((s) => s.linkClicks);
-  const { executePlan, isExecuting, lastResult, error: execError, clearError } = useDCAExecution();
+  const { executePlan, lastResult, error: execError, clearError } = useDCAExecution();
 
   const [showWizard, setShowWizard] = useState(false);
   const [wizardStep, setWizardStep] = useState<WizardStep>('amount');
@@ -110,35 +115,181 @@ export default function DCAPlanner() {
     durationDays: 90,
     isForever: false,
   });
+  const locale = language === 'pt' ? 'pt-BR' : 'en-US';
+  const copy = language === 'pt'
+    ? {
+        plannerTitle: 'DCA Planner',
+        automatedInvesting: 'Automated investing',
+        connectApiTitle: 'Connect your API first',
+        connectApiBody: 'The DCA Planner needs a Bybit API connection to execute automated investments for you.',
+        connectApiCta: 'Connect Bybit API',
+        connectApiFootnote: 'It takes about 2 minutes. The walkthrough is included.',
+        createPlanHeader: (step: number) => `Create plan (${step}/4)`,
+        stepAmount: 'Set your contribution amount',
+        stepAssets: 'Choose the assets',
+        stepSchedule: 'Set the schedule',
+        stepReview: 'Review and confirm',
+        plannerSubtitle: 'Recurring purchases with discipline',
+        recommendedPlan: 'Recommended plan',
+        basedOnProfile: (profile: string) => `Based on your ${profile} profile`,
+        projection52Weeks: (value: number) => `In 52 weeks: ~$${value.toLocaleString(locale)} invested`,
+        activateRecommended: 'Activate recommended plan',
+        customize: 'I want to customize',
+        emptyTitle: 'Automate your contributions',
+        emptyBody: 'DCA means investing a fixed amount at regular intervals, reducing emotion and timing risk in your decisions.',
+        emptyPoints: [
+          'Reduce volatility risk over time',
+          'Set up once and follow with discipline',
+          'Historically outperforms impulsive decisions',
+        ],
+        createFirstPlan: 'Create my first DCA plan',
+        activePlans: (count: number) => `Your DCA plans (${count})`,
+        createNewPlan: 'Create new DCA plan',
+        bybitGuideTitle: 'How to execute on Bybit',
+        bybitGuideSteps: [
+          'Open Bybit and go to "Trade" → "Spot"',
+          'Set up a recurring buy for the chosen assets',
+          'Set amount and frequency to mirror your plan',
+          'Review and confirm your recurring order',
+        ],
+        accountCreated: 'Account created',
+        openBybit: 'Open Bybit',
+        amountTitle: 'Contribution amount',
+        amountSubtitle: 'How much per interval?',
+        minimumPerInterval: 'Minimum $5 per interval',
+        assetTitle: 'Select assets',
+        assetSubtitle: 'Choose up to 5 assets',
+        frequency: 'Frequency',
+        continuousMode: 'Continuous mode',
+        continuousModeBody: 'No end date, ongoing DCA',
+        duration: 'Duration',
+        reviewTitle: 'Plan summary',
+        monthly: 'Monthly',
+        annual: 'Annual',
+        disclaimer: 'Crypto is volatile. Past returns do not guarantee future results. Only invest what you can sustain.',
+        executingFirstBuy: 'Executing first buy...',
+        successBuy: 'Plan created and first execution complete!',
+        errorBuy: 'Plan created, but the buy failed',
+        createAndExecute: 'Create plan and execute first buy',
+        ordersExecuted: 'Orders executed:',
+        bought: (quantity?: number | null, price?: number | null, amountUsdt?: number | null) =>
+          `Bought${quantity ? ` ${quantity}` : ''} ${price ? `@ $${price}` : `$${(amountUsdt ?? 0).toFixed(2)}`}`,
+        failed: 'Failed',
+        savedPlanErrorHelp: 'Plan saved. Enable Trade (Spot) permission on your Bybit API key and try again from the plan card.',
+        back: 'Back',
+        next: 'Next',
+        celebrationTitle: 'Your DCA plan is active!',
+        celebrationBadge: 'Achievement: Disciplined Investor',
+        backToDashboard: 'Back to dashboard',
+        recommendedLabels: {
+          'Conservative Builder': 'Stable and secure',
+          'Balanced Optimizer': 'Balanced growth',
+          'Growth Seeker': 'Maximum growth',
+        } as Record<InvestorType, string>,
+      }
+    : {
+        plannerTitle: 'DCA Planner',
+        automatedInvesting: 'Automated investing',
+        connectApiTitle: 'Connect your API first',
+        connectApiBody: 'The DCA Planner needs a Bybit API connection to execute automated investments for you.',
+        connectApiCta: 'Connect Bybit API',
+        connectApiFootnote: 'It takes about 2 minutes. The walkthrough is included.',
+        createPlanHeader: (step: number) => `Create plan (${step}/4)`,
+        stepAmount: 'Set your contribution amount',
+        stepAssets: 'Choose the assets',
+        stepSchedule: 'Configure recurrence',
+        stepReview: 'Review and confirm',
+        plannerSubtitle: 'Recurring buys with discipline',
+        recommendedPlan: 'Recommended plan',
+        basedOnProfile: (profile: string) => `Based on your ${profile} profile`,
+        projection52Weeks: (value: number) => `In 52 weeks: ~$${value.toLocaleString(locale)} invested`,
+        activateRecommended: 'Activate recommended plan',
+        customize: 'Customize it',
+        emptyTitle: 'Automate your contributions',
+        emptyBody: 'DCA means investing a fixed amount at regular intervals, reducing emotion and timing risk in your decisions.',
+        emptyPoints: [
+          'Reduce volatility risk over time',
+          'Set it once and stay consistent',
+          'Historically outperforms impulse-based decisions',
+        ],
+        createFirstPlan: 'Create my first DCA plan',
+        activePlans: (count: number) => `Your DCA plans (${count})`,
+        createNewPlan: 'Create new DCA plan',
+        bybitGuideTitle: 'How to execute on Bybit',
+        bybitGuideSteps: [
+          'Open Bybit and go to "Trade" → "Spot"',
+          'Set up a recurring buy for the selected assets',
+          'Choose the amount and frequency to mirror your plan',
+          'Review and confirm your recurring order',
+        ],
+        accountCreated: 'Account created',
+        openBybit: 'Open Bybit',
+        amountTitle: 'Contribution amount',
+        amountSubtitle: 'How much per interval?',
+        minimumPerInterval: 'Minimum $5 per interval',
+        assetTitle: 'Select assets',
+        assetSubtitle: 'Choose up to 5 assets',
+        frequency: 'Frequency',
+        continuousMode: 'Continuous mode',
+        continuousModeBody: 'No end date, DCA stays active',
+        duration: 'Duration',
+        reviewTitle: 'Plan summary',
+        monthly: 'Monthly',
+        annual: 'Yearly',
+        disclaimer: 'Crypto is volatile. Past returns do not guarantee future results. Invest only what you can sustain.',
+        executingFirstBuy: 'Executing the first buy...',
+        successBuy: 'Plan created and first execution completed!',
+        errorBuy: 'Plan created, but the buy failed',
+        createAndExecute: 'Create plan and execute first buy',
+        ordersExecuted: 'Executed orders:',
+        bought: (quantity?: number | null, price?: number | null, amountUsdt?: number | null) =>
+          `Bought${quantity ? ` ${quantity}` : ''} ${price ? `@ $${price}` : `$${(amountUsdt ?? 0).toFixed(2)}`}`,
+        failed: 'Failed',
+        savedPlanErrorHelp: 'The plan was saved. Enable Trade (Spot) permission on your Bybit API and try again from the plan card.',
+        back: 'Back',
+        next: 'Next',
+        celebrationTitle: 'Your DCA plan is live!',
+        celebrationBadge: 'Achievement: Disciplined investor',
+        backToDashboard: 'Back to dashboard',
+        recommendedLabels: {
+          'Conservative Builder': 'Stable and secure',
+          'Balanced Optimizer': 'Balanced growth',
+          'Growth Seeker': 'Maximum growth',
+        } as Record<InvestorType, string>,
+      };
 
   const handleCreatePlan = async () => {
     trackEvent(AnalyticsEvents.DCA_PLAN_CREATED, { amount: newPlan.amountPerInterval, frequency: newPlan.frequency });
     setCreatingPlan(true);
     setCreateStatus('executing');
+    clearError();
 
-    // Generate plan ID
-    const planId = Date.now().toString();
-
-    // 1. Save plan to store + Supabase
-    addDcaPlan({
+    const startDate = new Date().toISOString();
+    const createdPlan = await addDcaPlan({
       assets: newPlan.assets,
       amountPerInterval: newPlan.amountPerInterval,
       frequency: newPlan.frequency,
       durationDays: newPlan.isForever ? null : newPlan.durationDays,
-      startDate: new Date().toISOString(),
+      startDate,
       isActive: true,
       totalInvested: 0,
-      nextExecutionDate: new Date().toISOString(),
+      nextExecutionDate: getNextExecutionDate(newPlan.frequency, startDate),
     });
 
-    // 2. Execute first buy immediately using local plan data (no DB dependency)
     try {
-      const result = await executePlan(planId, {
-        id: planId,
+      const result = await executePlan(createdPlan.id, {
+        id: createdPlan.id,
         assets: newPlan.assets,
         amountPerInterval: newPlan.amountPerInterval,
         frequency: newPlan.frequency,
       });
+
+      if (result) {
+        updateDcaPlan(createdPlan.id, {
+          totalInvested: (createdPlan.totalInvested ?? 0) + result.totalSpent,
+          nextExecutionDate: getNextExecutionDate(createdPlan.frequency),
+        });
+      }
 
       if (result && result.executions.some(e => e.status === 'success')) {
         setCreateStatus('success');
@@ -149,7 +300,6 @@ export default function DCAPlanner() {
       setCreateStatus('error');
     }
 
-    // 3. Show celebration overlay and reset wizard
     setCelebrationPlanAmount(newPlan.amountPerInterval);
     setShowCelebration(true);
 
@@ -169,20 +319,21 @@ export default function DCAPlanner() {
   };
 
   // Handle activating the recommended plan (one-tap DCA)
-  const handleActivateRecommendedPlan = () => {
+  const handleActivateRecommendedPlan = async () => {
     const type = investorType || 'Balanced Optimizer';
     const rec = RECOMMENDED_PLANS[type];
     trackEvent(AnalyticsEvents.DCA_RECOMMENDED_ACTIVATED, { investorType: type, amount: rec.amount });
 
-    addDcaPlan({
+    const startDate = new Date().toISOString();
+    await addDcaPlan({
       assets: rec.assets,
       amountPerInterval: rec.amount,
       frequency: rec.frequency,
       durationDays: null,
-      startDate: new Date().toISOString(),
+      startDate,
       isActive: true,
       totalInvested: 0,
-      nextExecutionDate: new Date().toISOString(),
+      nextExecutionDate: getNextExecutionDate(rec.frequency, startDate),
     });
 
     setCelebrationPlanAmount(rec.amount);
@@ -240,19 +391,26 @@ export default function DCAPlanner() {
   };
 
   const frequencyOptions = [
-    { value: 'daily', label: 'Daily' },
-    { value: 'weekly', label: 'Weekly' },
-    { value: 'biweekly', label: 'Bi-weekly' },
-    { value: 'monthly', label: 'Monthly' },
+    { value: 'daily', label: language === 'pt' ? 'Diário' : 'Daily' },
+    { value: 'weekly', label: language === 'pt' ? 'Semanal' : 'Weekly' },
+    { value: 'biweekly', label: language === 'pt' ? 'Quinzenal' : 'Biweekly' },
+    { value: 'monthly', label: language === 'pt' ? 'Mensal' : 'Monthly' },
   ];
 
   const durationOptions = [
-    { value: 30, label: '30 days' },
-    { value: 60, label: '60 days' },
-    { value: 90, label: '90 days' },
-    { value: 180, label: '180 days' },
-    { value: 365, label: '1 year' },
+    { value: 30, label: language === 'pt' ? '30 dias' : '30 days' },
+    { value: 60, label: language === 'pt' ? '60 dias' : '60 days' },
+    { value: 90, label: language === 'pt' ? '90 dias' : '90 days' },
+    { value: 180, label: language === 'pt' ? '180 dias' : '180 days' },
+    { value: 365, label: language === 'pt' ? '1 ano' : '1 year' },
   ];
+
+  const frequencyLabelMap: Record<typeof newPlan.frequency, string> = {
+    daily: language === 'pt' ? 'dia' : 'day',
+    weekly: language === 'pt' ? 'semana' : 'week',
+    biweekly: language === 'pt' ? 'quinzena' : 'biweekly',
+    monthly: language === 'pt' ? 'mês' : 'month',
+  };
 
   const canProceed = () => {
     switch (wizardStep) {
@@ -289,8 +447,9 @@ export default function DCAPlanner() {
   const bybitLink = referralLinks.find(l => l.id === 'bybit');
   const missionProgress = useAppStore((s) => s.missionProgress);
 
-  // Block DCA Planner until API is connected
-  if (!missionProgress.m2_apiConnected) {
+  const requiresApiConnection = isSupabaseConfigured && !missionProgress.m2_apiConnected;
+
+  if (requiresApiConnection) {
     return (
       <div className="min-h-screen bg-background pb-28 flex flex-col">
         <div className="px-5 py-6 safe-top border-b border-border">
@@ -302,8 +461,8 @@ export default function DCAPlanner() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-lg font-bold">DCA Planner</h1>
-              <p className="text-xs text-muted-foreground">Automated investing</p>
+              <h1 className="text-lg font-bold">{copy.plannerTitle}</h1>
+              <p className="text-xs text-muted-foreground">{copy.automatedInvesting}</p>
             </div>
           </div>
         </div>
@@ -313,9 +472,9 @@ export default function DCAPlanner() {
               <ShieldCheck className="w-8 h-8 text-amber-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold mb-2">Connect Your API First</h2>
+              <h2 className="text-xl font-bold mb-2">{copy.connectApiTitle}</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                DCA Planner requires a Bybit API connection to execute automated investments on your behalf.
+                {copy.connectApiBody}
               </p>
             </div>
             <Button
@@ -324,11 +483,11 @@ export default function DCAPlanner() {
               className="w-full"
               onClick={() => navigate('/mission2/api-setup')}
             >
-              Connect Bybit API
+              {copy.connectApiCta}
               <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
             <p className="text-[11px] text-muted-foreground">
-              Takes about 2 minutes. Step-by-step guide included.
+              {copy.connectApiFootnote}
             </p>
           </div>
         </div>
@@ -349,15 +508,15 @@ export default function DCAPlanner() {
           </button>
           <div className="flex-1">
             <h1 className="text-xl font-bold">
-              {showWizard ? `Create Plan (${getStepNumber()}/4)` : 'DCA Planner'}
+              {showWizard ? copy.createPlanHeader(getStepNumber()) : copy.plannerTitle}
             </h1>
             <p className="text-xs text-muted-foreground">
               {showWizard ? 
-                wizardStep === 'amount' ? 'Set your investment amount' :
-                wizardStep === 'assets' ? 'Choose your assets' :
-                wizardStep === 'schedule' ? 'Configure schedule' :
-                'Review and create' 
-                : 'Systematic buying schedules'
+                wizardStep === 'amount' ? copy.stepAmount :
+                wizardStep === 'assets' ? copy.stepAssets :
+                wizardStep === 'schedule' ? copy.stepSchedule :
+                copy.stepReview
+                : copy.plannerSubtitle
               }
             </p>
           </div>
@@ -384,9 +543,9 @@ export default function DCAPlanner() {
                     <Zap className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm">Recommended Plan</h3>
+                    <h3 className="font-bold text-sm">{copy.recommendedPlan}</h3>
                     <p className="text-[11px] text-muted-foreground">
-                      Based on your {investorType} profile
+                      {copy.basedOnProfile(investorType)}
                     </p>
                   </div>
                 </div>
@@ -397,9 +556,9 @@ export default function DCAPlanner() {
                     <>
                       <div className="flex items-baseline gap-1.5 mb-2">
                         <span className="text-3xl font-bold text-primary">${rec.amount}</span>
-                        <span className="text-sm text-muted-foreground">/week</span>
+                        <span className="text-sm text-muted-foreground">/{frequencyLabelMap[rec.frequency]}</span>
                         <Badge variant="outline" className="ml-auto text-[11px]">
-                          {rec.label}
+                          {copy.recommendedLabels[investorType]}
                         </Badge>
                       </div>
 
@@ -413,7 +572,7 @@ export default function DCAPlanner() {
 
                       <div className="p-3 rounded-xl bg-secondary/40 mb-4">
                         <p className="text-xs text-muted-foreground text-center">
-                          In 52 weeks: <span className="font-semibold text-foreground">~${(rec.amount * 52).toLocaleString()} invested</span>
+                          <span className="font-semibold text-foreground">{copy.projection52Weeks(rec.amount * 52)}</span>
                         </p>
                       </div>
 
@@ -422,14 +581,14 @@ export default function DCAPlanner() {
                         className="w-full py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-500 transition-all hover:opacity-90 active:scale-[0.98] mb-2"
                       >
                         <Sparkles className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
-                        Activate Recommended Plan
+                        {copy.activateRecommended}
                       </button>
 
                       <button
                         onClick={() => setShowWizard(true)}
                         className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors py-1.5"
                       >
-                        I want to customize
+                        {copy.customize}
                       </button>
                     </>
                   );
@@ -448,15 +607,15 @@ export default function DCAPlanner() {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
                   <TrendingUp className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-bold mb-1.5">Automate your investing</h3>
+                <h3 className="text-lg font-bold mb-1.5">{copy.emptyTitle}</h3>
                 <p className="text-sm text-muted-foreground mb-4 max-w-[280px] mx-auto leading-relaxed">
-                  Dollar-Cost Averaging (DCA) means buying a fixed amount on a regular schedule -- removing emotion and timing risk from your investments.
+                  {copy.emptyBody}
                 </p>
                 <div className="flex flex-col gap-3 mb-5">
                   {[
-                    { icon: ShieldCheck, text: 'Reduce volatility risk over time' },
-                    { icon: Clock, text: 'Set it and forget it -- fully automated' },
-                    { icon: TrendingUp, text: 'Historically outperforms lump-sum timing' },
+                    { icon: ShieldCheck, text: copy.emptyPoints[0] },
+                    { icon: Clock, text: copy.emptyPoints[1] },
+                    { icon: TrendingUp, text: copy.emptyPoints[2] },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-3 text-left">
                       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -470,7 +629,7 @@ export default function DCAPlanner() {
                   onClick={() => setShowWizard(true)}
                   className="w-full py-3 rounded-xl text-sm font-semibold text-white apice-gradient-primary transition-all hover:opacity-90 active:scale-[0.98]"
                 >
-                  Create Your First DCA Plan
+                  {copy.createFirstPlan}
                 </button>
               </motion.div>
             )}
@@ -482,7 +641,7 @@ export default function DCAPlanner() {
             {dcaPlans.length > 0 && (
               <div>
                 <h2 className="text-xs font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
-                  Your DCA Plans ({dcaPlans.length})
+                  {copy.activePlans(dcaPlans.length)}
                 </h2>
                 <AnimatePresence mode="popLayout">
                   <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
@@ -501,7 +660,7 @@ export default function DCAPlanner() {
               onClick={() => setShowWizard(true)}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Create New DCA Plan
+              {copy.createNewPlan}
             </Button>
 
             {/* Learn Block */}
@@ -516,23 +675,23 @@ export default function DCAPlanner() {
             {/* Execution Guide */}
             <Card>
               <CardContent className="pt-5">
-                <h3 className="font-semibold text-sm mb-3">How to Execute on Bybit</h3>
+                <h3 className="font-semibold text-sm mb-3">{copy.bybitGuideTitle}</h3>
                 <div className="space-y-3 text-xs text-muted-foreground">
                   <div className="flex gap-3">
                     <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[11px] font-semibold shrink-0">1</span>
-                    <p>Open Bybit and navigate to "Trade" → "Spot"</p>
+                    <p>{copy.bybitGuideSteps[0]}</p>
                   </div>
                   <div className="flex gap-3">
                     <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[11px] font-semibold shrink-0">2</span>
-                    <p>Set up a recurring buy order for your chosen assets</p>
+                    <p>{copy.bybitGuideSteps[1]}</p>
                   </div>
                   <div className="flex gap-3">
                     <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[11px] font-semibold shrink-0">3</span>
-                    <p>Configure the amount and frequency to match your plan</p>
+                    <p>{copy.bybitGuideSteps[2]}</p>
                   </div>
                   <div className="flex gap-3">
                     <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[11px] font-semibold shrink-0">4</span>
-                    <p>Review and confirm your recurring order</p>
+                    <p>{copy.bybitGuideSteps[3]}</p>
                   </div>
                 </div>
 
@@ -548,12 +707,12 @@ export default function DCAPlanner() {
                     {linkClicks.bybitClicked ? (
                       <>
                         <Check className="w-4 h-4 mr-2" />
-                        Account Created
+                        {copy.accountCreated}
                       </>
                     ) : (
                       <>
                         <ExternalLink className="w-4 h-4 mr-2" />
-                        Open Bybit
+                        {copy.openBybit}
                       </>
                     )}
                   </Button>
@@ -578,8 +737,8 @@ export default function DCAPlanner() {
                         <Calendar className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-sm">Investment Amount</h3>
-                        <p className="text-xs text-muted-foreground">How much per interval?</p>
+                        <h3 className="font-semibold text-sm">{copy.amountTitle}</h3>
+                        <p className="text-xs text-muted-foreground">{copy.amountSubtitle}</p>
                       </div>
                     </div>
 
@@ -590,7 +749,7 @@ export default function DCAPlanner() {
                     />
 
                     <p className="text-xs text-center text-muted-foreground mt-4">
-                      Minimum $5 per interval
+                      {copy.minimumPerInterval}
                     </p>
                   </CardContent>
                 </Card>
@@ -611,8 +770,8 @@ export default function DCAPlanner() {
                         <Sparkles className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-sm">Select Assets</h3>
-                        <p className="text-xs text-muted-foreground">Choose up to 5 assets</p>
+                        <h3 className="font-semibold text-sm">{copy.assetTitle}</h3>
+                        <p className="text-xs text-muted-foreground">{copy.assetSubtitle}</p>
                       </div>
                     </div>
 
@@ -639,7 +798,7 @@ export default function DCAPlanner() {
                     {/* Frequency */}
                     <div>
                       <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                        Frequency
+                        {copy.frequency}
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         {frequencyOptions.map((opt) => (
@@ -661,10 +820,10 @@ export default function DCAPlanner() {
                     {/* Forever Toggle */}
                     <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
                       <div className="flex items-center gap-3">
-                        <Infinity className="w-5 h-5 text-primary" />
+                        <InfinityIcon className="w-5 h-5 text-primary" />
                         <div>
-                          <p className="text-sm font-medium">Forever Mode</p>
-                          <p className="text-xs text-muted-foreground">No end date, ongoing DCA</p>
+                          <p className="text-sm font-medium">{copy.continuousMode}</p>
+                          <p className="text-xs text-muted-foreground">{copy.continuousModeBody}</p>
                         </div>
                       </div>
                       <Switch
@@ -677,7 +836,7 @@ export default function DCAPlanner() {
                     {!newPlan.isForever && (
                       <div>
                         <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                          Duration
+                          {copy.duration}
                         </label>
                         <div className="flex flex-wrap gap-2">
                           {durationOptions.map((opt) => (
@@ -711,12 +870,12 @@ export default function DCAPlanner() {
               >
                 <Card variant="premium">
                   <CardContent className="pt-5">
-                    <h3 className="font-semibold text-lg mb-4 text-center">Plan Summary</h3>
+                    <h3 className="font-semibold text-lg mb-4 text-center">{copy.reviewTitle}</h3>
                     
                     {/* Amount */}
                     <div className="text-center mb-4">
                       <span className="text-4xl font-bold text-primary">${newPlan.amountPerInterval}</span>
-                      <span className="text-lg text-muted-foreground">/{newPlan.frequency}</span>
+                      <span className="text-lg text-muted-foreground">/{frequencyLabelMap[newPlan.frequency]}</span>
                     </div>
 
                     {/* Assets */}
@@ -732,41 +891,43 @@ export default function DCAPlanner() {
                     <div className="p-3 rounded-xl bg-secondary/50 text-center mb-4">
                       {newPlan.isForever ? (
                         <div className="flex items-center justify-center gap-2">
-                          <Infinity className="w-5 h-5 text-primary" />
-                          <span className="font-medium">Forever Mode</span>
+                          <InfinityIcon className="w-5 h-5 text-primary" />
+                          <span className="font-medium">{copy.continuousMode}</span>
                         </div>
                       ) : (
-                        <span className="font-medium">{newPlan.durationDays} days</span>
+                        <span className="font-medium">
+                          {newPlan.durationDays} {language === 'pt' ? 'dias' : 'days'}
+                        </span>
                       )}
                     </div>
 
                     {/* Projections */}
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       <div className="p-3 rounded-xl bg-secondary/30 text-center">
-                        <p className="text-xs text-muted-foreground">Monthly</p>
+                        <p className="text-xs text-muted-foreground">{copy.monthly}</p>
                         <p className="text-lg font-bold">
                           ${(newPlan.amountPerInterval * (
                             newPlan.frequency === 'daily' ? 30 :
                             newPlan.frequency === 'weekly' ? 4 :
                             newPlan.frequency === 'biweekly' ? 2 : 1
-                          )).toLocaleString()}
+                          )).toLocaleString(locale)}
                         </p>
                       </div>
                       <div className="p-3 rounded-xl bg-primary/10 text-center">
-                        <p className="text-xs text-muted-foreground">Yearly</p>
+                        <p className="text-xs text-muted-foreground">{copy.annual}</p>
                         <p className="text-lg font-bold text-primary">
                           ${(newPlan.amountPerInterval * (
                             newPlan.frequency === 'daily' ? 365 :
                             newPlan.frequency === 'weekly' ? 52 :
                             newPlan.frequency === 'biweekly' ? 26 : 12
-                          )).toLocaleString()}
+                          )).toLocaleString(locale)}
                         </p>
                       </div>
                     </div>
 
                     {/* Disclaimer */}
                     <p className="text-[11px] text-center text-muted-foreground mb-4">
-                      Crypto is volatile. Past performance ≠ future results. Only invest what you can afford to lose.
+                      {copy.disclaimer}
                     </p>
 
                     <Button
@@ -778,22 +939,22 @@ export default function DCAPlanner() {
                       {createStatus === 'executing' ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Executing first buy on Bybit...
+                          {copy.executingFirstBuy}
                         </>
                       ) : createStatus === 'success' ? (
                         <>
                           <CheckCircle2 className="w-4 h-4 mr-2" />
-                          DCA Created & First Buy Done!
+                          {copy.successBuy}
                         </>
                       ) : createStatus === 'error' ? (
                         <>
                           <XCircle className="w-4 h-4 mr-2" />
-                          Plan Created (Buy failed — check permissions)
+                          {copy.errorBuy}
                         </>
                       ) : (
                         <>
                           <Check className="w-4 h-4 mr-2" />
-                          Create & Execute First Buy
+                          {copy.createAndExecute}
                         </>
                       )}
                     </Button>
@@ -801,12 +962,12 @@ export default function DCAPlanner() {
                     {/* Execution result feedback */}
                     {createStatus === 'success' && lastResult && (
                       <div className="mt-3 p-3 rounded-xl bg-green-500/10 border border-green-500/20">
-                        <p className="text-xs text-green-400 font-medium mb-1">Orders executed on Bybit:</p>
+                        <p className="text-xs text-green-400 font-medium mb-1">{copy.ordersExecuted}</p>
                         {lastResult.executions.map((ex, i) => (
                           <p key={i} className="text-[11px] text-muted-foreground">
                             {ex.asset}: {ex.status === 'success'
-                              ? `Bought${ex.quantity ? ` ${ex.quantity}` : ''} ${ex.price ? `@ $${ex.price}` : `$${ex.amountUsdt.toFixed(2)}`}`
-                              : ex.error || 'Failed'
+                              ? copy.bought(ex.quantity, ex.price, ex.amountUsdt)
+                              : ex.error || copy.failed
                             }
                           </p>
                         ))}
@@ -816,7 +977,7 @@ export default function DCAPlanner() {
                       <div className="mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
                         <p className="text-[11px] text-red-400">{execError}</p>
                         <p className="text-[11px] text-muted-foreground mt-1">
-                          Plan was saved. Enable Trade (Spot) permission on your Bybit API key and try "Execute Now" from the plan card.
+                          {copy.savedPlanErrorHelp}
                         </p>
                       </div>
                     )}
@@ -836,7 +997,7 @@ export default function DCAPlanner() {
               onClick={prevStep}
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
-              Back
+              {copy.back}
             </Button>
             <Button 
               variant="premium" 
@@ -844,7 +1005,7 @@ export default function DCAPlanner() {
               onClick={nextStep}
               disabled={!canProceed()}
             >
-              Next
+              {copy.next}
               <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
@@ -885,7 +1046,7 @@ export default function DCAPlanner() {
                 transition={{ delay: 0.25 }}
                 className="text-xl font-bold mb-2"
               >
-                Your DCA Plan is Active!
+                {copy.celebrationTitle}
               </motion.h2>
 
               <motion.p
@@ -894,7 +1055,7 @@ export default function DCAPlanner() {
                 transition={{ delay: 0.35 }}
                 className="text-sm text-muted-foreground mb-4"
               >
-                In 52 weeks: ~<span className="font-semibold text-primary">${(celebrationPlanAmount * 52).toLocaleString()}</span> invested
+                {copy.projection52Weeks(celebrationPlanAmount * 52)}
               </motion.p>
 
               <motion.div
@@ -904,7 +1065,7 @@ export default function DCAPlanner() {
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 mb-6"
               >
                 <Award className="w-4 h-4 text-amber-500" />
-                <span className="text-xs font-semibold text-amber-500">Achievement: Disciplined Investor</span>
+                <span className="text-xs font-semibold text-amber-500">{copy.celebrationBadge}</span>
               </motion.div>
 
               <motion.div
@@ -920,7 +1081,7 @@ export default function DCAPlanner() {
                     navigate('/home');
                   }}
                 >
-                  Back to Dashboard
+                  {copy.backToDashboard}
                 </Button>
               </motion.div>
             </motion.div>

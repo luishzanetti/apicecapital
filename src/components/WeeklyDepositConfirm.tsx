@@ -10,8 +10,8 @@ import {
     CheckCircle2, DollarSign, ExternalLink, Shield, ChevronDown,
     ChevronUp, X, Sparkles, ChevronRight
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Props {
     isOpen: boolean;
@@ -28,6 +28,7 @@ function getCurrentWeekId(): string {
 }
 
 export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
+    const { language } = useTranslation();
     const weeklyInvestment = useAppStore((s) => s.weeklyInvestment);
     const investorType = useAppStore((s) => s.investorType);
     const userProfile = useAppStore((s) => s.userProfile);
@@ -39,6 +40,47 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
     const [showBreakdown, setShowBreakdown] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
     const [dcaConfigured, setDcaConfigured] = useState(false);
+    const copy = language === 'pt'
+        ? {
+            configRequired: 'Confirme sua configuração DCA na Bybit primeiro.',
+            syncSuccessTitle: 'Sincronizado com a Bybit!',
+            syncSuccessDescription: `$${weeklyInvestment} registrado e alinhado com sua corretora.`,
+            confirmedTitle: 'Depósito confirmado!',
+            confirmedBody: `$${weeklyInvestment} alocados. Sequência de ${weeklyDepositStreak + 1} semanas!`,
+            title: 'Registrar investimento',
+            howItWorks: 'Como funciona:',
+            howItWorksBody: 'Registre o valor que você investiu na sua corretora nesta semana. Seu plano DCA compra automaticamente conforme configurado. Confirme que as definições de DCA na Bybit batem com o plano Apice para manter o acompanhamento correto.',
+            weeklyInvestment: 'Investimento desta semana',
+            weekly: 'Semanal',
+            allocationBreakdown: 'Detalhamento da alocação',
+            brokerSyncTitle: 'Meu DCA está alinhado com a corretora',
+            brokerSyncBody: `Confirmo que meu DCA na Bybit está configurado para comprar $${weeklyInvestment}/semana com a mesma alocação exibida acima. A Apice e minha corretora estão sincronizadas.`,
+            bybitSetupTitle: 'Configurar DCA na Bybit',
+            bybitSetupBody: 'Abrir a ferramenta DCA na corretora',
+            trustBody: 'Isso registra seu investimento para acompanhamento. Seus fundos continuam na corretora e a Apice nunca tem acesso à sua carteira. Para compras extras fora do DCA, registre tudo aqui também.',
+            syncing: 'Sincronizando com a Bybit...',
+            cta: 'Confirmar e sincronizar em tempo real',
+        }
+        : {
+            configRequired: 'Confirm your Bybit DCA configuration first.',
+            syncSuccessTitle: 'Synced with Bybit!',
+            syncSuccessDescription: `$${weeklyInvestment} reported and matched with your exchange.`,
+            confirmedTitle: 'Deposit confirmed!',
+            confirmedBody: `$${weeklyInvestment} allocated. ${weeklyDepositStreak + 1}-week streak!`,
+            title: 'Log investment',
+            howItWorks: 'How it works:',
+            howItWorksBody: 'Log the amount you invested with your broker this week. Your DCA plan buys automatically based on your setup. Confirm that your Bybit DCA settings match the Apice plan so tracking stays accurate.',
+            weeklyInvestment: 'This week investment',
+            weekly: 'Weekly',
+            allocationBreakdown: 'Allocation breakdown',
+            brokerSyncTitle: 'My DCA matches my broker setup',
+            brokerSyncBody: `I confirm that my Bybit DCA is configured to buy $${weeklyInvestment}/week with the same allocation shown above. Apice and my broker are synced.`,
+            bybitSetupTitle: 'Set up DCA on Bybit',
+            bybitSetupBody: 'Open the broker DCA tool',
+            trustBody: 'This logs your investment for tracking. Your funds stay at the broker and Apice never has access to your wallet. For extra buys outside DCA, log them here too.',
+            syncing: 'Syncing with Bybit...',
+            cta: 'Confirm and sync in real time',
+        };
 
     const currentWeekId = getCurrentWeekId();
     const alreadyConfirmed = weeklyDepositHistory.some(d => d.weekId === currentWeekId);
@@ -70,7 +112,7 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
 
     const handleConfirm = async () => {
         if (!dcaConfigured) {
-            toast.error('Please confirm your DCA setup on Bybit first.');
+            toast.error(copy.configRequired);
             return;
         }
 
@@ -90,8 +132,8 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
             colors: ['#528FFF', '#FFD700', '#8B5CF6'],
         });
 
-        toast.success('Synced with Bybit! 🎉', {
-            description: `$${weeklyInvestment} reported and matched with your exchange.`,
+        toast.success(copy.syncSuccessTitle, {
+            description: copy.syncSuccessDescription,
         });
         setTimeout(() => {
             onClose();
@@ -142,16 +184,16 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                 >
                                     <CheckCircle2 className="w-8 h-8 text-green-500" />
                                 </motion.div>
-                                <h2 className="text-xl font-bold mb-2">Deposit Confirmed!</h2>
+                                <h2 className="text-xl font-bold mb-2">{copy.confirmedTitle}</h2>
                                 <p className="text-sm text-muted-foreground mb-4">
-                                    ${weeklyInvestment} allocated. {weeklyDepositStreak + 1} week streak! 🔥
+                                    {copy.confirmedBody}
                                 </p>
                             </motion.div>
                         ) : (
                             /* Confirmation Form */
                             <div className="p-6 safe-bottom">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-lg font-bold">Log Investment</h2>
+                                    <h2 className="text-lg font-bold">{copy.title}</h2>
                                     <button onClick={onClose} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                                         <X className="w-4 h-4" />
                                     </button>
@@ -160,7 +202,8 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                 {/* Explanation */}
                                 <div className="mb-4 p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
                                     <p className="text-[11px] text-muted-foreground leading-relaxed">
-                                        <span className="font-semibold text-blue-400">How it works:</span> Log the amount you invested on your exchange this week. Your DCA plan auto-buys as configured — make sure your Bybit DCA settings match your Apice plan for accurate tracking.
+                                        <span className="font-semibold text-blue-400">{copy.howItWorks}</span>{' '}
+                                        {copy.howItWorksBody}
                                     </p>
                                 </div>
 
@@ -169,12 +212,12 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                     <div className="p-4" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.04))' }}>
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-xs text-muted-foreground mb-1">This Week's Investment</p>
+                                                <p className="text-xs text-muted-foreground mb-1">{copy.weeklyInvestment}</p>
                                                 <p className="text-2xl font-bold">${weeklyInvestment}</p>
                                             </div>
                                             <Badge className="bg-primary/10 text-primary border-primary/20" variant="outline">
                                                 <DollarSign className="w-3 h-3 mr-0.5" />
-                                                Weekly
+                                                {copy.weekly}
                                             </Badge>
                                         </div>
                                     </div>
@@ -189,7 +232,7 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                         >
                                             <div className="flex items-center gap-2">
                                                 <Sparkles className="w-4 h-4 text-primary" />
-                                                <span className="text-sm font-semibold">Allocation Breakdown</span>
+                                                <span className="text-sm font-semibold">{copy.allocationBreakdown}</span>
                                             </div>
                                             {showBreakdown ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                         </button>
@@ -241,9 +284,9 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                             />
                                         </div>
                                         <label htmlFor="dca-sync" className="flex-1 cursor-pointer">
-                                            <p className="text-sm font-semibold mb-1">DCA Matches My Exchange</p>
+                                            <p className="text-sm font-semibold mb-1">{copy.brokerSyncTitle}</p>
                                             <p className="text-[11px] text-muted-foreground leading-relaxed">
-                                                I confirm my Bybit DCA is set to buy $${weeklyInvestment}/week with the same allocation shown above. Both Apice and my exchange are in sync.
+                                                {copy.brokerSyncBody}
                                             </p>
                                         </label>
                                     </div>
@@ -258,8 +301,8 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                 >
                                     <ExternalLink className="w-4 h-4 text-primary shrink-0" />
                                     <div className="flex-1">
-                                        <p className="text-xs font-medium">Configure DCA on Bybit</p>
-                                        <p className="text-[11px] text-muted-foreground">Open DCA tool on the exchange</p>
+                                        <p className="text-xs font-medium">{copy.bybitSetupTitle}</p>
+                                        <p className="text-[11px] text-muted-foreground">{copy.bybitSetupBody}</p>
                                     </div>
                                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                                 </a>
@@ -268,7 +311,7 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                 <div className="flex items-center gap-2 mb-5">
                                     <Shield className="w-3 h-3 text-muted-foreground shrink-0" />
                                     <p className="text-[11px] text-muted-foreground">
-                                        This logs your investment for tracking. Your funds stay on your exchange — Apice never has access to your wallet. For extra purchases outside DCA, simply log them here too.
+                                        {copy.trustBody}
                                     </p>
                                 </div>
 
@@ -284,7 +327,7 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                         <>
                                             <span className="animate-pulse flex items-center gap-2">
                                                 <Sparkles className="w-4 h-4 animate-spin-slow" />
-                                                Syncing with Bybit...
+                                                {copy.syncing}
                                             </span>
                                             <motion.div
                                                 className="absolute bottom-0 left-0 h-1 bg-white/30"
@@ -296,7 +339,7 @@ export function WeeklyDepositConfirm({ isOpen, onClose }: Props) {
                                     ) : (
                                         <>
                                             <CheckCircle2 className="w-4 h-4 mr-2" />
-                                            Confirm and Sync Real-time
+                                            {copy.cta}
                                         </>
                                     )}
                                 </Button>

@@ -69,7 +69,7 @@ export function BottomNav() {
                 <button
                   onClick={() => setShowMore(false)}
                   className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center"
-                  aria-label="Close menu"
+                  aria-label="Fechar menu"
                 >
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
@@ -149,7 +149,7 @@ export function BottomNav() {
                 <button
                   key="more"
                   onClick={() => setShowMore(true)}
-                  aria-label="More options"
+                  aria-label="Mais opções"
                   className="relative flex flex-col items-center gap-1 px-2 py-1 press-scale"
                 >
                   <motion.div

@@ -12,18 +12,18 @@ import {
 import { cn } from '@/lib/utils';
 
 const TYPE_CONFIG: Record<string, { icon: typeof Sparkles; color: string; label: string }> = {
-  market: { icon: TrendingUp, color: 'text-blue-400', label: 'Market' },
-  portfolio: { icon: Target, color: 'text-purple-400', label: 'Portfolio' },
-  education: { icon: BookOpen, color: 'text-green-400', label: 'Learn' },
-  discipline: { icon: Zap, color: 'text-amber-400', label: 'Discipline' },
-  opportunity: { icon: AlertTriangle, color: 'text-orange-400', label: 'Opportunity' },
+  market: { icon: TrendingUp, color: 'text-blue-400', label: 'Mercado' },
+  portfolio: { icon: Target, color: 'text-purple-400', label: 'Portfólio' },
+  education: { icon: BookOpen, color: 'text-green-400', label: 'Aprender' },
+  discipline: { icon: Zap, color: 'text-amber-400', label: 'Disciplina' },
+  opportunity: { icon: AlertTriangle, color: 'text-orange-400', label: 'Oportunidade' },
 };
 
 const SENTIMENT_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  bullish: { bg: 'bg-green-500/10', text: 'text-green-400', label: 'Bullish' },
-  bearish: { bg: 'bg-red-500/10', text: 'text-red-400', label: 'Bearish' },
-  neutral: { bg: 'bg-gray-500/10', text: 'text-gray-400', label: 'Neutral' },
-  cautious: { bg: 'bg-amber-500/10', text: 'text-amber-400', label: 'Cautious' },
+  bullish: { bg: 'bg-green-500/10', text: 'text-green-400', label: 'Positivo' },
+  bearish: { bg: 'bg-red-500/10', text: 'text-red-400', label: 'Negativo' },
+  neutral: { bg: 'bg-gray-500/10', text: 'text-gray-400', label: 'Neutro' },
+  cautious: { bg: 'bg-amber-500/10', text: 'text-amber-400', label: 'Cauteloso' },
 };
 
 export function AiInsightCard() {
@@ -83,10 +83,10 @@ export function AiInsightCard() {
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">AI Insight</p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Insight de IA</p>
                   <Badge variant="outline" className="text-[11px] px-1.5 py-0">
                     <Sparkles className="w-2 h-2 mr-0.5" />
-                    Live
+                    Ao vivo
                   </Badge>
                 </div>
                 <h3 className="text-sm font-bold mt-0.5">{insight.title}</h3>
@@ -117,7 +117,7 @@ export function AiInsightCard() {
             </Badge>
             {insight.urgency === 'high' && (
               <Badge variant="outline" className="text-[11px] text-red-400 border-red-500/30">
-                Urgent
+                Urgente
               </Badge>
             )}
             {insight.relatedAssets.map(asset => (

@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { getNextExecutionDate } from '@/lib/dca';
 import { DCAPlan, useAppStore } from '@/store/appStore';
 import { dcaAssets } from '@/data/sampleData';
-import { useDCAExecution, type AssetExecution } from '@/hooks/useDCAExecution';
+import { useDCAExecution, type DCAExecution } from '@/hooks/useDCAExecution';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   Play,
   Pause,
@@ -13,7 +15,7 @@ import {
   Clock,
   DollarSign,
   TrendingUp,
-  Infinity,
+  Infinity as InfinityIcon,
   Zap,
   Loader2,
   CheckCircle2,
@@ -31,9 +33,10 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
   const updateDcaPlan = useAppStore((s) => s.updateDcaPlan);
   const deleteDcaPlan = useAppStore((s) => s.deleteDcaPlan);
   const { executePlan, fetchHistory, isExecuting, lastResult, error, clearError } = useDCAExecution();
+  const { language } = useTranslation();
 
   const [showHistory, setShowHistory] = useState(false);
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<DCAExecution[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
   const getFrequencyMultiplier = () => {
@@ -47,6 +50,48 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
 
   const totalProjected = plan.amountPerInterval * getFrequencyMultiplier();
   const assetsLabel = plan.assets.map(a => `${a.symbol} (${a.allocation}%)`).join(' · ');
+  const frequencyLabelMap: Record<DCAPlan['frequency'], string> = {
+    daily: language === 'pt' ? 'dia' : 'day',
+    weekly: language === 'pt' ? 'semana' : 'week',
+    biweekly: language === 'pt' ? 'quinzena' : 'biweekly',
+    monthly: language === 'pt' ? 'mês' : 'month',
+  };
+  const copy =
+    language === 'pt'
+      ? {
+          active: 'Ativo',
+          paused: 'Pausado',
+          continuous: 'Contínuo',
+          progress: 'Progresso',
+          daysLeft: (days: number) => `${days} dias restantes`,
+          ongoing: 'Em andamento',
+          invested: (value: number) => `$${value.toLocaleString('pt-BR')} investidos`,
+          target: (value: number) => `Meta de $${value.toLocaleString('pt-BR')}`,
+          executing: 'Executando...',
+          executeNow: 'Executar agora',
+          executed: (value: number) => `DCA executado: $${value.toFixed(2)} investidos`,
+          bought: (quantity?: number | null, price?: number | null, amountUsdt?: number | null) =>
+            `Comprado${quantity ? ` ${quantity}` : ''} ${price ? `@ $${price}` : `$${(amountUsdt ?? 0).toFixed(2)}`}`,
+          failed: (reason?: string | null) => `Falhou: ${reason || 'Erro na execução'}`,
+          noHistory: 'Nenhum histórico de execução ainda',
+        }
+      : {
+          active: 'Active',
+          paused: 'Paused',
+          continuous: 'Continuous',
+          progress: 'Progress',
+          daysLeft: (days: number) => `${days} days left`,
+          ongoing: 'Ongoing',
+          invested: (value: number) => `$${value.toLocaleString('en-US')} invested`,
+          target: (value: number) => `Target $${value.toLocaleString('en-US')}`,
+          executing: 'Executing...',
+          executeNow: 'Execute now',
+          executed: (value: number) => `DCA executed: $${value.toFixed(2)} invested`,
+          bought: (quantity?: number | null, price?: number | null, amountUsdt?: number | null) =>
+            `Bought${quantity ? ` ${quantity}` : ''} ${price ? `@ $${price}` : `$${(amountUsdt ?? 0).toFixed(2)}`}`,
+          failed: (reason?: string | null) => `Failed: ${reason || 'Execution error'}`,
+          noHistory: 'No execution history yet',
+        };
 
   // Calculate days remaining
   const startDate = new Date(plan.startDate);
@@ -59,7 +104,19 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
 
   const handleExecute = async () => {
     clearError();
-    await executePlan(plan.id);
+    const result = await executePlan(plan.id, {
+      id: plan.id,
+      assets: plan.assets,
+      amountPerInterval: plan.amountPerInterval,
+      frequency: plan.frequency,
+    });
+
+    if (result) {
+      updateDcaPlan(plan.id, {
+        totalInvested: (plan.totalInvested ?? 0) + result.totalSpent,
+        nextExecutionDate: getNextExecutionDate(plan.frequency),
+      });
+    }
   };
 
   const toggleHistory = async () => {
@@ -96,15 +153,15 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-sm">
-                  ${plan.amountPerInterval}/{plan.frequency}
+                  ${plan.amountPerInterval}/{frequencyLabelMap[plan.frequency]}
                 </h3>
                 <Badge variant={plan.isActive ? 'low' : 'outline'} size="sm">
-                  {plan.isActive ? 'Active' : 'Paused'}
+                  {plan.isActive ? copy.active : copy.paused}
                 </Badge>
                 {plan.durationDays === null && (
                   <Badge variant="premium" size="sm">
-                    <Infinity className="w-3 h-3 mr-1" />
-                    Forever
+                    <InfinityIcon className="w-3 h-3 mr-1" />
+                    {copy.continuous}
                   </Badge>
                 )}
               </div>
@@ -151,7 +208,7 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
           {progressPercent !== null && (
             <div className="mb-3">
               <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>Progress</span>
+                <span>{copy.progress}</span>
                 <span>{progressPercent}%</span>
               </div>
               <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
@@ -169,18 +226,18 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Clock className="w-3.5 h-3.5" />
               {daysRemaining !== null ? (
-                <span>{daysRemaining} days left</span>
+                <span>{copy.daysLeft(daysRemaining)}</span>
               ) : (
-                <span>Ongoing</span>
+                <span>{copy.ongoing}</span>
               )}
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <DollarSign className="w-3.5 h-3.5" />
-              <span>${(plan.totalInvested ?? 0).toLocaleString()} invested</span>
+              <span>{copy.invested(plan.totalInvested ?? 0)}</span>
             </div>
             <div className="flex items-center gap-1.5 text-primary">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>${totalProjected.toLocaleString()} target</span>
+              <span>{copy.target(totalProjected)}</span>
             </div>
           </div>
 
@@ -197,12 +254,12 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
                 {isExecuting ? (
                   <>
                     <Loader2 className="w-3 h-3 animate-spin" />
-                    Executing...
+                    {copy.executing}
                   </>
                 ) : (
                   <>
                     <Zap className="w-3 h-3" />
-                    Execute Now
+                    {copy.executeNow}
                   </>
                 )}
               </Button>
@@ -229,15 +286,15 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
                   <div className="p-2 rounded-lg bg-green-500/10 border border-green-500/20">
                     <div className="flex items-center gap-1.5 text-xs text-green-400 font-medium mb-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      DCA Executed — ${lastResult.totalSpent.toFixed(2)} spent
+                      {copy.executed(lastResult.totalSpent)}
                     </div>
                     {lastResult.executions && lastResult.executions.length > 0 && (
                       <div className="space-y-0.5">
                         {lastResult.executions.map((r, i) => (
                           <p key={i} className="text-[11px] text-muted-foreground">
                             {r.asset}: {r.status === 'success'
-                              ? `Bought${r.quantity ? ` ${r.quantity}` : ''} ${r.price ? `@ $${r.price}` : `$${r.amountUsdt.toFixed(2)}`}`
-                              : `❌ ${r.error || 'Failed'}`
+                              ? copy.bought(r.quantity, r.price, r.amountUsdt)
+                              : copy.failed(r.error)
                             }
                           </p>
                         ))}
@@ -278,7 +335,7 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
                     </div>
                   ) : history.length === 0 ? (
                     <p className="text-xs text-muted-foreground text-center py-2">
-                      No execution history yet
+                      {copy.noHistory}
                     </p>
                   ) : (
                     <div className="space-y-1.5 max-h-40 overflow-y-auto">
@@ -300,7 +357,7 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
                               ${Number(exec.amount_usdt).toFixed(2)}
                             </span>
                             <span className="text-muted-foreground">
-                              {new Date(exec.executed_at).toLocaleDateString()}
+                              {new Date(exec.executed_at).toLocaleDateString(language === 'pt' ? 'pt-BR' : 'en-US')}
                             </span>
                           </div>
                         </div>
