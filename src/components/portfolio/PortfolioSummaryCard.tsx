@@ -5,8 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { usePortfolioAnalytics } from '@/hooks/usePortfolioAnalytics';
-import { useExchangeBalance } from '@/hooks/useExchangeBalance';
 import { useAppStore } from '@/store/appStore';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis } from 'recharts';
 import {
@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 // ─── Chart data generation (simulated from balance) ────────
 
 type TimeRange = '24H' | '7D' | '30D' | '90D' | '1Y';
+const STABLECOINS = ['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'FDUSD'];
 
 function generateChartData(total: number, range: TimeRange): { time: string; value: number }[] {
   const points: Record<TimeRange, number> = { '24H': 24, '7D': 7, '30D': 30, '90D': 90, '1Y': 365 };
@@ -53,10 +54,12 @@ function PortfolioChart({
   data,
   isPositive,
   hideBalance,
+  hiddenLabel,
 }: {
   data: { time: string; value: number }[];
   isPositive: boolean;
   hideBalance: boolean;
+  hiddenLabel: string;
 }) {
   const color = isPositive ? '#22c55e' : '#ef4444';
   const gradientId = isPositive ? 'chartGradientGreen' : 'chartGradientRed';
@@ -64,7 +67,7 @@ function PortfolioChart({
   if (hideBalance) {
     return (
       <div className="h-[120px] md:h-[180px] lg:h-[220px] flex items-center justify-center">
-        <p className="text-xs text-muted-foreground">Balance hidden</p>
+        <p className="text-xs text-muted-foreground">{hiddenLabel}</p>
       </div>
     );
   }
@@ -140,12 +143,23 @@ function TimeRangeSelector({
 
 // ─── Quick Action Buttons ──────────────────────────────────
 
-function QuickActions({ onNavigate }: { onNavigate: (path: string) => void }) {
+function QuickActions({
+  onNavigate,
+  labels,
+}: {
+  onNavigate: (path: string) => void;
+  labels: {
+    strategies: string;
+    operations: string;
+    dca: string;
+    analytics: string;
+  };
+}) {
   const actions = [
-    { icon: Repeat2, label: 'Strategies', color: 'text-primary', bg: 'bg-primary/10', hoverBorder: 'hover:border-primary/30', path: '/strategies' },
-    { icon: BarChart3, label: 'Operations', color: 'text-blue-400', bg: 'bg-blue-500/10', hoverBorder: 'hover:border-blue-500/30', path: '/analytics' },
-    { icon: ArrowDownToLine, label: 'DCA', color: 'text-purple-400', bg: 'bg-purple-500/10', hoverBorder: 'hover:border-purple-500/30', path: '/dca-planner' },
-    { icon: BarChart3, label: 'Analytics', color: 'text-amber-400', bg: 'bg-amber-500/10', hoverBorder: 'hover:border-amber-500/30', path: '/analytics' },
+    { icon: Repeat2, label: labels.strategies, color: 'text-primary', bg: 'bg-primary/10', hoverBorder: 'hover:border-primary/30', path: '/strategies' },
+    { icon: BarChart3, label: labels.operations, color: 'text-blue-400', bg: 'bg-blue-500/10', hoverBorder: 'hover:border-blue-500/30', path: '/analytics' },
+    { icon: ArrowDownToLine, label: labels.dca, color: 'text-purple-400', bg: 'bg-purple-500/10', hoverBorder: 'hover:border-purple-500/30', path: '/dca-planner' },
+    { icon: BarChart3, label: labels.analytics, color: 'text-amber-400', bg: 'bg-amber-500/10', hoverBorder: 'hover:border-amber-500/30', path: '/analytics' },
   ];
 
   return (
@@ -204,10 +218,11 @@ function SummarySkeleton() {
 export function PortfolioSummaryCard() {
   const navigate = useNavigate();
   const analytics = usePortfolioAnalytics();
-  const { refresh, isRefreshing } = useExchangeBalance();
+  const { language } = useTranslation();
   const [hideBalance, setHideBalance] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('7D');
   const [showAccounts, setShowAccounts] = useState(false);
+  const { refresh, isRefreshing } = analytics;
 
   const chartData = useMemo(
     () => (analytics.isConnected ? generateChartData(analytics.grandTotal, timeRange) : []),
@@ -228,6 +243,84 @@ export function PortfolioSummaryCard() {
   const hasCreatedBybitAccount = missionProgress.m2_bybitAccountCreated;
   const hasCompletedMethod = missionProgress.m2_methodologyRead;
   const handleNavigate = useCallback((path: string) => navigate(path), [navigate]);
+  const copy = useMemo(
+    () =>
+      language === 'pt'
+        ? {
+            welcomeTitle: 'Bem-vindo à Apice',
+            welcomeBody:
+              'Siga a jornada Apice abaixo para configurar sua conta passo a passo. Quando estiver pronto, seu portfólio ao vivo aparecerá aqui.',
+            welcomeCta: 'Começar a jornada',
+            connectTitle: 'Conecte sua corretora',
+            connectBody:
+              'Conecte sua conta Bybit para ver saldos ao vivo, investir automaticamente com DCA e acompanhar a performance em tempo real.',
+            connectCta: 'Conectar Bybit',
+            errorTitle: 'Problema de conexão',
+            errorBody:
+              'Sua API está configurada, mas não conseguimos buscar seu saldo agora. Enquanto isso, usamos seus dados rastreados quando houver histórico disponível.',
+            retry: 'Tentar novamente',
+            retrying: 'Tentando novamente...',
+            hiddenLabel: 'Saldo oculto',
+            live: 'Ao vivo',
+            estimated: 'Estimado',
+            totalBalance: 'Saldo total',
+            unified: 'Conta spot',
+            funding: 'Conta de fundos',
+            estimatedReserve: 'Reserva em stablecoins',
+            holdings: 'ativos',
+            dcaPlan: 'plano',
+            dcaPlans: 'planos',
+            available: 'Disponível',
+            showFunding: 'Mostrar detalhes do funding',
+            hideFunding: 'Ocultar detalhes do funding',
+            quickActions: {
+              strategies: 'Estratégias',
+              operations: 'Operações',
+              dca: 'DCA',
+              analytics: 'Análises',
+            },
+          }
+        : {
+            welcomeTitle: 'Welcome to Apice',
+            welcomeBody:
+              'Follow the Apice journey below to configure your account step by step. Once you are ready, your live portfolio will appear here.',
+            welcomeCta: 'Start the journey',
+            connectTitle: 'Connect your exchange',
+            connectBody:
+              'Connect your Bybit account to see live balances, automate DCA, and follow performance in real time.',
+            connectCta: 'Connect Bybit',
+            errorTitle: 'Connection issue',
+            errorBody:
+              'Your API is configured, but we could not fetch the live balance right now. When tracked history is available, we fall back to an estimated snapshot.',
+            retry: 'Retry',
+            retrying: 'Retrying...',
+            hiddenLabel: 'Balance hidden',
+            live: 'Live',
+            estimated: 'Estimated',
+            totalBalance: 'Total balance',
+            unified: 'Spot account',
+            funding: 'Funding account',
+            estimatedReserve: 'Stablecoin reserve',
+            holdings: 'assets',
+            dcaPlan: 'plan',
+            dcaPlans: 'plans',
+            available: 'Available',
+            showFunding: 'Show funding details',
+            hideFunding: 'Hide funding details',
+            quickActions: {
+              strategies: 'Strategies',
+              operations: 'Operations',
+              dca: 'DCA',
+              analytics: 'Analytics',
+            },
+          },
+    [language]
+  );
+  const statusBadge = analytics.hasLiveBalance ? copy.live : copy.estimated;
+  const statusBadgeClass = analytics.hasLiveBalance
+    ? 'border-green-500/30 text-green-400'
+    : 'border-amber-500/30 text-amber-400';
+  const statusDotClass = analytics.hasLiveBalance ? 'bg-green-500 animate-pulse' : 'bg-amber-400';
 
   if (analytics.isLoading) return <SummarySkeleton />;
 
@@ -250,9 +343,9 @@ export function PortfolioSummaryCard() {
                 <Sparkles className="w-6 h-6 text-primary" />
               </motion.div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold mb-1">Welcome to Apice</p>
+                <p className="text-sm font-bold mb-1">{copy.welcomeTitle}</p>
                 <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                  Follow the Apice Journey below to set up your account step by step. Once ready, your live portfolio will appear here.
+                  {copy.welcomeBody}
                 </p>
                 <button
                   onClick={() => {
@@ -261,7 +354,7 @@ export function PortfolioSummaryCard() {
                   }}
                   className="flex items-center gap-1.5 text-xs font-semibold text-primary"
                 >
-                  Start your journey
+                  {copy.welcomeCta}
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -288,14 +381,14 @@ export function PortfolioSummaryCard() {
               <Link2 className="w-8 h-8 text-primary" />
             </motion.div>
             <div>
-              <p className="text-lg font-bold mb-1">Connect Your Exchange</p>
+              <p className="text-lg font-bold mb-1">{copy.connectTitle}</p>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-[280px]">
-                Link your Bybit account to see live balances, auto-invest with DCA, and track performance in real-time.
+                {copy.connectBody}
               </p>
             </div>
             <Button onClick={() => navigate('/mission2/api-setup')} className="gap-2">
               <Wallet className="w-4 h-4" />
-              Connect Bybit
+              {copy.connectCta}
             </Button>
           </div>
         </CardContent>
@@ -303,44 +396,40 @@ export function PortfolioSummaryCard() {
     );
   }
 
-  // API credentials exist but balance fetch failed — show error with retry
+  // API credentials exist but balance fetch failed — show subtle retry (no scary errors)
   if (analytics.status === 'error' && !analytics.isConnected) {
     return (
-      <Card className="overflow-hidden border-dashed border-amber-500/30">
+      <Card className="overflow-hidden">
         <CardContent className="pt-6 pb-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center shrink-0">
-              <RefreshCw className="w-6 h-6 text-amber-400" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">{copy.totalBalance}</p>
+                <p className="text-xs text-muted-foreground">Tap refresh to load</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold mb-1">Connection Issue</p>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-2">
-                Your API is configured but we couldn't fetch your balance. This may be temporary.
-              </p>
-              {analytics.error && (
-                <p className="text-[10px] text-red-400/70 font-mono mb-3 break-all">
-                  {analytics.error}
-                </p>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={refresh}
-                disabled={isRefreshing}
-                className="gap-2"
-              >
-                <RefreshCw className={cn('w-3.5 h-3.5', isRefreshing && 'animate-spin')} />
-                {isRefreshing ? 'Retrying...' : 'Retry'}
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refresh}
+              disabled={isRefreshing}
+              className="gap-2"
+            >
+              <RefreshCw className={cn('w-3.5 h-3.5', isRefreshing && 'animate-spin')} />
+              {isRefreshing ? copy.retrying : copy.retry}
+            </Button>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  const { grandTotal, totalEquity, fundingBalance } = analytics;
+  const { grandTotal, fundingBalance, spotBalance } = analytics;
   const hasFunding = fundingBalance > 0;
+  const hasSecondaryBalance = analytics.hasLiveBalance ? hasFunding : analytics.stablecoinsValue > 0;
   const changePositive = chartChange.pct >= 0;
 
   const fmt = (v: number) =>
@@ -350,6 +439,10 @@ export function PortfolioSummaryCard() {
 
   // Count funding assets
   const fundingAssetCount = analytics.fundingHoldings.length;
+  const stablecoinAssetCount = analytics.spotHoldings.filter((holding) => STABLECOINS.includes(holding.coin)).length;
+  const secondaryCardLabel = analytics.hasLiveBalance ? copy.funding : copy.estimatedReserve;
+  const secondaryCardValue = analytics.hasLiveBalance ? fundingBalance : analytics.stablecoinsValue;
+  const secondaryCardCount = analytics.hasLiveBalance ? fundingAssetCount : stablecoinAssetCount;
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -368,9 +461,9 @@ export function PortfolioSummaryCard() {
               {analytics.isTestnet && (
                 <Badge variant="outline" className="text-[11px] md:text-[11px] border-amber-500/30 text-amber-400 px-1.5 md:px-2 md:py-0.5">TESTNET</Badge>
               )}
-              <Badge variant="outline" className="text-[11px] md:text-[11px] gap-1 border-green-500/30 text-green-400 px-1.5 md:px-2 md:py-0.5">
-                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-green-500 animate-pulse" />
-                Live
+              <Badge variant="outline" className={cn('text-[11px] md:text-[11px] gap-1 px-1.5 md:px-2 md:py-0.5', statusBadgeClass)}>
+                <span className={cn('w-1.5 h-1.5 md:w-2 md:h-2 rounded-full', statusDotClass)} />
+                {statusBadge}
               </Badge>
             </div>
             <div className="flex items-center gap-1.5">
@@ -392,7 +485,7 @@ export function PortfolioSummaryCard() {
 
           {/* Balance */}
           <div>
-            <p className="text-[11px] md:text-[11px] text-muted-foreground uppercase tracking-widest mb-0.5">Total Balance</p>
+            <p className="text-[11px] md:text-[11px] text-muted-foreground uppercase tracking-widest mb-0.5">{copy.totalBalance}</p>
             <motion.p
               key={hideBalance ? 'hidden' : String(grandTotal)}
               initial={{ opacity: 0, y: -5 }}
@@ -419,7 +512,12 @@ export function PortfolioSummaryCard() {
 
           {/* Chart */}
           <div className="-mx-2">
-            <PortfolioChart data={chartData} isPositive={changePositive} hideBalance={hideBalance} />
+            <PortfolioChart
+              data={chartData}
+              isPositive={changePositive}
+              hideBalance={hideBalance}
+              hiddenLabel={copy.hiddenLabel}
+            />
           </div>
 
           {/* Time Range */}
@@ -433,35 +531,35 @@ export function PortfolioSummaryCard() {
             <div className="rounded-xl bg-primary/5 border border-primary/10 p-3 md:p-4 space-y-1">
               <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-sm shadow-primary/40" />
-                <span className="text-[11px] md:text-xs font-medium text-muted-foreground">Unified</span>
+                <span className="text-[11px] md:text-xs font-medium text-muted-foreground">{copy.unified}</span>
               </div>
-              <p className="text-sm md:text-base font-bold tracking-tight">{hideBalance ? '••••' : fmt(totalEquity)}</p>
-              <p className="text-[11px] md:text-[11px] text-muted-foreground">{analytics.spotCount} assets</p>
+              <p className="text-sm md:text-base font-bold tracking-tight">{hideBalance ? '••••' : fmt(spotBalance)}</p>
+              <p className="text-[11px] md:text-[11px] text-muted-foreground">{analytics.spotCount} {copy.holdings}</p>
             </div>
 
             {/* Funding Account Card */}
             <div className={cn(
               'rounded-xl border p-3 md:p-4 space-y-1',
-              hasFunding ? 'bg-amber-500/5 border-amber-500/10' : 'bg-secondary/30 border-border/30'
+              hasSecondaryBalance ? 'bg-amber-500/5 border-amber-500/10' : 'bg-secondary/30 border-border/30'
             )}>
               <div className="flex items-center gap-2">
-                <div className={cn('w-2.5 h-2.5 rounded-full', hasFunding ? 'bg-amber-500 shadow-sm shadow-amber-500/40' : 'bg-muted-foreground/30')} />
-                <span className="text-[11px] md:text-xs font-medium text-muted-foreground">Funding</span>
+                <div className={cn('w-2.5 h-2.5 rounded-full', hasSecondaryBalance ? 'bg-amber-500 shadow-sm shadow-amber-500/40' : 'bg-muted-foreground/30')} />
+                <span className="text-[11px] md:text-xs font-medium text-muted-foreground">{secondaryCardLabel}</span>
               </div>
-              <p className="text-sm md:text-base font-bold tracking-tight">{hideBalance ? '••••' : fmt(fundingBalance)}</p>
-              <p className="text-[11px] md:text-[11px] text-muted-foreground">{fundingAssetCount} assets</p>
+              <p className="text-sm md:text-base font-bold tracking-tight">{hideBalance ? '••••' : fmt(secondaryCardValue)}</p>
+              <p className="text-[11px] md:text-[11px] text-muted-foreground">{secondaryCardCount} {copy.holdings}</p>
             </div>
           </div>
 
           {/* Info Bar — Assets & Available Balance */}
           <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 rounded-lg bg-secondary/30 border border-border/20">
             <span className="text-[11px] md:text-xs text-muted-foreground">
-              {analytics.spotCount} assets{' '}
+              {analytics.spotCount} {copy.holdings}{' '}
               <span className="text-muted-foreground/40 mx-0.5">&middot;</span>{' '}
-              {analytics.activeDCAPlans} DCA {analytics.activeDCAPlans === 1 ? 'plan' : 'plans'}
+              {analytics.activeDCAPlans} DCA {analytics.activeDCAPlans === 1 ? copy.dcaPlan : copy.dcaPlans}
             </span>
             <span className="text-[11px] md:text-xs font-medium text-foreground/80">
-              Available {hideBalance ? '••••' : fmt(analytics.totalAvailableBalance)}
+              {copy.available} {hideBalance ? '••••' : fmt(analytics.totalAvailableBalance)}
             </span>
           </div>
 
@@ -472,7 +570,7 @@ export function PortfolioSummaryCard() {
                 onClick={() => setShowAccounts(!showAccounts)}
                 className="w-full flex items-center justify-center gap-1.5 py-1 text-[11px] md:text-[11px] text-muted-foreground hover:text-foreground transition-colors"
               >
-                <span>{showAccounts ? 'Hide' : 'Show'} funding details</span>
+                <span>{showAccounts ? copy.hideFunding : copy.showFunding}</span>
                 <motion.div animate={{ rotate: showAccounts ? 180 : 0 }}>
                   <ChevronDown className="w-3 h-3" />
                 </motion.div>
@@ -504,7 +602,7 @@ export function PortfolioSummaryCard() {
 
           {/* Quick Actions */}
           <div className="pt-1">
-            <QuickActions onNavigate={handleNavigate} />
+            <QuickActions onNavigate={handleNavigate} labels={copy.quickActions} />
           </div>
         </CardContent>
       </Card>
