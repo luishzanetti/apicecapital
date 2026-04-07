@@ -12,7 +12,10 @@ function getCorsHeaders(req?: Request): Record<string, string> {
     'http://localhost:8080',
     'http://localhost:8081',
     'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:4173',
     'http://localhost:3000',
+    'http://127.0.0.1:3000',
   ].filter(Boolean) as string[];
 
   const origin = req?.headers.get('origin') || '';
@@ -175,8 +178,13 @@ class AesCbc {
   decrypt(data: Uint8Array): Uint8Array {
     // We'll use the Web Crypto API synchronously via a workaround
     // For Deno, we can use the built-in aes module
-    throw new Error('Use async version');
+  throw new Error('Use async version');
   }
+}
+
+function toNumber(value: unknown, fallback = 0): number {
+  const parsed = typeof value === 'number' ? value : Number.parseFloat(String(value ?? ''));
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 // ─── HMAC-SHA256 for Bybit Auth ─────────────────────────────
@@ -226,15 +234,71 @@ async function aesDecryptAsync(ciphertext: string, passphrase: string): Promise<
   return new TextDecoder().decode(decrypted);
 }
 
+type BybitWalletCoin = {
+  coin: string;
+  walletBalance: string;
+  spotBorrow?: string;
+  equity: string;
+  usdValue: string;
+  unrealisedPnl?: string;
+  availableToWithdraw?: string;
+  free?: string;
+  locked?: string;
+  marginCollateral?: boolean;
+  collateralSwitch?: boolean;
+};
+
+type BybitUnifiedAccount = {
+  totalEquity: string;
+  totalWalletBalance: string;
+  totalMarginBalance: string;
+  totalAvailableBalance: string;
+  totalPerpUPL: string;
+  totalInitialMargin: string;
+  totalMaintenanceMargin: string;
+  coin?: BybitWalletCoin[];
+};
+
+type BybitFundingCoin = {
+  coin: string;
+  walletBalance?: string;
+  transferBalance?: string;
+};
+
+type BybitPositionRecord = {
+  category?: string;
+  symbol: string;
+  side: string;
+  size: string;
+  avgPrice?: string;
+  entryPrice: string;
+  markPrice: string;
+  positionValue?: string;
+  positionIM?: string;
+  positionMM?: string;
+  unrealisedPnl: string;
+  leverage: string;
+};
+
+type BybitTickerResult = {
+  list?: Array<{ lastPrice?: string }>;
+};
+
+type FundingHoldingRecord = {
+  coin: string;
+  balance: number;
+  usdValue: number;
+};
+
 // ─── Bybit Authenticated Request ────────────────────────────
 
-async function bybitAuthGet(
+async function bybitAuthGet<T = Record<string, unknown>>(
   apiKey: string,
   apiSecret: string,
   testnet: boolean,
   endpoint: string,
   params: Record<string, string> = {}
-): Promise<any> {
+): Promise<T> {
   const baseURL = testnet
     ? 'https://api-testnet.bybit.com'
     : 'https://api.bybit.com';
@@ -261,7 +325,158 @@ async function bybitAuthGet(
   if (!res.ok) throw new Error(`Bybit API ${res.status}: ${res.statusText}`);
   const json = await res.json();
   if (json.retCode !== 0) throw new Error(`Bybit Error ${json.retCode}: ${json.retMsg}`);
-  return json.result;
+  return json.result as T;
+}
+
+const STABLECOINS = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'FDUSD']);
+
+function chunkArray<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
+async function bybitPublicGet<T = Record<string, unknown>>(
+  testnet: boolean,
+  endpoint: string,
+  params: Record<string, string> = {}
+): Promise<T> {
+  const baseURL = testnet
+    ? 'https://api-testnet.bybit.com'
+    : 'https://api.bybit.com';
+
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${baseURL}${endpoint}${queryString ? `?${queryString}` : ''}`;
+  const res = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!res.ok) throw new Error(`Bybit API ${res.status}: ${res.statusText}`);
+  const json = await res.json();
+  if (json.retCode !== 0) throw new Error(`Bybit Error ${json.retCode}: ${json.retMsg}`);
+  return json.result as T;
+}
+
+async function getTransferableBalances(
+  apiKey: string,
+  apiSecret: string,
+  testnet: boolean,
+  coins: string[]
+): Promise<Record<string, number>> {
+  const uniqueCoins = [...new Set(coins.filter(Boolean))];
+  if (uniqueCoins.length === 0) return {};
+
+  const balances = await Promise.all(
+    chunkArray(uniqueCoins, 10).map(async (coinChunk) => {
+      const result = await bybitAuthGet<{ balance?: Array<{ coin: string; transferBalance: string }> }>(
+        apiKey,
+        apiSecret,
+        testnet,
+        '/v5/asset/transfer/query-account-coins-balance',
+        {
+          accountType: 'UNIFIED',
+          coin: coinChunk.join(','),
+        }
+      );
+
+      return (result.balance || []) as Array<{ coin: string; transferBalance: string }>;
+    })
+  );
+
+  return balances.flat().reduce<Record<string, number>>((acc, coinBalance) => {
+    acc[coinBalance.coin] = toNumber(coinBalance.transferBalance);
+    return acc;
+  }, {});
+}
+
+async function getCoinUsdPrices(testnet: boolean, coins: string[]): Promise<Record<string, number>> {
+  const uniqueCoins = [...new Set(coins.filter(Boolean))];
+  const prices: Record<string, number> = {};
+
+  await Promise.all(
+    uniqueCoins.map(async (coin) => {
+      if (STABLECOINS.has(coin)) {
+        prices[coin] = 1;
+        return;
+      }
+
+      try {
+        const ticker = await bybitPublicGet<BybitTickerResult>(testnet, '/v5/market/tickers', {
+          category: 'spot',
+          symbol: `${coin}USDT`,
+        });
+        prices[coin] = toNumber(ticker.list?.[0]?.lastPrice);
+      } catch {
+        prices[coin] = 0;
+      }
+    })
+  );
+
+  return prices;
+}
+
+async function getOpenFuturesPositions(
+  apiKey: string,
+  apiSecret: string,
+  testnet: boolean
+): Promise<Array<{
+  category: string;
+  symbol: string;
+  side: string;
+  size: number;
+  entryPrice: number;
+  markPrice: number;
+  leverage: number;
+  unrealisedPnl: number;
+  notionalUsd: number;
+  initialMarginUsd: number;
+  maintenanceMarginUsd: number;
+}>> {
+  const categories = ['linear', 'inverse'];
+
+  const results = await Promise.all(
+    categories.map(async (category) => {
+      try {
+        const response = await bybitAuthGet<{ list?: BybitPositionRecord[] }>(apiKey, apiSecret, testnet, '/v5/position/list', {
+          category,
+          limit: '200',
+        });
+
+        return (response.list || [])
+          .filter((position) => toNumber(position.size) > 0)
+          .map((position) => {
+            const markPrice = toNumber(position.markPrice);
+            const positionValue = toNumber(position.positionValue);
+            const positionIM = toNumber(position.positionIM);
+            const positionMM = toNumber(position.positionMM);
+            const unrealisedPnl = toNumber(position.unrealisedPnl);
+            const multiplier = category === 'inverse' ? markPrice : 1;
+
+            return {
+              category,
+              symbol: position.symbol,
+              side: position.side,
+              size: toNumber(position.size),
+              entryPrice: toNumber(position.avgPrice ?? position.entryPrice),
+              markPrice,
+              leverage: toNumber(position.leverage),
+              unrealisedPnl: unrealisedPnl * multiplier,
+              notionalUsd: positionValue * multiplier,
+              initialMarginUsd: positionIM * multiplier,
+              maintenanceMarginUsd: positionMM * multiplier,
+            };
+          });
+      } catch {
+        return [];
+      }
+    })
+  );
+
+  return results.flat();
 }
 
 // ─── Main Handler ───────────────────────────────────────────
@@ -381,7 +596,7 @@ Deno.serve(async (req) => {
     if (action === 'balance') {
       // Fetch UNIFIED account (spot/derivatives)
       const accountType = body.accountType || 'UNIFIED';
-      const result = await bybitAuthGet(apiKey, apiSecret, testnet, '/v5/account/wallet-balance', {
+      const result = await bybitAuthGet<{ list?: BybitUnifiedAccount[] }>(apiKey, apiSecret, testnet, '/v5/account/wallet-balance', {
         accountType,
       });
 
@@ -393,58 +608,107 @@ Deno.serve(async (req) => {
         );
       }
 
+      const transferableBalances = await getTransferableBalances(
+        apiKey,
+        apiSecret,
+        testnet,
+        (account.coin || []).map((coin: BybitWalletCoin) => coin.coin)
+      );
+
       // Extract spot holdings with values
       const holdings = (account.coin || [])
-        .filter((c: any) => parseFloat(c.walletBalance) > 0)
-        .map((c: any) => ({
+        .filter((c: BybitWalletCoin) => {
+          const walletBalance = toNumber(c.walletBalance);
+          const equity = toNumber(c.equity);
+          const usdValue = toNumber(c.usdValue);
+          const spotBorrow = toNumber(c.spotBorrow);
+          return walletBalance > 0 || equity > 0 || usdValue > 0 || spotBorrow > 0;
+        })
+        .map((c: BybitWalletCoin) => ({
           coin: c.coin,
-          balance: parseFloat(c.walletBalance),
-          equity: parseFloat(c.equity),
-          usdValue: parseFloat(c.usdValue),
-          unrealisedPnl: parseFloat(c.unrealisedPnl),
-          availableToWithdraw: parseFloat(c.availableToWithdraw),
+          balance: Math.max(0, toNumber(c.walletBalance) - toNumber(c.spotBorrow)),
+          walletBalance: toNumber(c.walletBalance),
+          spotBorrow: toNumber(c.spotBorrow),
+          equity: toNumber(c.equity),
+          usdValue: toNumber(c.usdValue),
+          unrealisedPnl: toNumber(c.unrealisedPnl),
+          availableToWithdraw: transferableBalances[c.coin] ?? 0,
+          locked: toNumber(c.locked),
+          marginCollateral: Boolean(c.marginCollateral),
+          collateralSwitch: Boolean(c.collateralSwitch),
         }))
-        .sort((a: any, b: any) => b.usdValue - a.usdValue);
+        .sort((a, b) => b.usdValue - a.usdValue);
 
       // Fetch FUND account (funding/earn)
       let fundingBalance = 0;
-      let fundingHoldings: any[] = [];
+      let fundingHoldings: FundingHoldingRecord[] = [];
       try {
-        const fundResult = await bybitAuthGet(apiKey, apiSecret, testnet, '/v5/asset/transfer/query-account-coins-balance', {
+        const fundResult = await bybitAuthGet<{ balance?: BybitFundingCoin[] }>(apiKey, apiSecret, testnet, '/v5/asset/transfer/query-account-coins-balance', {
           accountType: 'FUND',
         });
         const fundCoins = fundResult.balance || [];
+        const priceMap = await getCoinUsdPrices(testnet, fundCoins.map((coin: BybitFundingCoin) => coin.coin));
         fundingHoldings = fundCoins
-          .filter((c: any) => parseFloat(c.walletBalance) > 0)
-          .map((c: any) => ({
+          .filter((c: BybitFundingCoin) => toNumber(c.walletBalance) > 0 || toNumber(c.transferBalance) > 0)
+          .map((c: BybitFundingCoin) => ({
             coin: c.coin,
-            balance: parseFloat(c.walletBalance),
-            usdValue: parseFloat(c.transferBalance || '0'),
+            balance: toNumber(c.walletBalance),
+            usdValue: toNumber(c.walletBalance) * (priceMap[c.coin] ?? 0),
           }))
-          .sort((a: any, b: any) => b.usdValue - a.usdValue);
-        fundingBalance = fundingHoldings.reduce((sum: number, c: any) => sum + c.usdValue, 0);
+          .sort((a, b) => b.usdValue - a.usdValue);
+        fundingBalance = fundingHoldings.reduce((sum: number, c) => sum + c.usdValue, 0);
       } catch (e) {
         // Funding account may not be available, continue with 0
         console.log('[bybit-account] Funding balance fetch skipped:', (e as Error).message);
       }
 
-      const totalEquity = parseFloat(account.totalEquity);
+      const totalEquity = toNumber(account.totalEquity);
+      const totalWalletBalance = toNumber(account.totalWalletBalance);
+      const totalMarginBalance = toNumber(account.totalMarginBalance);
+      const totalAvailableBalance = toNumber(account.totalAvailableBalance);
+      const totalPerpUPL = toNumber(account.totalPerpUPL);
+      const totalInitialMargin = toNumber(account.totalInitialMargin);
+      const totalMaintenanceMargin = toNumber(account.totalMaintenanceMargin);
+      const futuresPositions = await getOpenFuturesPositions(apiKey, apiSecret, testnet);
+      const futuresPositionCount = futuresPositions.length;
+      const futuresNotional = futuresPositions.reduce((sum, position) => sum + position.notionalUsd, 0);
+      const futuresMarginBalance = futuresPositions.reduce((sum, position) => sum + position.initialMarginUsd, 0);
+      const futuresMaintenanceMargin = futuresPositions.reduce((sum, position) => sum + position.maintenanceMarginUsd, 0);
+      const spotBalance = totalWalletBalance;
+
+      // Grand total = Funding (savings) + Unified (trading)
+      // Funding is the PRIMARY balance (user's accumulated crypto)
+      // Unified is the SECONDARY balance (trading/futures capital)
+      const grandTotal = fundingBalance + totalEquity;
 
       return new Response(
         JSON.stringify({
           data: {
+            // Primary: Funding account (savings/accumulation)
+            grandTotal,
+            fundingBalance,
+            fundingHoldings,
+            // Secondary: Unified/Trading account
             totalEquity,
-            totalWalletBalance: parseFloat(account.totalWalletBalance),
-            totalAvailableBalance: parseFloat(account.totalAvailableBalance),
-            totalUnrealizedPnL: parseFloat(account.totalPerpUPL),
+            totalWalletBalance,
+            totalMarginBalance,
+            totalAvailableBalance,
+            totalUnrealizedPnL: totalPerpUPL,
+            totalInitialMargin,
+            totalMaintenanceMargin,
             holdings,
             accountType,
             testnet,
-            // Funding account data
-            fundingBalance,
-            fundingHoldings,
-            // Grand total (unified + funding)
-            grandTotal: totalEquity + fundingBalance,
+            spotBalance,
+            // Futures detail
+            futuresBalance: futuresMarginBalance,
+            futuresInitialMargin: totalInitialMargin,
+            futuresPositionCount,
+            futuresNotional,
+            futuresMarginBalance,
+            futuresMaintenanceMargin,
+            futuresUnrealizedPnl: totalPerpUPL,
+            futuresPositions,
           },
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -454,13 +718,13 @@ Deno.serve(async (req) => {
     // ─── Action: positions ───────────────────────────────
     if (action === 'positions') {
       const category = body.category || 'linear';
-      const result = await bybitAuthGet(apiKey, apiSecret, testnet, '/v5/position/list', {
+      const result = await bybitAuthGet<{ list?: BybitPositionRecord[] }>(apiKey, apiSecret, testnet, '/v5/position/list', {
         category,
       });
 
       const positions = (result.list || [])
-        .filter((p: any) => parseFloat(p.size) > 0)
-        .map((p: any) => ({
+        .filter((p: BybitPositionRecord) => parseFloat(p.size) > 0)
+        .map((p: BybitPositionRecord) => ({
           symbol: p.symbol,
           side: p.side,
           size: parseFloat(p.size),

@@ -231,6 +231,13 @@ export function ExecutivePortfolioBoard() {
 
   const metricCards = [
     {
+      label: copy.funding,
+      value: analytics.fundingBalance,
+      helper: `${analytics.fundingHoldings.length} ${copy.coins}`,
+      tone: 'text-amber-400',
+      badge: 'bg-amber-500/10',
+    },
+    {
       label: copy.spot,
       value: analytics.spotBalance,
       helper: `${analytics.spotCount} ${copy.assets}`,
@@ -243,13 +250,6 @@ export function ExecutivePortfolioBoard() {
       helper: `${analytics.futuresPositionCount} pos. · ${hideBalance ? '••••' : formatCurrency(analytics.futuresUnrealizedPnl, false)}`,
       tone: futuresPositive ? 'text-green-400' : 'text-red-400',
       badge: futuresPositive ? 'bg-green-500/10' : 'bg-red-500/10',
-    },
-    {
-      label: copy.funding,
-      value: analytics.fundingBalance,
-      helper: `${analytics.fundingHoldings.length} ${copy.coins}`,
-      tone: 'text-amber-400',
-      badge: 'bg-amber-500/10',
     },
   ] as const;
 

@@ -351,6 +351,19 @@ async function executePlan(
           fees: 0,
           notes: `DCA auto-buy [Plan ${plan.id}]`,
         });
+
+        // Transfer bought crypto from Unified → Funding (savings vault)
+        try {
+          await bybitPost(apiKey, apiSecret, testnet, '/v5/asset/transfer/inter-transfer', {
+            transferId: crypto.randomUUID(),
+            coin: asset.symbol.toUpperCase(),
+            amount: filledQty.toFixed(8),
+            fromAccountType: 'UNIFIED',
+            toAccountType: 'FUND',
+          });
+        } catch {
+          // Transfer failed — crypto stays in Unified, not critical
+        }
       }
 
     } catch (err: any) {
