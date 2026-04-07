@@ -42,7 +42,6 @@ const subscriptions = [
   { name: 'ChatGPT', icon: '🤖', price: '$20/mo' },
   { name: 'Amazon Prime', icon: '📦', price: '$14.99/mo' },
   { name: 'TradingView', icon: '📊', price: '$14.95/mo' },
-  { name: 'Disney+', icon: '🏰', price: '$13.99/mo' },
 ];
 
 const milestones = [
