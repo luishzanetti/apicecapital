@@ -5,7 +5,10 @@ const INSECURE_KEY_PATTERNS = [
     'CHANGE_ME_run_openssl_rand_base64_32',
 ];
 
-const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY || '';
+const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY;
+if (!ENCRYPTION_KEY) {
+    console.warn('[crypto] VITE_ENCRYPTION_KEY not configured — encryption disabled');
+}
 
 /**
  * Validate that the encryption key is configured and not using the insecure default.

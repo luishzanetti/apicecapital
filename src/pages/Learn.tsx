@@ -14,24 +14,25 @@ import {
   Sparkles, PlayCircle, Crown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const XP_PER_LESSON = 50;
-const LEVELS = [
-  { level: 1, name: 'Novice', xpRequired: 0 },
-  { level: 2, name: 'Learner', xpRequired: 150 },
-  { level: 3, name: 'Student', xpRequired: 350 },
-  { level: 4, name: 'Scholar', xpRequired: 600 },
-  { level: 5, name: 'Expert', xpRequired: 1000 },
-  { level: 6, name: 'Master', xpRequired: 1500 },
+const LEVEL_KEYS = [
+  { level: 1, key: 'learn.levels.beginner', xpRequired: 0 },
+  { level: 2, key: 'learn.levels.apprentice', xpRequired: 150 },
+  { level: 3, key: 'learn.levels.student', xpRequired: 350 },
+  { level: 4, key: 'learn.levels.specialist', xpRequired: 600 },
+  { level: 5, key: 'learn.levels.expert', xpRequired: 1000 },
+  { level: 6, key: 'learn.levels.master', xpRequired: 1500 },
 ];
 
 function getLevel(xp: number) {
-  let current = LEVELS[0];
-  for (const l of LEVELS) {
+  let current = LEVEL_KEYS[0];
+  for (const l of LEVEL_KEYS) {
     if (xp >= l.xpRequired) current = l;
     else break;
   }
-  const nextLevel = LEVELS.find((l) => l.xpRequired > xp);
+  const nextLevel = LEVEL_KEYS.find((l) => l.xpRequired > xp);
   const progressToNext = nextLevel
     ? ((xp - current.xpRequired) / (nextLevel.xpRequired - current.xpRequired)) * 100
     : 100;
@@ -39,10 +40,11 @@ function getLevel(xp: number) {
 }
 
 export default function Learn() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const learnProgress = useAppStore((s) => s.learnProgress);
   const subscription = useAppStore((s) => s.subscription);
-  const [expandedTrack, setExpandedTrack] = useState<string | null>('foundations');
+  const [expandedTrack, setExpandedTrack] = useState<string | null>(null);
 
   const completedCount = learnProgress.completedLessons.length;
   const totalLessons = learningTracks.reduce((sum, track) => sum + track.lessons.length, 0);
@@ -89,10 +91,10 @@ export default function Learn() {
           <div>
             <div className="flex items-center gap-2 mb-0.5">
               <GraduationCap className="w-5 h-5 text-primary" />
-              <h1 className="text-xl font-bold">Learn</h1>
+              <h1 className="text-xl font-bold">{t('learn.title')}</h1>
             </div>
             <p className="text-muted-foreground text-xs">
-              Master investing. Earn XP. Unlock the elite.
+              {t('learn.subtitle')}
             </p>
           </div>
           {learnProgress.currentStreak > 0 && (
@@ -111,8 +113,8 @@ export default function Learn() {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                <span className="text-sm font-bold">Level {level.level}</span>
-                <span className="text-xs text-muted-foreground">· {level.name}</span>
+                <span className="text-sm font-bold">{t('learn.level')} {level.level}</span>
+                <span className="text-xs text-muted-foreground">· {t(level.key)}</span>
               </div>
               <div className="h-2 bg-secondary rounded-full overflow-hidden mb-1.5">
                 <motion.div
@@ -124,7 +126,7 @@ export default function Learn() {
               </div>
               <div className="flex justify-between text-[11px] text-muted-foreground">
                 <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-amber-400" />{totalXP} XP</span>
-                <span>{level.nextLevel ? `${level.nextLevel.xpRequired - totalXP} XP to Level ${level.nextLevel.level}` : '🏆 Max Level!'}</span>
+                <span>{level.nextLevel ? t('learn.xpToLevel', { xp: level.nextLevel.xpRequired - totalXP, level: level.nextLevel.level }) : `🏆 ${t('learn.maxLevel')}`}</span>
               </div>
             </div>
           </div>
@@ -132,9 +134,9 @@ export default function Learn() {
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/40">
             {[
-              { label: 'Lessons', value: completedCount, icon: BookOpen },
-              { label: 'Day Streak', value: learnProgress.currentStreak, icon: Flame },
-              { label: 'Badges', value: earnedBadgeIds.length, icon: Trophy },
+              { label: t('learn.lessons'), value: completedCount, icon: BookOpen },
+              { label: t('learn.dayStreak'), value: learnProgress.currentStreak, icon: Flame },
+              { label: t('learn.badges'), value: earnedBadgeIds.length, icon: Trophy },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-lg font-bold">{s.value}</p>
@@ -160,7 +162,7 @@ export default function Learn() {
                   <PlayCircle className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-semibold text-white/70 uppercase tracking-wider mb-0.5">Continue Learning</p>
+                  <p className="text-[11px] font-semibold text-white/70 uppercase tracking-wider mb-0.5">{t('learn.continueLearning')}</p>
                   <p className="text-sm font-bold text-white truncate">{nextLessonUp.lesson.title}</p>
                   <p className="text-[11px] text-white/70">{nextLessonUp.track.name} · +{XP_PER_LESSON} XP</p>
                 </div>
@@ -175,7 +177,7 @@ export default function Learn() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Trophy className="w-4 h-4 text-amber-400" />
-              <h2 className="font-semibold text-sm">Achievements</h2>
+              <h2 className="font-semibold text-sm">{t('learn.achievements')}</h2>
             </div>
             <span className="text-[11px] text-muted-foreground">{earnedBadgeIds.length}/{learnBadges.length}</span>
           </div>
@@ -189,7 +191,7 @@ export default function Learn() {
             >
               <span className="text-2xl">{nextBadge.icon}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold">Next: {nextBadge.name}</p>
+                <p className="text-xs font-semibold">{t('learn.nextBadge', { name: nextBadge.name })}</p>
                 <p className="text-[11px] text-muted-foreground">{nextBadge.requirement}</p>
               </div>
               <Target className="w-4 h-4 text-primary shrink-0" />
@@ -227,7 +229,7 @@ export default function Learn() {
         <div>
           <div className="flex items-center gap-2 mb-3">
             <BookOpen className="w-4 h-4 text-primary" />
-            <h2 className="font-semibold text-sm">Learning Tracks</h2>
+            <h2 className="font-semibold text-sm">{t('learn.learningTracks')}</h2>
           </div>
 
           <div className="space-y-3">
@@ -249,7 +251,7 @@ export default function Learn() {
                 >
                   <LockedOverlay
                     isLocked={isTrackLocked}
-                    message="Upgrade to unlock"
+                    message={t('learn.upgradeToUnlock')}
                     onUnlock={() => navigate('/upgrade')}
                   >
                     <div className={cn(
@@ -290,7 +292,7 @@ export default function Learn() {
                               </Badge>
                             )}
                             {isTrackComplete && (
-                              <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-medium shrink-0">DONE</span>
+                              <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-medium shrink-0">{t('learn.trackComplete')}</span>
                             )}
                           </div>
                           <p className="text-[11px] text-muted-foreground truncate">{track.description}</p>
@@ -356,9 +358,9 @@ export default function Learn() {
                                     <div className="flex-1 min-w-0">
                                       <p className="text-xs font-medium truncate">{lesson.title}</p>
                                       <div className="flex items-center gap-2 mt-0.5">
-                                        {isNextUp && <span className="text-[11px] text-primary font-semibold">▶ Up next</span>}
-                                        {hasQuiz && !isNextUp && <span className="text-[11px] text-primary/70 flex items-center gap-0.5"><Brain className="w-2.5 h-2.5" />Quiz</span>}
-                                        {hasChallenge && !isNextUp && <span className="text-[11px] text-amber-400/70 flex items-center gap-0.5"><Target className="w-2.5 h-2.5" />Challenge</span>}
+                                        {isNextUp && <span className="text-[11px] text-primary font-semibold">▶ {t('learn.upNext')}</span>}
+                                        {hasQuiz && !isNextUp && <span className="text-[11px] text-primary/70 flex items-center gap-0.5"><Brain className="w-2.5 h-2.5" />{t('learn.quiz')}</span>}
+                                        {hasChallenge && !isNextUp && <span className="text-[11px] text-amber-400/70 flex items-center gap-0.5"><Target className="w-2.5 h-2.5" />{t('learn.challenge')}</span>}
                                       </div>
                                     </div>
                                     <div className="flex items-center gap-1.5 shrink-0">
@@ -392,8 +394,8 @@ export default function Learn() {
             <div className="flex items-center gap-3">
               <Flame className="w-8 h-8 text-orange-400" />
               <div>
-                <p className="text-sm font-bold">Start Your Streak Today</p>
-                <p className="text-xs text-muted-foreground">Every expert was once a beginner. Complete one lesson daily to build your investing knowledge and earn bonus XP.</p>
+                <p className="text-sm font-bold">{t('learn.startStreak')}</p>
+                <p className="text-xs text-muted-foreground">{t('learn.streakMessage')}</p>
               </div>
             </div>
             {nextLessonUp && (
@@ -404,7 +406,7 @@ export default function Learn() {
                 onClick={() => navigate(`/learn/${nextLessonUp.track.id}/${nextLessonUp.lesson.id}`)}
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1" />
-                Start Your First Lesson
+                {t('learn.startFirstLesson')}
               </Button>
             )}
           </motion.div>

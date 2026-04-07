@@ -82,9 +82,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     syncFromSupabase();
                 }
             })
-            .catch((error) => {
-                console.error("Failed to load session:", error);
-            })
+            .catch(() => {})
             .finally(() => {
                 if (isMounted) {
                     setLoading(false);
@@ -93,8 +91,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             (event, session) => {
-                console.log('[Auth] Event:', event, '| Has session:', !!session);
-
                 // Valid session received (SIGNED_IN, TOKEN_REFRESHED, INITIAL_SESSION, etc.)
                 if (session) {
                     setSession(session);

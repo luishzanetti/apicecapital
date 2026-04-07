@@ -2,8 +2,10 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/appStore';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function Splash() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const hasCompletedOnboarding = useAppStore((s) => s.hasCompletedOnboarding);
 
@@ -105,7 +107,7 @@ export default function Splash() {
             transition={{ delay: 0.35, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="text-4xl font-bold tracking-tight"
           >
-            Apice
+            {t('splash.brand')}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -113,7 +115,7 @@ export default function Splash() {
             transition={{ delay: 0.55, duration: 0.5 }}
             className="text-muted-foreground text-sm tracking-[0.12em] font-medium uppercase"
           >
-            Capital
+            {t('splash.brandSub')}
           </motion.p>
         </div>
 
@@ -124,7 +126,7 @@ export default function Splash() {
           transition={{ delay: 0.75, duration: 0.5 }}
           className="text-muted-foreground/70 text-xs tracking-wide text-center"
         >
-          Crypto Portfolio Intelligence
+          {t('splash.tagline')}
         </motion.p>
       </motion.div>
 
@@ -143,7 +145,7 @@ export default function Splash() {
             transition={{ delay: 1.2, duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
           />
         </div>
-        <p className="text-[11px] text-muted-foreground/40 uppercase tracking-[0.2em]">Loading</p>
+        <p className="text-[11px] text-muted-foreground/40 uppercase tracking-[0.2em]">{t('common.loading')}</p>
       </motion.div>
     </div>
   );

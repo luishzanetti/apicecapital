@@ -2,27 +2,29 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Shield, Zap, TrendingUp } from 'lucide-react';
-
-const features = [
-  {
-    icon: TrendingUp,
-    title: 'Smart Strategies',
-    description: 'Curated, risk-managed portfolios',
-  },
-  {
-    icon: Zap,
-    title: 'AI Automation',
-    description: 'Set up once, earn passively',
-  },
-  {
-    icon: Shield,
-    title: 'You Stay in Control',
-    description: 'Your funds remain on your exchange',
-  },
-];
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function Welcome() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const features = [
+    {
+      icon: TrendingUp,
+      title: t('welcome.feature1Title'),
+      description: t('welcome.feature1Desc'),
+    },
+    {
+      icon: Zap,
+      title: t('welcome.feature2Title'),
+      description: t('welcome.feature2Desc'),
+    },
+    {
+      icon: Shield,
+      title: t('welcome.feature3Title'),
+      description: t('welcome.feature3Desc'),
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col px-6 py-12 safe-top">
@@ -57,12 +59,12 @@ export default function Welcome() {
 
         {/* Hero text */}
         <h1 className="text-display mb-4">
-          Build your passive<br />
-          <span className="text-gradient-primary">crypto income</span>
+          {t('welcome.heroLine1')}<br />
+          <span className="text-gradient-primary">{t('welcome.heroLine2')}</span>
         </h1>
 
         <p className="text-muted-foreground text-body mb-12 max-w-sm">
-          Intelligent automation. Transparent strategies. You're always in control.
+          {t('welcome.heroSubtitle')}
         </p>
 
         {/* Features */}
@@ -100,12 +102,12 @@ export default function Welcome() {
           className="w-full"
           onClick={() => navigate('/quiz')}
         >
-          Get Started
+          {t('welcome.cta')}
           <ArrowRight className="w-4 h-4" />
         </Button>
 
         <p className="text-center text-micro text-muted-foreground">
-          No credit card required • Cancel anytime
+          {t('welcome.ctaDisclaimer')}
         </p>
       </motion.div>
     </div>

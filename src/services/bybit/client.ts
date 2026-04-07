@@ -50,7 +50,6 @@ export class BybitClient {
 
             return data;
         } catch (error) {
-            console.error('Bybit API GET Error:', error);
             throw error;
         }
     }
@@ -83,7 +82,6 @@ export class BybitClient {
 
             return data;
         } catch (error) {
-            console.error('Bybit API POST Error:', error);
             throw error;
         }
     }
@@ -240,8 +238,7 @@ export class BybitClient {
         try {
             await this.getAccountInfo();
             return true;
-        } catch (error) {
-            console.error('Connection test failed:', error);
+        } catch {
             return false;
         }
     }

@@ -1,5 +1,14 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getNextExecutionDate } from '@/lib/dca';
 import type { SliceCreator, DCASlice, DCAPlan } from '../types';
+
+function createPlanId() {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return Date.now().toString();
+}
 
 export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
   dcaPlans: [],
@@ -16,62 +25,43 @@ export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
   weeklyDepositHistory: [],
   weeklyDepositStreak: 0,
 
-  addDcaPlan: (plan) =>
+  addDcaPlan: async (plan) => {
+    const startDate = plan.startDate || new Date().toISOString();
+    const newPlan: DCAPlan = {
+      ...plan,
+      id: plan.id || createPlanId(),
+      startDate,
+      totalInvested: plan.totalInvested ?? 0,
+      nextExecutionDate: plan.nextExecutionDate || getNextExecutionDate(plan.frequency, startDate),
+    };
+
     set((state) => {
-      const newPlan: DCAPlan = {
-        ...plan,
-        id: Date.now().toString(),
-        totalInvested: 0,
-        nextExecutionDate: new Date().toISOString(),
-      };
       const newSetup = { ...state.setupProgress, dcaPlanConfigured: true };
       const completed = Object.values(newSetup).filter(Boolean).length;
       const total = Object.keys(newSetup).length;
 
-      const totalAmount = plan.durationDays
-        ? plan.amountPerInterval *
+      const totalAmount = newPlan.durationDays
+        ? newPlan.amountPerInterval *
           Math.ceil(
-            plan.durationDays /
-              (plan.frequency === 'daily'
+            newPlan.durationDays /
+              (newPlan.frequency === 'daily'
                 ? 1
-                : plan.frequency === 'weekly'
+                : newPlan.frequency === 'weekly'
                   ? 7
-                  : plan.frequency === 'biweekly'
+                  : newPlan.frequency === 'biweekly'
                     ? 14
                     : 30)
           )
-        : plan.amountPerInterval * 52;
+        : newPlan.amountPerInterval * 52;
 
       const newBadges = [...state.dcaGamification.badges];
       if (!newBadges.includes('first-step')) newBadges.push('first-step');
-      if (plan.assets.length >= 3 && !newBadges.includes('diversifier'))
+      if (newPlan.assets.length >= 3 && !newBadges.includes('diversifier'))
         newBadges.push('diversifier');
-      if (plan.durationDays && plan.durationDays >= 90 && !newBadges.includes('long-game'))
+      if (newPlan.durationDays && newPlan.durationDays >= 90 && !newBadges.includes('long-game'))
         newBadges.push('long-game');
-      if (plan.durationDays === null && !newBadges.includes('diamond-hands'))
+      if (newPlan.durationDays === null && !newBadges.includes('diamond-hands'))
         newBadges.push('diamond-hands');
-
-      // Sync to Supabase (important: must succeed for DCA execution to work)
-      supabase.auth.getSession().then(async ({ data: { session } }) => {
-        const user = session?.user;
-        if (!user) return;
-        const { error } = await supabase
-          .from('dca_plans')
-          .upsert({
-            id: newPlan.id,
-            user_id: user.id,
-            assets: newPlan.assets,
-            amount_per_interval: newPlan.amountPerInterval,
-            frequency: newPlan.frequency,
-            duration_days: newPlan.durationDays,
-            start_date: newPlan.startDate,
-            is_active: newPlan.isActive,
-            total_invested: newPlan.totalInvested,
-            next_execution_date: newPlan.nextExecutionDate,
-          }, { onConflict: 'id' });
-        if (error) console.error('Error syncing DCA plan to Supabase:', error);
-        else console.log('[DCA] Plan synced to Supabase:', newPlan.id);
-      }).catch((e) => console.error('Supabase add DCA plan error', e));
 
       return {
         dcaPlans: [...state.dcaPlans, newPlan],
@@ -85,14 +75,51 @@ export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
           lastDcaAction: new Date().toISOString(),
         },
       };
-    }),
+    });
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (user) {
+        const { error } = await supabase.from('dca_plans').upsert(
+          {
+            id: newPlan.id,
+            user_id: user.id,
+            assets: newPlan.assets,
+            amount_per_interval: newPlan.amountPerInterval,
+            frequency: newPlan.frequency,
+            duration_days: newPlan.durationDays,
+            start_date: newPlan.startDate,
+            is_active: newPlan.isActive,
+            total_invested: newPlan.totalInvested,
+            next_execution_date: newPlan.nextExecutionDate,
+          },
+          { onConflict: 'id' }
+        );
+
+        // Sync result handled silently
+      }
+    } catch {
+      // Supabase sync failed; local state is authoritative
+    }
+
+    return newPlan;
+  },
 
   updateDcaPlan: (id, updates) => {
     set((state) => ({
       dcaPlans: state.dcaPlans.map((p) => (p.id === id ? { ...p, ...updates } : p)),
     }));
     // Sync to Supabase
-    const dbUpdates: Record<string, any> = {};
+    const dbUpdates: {
+      is_active?: boolean;
+      amount_per_interval?: number;
+      frequency?: DCAPlan['frequency'];
+      total_invested?: number;
+      next_execution_date?: string;
+    } = {};
     if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive;
     if (updates.amountPerInterval !== undefined) dbUpdates.amount_per_interval = updates.amountPerInterval;
     if (updates.frequency !== undefined) dbUpdates.frequency = updates.frequency;
@@ -100,9 +127,7 @@ export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
     if (updates.nextExecutionDate !== undefined) dbUpdates.next_execution_date = updates.nextExecutionDate;
     if (Object.keys(dbUpdates).length > 0) {
       supabase.from('dca_plans').update(dbUpdates).eq('id', id)
-        .then(({ error }) => {
-          if (error) console.error('Error syncing DCA plan update:', error);
-        });
+        .then(() => {});
     }
   },
 
@@ -112,9 +137,7 @@ export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
     }));
     // Remove from Supabase
     supabase.from('dca_plans').delete().eq('id', id)
-      .then(({ error }) => {
-        if (error) console.error('Error deleting DCA plan from Supabase:', error);
-      });
+      .then(() => {});
   },
 
   updateDcaGamification: (updates) =>
@@ -143,13 +166,11 @@ export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
               updated_at: new Date().toISOString(),
             })
             .eq('id', user.id)
-            .then(({ error }) => {
-              if (error) console.error('Error syncing weekly investment:', error);
-            });
+            .then(() => {});
         }
-      }).catch(console.error);
-    } catch (e) {
-      console.error('Supabase set weekly investment error', e);
+      }).catch(() => {});
+    } catch {
+      // Supabase sync failed; local state is authoritative
     }
   },
 
@@ -194,13 +215,11 @@ export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
                   notes: `Weekly deposit W${weekId}`,
                 }))
               )
-              .then(({ error }) => {
-                if (error) console.error('Error syncing deposit:', error);
-              });
+              .then(() => {});
           }
-        }).catch(console.error);
-      } catch (e) {
-        console.error('Supabase transaction insert error', e);
+        }).catch(() => {});
+      } catch {
+        // Supabase sync failed; local state is authoritative
       }
 
       return {

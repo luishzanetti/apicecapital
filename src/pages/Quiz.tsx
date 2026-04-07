@@ -110,8 +110,8 @@ function QuizInner() {
   useEffect(() => {
     try {
       trackEvent(AnalyticsEvents.QUIZ_STARTED);
-    } catch (err) {
-      console.error('Failed to track quiz start:', err);
+    } catch {
+      // Analytics tracking is best-effort
     }
   }, []);
 
@@ -241,8 +241,7 @@ function QuizInner() {
         trackEvent(AnalyticsEvents.QUIZ_COMPLETED);
         navigate('/profile-result');
       }
-    } catch (err) {
-      console.error('Quiz selection error:', err);
+    } catch {
       toast.error('Something went wrong. Please try again.');
     }
   };

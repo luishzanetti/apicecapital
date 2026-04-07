@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +41,7 @@ function getCurrentWeekId(): string {
 }
 
 export default function Portfolio() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const weeklyInvestment = useAppStore((s) => s.weeklyInvestment);
   const setWeeklyInvestment = useAppStore((s) => s.setWeeklyInvestment);
@@ -170,8 +172,8 @@ export default function Portfolio() {
       >
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs text-muted-foreground font-medium">Investment Engine</p>
-            <h1 className="text-2xl font-bold tracking-tight mt-0.5">Portfolio</h1>
+            <p className="text-xs text-muted-foreground font-medium">{t('portfolio.investmentEngine')}</p>
+            <h1 className="text-2xl font-bold tracking-tight mt-0.5">{t('nav.portfolio')}</h1>
           </div>
           <div className="flex items-center gap-2">
             {weeklyDepositStreak > 0 && (
@@ -196,9 +198,9 @@ export default function Portfolio() {
         {/* Tab bar */}
         <div className="flex bg-secondary/40 rounded-2xl p-1 gap-1 relative">
           {([
-            { key: 'overview', label: 'Overview' },
-            { key: 'strategies', label: 'Strategies' },
-            { key: 'history', label: 'History' },
+            { key: 'overview', label: t('portfolio.tabs.overview') },
+            { key: 'strategies', label: t('portfolio.tabs.strategies') },
+            { key: 'history', label: t('portfolio.tabs.history') },
           ] as const).map(tab => (
             <button
               key={tab.key}
@@ -243,22 +245,22 @@ export default function Portfolio() {
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
                     <Rocket className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="text-lg font-bold mb-1.5">Your portfolio starts here</h3>
+                  <h3 className="text-lg font-bold mb-1.5">{t('portfolio.emptyState.title')}</h3>
                   <p className="text-sm text-muted-foreground mb-5 max-w-[280px] mx-auto leading-relaxed">
-                    Choose a strategy and set up your weekly investment to start building wealth automatically.
+                    {t('portfolio.emptyState.description')}
                   </p>
                   <div className="flex flex-col gap-2.5">
                     <button
                       onClick={() => setActiveTab('strategies')}
                       className="w-full py-3 rounded-xl text-sm font-semibold text-white apice-gradient-primary transition-all hover:opacity-90 active:scale-[0.98]"
                     >
-                      Explore Strategies
+                      {t('portfolio.emptyState.exploreStrategies')}
                     </button>
                     <button
                       onClick={() => navigate('/home')}
                       className="w-full py-3 rounded-xl text-sm font-semibold border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all active:scale-[0.98]"
                     >
-                      Go to Dashboard
+                      {t('portfolio.emptyState.goToDashboard')}
                     </button>
                   </div>
                 </motion.div>
@@ -296,7 +298,7 @@ export default function Portfolio() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-bold">AI Recommendation</span>
+                          <span className="text-xs font-bold">{t('portfolio.aiRecommendation')}</span>
                           <Badge variant="outline" className={cn('text-[11px] px-1', marketSentiment.borderColor, marketSentiment.color)}>
                             {marketSentiment.title}
                           </Badge>
@@ -317,7 +319,7 @@ export default function Portfolio() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <DollarSign className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-semibold">Weekly Investment</span>
+                        <span className="text-sm font-semibold">{t('portfolio.weeklyInvestment')}</span>
                       </div>
                       {!editingWeekly ? (
                         <button
@@ -325,12 +327,12 @@ export default function Portfolio() {
                           className="flex items-center gap-1 text-xs text-primary"
                         >
                           <Edit3 className="w-3 h-3" />
-                          Edit
+                          {t('common.edit')}
                         </button>
                       ) : (
                         <button onClick={handleSaveWeekly} className="flex items-center gap-1 text-xs text-green-500">
                           <Check className="w-3 h-3" />
-                          Save
+                          {t('common.save')}
                         </button>
                       )}
                     </div>
@@ -339,7 +341,7 @@ export default function Portfolio() {
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="text-2xl font-bold text-primary">${editAmount}</span>
-                          <span className="text-xs text-muted-foreground">/week</span>
+                          <span className="text-xs text-muted-foreground">/{t('portfolio.week')}</span>
                         </div>
                         <Slider
                           value={[editAmount]}
@@ -350,7 +352,7 @@ export default function Portfolio() {
                         />
                         <div className="flex justify-between text-[11px] text-muted-foreground">
                           <span>$10</span>
-                          <span>${(editAmount * 4).toLocaleString()}/month</span>
+                          <span>${(editAmount * 4).toLocaleString()}/{t('portfolio.month')}</span>
                           <span>$2,000</span>
                         </div>
                       </div>
@@ -358,7 +360,7 @@ export default function Portfolio() {
                       <div>
                         <div className="flex items-end gap-2 mb-1">
                           <span className="text-2xl font-bold">${weeklyInvestment}</span>
-                          <span className="text-xs text-muted-foreground mb-1">/week · ${(weeklyInvestment * 4).toLocaleString()}/month</span>
+                          <span className="text-xs text-muted-foreground mb-1">/{t('portfolio.week')} · ${(weeklyInvestment * 4).toLocaleString()}/{t('portfolio.month')}</span>
                         </div>
                         {weeklyInvestment === 0 && (
                           <Button
@@ -367,7 +369,7 @@ export default function Portfolio() {
                             className="mt-2 text-xs"
                             onClick={() => navigate('/investment-setup')}
                           >
-                            Set Up Weekly Investment
+                            {t('portfolio.setUpWeeklyInvestment')}
                             <ArrowRight className="w-3 h-3 ml-1" />
                           </Button>
                         )}
@@ -390,9 +392,9 @@ export default function Portfolio() {
                           <Wallet className="w-5 h-5 text-primary" />
                         </div>
                         <div className="flex-1 text-left">
-                          <p className="text-sm font-bold">Confirm Weekly Deposit</p>
+                          <p className="text-sm font-bold">{t('portfolio.confirmWeeklyDeposit')}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            ${weeklyInvestment} ready to allocate · Tap to confirm
+                            ${weeklyInvestment} {t('portfolio.readyToAllocate')}
                           </p>
                         </div>
                         <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -408,8 +410,8 @@ export default function Portfolio() {
                 <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/5 border border-green-500/20">
                   <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-green-400">This week's deposit confirmed!</p>
-                    <p className="text-xs text-muted-foreground">Next deposit next week</p>
+                    <p className="text-sm font-medium text-green-400">{t('portfolio.depositConfirmed')}</p>
+                    <p className="text-xs text-muted-foreground">{t('portfolio.nextDepositNextWeek')}</p>
                   </div>
                 </div>
               )}
@@ -444,7 +446,7 @@ export default function Portfolio() {
               <div>
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                   <Wallet className="w-4 h-4 text-primary" />
-                  My Portfolios
+                  {t('portfolio.myPortfolios')}
                   {userPortfolios.length > 0 && (
                     <Badge variant="secondary" className="text-[11px]">{userPortfolios.length}</Badge>
                   )}
@@ -465,7 +467,7 @@ export default function Portfolio() {
                         <div className="flex items-center justify-between">
                           <h4 className="text-xs font-semibold truncate max-w-[140px]">{up.name}</h4>
                           {up.isActive && (
-                            <Badge className="text-[11px] px-1.5 py-0 bg-green-500 text-white">Active</Badge>
+                            <Badge className="text-[11px] px-1.5 py-0 bg-green-500 text-white">{t('common.active')}</Badge>
                           )}
                         </div>
                         <div className="flex h-1.5 rounded-full overflow-hidden">
@@ -497,7 +499,7 @@ export default function Portfolio() {
                               className="flex-1 text-[11px] h-7"
                               onClick={() => setActivePortfolio(up.id)}
                             >
-                              Set Active
+                              {t('portfolio.setActive')}
                             </Button>
                           )}
                           <Button
@@ -522,14 +524,14 @@ export default function Portfolio() {
                       <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
                         <Plus className="w-5 h-5 text-primary" />
                       </div>
-                      <p className="text-[11px] font-semibold text-center">Create Custom</p>
+                      <p className="text-[11px] font-semibold text-center">{t('portfolio.createCustom')}</p>
                     </CardContent>
                   </Card>
                 </div>
 
                 {userPortfolios.length === 0 && (
                   <p className="text-xs text-muted-foreground mt-2">
-                    Add portfolios from the templates below or create your own.
+                    {t('portfolio.addFromTemplates')}
                   </p>
                 )}
               </div>
@@ -540,8 +542,8 @@ export default function Portfolio() {
               <div>
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                   <PieChart className="w-4 h-4 text-primary" />
-                  Available Portfolios
-                  <Badge variant="secondary" className="text-[11px]">Templates</Badge>
+                  {t('portfolio.availablePortfolios')}
+                  <Badge variant="secondary" className="text-[11px]">{t('portfolio.templates')}</Badge>
                 </h3>
                 <div className="space-y-3">
                   {corePortfolios.map((portfolio) => {
@@ -562,10 +564,10 @@ export default function Portfolio() {
                             <div className="flex items-center gap-2 mb-0.5">
                               <h4 className="text-sm font-semibold">{portfolio.name}</h4>
                               {selectedPortfolio.portfolioId === portfolio.id && (
-                                <Badge className="text-[11px] px-1 py-0 bg-primary">Active</Badge>
+                                <Badge className="text-[11px] px-1 py-0 bg-primary">{t('common.active')}</Badge>
                               )}
                               {alreadyAdded && (
-                                <Badge variant="outline" className="text-[11px] px-1 py-0 border-green-500/30 text-green-400">Added</Badge>
+                                <Badge variant="outline" className="text-[11px] px-1 py-0 border-green-500/30 text-green-400">{t('portfolio.added')}</Badge>
                               )}
                             </div>
                             <Badge
@@ -592,7 +594,7 @@ export default function Portfolio() {
                                 }}
                               >
                                 <Plus className="w-3 h-3" />
-                                Add
+                                {t('common.add')}
                               </Button>
                             )}
                             <ChevronRight
@@ -632,8 +634,8 @@ export default function Portfolio() {
               <div>
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-500" />
-                  Optimized Portfolios
-                  <Badge className="text-[11px] bg-amber-500/10 text-amber-400 border-amber-500/20" variant="outline">Pro</Badge>
+                  {t('portfolio.optimizedPortfolios')}
+                  <Badge className="text-[11px] bg-amber-500/10 text-amber-400 border-amber-500/20" variant="outline">{t('common.pro')}</Badge>
                 </h3>
                 <div className="space-y-3">
                   {proPortfolios.map((portfolio) => (
@@ -648,7 +650,7 @@ export default function Portfolio() {
                         </div>
                         <p className="text-xs text-muted-foreground mb-3">{portfolio.description}</p>
                         <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => navigate('/upgrade')}>
-                          Unlock with Pro
+                          {t('portfolio.unlockWithPro')}
                         </Button>
                       </CardContent>
                     </Card>
@@ -662,8 +664,8 @@ export default function Portfolio() {
               >
                 <CardContent className="pt-4 pb-4 text-center">
                   <Target className="w-6 h-6 text-primary mx-auto mb-2" />
-                  <p className="text-sm font-semibold mb-0.5">Build Custom Portfolio</p>
-                  <p className="text-xs text-muted-foreground">Create your own allocation strategy</p>
+                  <p className="text-sm font-semibold mb-0.5">{t('portfolio.buildCustomPortfolio')}</p>
+                  <p className="text-xs text-muted-foreground">{t('portfolio.createOwnAllocation')}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -680,19 +682,19 @@ export default function Portfolio() {
               <div className="grid grid-cols-3 gap-3">
                 <Card>
                   <CardContent className="pt-3 pb-3 text-center">
-                    <p className="text-[11px] text-muted-foreground uppercase">Total Invested</p>
+                    <p className="text-[11px] text-muted-foreground uppercase">{t('portfolio.totalInvested')}</p>
                     <p className="text-sm font-bold">${totalDeposited.toLocaleString()}</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="pt-3 pb-3 text-center">
-                    <p className="text-[11px] text-muted-foreground uppercase">Deposits</p>
+                    <p className="text-[11px] text-muted-foreground uppercase">{t('portfolio.deposits')}</p>
                     <p className="text-sm font-bold">{weeklyDepositHistory.length}</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="pt-3 pb-3 text-center">
-                    <p className="text-[11px] text-muted-foreground uppercase">Streak</p>
+                    <p className="text-[11px] text-muted-foreground uppercase">{t('portfolio.streak')}</p>
                     <p className="text-sm font-bold">{weeklyDepositStreak}w</p>
                   </CardContent>
                 </Card>
@@ -717,9 +719,9 @@ export default function Portfolio() {
       <Dialog open={showAddMenu} onOpenChange={setShowAddMenu}>
         <DialogContent className="max-w-[340px] rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-base">Add New</DialogTitle>
+            <DialogTitle className="text-base">{t('portfolio.addNew')}</DialogTitle>
             <DialogDescription className="text-xs">
-              Create a new portfolio or connect another exchange API.
+              {t('portfolio.addNewDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 pt-2">
@@ -731,8 +733,8 @@ export default function Portfolio() {
                 <PieChart className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold">New Portfolio</p>
-                <p className="text-[11px] text-muted-foreground">Create a custom allocation strategy</p>
+                <p className="text-sm font-semibold">{t('portfolio.newPortfolio')}</p>
+                <p className="text-[11px] text-muted-foreground">{t('portfolio.createCustomAllocation')}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground/40 ml-auto" />
             </button>
@@ -744,8 +746,8 @@ export default function Portfolio() {
                 <Key className="w-5 h-5 text-cyan-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold">Connect Exchange API</p>
-                <p className="text-[11px] text-muted-foreground">Link a new Bybit account via API key</p>
+                <p className="text-sm font-semibold">{t('portfolio.connectExchangeAPI')}</p>
+                <p className="text-[11px] text-muted-foreground">{t('portfolio.linkBybitAccount')}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground/40 ml-auto" />
             </button>
@@ -757,15 +759,15 @@ export default function Portfolio() {
       <Dialog open={showCustomDialog} onOpenChange={setShowCustomDialog}>
         <DialogContent className="max-w-[360px] rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-base">Create Custom Portfolio</DialogTitle>
+            <DialogTitle className="text-base">{t('portfolio.createCustomPortfolio')}</DialogTitle>
             <DialogDescription className="text-xs">
-              Set a name and define your asset allocation.
+              {t('portfolio.setNameAndAllocation')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
             <Input
-              placeholder="Portfolio name"
+              placeholder={t('portfolio.portfolioName')}
               value={customName}
               onChange={(e) => setCustomName(e.target.value)}
               className="text-sm"
@@ -773,7 +775,7 @@ export default function Portfolio() {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold">Allocations</span>
+                <span className="text-xs font-semibold">{t('portfolio.allocations')}</span>
                 <span className={cn(
                   'text-[11px] font-bold',
                   customAllocTotal === 100 ? 'text-green-400' : 'text-destructive'
@@ -805,7 +807,7 @@ export default function Portfolio() {
 
               <Button variant="outline" size="sm" className="w-full text-[11px] h-7" onClick={handleAddCustomAsset}>
                 <Plus className="w-3 h-3 mr-1" />
-                Add Asset
+                {t('portfolio.addAsset')}
               </Button>
             </div>
           </div>
@@ -816,14 +818,14 @@ export default function Portfolio() {
               size="sm"
               onClick={() => setShowCustomDialog(false)}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               size="sm"
               disabled={!customName.trim() || customAllocTotal !== 100}
               onClick={handleCreateCustom}
             >
-              Create Portfolio
+              {t('portfolio.createPortfolio')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -44,9 +44,9 @@ export const createPortfolioSlice: SliceCreator<PortfolioSlice> = (set, get) => 
               created_at: new Date().toISOString(),
             });
           }
-        }).catch(console.error);
-      } catch (e) {
-        console.error('Supabase set portfolio error', e);
+        }).catch(() => {});
+      } catch {
+        // Supabase sync failed; local state is authoritative
       }
 
       return {
@@ -92,9 +92,9 @@ export const createPortfolioSlice: SliceCreator<PortfolioSlice> = (set, get) => 
             created_at: newPortfolio.createdAt,
           });
         }
-      }).catch(console.error);
-    } catch (e) {
-      console.error('Supabase add portfolio error', e);
+      }).catch(() => {});
+    } catch {
+      // Supabase sync failed; local state is authoritative
     }
   },
 

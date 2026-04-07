@@ -44,10 +44,8 @@ export const usePortfolioData = () => {
 
     const fetchPortfolio = async () => {
         try {
-            console.log("Fetching portfolio...");
             const { data: { session } } = await supabase.auth.getSession();
             if (!session?.user) {
-                console.warn("No session in usePortfolioData");
                 setMetrics(prev => ({ ...prev, loading: false }));
                 return;
             }
@@ -55,7 +53,6 @@ export const usePortfolioData = () => {
 
             const user = authResponse.data.user;
             if (!user) {
-                console.log("No user logged in portfolio fetch");
                 setMetrics(prev => ({ ...prev, loading: false }));
                 return;
             }
@@ -66,7 +63,6 @@ export const usePortfolioData = () => {
                 .eq('user_id', user.id);
 
             if (error) {
-                console.error("Supabase error fetching transactions:", error);
                 // Treat as empty to prevent crash
                 setMetrics(prev => ({ ...prev, loading: false }));
                 return;
@@ -117,8 +113,8 @@ export const usePortfolioData = () => {
                     const symbol = Object.keys(symbolToId).find(key => symbolToId[key] === p.id) || p.symbol.toUpperCase();
                     priceMap[symbol] = p.current_price;
                 });
-            } catch (err) {
-                console.error("Market data fetch error:", err);
+            } catch {
+                // Market data unavailable, prices will show as 0
             }
 
             // 3. Calculate Metrics
@@ -163,8 +159,7 @@ export const usePortfolioData = () => {
                 loading: false
             });
 
-        } catch (error) {
-            console.error('Error fetching portfolio:', error);
+        } catch {
             setMetrics(prev => ({ ...prev, loading: false }));
         }
     };
@@ -174,8 +169,8 @@ export const usePortfolioData = () => {
             fetchPortfolio();
             const interval = setInterval(fetchPortfolio, 60000); // Update every minute
             return () => clearInterval(interval);
-        } catch (e) {
-            console.error("Critical error in usePortfolioData effect", e);
+        } catch {
+            // Portfolio fetch failed silently; will retry on next interval
         }
     }, []);
 

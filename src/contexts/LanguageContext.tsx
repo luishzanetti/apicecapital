@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { en } from '@/locales/en';
 import { pt } from '@/locales/pt';
 
-type Language = 'en' | 'pt';
+export type Language = 'en' | 'pt' | 'es';
 
 interface LanguageContextType {
     language: Language;
@@ -12,31 +12,41 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const translations = { en, pt };
+const translations: Record<Language, Record<string, unknown>> = { en, pt, es: en };
+const LANGUAGE_STORAGE_KEY = 'app_language';
+
+const getInitialLanguage = (): Language => {
+    const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (saved === 'en' || saved === 'pt' || saved === 'es') return saved;
+    const browserLang = navigator.language.slice(0, 2);
+    if (browserLang === 'pt') return 'pt';
+    if (browserLang === 'es') return 'es';
+    return 'en';
+};
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-    const [language, setLanguageState] = useState<Language>('en');
+    const [language, setLanguageState] = useState<Language>(getInitialLanguage);
 
     useEffect(() => {
-        // Load saved language from localStorage
-        const saved = localStorage.getItem('app_language') as Language;
-        if (saved && (saved === 'en' || saved === 'pt')) {
-            setLanguageState(saved);
-        }
-    }, []);
+        document.documentElement.lang = language === 'pt' ? 'pt-BR' : language === 'es' ? 'es' : 'en';
+    }, [language]);
 
     const setLanguage = (lang: Language) => {
         setLanguageState(lang);
-        localStorage.setItem('app_language', lang);
+        localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
     };
 
     const t = (key: string): string => {
         const keys = key.split('.');
-        let value: any = translations[language];
+        let value: unknown = translations[language];
 
         for (const k of keys) {
-            value = value?.[k];
-            if (value === undefined) break;
+            if (!value || typeof value !== 'object' || !(k in value)) {
+                value = undefined;
+                break;
+            }
+
+            value = (value as Record<string, unknown>)[k];
         }
 
         // Return the key itself if translation not found (for debugging)

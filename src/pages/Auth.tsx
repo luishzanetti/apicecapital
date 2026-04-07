@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate, Link } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -10,8 +10,11 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
 import { useAppStore } from "@/store/appStore";
+import { useTranslation } from "@/hooks/useTranslation";
 
-// Auth input validation schema
+// Auth input validation schema — uses static English strings
+// because Zod schemas are defined outside the component scope.
+// Toast messages from validation are shown via t() at the call site.
 const authSchema = z.object({
   email: z.string()
     .email('Please enter a valid email address')
@@ -54,16 +57,16 @@ export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { session, demoSignIn, isDemoMode } = useAuth();
   const prefersReducedMotion = useReducedMotion();
+  const { t } = useTranslation();
   const hasCompletedOnboarding = useAppStore((s) => s.hasCompletedOnboarding);
-
-  // Animation helpers for reduced motion
-  const animDuration = prefersReducedMotion ? 0 : undefined;
+  const redirectPath = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname || "/home";
 
   useEffect(() => {
-    if (session) navigate("/home", { replace: true });
-  }, [session, navigate]);
+    if (session) navigate(redirectPath, { replace: true });
+  }, [session, navigate, redirectPath]);
 
   const handleAuth = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,12 +84,12 @@ export default function Auth() {
       // Demo mode: skip Supabase, use local session
       if (isDemoMode) {
         demoSignIn(validation.data.email);
-        toast.success(isSignUp ? "Account created (demo mode)!" : "Welcome back (demo mode)!");
+        toast.success(isSignUp ? t('auth.accountCreatedDemo') : t('auth.welcomeBackDemo'));
         // After signup, redirect to onboarding if not completed
         if (isSignUp && !hasCompletedOnboarding) {
           navigate("/onboarding");
         } else {
-          navigate("/home");
+          navigate(redirectPath);
         }
         return;
       }
@@ -95,43 +98,43 @@ export default function Auth() {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
         if (data?.session) {
-          toast.success("Welcome to Apice Capital!");
+          toast.success(t('auth.welcomeToApice'));
           // Redirect to onboarding if not already completed, otherwise home
-          navigate(hasCompletedOnboarding ? "/home" : "/onboarding");
+          navigate(hasCompletedOnboarding ? redirectPath : "/onboarding");
         } else {
-          toast.success("Account created!", {
-            description: "Please check your email to confirm your account.",
+          toast.success(t('auth.accountCreated'), {
+            description: t('auth.checkEmailConfirm'),
           });
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
           if (error.message.includes("Email not confirmed")) {
-            toast.error("Email not confirmed", {
-              description: "Please check your inbox or spam for the confirmation link.",
+            toast.error(t('auth.emailNotConfirmed'), {
+              description: t('auth.checkInboxOrSpam'),
             });
             return;
           }
           if (error.message.includes("Invalid login credentials")) {
-            toast.error("Invalid credentials", {
-              description: "Check your email and password, or sign up if you don't have an account.",
+            toast.error(t('auth.invalidCredentials'), {
+              description: t('auth.checkCredentialsOrSignUp'),
             });
             return;
           }
           throw error;
         }
-        toast.success("Welcome back!");
-        navigate("/home");
+        toast.success(t('auth.welcomeBack'));
+        navigate(redirectPath);
       }
-    } catch (error: any) {
-      console.error(error);
-      toast.error("Authentication failed", {
-        description: error.message || "An error occurred. Please try again.",
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : t('auth.genericError');
+      toast.error(t('auth.authFailed'), {
+        description: errorMessage,
       });
     } finally {
       setLoading(false);
     }
-  }, [email, password, isSignUp, navigate, isDemoMode, demoSignIn, hasCompletedOnboarding]);
+  }, [email, password, isSignUp, navigate, isDemoMode, demoSignIn, hasCompletedOnboarding, redirectPath, t]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative overflow-hidden">
@@ -176,7 +179,7 @@ export default function Auth() {
       {/* Demo Mode Banner */}
       {isDemoMode && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500/90 text-black text-center py-1.5 text-xs font-semibold">
-          Demo Mode — Data is stored locally only
+          {t('auth.demoModeBanner')}
         </div>
       )}
 
@@ -211,12 +214,12 @@ export default function Auth() {
               className="text-center"
             >
               <h1 className="font-display text-2xl font-bold tracking-tight">
-                {isSignUp ? "Create your account" : "Welcome back"}
+                {isSignUp ? t('auth.createYourAccount') : t('auth.welcomeBack')}
               </h1>
               <p className="text-caption text-muted-foreground mt-1.5">
                 {isSignUp
-                  ? "Start your crypto journey with Apice"
-                  : "Sign in to your Apice Capital account"}
+                  ? t('auth.signUpSubtitle')
+                  : t('auth.signInSubtitle')}
               </p>
             </motion.div>
           </AnimatePresence>
@@ -229,7 +232,7 @@ export default function Auth() {
               {/* Email */}
               <div className="space-y-2">
                 <label className="text-micro font-semibold text-muted-foreground uppercase tracking-widest">
-                  Email
+                  {t('auth.email')}
                 </label>
                 <div className="relative group">
                   <Mail className={cn(
@@ -259,7 +262,7 @@ export default function Auth() {
               {/* Password */}
               <div className="space-y-2">
                 <label className="text-micro font-semibold text-muted-foreground uppercase tracking-widest">
-                  Password
+                  {t('auth.password')}
                 </label>
                 <div className="relative group">
                   <Lock className={cn(
@@ -301,7 +304,7 @@ export default function Auth() {
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <>
-                      {isSignUp ? "Create Account" : "Sign In"}
+                      {isSignUp ? t('auth.createAccount') : t('auth.signIn')}
                       <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
                     </>
                   )}
@@ -312,13 +315,13 @@ export default function Auth() {
             {/* Legal agreement for sign-up */}
             {isSignUp && (
               <p className="text-[11px] text-muted-foreground/60 text-center mt-4 px-2 leading-relaxed">
-                By signing up, you agree to our{' '}
+                {t('auth.legalPrefix')}{' '}
                 <Link to="/terms" className="text-primary hover:text-primary/80 transition-colors font-medium">
-                  Terms of Service
+                  {t('common.termsOfService')}
                 </Link>{' '}
-                and{' '}
+                {t('auth.legalAnd')}{' '}
                 <Link to="/privacy" className="text-primary hover:text-primary/80 transition-colors font-medium">
-                  Privacy Policy
+                  {t('common.privacyPolicy')}
                 </Link>.
               </p>
             )}
@@ -327,14 +330,14 @@ export default function Auth() {
             <div className="mt-6 pt-4 border-t border-border/20">
               <div className="flex items-center justify-center gap-2">
                 <span className="text-micro text-muted-foreground">
-                  {isSignUp ? "Already have an account?" : "Don't have an account?"}
+                  {isSignUp ? t('auth.alreadyHaveAccount') : t('auth.dontHaveAccount')}
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsSignUp(!isSignUp)}
                   className="text-micro font-bold text-primary hover:text-primary/80 transition-colors"
                 >
-                  {isSignUp ? "Sign In" : "Sign Up"}
+                  {isSignUp ? t('auth.signIn') : t('auth.signUp')}
                 </button>
               </div>
             </div>
@@ -348,7 +351,7 @@ export default function Auth() {
         >
           <Shield className="w-3 h-3" />
           <span className="text-[11px] tracking-wide">
-            {isDemoMode ? "Demo mode • No Supabase configured • Data saved locally" : "End-to-end encrypted • Your keys, your crypto"}
+            {isDemoMode ? t('auth.demoTrustBadge') : t('auth.trustBadge')}
           </span>
         </motion.div>
       </motion.div>

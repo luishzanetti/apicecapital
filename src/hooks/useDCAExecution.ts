@@ -47,6 +47,44 @@ export interface LocalPlanData {
   frequency: string;
 }
 
+function simulateExecution(plan: LocalPlanData): ExecutePlanResult {
+  const executions = plan.assets.map((asset) => {
+    const amountUsdt = (plan.amountPerInterval * asset.allocation) / 100;
+
+    if (amountUsdt < 1) {
+      return {
+        asset: asset.symbol,
+        symbol: asset.symbol,
+        amountUsdt,
+        quantity: null,
+        price: null,
+        orderId: null,
+        status: 'failed' as const,
+        error: `Valor muito baixo para executar: $${amountUsdt.toFixed(2)} (mínimo $1)`,
+      };
+    }
+
+    return {
+      asset: asset.symbol,
+      symbol: asset.symbol,
+      amountUsdt,
+      quantity: null,
+      price: null,
+      orderId: `demo-${plan.id}-${asset.symbol.toLowerCase()}`,
+      status: 'success' as const,
+      error: null,
+    };
+  });
+
+  return {
+    planId: plan.id,
+    executions,
+    totalSpent: executions
+      .filter((execution) => execution.status === 'success')
+      .reduce((sum, execution) => sum + execution.amountUsdt, 0),
+  };
+}
+
 // ---- HMAC-SHA256 for Bybit Auth (client-side, for test only) ----
 
 async function hmacSHA256(key: string, message: string): Promise<string> {
@@ -144,8 +182,8 @@ export function useDCAExecution() {
   const [error, setError] = useState<string | null>(null);
 
   const executePlan = useCallback(async (planId: string, localPlan?: LocalPlanData): Promise<ExecutePlanResult | null> => {
-    if (!isSupabaseConfigured || !user) {
-      setError('Not connected. Please log in first.');
+    if (!user) {
+      setError('Faça login para executar o DCA.');
       return null;
     }
 
@@ -154,6 +192,16 @@ export function useDCAExecution() {
     setLastResult(null);
 
     try {
+      if (!isSupabaseConfigured) {
+        if (!localPlan) {
+          throw new Error('Modo local sem plano disponível para simulação.');
+        }
+
+        const simulatedResult = simulateExecution(localPlan);
+        setLastResult(simulatedResult);
+        return simulatedResult;
+      }
+
       const { data, error: fnError } = await invokeEdgeFunction('dca-execute', {
         body: {
           action: 'execute-plan',
@@ -173,24 +221,23 @@ export function useDCAExecution() {
 
       const result = data?.data as ExecutePlanResult;
       if (!result) {
-        throw new Error('No execution result returned from server');
+        throw new Error('Nenhum resultado de execução foi retornado pelo servidor.');
       }
 
       setLastResult(result);
       return result;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Execution failed';
-      console.error('[useDCAExecution] Error:', msg);
       setError(
         msg.includes('no_credentials') || msg.includes('Connect')
-          ? 'Connect your Bybit account first in Settings'
+          ? 'Conecte sua conta Bybit primeiro em Configurações.'
           : msg
       );
       return null;
     } finally {
       setIsExecuting(false);
     }
-  }, [user]);
+  }, [session?.access_token, user]);
 
   const fetchHistory = useCallback(async (planId?: string, limit = 20): Promise<DCAExecution[]> => {
     if (!isSupabaseConfigured || !user) return [];
@@ -219,11 +266,10 @@ export function useDCAExecution() {
 
       const { data: executions } = await query;
       return (executions as DCAExecution[]) || [];
-    } catch (err) {
-      console.error('[useDCAExecution] History fetch error:', err);
+    } catch {
       return [];
     }
-  }, [user]);
+  }, [session?.access_token, user]);
 
   return {
     executePlan,

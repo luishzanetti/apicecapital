@@ -99,46 +99,46 @@ function getLocalChatResponse(message: string): string {
 
   if (msg.includes('portfolio') || msg.includes('doing') || msg.includes('como está') || msg.includes('carteira')) {
     if (plans.length === 0)
-      return `You don't have active DCA plans yet. As a ${type}, I recommend starting with a BTC/ETH core allocation. Head to the DCA Planner to create your first strategy!`;
-    return `You have ${plans.length} active DCA plan${plans.length > 1 ? 's' : ''} with $${total.toLocaleString()} invested. As a ${type}, your consistency is your biggest edge. Keep your DCA schedule running — time in the market beats timing the market.`;
+      return `Você ainda não tem planos DCA ativos. Como perfil ${type}, recomendo começar por uma base BTC/ETH. Abra o Planejador DCA e monte sua primeira estratégia.`;
+    return `Você tem ${plans.length} plano${plans.length > 1 ? 's' : ''} DCA ativo${plans.length > 1 ? 's' : ''}, com $${total.toLocaleString()} investidos. Como perfil ${type}, sua maior vantagem é a consistência.`;
   }
 
   if (msg.includes('invest') || msg.includes('buy') || msg.includes('comprar') || msg.includes('investir') || msg.includes('this week')) {
     if (type === 'Conservative Builder')
-      return 'Based on your Conservative profile, I recommend BTC (60-70%) and ETH (30-40%). Weekly DCA of $15-25 is ideal. Consistency is key — don\'t try to time the market.';
+      return 'Pelo seu perfil conservador, recomendo BTC (60-70%) e ETH (30-40%). Um DCA semanal entre $15 e $25 é um ponto de partida sólido.';
     if (type === 'Growth Seeker')
-      return 'For your Growth profile: BTC 35%, ETH 25%, SOL 20%, and split 20% between high-conviction alts like ARB or INJ. Weekly DCA of $50-100. Higher returns come with higher volatility.';
-    return 'For a balanced approach: BTC 45%, ETH 30%, SOL 15%, LINK 10%. Weekly DCA of $25-50 provides steady exposure across major ecosystems.';
+      return 'Para o seu perfil de crescimento: BTC 35%, ETH 25%, SOL 20% e os 20% restantes entre alts de maior convicção como ARB ou INJ. DCA semanal entre $50 e $100.';
+    return 'Para uma abordagem equilibrada: BTC 45%, ETH 30%, SOL 15% e LINK 10%. Um DCA semanal entre $25 e $50 oferece exposição consistente aos principais ecossistemas.';
   }
 
   if (msg.includes('btc') || msg.includes('bitcoin'))
-    return 'BTC remains the anchor asset of any crypto portfolio. With the Apice methodology, we recommend minimum 30% BTC allocation. DCA into BTC consistently — historically, holding BTC over 4+ years has never resulted in a loss.';
+    return 'BTC continua sendo o ativo âncora de qualquer portfolio cripto. Na metodologia Apice, ele merece espaço central e execução via DCA consistente.';
 
   if (msg.includes('eth') || msg.includes('ethereum'))
-    return 'ETH is the second pillar of a solid crypto portfolio. It powers the largest DeFi and NFT ecosystems. 20-30% ETH allocation complements BTC well. Together, BTC+ETH should form 60-80% of a balanced portfolio.';
+    return 'ETH é o segundo pilar de um portfolio sólido. Ele complementa BTC e sustenta os principais ecossistemas de infraestrutura e DeFi.';
 
   if (msg.includes('sol') || msg.includes('solana'))
-    return 'SOL has established itself as a top L1 ecosystem with high throughput and active DeFi. For Balanced/Growth profiles, 10-20% SOL allocation is reasonable. DCA in rather than buying lump sum.';
+    return 'SOL se consolidou como um ecossistema de Layer 1 relevante. Para perfis Balanced/Growth, 10-20% costuma ser uma faixa razoável, preferencialmente via DCA.';
 
   if (msg.includes('dca') || msg.includes('dollar cost') || msg.includes('strateg') || msg.includes('estratég'))
-    return 'DCA (Dollar-Cost Averaging) is the foundation of the Apice methodology. By investing a fixed amount at regular intervals, you remove emotional decisions. Studies show DCA investors outperform 90% of traders. Go to DCA Planner to set yours up.';
+    return 'DCA é a base da metodologia Apice. Você investe valores fixos em intervalos regulares, remove emoção da decisão e ganha consistência ao longo do ciclo.';
 
   if (msg.includes('risk') || msg.includes('risco') || msg.includes('safe') || msg.includes('seguro'))
-    return `As a ${type}: 1) Never invest more than you can afford to lose, 2) Keep 60%+ in BTC/ETH, 3) DCA reduces timing risk, 4) Diversify across 3-5 assets max. Consistency is your best risk management tool.`;
+    return `Como perfil ${type}: 1) nunca invista acima do que consegue sustentar, 2) mantenha 60%+ em BTC/ETH, 3) use DCA para reduzir risco de timing, 4) diversifique entre 3 e 5 ativos no máximo.`;
 
   if (msg.includes('time') || msg.includes('when') || msg.includes('quando') || msg.includes('hora') || msg.includes('now a good'))
-    return 'The best time to start DCA was yesterday. The second best time is now. Market timing is nearly impossible — even pros get it wrong. DCA eliminates this by spreading purchases over time.';
+    return 'A melhor hora para começar um DCA era ontem. A segunda melhor é agora. Timing de mercado é quase impossível; consistência ainda é a vantagem real.';
 
   if (msg.includes('hello') || msg.includes('hi') || msg.includes('olá') || msg.includes('oi') || msg.includes('hey'))
-    return `Hello! I'm your Apice AI Advisor. I can help with DCA strategies, portfolio analysis, and market insights based on your ${type} profile. What would you like to know?`;
+    return `Olá. Sou seu AI Advisor da Apice. Posso ajudar com estratégias de DCA, análise de portfolio e leitura de mercado com base no seu perfil ${type}.`;
 
   if (msg.includes('rebalance') || msg.includes('rebalanc'))
-    return `Rebalancing ensures your portfolio stays aligned with your ${type} strategy. Review allocations quarterly. If any asset deviates more than 10% from target, consider rebalancing via your next DCA purchase.`;
+    return `Rebalancear mantém o portfolio alinhado à sua estratégia ${type}. Revise alocações periodicamente e use a próxima compra do DCA para corrigir desvios.`;
 
   if (msg.includes('market') || msg.includes('mercado'))
-    return 'Crypto markets are volatile by nature. The Apice methodology focuses on long-term wealth building through consistent DCA. Instead of reacting to daily price swings, stay disciplined with your plan.';
+    return 'O mercado cripto é volátil por natureza. A metodologia Apice foca em construção de patrimônio no longo prazo com DCA consistente, não em reação emocional a oscilações diárias.';
 
-  return `Great question! As a ${type}, the Apice methodology recommends consistent DCA across proven crypto assets. I can help with portfolio strategy, asset allocation, DCA planning, and market insights. Try asking about specific assets, your portfolio, or DCA strategies!`;
+  return `Boa pergunta. Como perfil ${type}, a metodologia Apice recomenda DCA consistente em ativos cripto de maior qualidade. Posso ajudar com estratégia de portfolio, alocação, DCA e leitura de mercado.`;
 }
 
 // ─── Fallback Data ──────────────────────────────────────────
@@ -200,10 +200,10 @@ function getFallbackRecommendation(): AiRecommendation {
 
 function getFallbackInsight(): AiInsight {
   return {
-    title: 'Consistency Beats Timing Every Time',
-    content: 'Studies show that DCA investors who stay consistent through volatility outperform 90% of traders. Your automated plan removes emotional decisions from the equation. Keep your schedule and let time work for you.',
+    title: 'Consistência vence timing de mercado',
+    content: 'Investidores que mantêm o DCA ativo durante a volatilidade tendem a superar a maioria dos traders discricionários. Seu plano automático remove emoção da equação e deixa o tempo trabalhar.',
     type: 'discipline',
-    action: 'Review your DCA plan and ensure it runs this week.',
+    action: 'Revise seu plano DCA e confirme a execução desta semana.',
     urgency: 'low',
     sentiment: 'neutral',
     relatedAssets: ['BTC', 'ETH'],
@@ -236,8 +236,7 @@ export function useAiAdvisor() {
       if (data?.error) throw new Error(data.error);
 
       return data?.data || null;
-    } catch (err: any) {
-      console.warn(`[useAiAdvisor] ${action} failed:`, err.message);
+    } catch {
       return null;
     }
   }, []);

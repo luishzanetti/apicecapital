@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { getNextExecutionDate } from '@/lib/dca';
 import { useAppStore } from '@/store/appStore';
 import { useAuth } from '@/components/AuthProvider';
 import { useDCAExecution } from './useDCAExecution';
@@ -47,6 +48,11 @@ export function useAutoDCA() {
         });
 
         if (result) {
+          updateDcaPlan(plan.id, {
+            totalInvested: (plan.totalInvested ?? 0) + result.totalSpent,
+            nextExecutionDate: getNextExecutionDate(plan.frequency),
+          });
+
           const successCount = result.executions.filter(e => e.status === 'success').length;
           const failCount = result.executions.filter(e => e.status === 'failed').length;
           const assets = result.executions.map(e => e.asset).join(', ');
@@ -55,51 +61,51 @@ export function useAutoDCA() {
             addNotification({
               type: 'success',
               category: 'dca',
-              title: 'DCA Executed',
-              message: `$${result.totalSpent.toFixed(2)} invested in ${assets}`,
+              title: 'DCA executado',
+              message: `$${result.totalSpent.toFixed(2)} investidos em ${assets}`,
               actionRoute: '/portfolio',
-              actionLabel: 'View Portfolio',
+              actionLabel: 'Ver portfólio',
             });
           } else if (successCount > 0 && failCount > 0) {
             addNotification({
               type: 'warning',
               category: 'dca',
-              title: 'DCA Partial',
-              message: `${successCount} executed, ${failCount} failed. Check DCA Planner for details.`,
+              title: 'Execução parcial',
+              message: `${successCount} ativos executados e ${failCount} falharam. Revise o Planejador DCA.`,
               actionRoute: '/dca-planner',
-              actionLabel: 'View Details',
+              actionLabel: 'Ver detalhes',
             });
           } else {
-            const firstError = result.executions.find(e => e.error)?.error || 'Unknown error';
+            const firstError = result.executions.find(e => e.error)?.error || 'Erro desconhecido';
             const isPermError = firstError.toLowerCase().includes('permission') ||
                                firstError.toLowerCase().includes('invalid api');
             addNotification({
               type: 'error',
               category: 'dca',
-              title: 'DCA Failed',
+              title: 'Falha no DCA',
               message: isPermError
-                ? 'API key lacks Trade (Spot) permission. Update in Settings → Bybit Connection.'
+                ? 'A chave da API não tem permissão de Trade (Spot). Atualize em Configurações > Conexão Bybit.'
                 : firstError,
               actionRoute: isPermError ? '/settings' : '/dca-planner',
-              actionLabel: isPermError ? 'Fix Settings' : 'View Details',
+              actionLabel: isPermError ? 'Corrigir configuração' : 'Ver detalhes',
             });
           }
         }
-      } catch (err: any) {
-        console.error(`[AutoDCA] Failed plan ${plan.id}:`, err);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'A execução automática falhou de forma inesperada.';
         addNotification({
           type: 'error',
           category: 'dca',
-          title: 'DCA Error',
-          message: err.message || 'Auto-execution failed unexpectedly',
+          title: 'Erro no DCA',
+          message,
           actionRoute: '/dca-planner',
-          actionLabel: 'Check Plans',
+          actionLabel: 'Revisar planos',
         });
       }
     }
 
     executingRef.current = false;
-  }, [user, dcaPlans, executePlan, addNotification]);
+  }, [user, dcaPlans, executePlan, addNotification, updateDcaPlan]);
 
   // Run on mount and when plans change
   useEffect(() => {

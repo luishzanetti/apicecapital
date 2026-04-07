@@ -29,6 +29,23 @@ const SUPPORTED_SYMBOLS = new Set([
   'MATICUSDT', 'LTCUSDT', 'TRXUSDT', 'SHIBUSDT', 'UNIUSDT',
 ]);
 
+// ─── Rate Limiting ───────────────────────────────────────────
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 60; // requests per minute
+const RATE_WINDOW = 60_000; // 1 minute
+
+function checkRateLimit(identifier: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(identifier);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(identifier, { count: 1, resetAt: now + RATE_WINDOW });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
 async function fetchAllTickers(): Promise<Record<string, { lastPrice: string; price24hPcnt: string }>> {
   const now = Date.now();
   if (tickerCache && now - tickerCache.timestamp < CACHE_TTL) {
@@ -71,6 +88,21 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Rate limiting
+    let userId = 'anonymous';
+    try {
+      const token = authHeader.replace('Bearer ', '');
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userId = payload.sub || 'anonymous';
+    } catch { /* fall back to anonymous rate limiting */ }
+
+    if (!checkRateLimit(userId)) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const action = body.action || 'tickers';
 
@@ -93,7 +125,7 @@ Deno.serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ data: result, cached: tickerCache?.timestamp === Date.now() }),
+        JSON.stringify({ data: result, cached: !!(tickerCache && Date.now() - tickerCache.timestamp < CACHE_TTL) }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=15' } }
       );
     }

@@ -40,7 +40,6 @@ export class BybitWebSocket {
             this.ws = new WebSocket(wsUrl);
 
             this.ws.onopen = () => {
-                console.log('Bybit WebSocket connected');
                 this.connectionStatus.isConnected = true;
                 this.connectionStatus.reconnectAttempts = 0;
                 this.authenticate();
@@ -51,19 +50,16 @@ export class BybitWebSocket {
                 this.handleMessage(event.data);
             };
 
-            this.ws.onerror = (error) => {
-                console.error('Bybit WebSocket error:', error);
-            };
+            this.ws.onerror = () => {};
+
 
             this.ws.onclose = () => {
-                console.log('Bybit WebSocket disconnected');
                 this.connectionStatus.isConnected = false;
                 this.connectionStatus.isAuthenticated = false;
                 this.stopPingInterval();
                 this.attemptReconnect();
             };
-        } catch (error) {
-            console.error('Failed to create WebSocket connection:', error);
+        } catch {
             this.attemptReconnect();
         }
     }
@@ -73,7 +69,6 @@ export class BybitWebSocket {
      */
     private authenticate(): void {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-            console.error('Cannot authenticate: WebSocket not open');
             return;
         }
 
@@ -91,11 +86,8 @@ export class BybitWebSocket {
             // Handle authentication response
             if (message.type === 'AUTH_RESP') {
                 if (message.data === 'success') {
-                    console.log('Bybit WebSocket authenticated');
                     this.connectionStatus.isAuthenticated = true;
                     this.resubscribeAll();
-                } else {
-                    console.error('Bybit WebSocket authentication failed');
                 }
                 return;
             }
@@ -108,7 +100,6 @@ export class BybitWebSocket {
 
             // Handle subscription response
             if (message.type === 'COMMAND_RESP') {
-                console.log('Subscription response:', message);
                 return;
             }
 
@@ -116,8 +107,8 @@ export class BybitWebSocket {
             if (message.topic && message.data) {
                 this.notifySubscribers(message.topic, message.data);
             }
-        } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
+        } catch {
+            // Malformed WebSocket message; skip
         }
     }
 
@@ -126,7 +117,6 @@ export class BybitWebSocket {
      */
     private send(payload: any): void {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-            console.error('Cannot send: WebSocket not open');
             return;
         }
 
@@ -193,8 +183,8 @@ export class BybitWebSocket {
             callbacks.forEach(callback => {
                 try {
                     callback(data);
-                } catch (error) {
-                    console.error('Error in subscription callback:', error);
+                } catch {
+                    // Subscription callback error; skip
                 }
             });
         }
@@ -239,12 +229,10 @@ export class BybitWebSocket {
      */
     private attemptReconnect(): void {
         if (this.connectionStatus.reconnectAttempts >= this.maxReconnectAttempts) {
-            console.error('Max reconnection attempts reached');
             return;
         }
 
         this.connectionStatus.reconnectAttempts++;
-        console.log(`Attempting to reconnect (${this.connectionStatus.reconnectAttempts}/${this.maxReconnectAttempts})...`);
 
         this.reconnectTimeout = setTimeout(() => {
             this.connect();

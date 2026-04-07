@@ -48,9 +48,7 @@ export const createMissionSlice: SliceCreator<MissionSlice> = (set, get) => ({
               updated_at: new Date().toISOString(),
             })
             .eq('id', user.id)
-            .then(({ error }) => {
-              if (error) console.error('[missionSlice] Failed to save mission progress:', error);
-            });
+            .then(() => {});
         }
       });
 

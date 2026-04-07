@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAppStore, investorTypeDescriptions } from '@/store/appStore';
+import type { UserProfile } from '@/store/appStore';
 import { useAuth } from '@/components/AuthProvider';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -75,6 +76,7 @@ export default function Settings() {
     const userProfile = useAppStore((s) => s.userProfile);
     const updateUserProfile = useAppStore((s) => s.updateUserProfile);
     const calculateInvestorType = useAppStore((s) => s.calculateInvestorType);
+    const completeMissionTask = useAppStore((s) => s.completeMissionTask);
     const investorType = useAppStore((s) => s.investorType);
     const subscription = useAppStore((s) => s.subscription);
     const daysActive = useAppStore((s) => s.daysActive);
@@ -95,11 +97,7 @@ export default function Settings() {
     const [emailCopied, setEmailCopied] = useState(false);
     const [notifEnabled, setNotifEnabled] = useState(true);
 
-    useEffect(() => {
-        loadBybitCredentials();
-    }, [user]);
-
-    const loadBybitCredentials = async () => {
+    const loadBybitCredentials = useCallback(async () => {
         try {
             if (!user) return;
             const { data: credentials, error } = await supabase
@@ -110,11 +108,16 @@ export default function Settings() {
             if (credentials && !error) {
                 setIsConnected(true);
                 setUseTestnet(credentials.testnet || false);
+                completeMissionTask('m2_apiConnected');
             }
-        } catch (error) {
-            console.error('Error loading credentials:', error);
+        } catch {
+            // Credentials load failed; isConnected stays false
         }
-    };
+    }, [completeMissionTask, user]);
+
+    useEffect(() => {
+        loadBybitCredentials();
+    }, [loadBybitCredentials]);
 
     const [connectionStatus, setConnectionStatus] = useState<'idle' | 'testing' | 'saving'>('idle');
 
@@ -178,6 +181,7 @@ export default function Settings() {
             if (error) throw error;
 
             setIsConnected(true);
+            completeMissionTask('m2_apiConnected');
             setShowBybitModal(false);
 
             if (test.canTrade) {
@@ -196,8 +200,9 @@ export default function Settings() {
 
             // Redirect to dashboard after connecting
             setTimeout(() => navigate('/home'), 1500);
-        } catch (error: any) {
-            toast.error(error.message || t('settings.bybitModal.connectionFailed'), { id: 'bybit-connect' });
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : t('settings.bybitModal.connectionFailed');
+            toast.error(message, { id: 'bybit-connect' });
         } finally {
             setIsConnecting(false);
             setConnectionStatus('idle');
@@ -217,13 +222,18 @@ export default function Settings() {
                 .eq('user_id', user.id);
             if (error) throw error;
             setIsConnected(false);
+            completeMissionTask('m2_apiConnected', false);
             toast.success(t('settings.bybitModal.disconnected'));
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : t('settings.failedToUpdate');
+            toast.error(message);
         }
     };
 
-    const handleUpdatePreference = async (key: string, value: any) => {
+    const handleUpdatePreference = async (
+        key: keyof UserProfile,
+        value: UserProfile[keyof UserProfile]
+    ) => {
         try {
             updateUserProfile({ [key]: value });
             calculateInvestorType();

@@ -76,8 +76,8 @@ export const createOnboardingSlice: SliceCreator<OnboardingSlice> = (set, get) =
         }));
         set({ dcaPlans: formattedPlans });
       }
-    } catch (error) {
-      console.error('Supabase sync error (using local state)', error);
+    } catch {
+      // Supabase unavailable; local state used as fallback
     }
   },
 
@@ -98,11 +98,11 @@ export const createOnboardingSlice: SliceCreator<OnboardingSlice> = (set, get) =
               updated_at: new Date().toISOString(),
             })
             .eq('id', user.id)
-            .then(() => {}, console.error);
+            .then(() => {}, () => {});
         }
-      }).then(() => {}, console.error);
-    } catch (e) {
-      console.error('Supabase skipped onboarding error', e);
+      }).then(() => {}, () => {});
+    } catch {
+      // Supabase sync failed; local state is authoritative
     }
   },
 
@@ -125,13 +125,11 @@ export const createOnboardingSlice: SliceCreator<OnboardingSlice> = (set, get) =
                 habit_type: newProfile.habitType,
                 preferred_assets: newProfile.preferredAssets,
               })
-              .then(({ error }) => {
-                if (error) console.error('Error syncing profile:', error);
-              });
+              .then(() => {});
           }
-        }).catch(console.error);
-      } catch (e) {
-        console.error('Supabase profile upsert error', e);
+        }).catch(() => {});
+      } catch {
+        // Supabase sync failed; local state is authoritative
       }
       return { userProfile: newProfile };
     });
@@ -164,11 +162,11 @@ export const createOnboardingSlice: SliceCreator<OnboardingSlice> = (set, get) =
               updated_at: new Date().toISOString(),
             })
             .eq('id', user.id)
-            .then(() => {}, console.error);
+            .then(() => {}, () => {});
         }
-      }).then(() => {}, console.error);
-    } catch (e) {
-      console.error('Supabase complete onboarding error', e);
+      }).then(() => {}, () => {});
+    } catch {
+      // Supabase sync failed; local state is authoritative
     }
   },
 
@@ -192,13 +190,11 @@ export const createOnboardingSlice: SliceCreator<OnboardingSlice> = (set, get) =
               updated_at: new Date().toISOString(),
             })
             .eq('id', user.id)
-            .then(({ error }) => {
-              if (error) console.error('Error syncing investor type:', error);
-            });
+            .then(() => {});
         }
-      }).catch(console.error);
-    } catch (e) {
-      console.error('Supabase update investor type error', e);
+      }).catch(() => {});
+    } catch {
+      // Supabase sync failed; local state is authoritative
     }
   },
 });

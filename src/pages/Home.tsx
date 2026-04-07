@@ -9,7 +9,7 @@ import type { MissionProgress } from '@/store/appStore';
 import SetupMissions from '@/components/SetupMissions';
 import { GamificationWidget } from '@/components/GamificationWidget';
 import { TopCoinsList } from '@/components/TopCoinsList';
-import { PortfolioSummaryCard } from '@/components/portfolio/PortfolioSummaryCard';
+import { ExecutivePortfolioBoard } from '@/components/home/ExecutivePortfolioBoard';
 import { DCATracker } from '@/components/portfolio/DCATracker';
 import { useAutoDCA } from '@/hooks/useAutoDCA';
 import { AiInsightCard } from '@/components/ai/AiInsightCard';
@@ -37,6 +37,36 @@ function getTimeGreetingKey(): string {
   if (hour < 12) return 'home.goodMorning';
   if (hour < 18) return 'home.goodAfternoon';
   return 'home.goodEvening';
+}
+
+function getInsightTypeLabel(type: string, language: 'en' | 'pt') {
+  switch (type) {
+    case 'education':
+      return language === 'pt' ? 'Aprendizado' : 'Learning';
+    case 'portfolio':
+      return language === 'pt' ? 'Portfólio' : 'Portfolio';
+    case 'discipline':
+      return language === 'pt' ? 'Disciplina' : 'Discipline';
+    case 'market':
+      return language === 'pt' ? 'Mercado' : 'Market';
+    default:
+      return 'Insight';
+  }
+}
+
+function getInsightRoute(type: string) {
+  switch (type) {
+    case 'education':
+      return '/learn';
+    case 'portfolio':
+      return '/portfolio';
+    case 'discipline':
+      return '/dca-planner';
+    case 'market':
+      return '/analytics';
+    default:
+      return '/learn';
+  }
 }
 
 // Widget definitions — the system is ordered via appStore widgetOrder
@@ -165,7 +195,7 @@ function WidgetCustomizer({
       return 'available';
     }
     if (w.lockType === 'usage') {
-      const uk = (w as { usageUnlockKey: string }).usageUnlockKey;
+      const uk = w.usageUnlockKey;
       if (uk === 'hasFirstDeposit' && !hasFirstDeposit) return 'locked';
       if (uk === 'hasMinimumActivity' && daysActive < 3) return 'locked';
     }
@@ -245,7 +275,9 @@ function WidgetCustomizer({
                         {status === 'locked' && (
                           <p className="text-[11px] text-orange-400 mt-0.5 flex items-center gap-1">
                             <Lock className="w-2.5 h-2.5" />
-                            {(w as any).usageUnlockKey === 'hasFirstDeposit' ? t('home.unlockAfterDeposit') : t('home.unlockAfterDays')}
+                            {w.lockType === 'usage' && w.usageUnlockKey === 'hasFirstDeposit'
+                              ? t('home.unlockAfterDeposit')
+                              : t('home.unlockAfterDays')}
                           </p>
                         )}
                         {status === 'premium' && (
@@ -298,7 +330,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [showDepositConfirm, setShowDepositConfirm] = useState(false);
   const [showCustomizer, setShowCustomizer] = useState(false);
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   // Auto-execute due DCA plans on app load + every 5 min
   useAutoDCA();
@@ -327,11 +359,16 @@ export default function Home() {
   const totalDeposited = weeklyDepositHistory.reduce((sum, d) => sum + d.amount, 0);
   const hasFirstDeposit = weeklyDepositHistory.length > 0;
   const todayInsight = dailyInsights[currentInsightIndex % dailyInsights.length];
+  const todayDate = new Intl.DateTimeFormat('pt-BR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+  }).format(new Date());
 
   const milestones = [
-    { threshold: 0, label: 'Starter', icon: '🌱' },
-    { threshold: 500, label: 'Builder', icon: '🔨' },
-    { threshold: 2000, label: 'Optimizer', icon: '⚡' },
+    { threshold: 0, label: 'Início', icon: '🌱' },
+    { threshold: 500, label: 'Construtor', icon: '🔨' },
+    { threshold: 2000, label: 'Otimizador', icon: '⚡' },
     { threshold: 5000, label: 'Pro', icon: '🚀' },
     { threshold: 10000, label: 'Elite', icon: '💎' },
   ];
@@ -417,7 +454,7 @@ export default function Home() {
         );
 
       case 'balance':
-        // PortfolioSummaryCard is now always shown in the hero section above
+        // The executive portfolio board is always shown in the hero section above
         return null;
 
       case 'dca':
@@ -477,10 +514,11 @@ export default function Home() {
       case 'quickactions':
         return (
           <motion.div key="quickactions" className="md:col-span-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-5 gap-3">
               {[
                 { icon: Sparkles, label: t('home.quickActions.analysis'), color: 'bg-green-500/10 text-green-500', action: () => navigate('/analytics') },
                 { icon: PieChart, label: t('home.quickActions.portfolio'), color: 'bg-blue-500/10 text-blue-500', action: () => navigate('/portfolio') },
+                { icon: Plus, label: t('home.quickActions.dca'), color: 'bg-cyan-500/10 text-cyan-500', action: () => navigate('/dca-planner') },
                 { icon: BookOpen, label: t('home.quickActions.learn'), color: 'bg-purple-500/10 text-purple-500', action: () => navigate('/learn') },
                 { icon: Award, label: t('home.quickActions.upgrade'), color: 'bg-amber-500/10 text-amber-500', action: () => navigate('/upgrade') },
               ].map((item) => (
@@ -572,6 +610,7 @@ export default function Home() {
           <div>
             <p className="text-xs text-muted-foreground">{t(getTimeGreetingKey())}, {investorType || t('common.investor')}!</p>
             <h1 className="text-xl font-bold">{t('home.yourDashboard')}</h1>
+            <p className="mt-1 text-[11px] capitalize text-muted-foreground/80">{todayDate}</p>
           </div>
           <button
             onClick={() => setShowCustomizer(true)}
@@ -582,10 +621,32 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Bybit Live Portfolio (always first in the hero) */}
+        {/* Executive portfolio board (always first in the hero) */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
-          <PortfolioSummaryCard />
+          <ExecutivePortfolioBoard />
         </motion.div>
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.14 }}
+          onClick={() => navigate(getInsightRoute(todayInsight.type))}
+          className="w-full rounded-3xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 text-left"
+        >
+          <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-primary/80">
+            <span>{t('home.todaysContext')}</span>
+            <span className="rounded-full border border-primary/20 px-2 py-0.5 tracking-[0.12em] text-primary/70">
+              {getInsightTypeLabel(todayInsight.type, language)}
+            </span>
+          </div>
+          <h2 className="mt-3 text-sm font-bold text-foreground">{todayInsight.title}</h2>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{todayInsight.content}</p>
+          {todayInsight.recommendedAction && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-primary">
+              <span className="font-semibold">{t('home.recommendedAction')}:</span>
+              <span>{todayInsight.recommendedAction}</span>
+            </div>
+          )}
+        </motion.button>
       </div>
 
       {/* Widget Grid */}

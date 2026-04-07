@@ -37,6 +37,14 @@ function checkRateLimit(userId: string): boolean {
   return true;
 }
 
+// Cleanup stale rate limit entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitMap) {
+    if (now > entry.resetAt) rateLimitMap.delete(key);
+  }
+}, 300_000);
+
 // ─── Apice Capital Methodology (system context for Claude) ─────
 
 const APICE_METHODOLOGY = `

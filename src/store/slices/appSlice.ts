@@ -68,9 +68,7 @@ export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
                 updated_at: new Date().toISOString(),
               })
               .eq('id', user.id)
-              .then(({ error }) => {
-                if (error) console.error('[appSlice] Failed to sync days_active:', error);
-              });
+              .then(() => {});
           }
         });
         return {

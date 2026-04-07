@@ -139,7 +139,10 @@ async function bybitPost(
     body: bodyStr,
   });
 
-  if (!res.ok) throw new Error(`Bybit ${res.status}: ${res.statusText}`);
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '');
+    throw new Error(`Bybit ${res.status}: ${res.statusText} — ${errBody}`);
+  }
   const json = await res.json();
   if (json.retCode !== 0) throw new Error(`Bybit ${json.retCode}: ${json.retMsg}`);
   return json.result;
@@ -166,7 +169,10 @@ async function bybitGet(
     },
   });
 
-  if (!res.ok) throw new Error(`Bybit ${res.status}: ${res.statusText}`);
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '');
+    throw new Error(`Bybit ${res.status}: ${res.statusText} — ${errBody}`);
+  }
   const json = await res.json();
   if (json.retCode !== 0) throw new Error(`Bybit ${json.retCode}: ${json.retMsg}`);
   return json.result;
@@ -332,11 +338,15 @@ async function executePlan(
 
   // Update plan's next execution date and total invested
   const nextDate = new Date(Date.now() + frequencyToMs(plan.frequency)).toISOString();
+  const failedCount = result.executions.filter(e => e.status === 'failed').length;
   await supabaseAdmin
     .from('dca_plans')
     .update({
       next_execution_date: nextDate,
       total_invested: (plan.total_invested || 0) + result.totalSpent,
+      last_execution_date: new Date().toISOString(),
+      execution_count: (plan.execution_count || 0) + 1,
+      failed_executions: (plan.failed_executions || 0) + failedCount,
     })
     .eq('id', plan.id);
 
