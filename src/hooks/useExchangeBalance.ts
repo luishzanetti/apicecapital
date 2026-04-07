@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/AuthProvider';
 import { invokeEdgeFunction } from '@/lib/supabaseFunction';
+import { toast } from '@/hooks/use-toast';
 
 export interface CoinHolding {
   coin: string;
@@ -71,7 +72,8 @@ interface ExchangeBalanceState {
 }
 
 export function useExchangeBalance() {
-  const { user, session } = useAuth();
+  const { user, session, signOut } = useAuth();
+  const hasAutoLoggedOut = useRef(false);
   const [state, setState] = useState<ExchangeBalanceState>({
     data: null,
     isLoading: true,
@@ -126,6 +128,20 @@ export function useExchangeBalance() {
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to fetch balance';
+
+      // Detect expired/invalid session and auto-logout
+      const isAuthError = /invalid.*jwt|jwt.*expired|401|unauthorized|invalid.*token/i.test(message);
+      if (isAuthError && !hasAutoLoggedOut.current) {
+        hasAutoLoggedOut.current = true;
+        toast({
+          title: 'Session expired',
+          description: 'Your session has expired for security. Please sign in again.',
+          variant: 'destructive',
+        });
+        setTimeout(() => signOut(), 2500);
+        return;
+      }
+
       setState((prev) => ({
         ...prev,
         isLoading: false,
@@ -134,7 +150,7 @@ export function useExchangeBalance() {
         status: 'error',
       }));
     }
-  }, [user, session?.access_token]);
+  }, [user, session?.access_token, signOut]);
 
   useEffect(() => {
     fetchBalance();
