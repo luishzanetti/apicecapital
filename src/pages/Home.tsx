@@ -306,36 +306,40 @@ export default function Home() {
               </div>
             </motion.div>
 
-            {/* Setup Missions */}
-            <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
-              <SectionHeader icon={Target} label={isJourneyCompleted ? 'Your Journey' : 'Setup Missions'} />
-              <SetupMissions />
-            </motion.div>
-
-            {/* Gamification */}
-            <motion.div initial="hidden" animate="visible" custom={5} variants={fadeUp}>
-              {isGamificationUnlocked ? (
-                <>
-                  <SectionHeader icon={Award} label="Levels & Badges" />
-                  <GamificationWidget />
-                </>
-              ) : (
-                <div className="p-4 rounded-2xl glass-light border border-border/20 flex items-center gap-3 opacity-60">
-                  <Lock className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-semibold text-muted-foreground">Levels & Badges</p>
-                    <p className="text-xs text-muted-foreground">Use the app for 3 days to unlock</p>
-                  </div>
-                </div>
-              )}
-            </motion.div>
-
             {/* AI Portfolio Score */}
-            <motion.div initial="hidden" animate="visible" custom={6} variants={fadeUp}>
+            <motion.div initial="hidden" animate="visible" custom={5} variants={fadeUp}>
               <SectionHeader icon={Sparkles} label="AI Portfolio Score" />
               <AiPortfolioScore />
             </motion.div>
           </div>
+        </div>
+
+        {/* ── Full-width: Apice Journey ────────────────────────────────── */}
+        <div className="px-4 md:px-6 mt-5">
+          <motion.div initial="hidden" animate="visible" custom={6} variants={fadeUp}>
+            <SectionHeader icon={Target} label={isJourneyCompleted ? 'Your Journey' : 'Apice Journey'} />
+            <SetupMissions />
+          </motion.div>
+        </div>
+
+        {/* ── Full-width: Gamification ─────────────────────────────────── */}
+        <div className="px-4 md:px-6 mt-5">
+          <motion.div initial="hidden" animate="visible" custom={7} variants={fadeUp}>
+            {isGamificationUnlocked ? (
+              <>
+                <SectionHeader icon={Award} label="Levels & Badges" />
+                <GamificationWidget />
+              </>
+            ) : (
+              <div className="p-4 rounded-2xl glass-light border border-border/20 flex items-center gap-3 opacity-60">
+                <Lock className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-semibold text-muted-foreground">Levels & Badges</p>
+                  <p className="text-xs text-muted-foreground">Use the app for 3 days to unlock</p>
+                </div>
+              </div>
+            )}
+          </motion.div>
         </div>
 
         {/* ── Last Updated ────────────────────────────────────────────────── */}
