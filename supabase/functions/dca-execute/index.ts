@@ -274,13 +274,54 @@ async function executePlan(
         marketUnit: 'quoteCoin', // Buy using USDT amount
       });
 
+      // Query order details to get actual filled qty and price
+      // Bybit's placeOrder response doesn't include fill details for market orders
+      let filledQty: number | null = null;
+      let filledPrice: number | null = null;
+      const orderId = orderResult.orderId || null;
+
+      if (orderId) {
+        try {
+          // Wait briefly for order to fill (market orders fill instantly)
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          const orderDetail = await bybitGet(apiKey, apiSecret, testnet, '/v5/order/realtime', {
+            category: 'spot',
+            orderId,
+          });
+          const order = orderDetail.list?.[0];
+          if (order) {
+            filledQty = parseFloat(order.cumExecQty) || null;
+            filledPrice = parseFloat(order.avgPrice) || null;
+          }
+        } catch {
+          // If order query fails, estimate from amountUsdt and current price
+        }
+      }
+
+      // If we still don't have qty, estimate from ticker price (never use amountUsdt as qty)
+      if (!filledQty) {
+        try {
+          const ticker = await bybitGet(apiKey, apiSecret, testnet, '/v5/market/tickers', {
+            category: 'spot',
+            symbol: tradingSymbol,
+          });
+          const lastPrice = parseFloat(ticker.list?.[0]?.lastPrice || '0');
+          if (lastPrice > 0) {
+            filledQty = amountUsdt / lastPrice;
+            filledPrice = lastPrice;
+          }
+        } catch {
+          // Last resort: skip transaction record to avoid corrupted data
+        }
+      }
+
       result.executions.push({
         asset: asset.symbol,
         symbol: tradingSymbol,
         amountUsdt,
-        quantity: orderResult.qty || null,
-        price: orderResult.price || null,
-        orderId: orderResult.orderId || null,
+        quantity: filledQty ? filledQty.toString() : null,
+        price: filledPrice ? filledPrice.toString() : null,
+        orderId,
         status: 'success',
         error: null,
       });
@@ -292,23 +333,25 @@ async function executePlan(
         user_id: plan.user_id,
         asset_symbol: asset.symbol,
         amount_usdt: amountUsdt,
-        quantity: orderResult.qty ? parseFloat(orderResult.qty) : null,
-        price: orderResult.price ? parseFloat(orderResult.price) : null,
+        quantity: filledQty,
+        price: filledPrice,
         status: 'success',
-        bybit_order_id: orderResult.orderId || null,
+        bybit_order_id: orderId,
       });
 
-      // Also record as transaction for portfolio tracking
-      await supabaseAdmin.from('transactions').insert({
-        user_id: plan.user_id,
-        asset_symbol: asset.symbol.toUpperCase(),
-        type: 'buy',
-        amount: orderResult.qty ? parseFloat(orderResult.qty) : amountUsdt,
-        price_per_unit: orderResult.price ? parseFloat(orderResult.price) : 0,
-        date: new Date().toISOString(),
-        fees: 0,
-        notes: `DCA auto-buy [Plan ${plan.id}]`,
-      });
+      // Record as transaction for portfolio tracking — ONLY if we have real qty
+      if (filledQty && filledPrice) {
+        await supabaseAdmin.from('transactions').insert({
+          user_id: plan.user_id,
+          asset_symbol: asset.symbol.toUpperCase(),
+          type: 'buy',
+          amount: filledQty,
+          price_per_unit: filledPrice,
+          date: new Date().toISOString(),
+          fees: 0,
+          notes: `DCA auto-buy [Plan ${plan.id}]`,
+        });
+      }
 
     } catch (err: any) {
       console.error(`[dca-execute] Order failed for ${tradingSymbol}:`, err);
