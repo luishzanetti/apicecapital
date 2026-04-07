@@ -95,13 +95,21 @@ export function useExchangeBalance() {
     }));
 
     try {
-      const { data: creds } = await supabase
+      // Check if session is actually valid before making requests
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession?.access_token) {
+        setState({ data: null, isLoading: false, isRefreshing: false, error: null, status: 'no_credentials' });
+        return;
+      }
+
+      const { data: creds, error: credsError } = await supabase
         .from('bybit_credentials')
         .select('api_key, testnet')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (!creds) {
+      // If credentials query fails (JWT expired, RLS error, etc.), treat as no credentials
+      if (credsError || !creds) {
         setState({ data: null, isLoading: false, isRefreshing: false, error: null, status: 'no_credentials' });
         return;
       }
@@ -126,6 +134,12 @@ export function useExchangeBalance() {
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to fetch balance';
+      // Auth errors → treat as no credentials (don't show scary error)
+      const isAuthError = /invalid.*jwt|jwt.*expired|unauthorized|invalid.*token/i.test(message);
+      if (isAuthError) {
+        setState({ data: null, isLoading: false, isRefreshing: false, error: null, status: 'no_credentials' });
+        return;
+      }
       setState((prev) => ({
         ...prev,
         isLoading: false,
