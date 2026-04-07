@@ -256,7 +256,7 @@ function QuizInner() {
           <button
             onClick={handleBack}
             aria-label={t('quiz.back')}
-            className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center transition-colors hover:bg-secondary/80 shrink-0"
+            className="w-10 h-10 rounded-full glass-light flex items-center justify-center transition-colors hover:bg-secondary/80 shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -314,10 +314,10 @@ function QuizInner() {
                         aria-checked={isSelected}
                         aria-selected={isSelected}
                         className={cn(
-                          'w-full p-4 rounded-2xl border text-left transition-all duration-200 active:scale-[0.98] overflow-hidden',
+                          'w-full p-4 rounded-2xl border text-left transition-all duration-200 press-scale overflow-hidden',
                           isSelected
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border bg-card hover:border-primary/30'
+                            ? 'border-primary/40 glass-card border-glow-blue'
+                            : 'glass-light hover:border-primary/30'
                         )}
                       >
                         <div className="flex items-center justify-between gap-2">
@@ -349,10 +349,10 @@ function QuizInner() {
                         aria-checked={isSelected}
                         aria-selected={isSelected}
                         className={cn(
-                          'w-full p-3 sm:p-4 rounded-2xl border text-left transition-all duration-200 active:scale-[0.98] relative overflow-hidden',
+                          'w-full p-3 sm:p-4 rounded-2xl border text-left transition-all duration-200 press-scale relative overflow-hidden',
                           isSelected
-                            ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
-                            : 'border-border bg-card hover:border-primary/30'
+                            ? 'glass-card border-glow-blue'
+                            : 'glass-light hover:border-primary/30'
                         )}
                       >
                         {tier.recommended && (

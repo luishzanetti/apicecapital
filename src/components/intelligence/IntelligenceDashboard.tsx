@@ -13,13 +13,13 @@ export function IntelligenceDashboard() {
   return (
     <div className="space-y-4">
       {/* Top bar: Market overview */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           {/* BTC Price */}
           <div className="flex items-center gap-3">
             <div>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Bitcoin</p>
-              <p className="text-lg font-bold text-white">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Bitcoin</p>
+              <p className="text-lg font-bold text-foreground">
                 ${btcPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
               </p>
             </div>

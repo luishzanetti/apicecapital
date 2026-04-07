@@ -115,7 +115,7 @@ export default function DCAPlanner() {
     durationDays: 90,
     isForever: false,
   });
-  const locale = language === 'pt' ? 'pt-BR' : 'en-US';
+  const locale = 'en-US';
   const copy = language === 'pt'
     ? {
         plannerTitle: 'DCA Planner',

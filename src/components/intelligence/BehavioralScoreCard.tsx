@@ -20,9 +20,9 @@ export function BehavioralScoreCard() {
 
   if (!userIntel) {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 animate-pulse">
-        <div className="h-5 bg-zinc-800 rounded w-36 mb-3" />
-        <div className="h-24 bg-zinc-800 rounded" />
+      <div className="glass-card rounded-xl p-4 animate-pulse">
+        <div className="h-5 bg-secondary/40 rounded w-36 mb-3" />
+        <div className="h-24 bg-secondary/40 rounded" />
       </div>
     );
   }
@@ -43,26 +43,26 @@ export function BehavioralScoreCard() {
     : 0;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
+    <div className="glass-card rounded-xl p-4 space-y-4">
       {/* Header with score */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xl">{level.emoji}</span>
           <div>
-            <h3 className="text-sm font-medium text-white">Score Comportamental</h3>
-            <p className="text-xs text-zinc-500">{level.label}</p>
+            <h3 className="text-sm font-medium text-foreground">Score Comportamental</h3>
+            <p className="text-xs text-muted-foreground">{level.label}</p>
           </div>
         </div>
         <div className="text-right">
           <span className="text-2xl font-bold" style={{ color: level.color }}>
             {score}
           </span>
-          <span className="text-xs text-zinc-500">/100</span>
+          <span className="text-xs text-muted-foreground">/100</span>
         </div>
       </div>
 
       {/* Score bar */}
-      <div className="w-full bg-zinc-800 rounded-full h-2">
+      <div className="w-full bg-secondary/40 rounded-full h-2">
         <div
           className="h-2 rounded-full transition-all duration-1000"
           style={{ width: `${score}%`, backgroundColor: level.color }}
@@ -73,39 +73,39 @@ export function BehavioralScoreCard() {
       <div className="space-y-2">
         {dimensions.map((dim) => (
           <div key={dim.label} className="flex items-center gap-2">
-            <span className="text-[10px] text-zinc-500 w-24 flex-shrink-0">{dim.label}</span>
-            <div className="flex-1 bg-zinc-800 rounded-full h-1.5">
+            <span className="text-[10px] text-muted-foreground w-24 flex-shrink-0">{dim.label}</span>
+            <div className="flex-1 bg-secondary/40 rounded-full h-1.5">
               <div
                 className="h-1.5 rounded-full transition-all duration-700"
                 style={{ width: `${dim.value}%`, backgroundColor: dim.color }}
               />
             </div>
-            <span className="text-[10px] text-zinc-400 w-8 text-right">{dim.value}</span>
+            <span className="text-[10px] text-muted-foreground w-8 text-right">{dim.value}</span>
           </div>
         ))}
       </div>
 
       {/* Quick stats */}
-      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-zinc-800">
+      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/30">
         <div className="text-center">
-          <p className="text-sm font-semibold text-white">{userIntel.current_streak_weeks}</p>
-          <p className="text-[10px] text-zinc-500">Semanas streak</p>
+          <p className="text-sm font-semibold text-foreground">{userIntel.current_streak_weeks}</p>
+          <p className="text-[10px] text-muted-foreground">Semanas streak</p>
         </div>
         <div className="text-center">
-          <p className="text-sm font-semibold text-white">{executionRate}%</p>
-          <p className="text-[10px] text-zinc-500">Taxa execução</p>
+          <p className="text-sm font-semibold text-foreground">{executionRate}%</p>
+          <p className="text-[10px] text-muted-foreground">Taxa execução</p>
         </div>
         <div className="text-center">
-          <p className="text-sm font-semibold text-white">{userIntel.confidence_index}</p>
-          <p className="text-[10px] text-zinc-500">Confiança</p>
+          <p className="text-sm font-semibold text-foreground">{userIntel.confidence_index}</p>
+          <p className="text-[10px] text-muted-foreground">Confiança</p>
         </div>
       </div>
 
       {/* Evolved profile indicator */}
       {userIntel.evolved_investor_type && userIntel.evolved_investor_type !== userIntel.original_investor_type && (
-        <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-2">
+        <div className="glass-light border-purple-500/20 rounded-lg p-2">
           <p className="text-xs text-purple-300">
-            🎓 Perfil evoluiu: <span className="line-through text-zinc-500">{userIntel.original_investor_type}</span>{' '}
+            🎓 Perfil evoluiu: <span className="line-through text-muted-foreground">{userIntel.original_investor_type}</span>{' '}
             → <span className="font-medium">{userIntel.evolved_investor_type}</span>
           </p>
         </div>

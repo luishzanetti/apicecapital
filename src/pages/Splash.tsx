@@ -78,7 +78,7 @@ export default function Splash() {
       >
         {/* Logo mark */}
         <motion.div
-          className="w-20 h-20 rounded-[24px] apice-gradient-primary flex items-center justify-center glow-primary"
+          className="w-20 h-20 rounded-[24px] apice-gradient-primary flex items-center justify-center glow-primary animate-glow-pulse"
           initial={{ rotate: -15, scale: 0.8 }}
           animate={{ rotate: 0, scale: 1 }}
           transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}

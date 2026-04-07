@@ -65,14 +65,14 @@ function TierCard({
         relative w-full text-left rounded-2xl border p-4 transition-all
         ${isSelected
           ? `bg-gradient-to-br ${tier.gradient} ${tier.borderColor} border-2 shadow-lg`
-          : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-700'
+          : 'glass-light hover:border-primary/20'
         }
       `}
     >
       {/* Badges */}
       <div className="absolute -top-2.5 right-3 flex gap-1.5">
         {isRecommended && (
-          <span className="px-2 py-0.5 text-[10px] font-bold bg-primary text-white rounded-full">
+          <span className="px-2 py-0.5 text-[10px] font-bold bg-primary text-foreground rounded-full">
             RECOMMENDED
           </span>
         )}
@@ -82,7 +82,7 @@ function TierCard({
           </span>
         )}
         {tier.highlight && !isRecommended && (
-          <span className="px-2 py-0.5 text-[10px] font-medium bg-zinc-700 text-zinc-300 rounded-full">
+          <span className="px-2 py-0.5 text-[10px] font-medium bg-secondary text-muted-foreground rounded-full">
             {tier.highlight}
           </span>
         )}
@@ -98,9 +98,9 @@ function TierCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-lg">{tier.emoji}</span>
-            <h3 className="text-sm font-bold text-white">{tier.name}</h3>
+            <h3 className="text-sm font-bold text-foreground">{tier.name}</h3>
           </div>
-          <p className="text-[11px] text-zinc-400 mt-0.5">{tier.subtitle}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{tier.subtitle}</p>
 
           {/* Assets mini list */}
           <div className="flex flex-wrap gap-1 mt-2">
@@ -110,7 +110,7 @@ function TierCard({
                 className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${
                   a.isWarChest
                     ? 'bg-emerald-500/15 text-emerald-400'
-                    : 'bg-zinc-800 text-zinc-300'
+                    : 'bg-secondary/50 text-foreground/80'
                 }`}
               >
                 {a.symbol} {a.percentage}%
@@ -119,7 +119,7 @@ function TierCard({
           </div>
 
           {/* Meta */}
-          <div className="flex items-center gap-3 mt-2 text-[10px] text-zinc-500">
+          <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
             <span>{tier.riskLabel}</span>
             <span>•</span>
             <span>{tier.targetAnnualReturn} p.a.</span>
@@ -131,7 +131,7 @@ function TierCard({
         {/* Selected indicator */}
         {isSelected && (
           <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-1">
-            <span className="text-white text-xs">✓</span>
+            <span className="text-foreground text-xs">✓</span>
           </div>
         )}
       </div>
@@ -171,10 +171,10 @@ function QuickSetup({
       exit={{ opacity: 0, height: 0 }}
       className="overflow-hidden"
     >
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-4 mt-3">
+      <div className="glass-card rounded-2xl p-5 space-y-4 mt-3">
         {/* Amount */}
         <div>
-          <p className="text-xs text-zinc-400 mb-2">How much per contribution?</p>
+          <p className="text-xs text-muted-foreground mb-2">How much per contribution?</p>
           <div className="flex flex-wrap gap-2">
             {presets.map((amount) => (
               <button
@@ -182,8 +182,8 @@ function QuickSetup({
                 onClick={() => setSelectedAmount(amount)}
                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
                   selectedAmount === amount
-                    ? 'bg-primary text-white'
-                    : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                    ? 'bg-primary text-foreground'
+                    : 'bg-secondary/50 text-foreground/80 hover:bg-secondary/70'
                 }`}
               >
                 ${amount}
@@ -194,7 +194,7 @@ function QuickSetup({
 
         {/* Frequency */}
         <div>
-          <p className="text-xs text-zinc-400 mb-2">Frequency</p>
+          <p className="text-xs text-muted-foreground mb-2">Frequency</p>
           <div className="grid grid-cols-4 gap-2">
             {[
               { value: 'daily', label: 'Daily' },
@@ -208,7 +208,7 @@ function QuickSetup({
                 className={`py-2 rounded-lg text-xs font-medium transition-all ${
                   frequency === freq.value
                     ? 'bg-primary/20 text-primary border border-primary/30'
-                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                    : 'bg-secondary/50 text-muted-foreground hover:bg-secondary/70'
                 }`}
               >
                 {freq.label}
@@ -218,32 +218,32 @@ function QuickSetup({
         </div>
 
         {/* Summary */}
-        <div className="bg-zinc-800/50 rounded-xl p-3 space-y-2">
+        <div className="glass-light rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-400">Amount per period</span>
-            <span className="text-white font-bold">${selectedAmount}</span>
+            <span className="text-muted-foreground">Amount per period</span>
+            <span className="text-foreground font-bold">${selectedAmount}</span>
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-400">Monthly estimate</span>
-            <span className="text-white font-bold">${monthlyEstimate}</span>
+            <span className="text-muted-foreground">Monthly estimate</span>
+            <span className="text-foreground font-bold">${monthlyEstimate}</span>
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-400">War Chest</span>
+            <span className="text-muted-foreground">War Chest</span>
             <span className="text-emerald-400 font-bold">{tier.warChestPct}% (${Math.round(selectedAmount * tier.warChestPct / 100)})</span>
           </div>
 
           {/* Allocation preview */}
-          <div className="pt-2 border-t border-zinc-700/50">
-            <p className="text-[10px] text-zinc-500 mb-1.5">Allocation per ${selectedAmount} contribution:</p>
+          <div className="pt-2 border-t border-border/50">
+            <p className="text-[10px] text-muted-foreground mb-1.5">Allocation per ${selectedAmount} contribution:</p>
             {tier.assets.map((asset) => {
               const assetAmount = (selectedAmount * asset.percentage / 100).toFixed(2);
               return (
                 <div key={asset.symbol} className="flex items-center justify-between text-[11px] py-0.5">
                   <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: asset.color }} />
-                    <span className={asset.isWarChest ? 'text-emerald-400' : 'text-zinc-300'}>{asset.name}</span>
+                    <span className={asset.isWarChest ? 'text-emerald-400' : 'text-foreground/80'}>{asset.name}</span>
                   </div>
-                  <span className="text-zinc-400">${assetAmount} ({asset.percentage}%)</span>
+                  <span className="text-muted-foreground">${assetAmount} ({asset.percentage}%)</span>
                 </div>
               );
             })}
@@ -256,7 +256,7 @@ function QuickSetup({
           disabled={isActivating}
           className={`
             w-full py-3.5 rounded-xl font-bold text-sm transition-all active:scale-[0.98]
-            bg-gradient-to-r from-primary to-violet-600 text-white
+            bg-gradient-to-r from-primary to-violet-600 text-foreground
             hover:from-primary/90 hover:to-violet-500
             disabled:opacity-50
           `}
@@ -264,7 +264,7 @@ function QuickSetup({
           {isActivating ? 'Activating...' : `Activate ${tier.name} — Auto DCA`}
         </button>
 
-        <p className="text-[10px] text-zinc-600 text-center">
+        <p className="text-[10px] text-muted-foreground/60 text-center">
           Smart DCA activated • Automatic execution • Cancel anytime
         </p>
       </div>
@@ -349,8 +349,8 @@ export function PortfolioTierSelector() {
         className="bg-gradient-to-br from-green-500/10 to-emerald-600/5 border border-green-500/30 rounded-2xl p-6 text-center space-y-3"
       >
         <span className="text-4xl">✅</span>
-        <h3 className="text-lg font-bold text-white">{selectedTier?.name} Activated!</h3>
-        <p className="text-sm text-zinc-400">
+        <h3 className="text-lg font-bold text-foreground">{selectedTier?.name} Activated!</h3>
+        <p className="text-sm text-muted-foreground">
           Your auto DCA is configured. The system runs on its own — you just need to keep a balance on Bybit.
         </p>
         <div className="flex gap-2 pt-2">
@@ -362,7 +362,7 @@ export function PortfolioTierSelector() {
           </button>
           <button
             onClick={() => navigate('/dca-planner')}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-zinc-800 text-zinc-300"
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium glass-light text-foreground/80"
           >
             View My Plans
           </button>
@@ -376,8 +376,8 @@ export function PortfolioTierSelector() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-white">Choose your Strategy</h2>
-          <p className="text-xs text-zinc-500">Select, configure the amount, and activate with 1 click</p>
+          <h2 className="text-lg font-bold text-foreground">Choose your Strategy</h2>
+          <p className="text-xs text-muted-foreground">Select, configure the amount, and activate with 1 click</p>
         </div>
         <MarketRegimeBadge size="sm" />
       </div>

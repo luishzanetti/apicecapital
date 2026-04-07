@@ -37,8 +37,8 @@ export function SmartAlertsList({ maxAlerts = 5, compact = false }: SmartAlertsL
 
   if (visibleAlerts.length === 0) {
     return compact ? null : (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <p className="text-xs text-zinc-500 text-center">No alerts right now</p>
+      <div className="glass-card rounded-xl p-4">
+        <p className="text-xs text-muted-foreground text-center">No alerts right now</p>
       </div>
     );
   }
@@ -57,10 +57,10 @@ export function SmartAlertsList({ maxAlerts = 5, compact = false }: SmartAlertsL
     <div className="space-y-2">
       {!compact && (
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-white flex items-center gap-2">
+          <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
             <span>🔔</span> Smart Alerts
           </h3>
-          <span className="text-xs text-zinc-500">{visibleAlerts.length} alert(s)</span>
+          <span className="text-xs text-muted-foreground">{visibleAlerts.length} alert(s)</span>
         </div>
       )}
 
@@ -81,11 +81,11 @@ export function SmartAlertsList({ maxAlerts = 5, compact = false }: SmartAlertsL
                 {ALERT_ICONS[alert.alert_type] || '📌'}
               </span>
               <div className="flex-1 min-w-0">
-                <p className={`text-xs font-medium truncate ${alert.is_read ? 'text-zinc-400' : 'text-white'}`}>
+                <p className={`text-xs font-medium truncate ${alert.is_read ? 'text-muted-foreground' : 'text-foreground'}`}>
                   {alert.title}
                 </p>
                 {!compact && (
-                  <p className="text-xs text-zinc-400 mt-0.5 line-clamp-2">
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                     {alert.message}
                   </p>
                 )}
@@ -94,7 +94,7 @@ export function SmartAlertsList({ maxAlerts = 5, compact = false }: SmartAlertsL
 
             <button
               onClick={(e) => { e.stopPropagation(); dismissAlert(alert.id); }}
-              className="text-zinc-600 hover:text-zinc-400 text-xs flex-shrink-0"
+              className="text-muted-foreground/60 hover:text-muted-foreground text-xs flex-shrink-0"
             >
               ✕
             </button>
@@ -109,7 +109,7 @@ export function SmartAlertsList({ maxAlerts = 5, compact = false }: SmartAlertsL
             </button>
           )}
 
-          <p className="text-[10px] text-zinc-600 mt-1">
+          <p className="text-[10px] text-muted-foreground/60 mt-1">
             {new Date(alert.created_at).toLocaleDateString('en-US', {
               day: '2-digit',
               month: 'short',

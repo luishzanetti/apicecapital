@@ -464,7 +464,7 @@ export function formatUsd(
     maximumFractionDigits?: number;
   }
 ): string {
-  return new Intl.NumberFormat(language === 'pt' ? 'pt-BR' : 'en-US', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: options?.minimumFractionDigits ?? 0,

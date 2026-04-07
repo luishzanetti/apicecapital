@@ -125,7 +125,7 @@ export function GamificationWidget() {
 
   return (
     <div className="space-y-3">
-      <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-card p-5 apice-shadow-card">
+      <div className="relative overflow-hidden rounded-3xl glass-card p-5 apice-shadow-card">
         <div className="pointer-events-none absolute top-0 right-0 -mr-10 -mt-10 h-36 w-36 rounded-full bg-primary/5 blur-3xl" />
         <div className="pointer-events-none absolute bottom-0 left-0 -ml-10 -mb-10 h-28 w-28 rounded-full bg-purple-500/5 blur-3xl" />
 
@@ -181,7 +181,7 @@ export function GamificationWidget() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-3xl border border-border/40 bg-card p-4">
+        <div className="rounded-3xl glass-card p-4">
           <h4 className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             <Trophy className="h-3 w-3" />
             {copy.achievements}
@@ -192,7 +192,7 @@ export function GamificationWidget() {
                 <div
                   key={index}
                   title={badge.title}
-                  className="flex h-10 w-10 cursor-default items-center justify-center rounded-xl border border-border/40 bg-secondary/50 text-xl shadow-sm transition-transform hover:scale-110"
+                  className="flex h-10 w-10 cursor-default items-center justify-center rounded-xl glass-light text-xl shadow-sm transition-transform hover:scale-110"
                 >
                   {badge.icon}
                 </div>
@@ -211,7 +211,7 @@ export function GamificationWidget() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-border/40 bg-card p-4">
+        <div className="rounded-3xl glass-card p-4">
           <h4 className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             <Crown className="h-3 w-3" />
             {copy.plan}

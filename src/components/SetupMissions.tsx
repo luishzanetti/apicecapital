@@ -124,12 +124,12 @@ export default function SetupMissions() {
                         className={cn(
                             'rounded-2xl border overflow-hidden transition-all',
                             isComplete
-                                ? 'border-green-500/20 bg-green-500/5'
+                                ? 'glass-light border-glow-success'
                                 : isActive && unlocked
-                                    ? 'border-primary/30'
+                                    ? 'glass-card border-primary/30'
                                     : !unlocked
                                         ? 'border-border/30 opacity-60'
-                                        : 'border-border/50'
+                                        : 'glass-light'
                         )}
                         style={
                             isActive && unlocked && !isComplete

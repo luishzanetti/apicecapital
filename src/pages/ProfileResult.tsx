@@ -52,7 +52,7 @@ export default function ProfileResult() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="w-20 h-20 mx-auto mb-6 rounded-2xl apice-gradient-primary flex items-center justify-center shadow-lg"
+            className="w-20 h-20 mx-auto mb-6 rounded-2xl apice-gradient-primary flex items-center justify-center shadow-lg animate-glow-pulse glow-primary"
           >
             <Target className="w-10 h-10 text-white" />
           </motion.div>
@@ -67,10 +67,10 @@ export default function ProfileResult() {
 
         {/* Profile Card */}
         {description && (
-          <Card className="bg-card border-border">
+          <Card className="glass-card">
             <CardContent className="pt-5 space-y-4">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-apice-success/10 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg glass-light flex items-center justify-center shrink-0">
                   <Check className="w-4 h-4 text-apice-success" />
                 </div>
                 <div>
@@ -80,7 +80,7 @@ export default function ProfileResult() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg glass-light flex items-center justify-center shrink-0">
                   <Shield className="w-4 h-4 text-destructive" />
                 </div>
                 <div>
@@ -90,7 +90,7 @@ export default function ProfileResult() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg glass-light flex items-center justify-center shrink-0">
                   <Zap className="w-4 h-4 text-primary" />
                 </div>
                 <div>
@@ -103,7 +103,7 @@ export default function ProfileResult() {
         )}
 
         {/* Recommended Setup Path */}
-        <Card className="border-primary/20 bg-primary/5">
+        <Card className="glass-card border-glow-blue">
           <CardContent className="pt-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold flex items-center gap-2">
@@ -152,7 +152,7 @@ export default function ProfileResult() {
         </Card>
 
         {/* Trust Message */}
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50">
+        <div className="flex items-center gap-3 p-4 rounded-xl glass-light">
           <Shield className="w-5 h-5 text-muted-foreground shrink-0" />
           <p className="text-xs text-muted-foreground">
             Your funds remain under your control at all times. You can stop or adjust settings whenever you want.

@@ -77,7 +77,7 @@ export default function Welcome() {
               transition={{ delay: 0.2 + i * 0.1, duration: 0.4 }}
               className="flex items-start gap-4"
             >
-              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl glass-light flex items-center justify-center shrink-0">
                 <feature.icon className="w-5 h-5 text-primary" />
               </div>
               <div>

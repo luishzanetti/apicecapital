@@ -298,7 +298,7 @@ export default function Auth() {
               <motion.div whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}>
                 <Button
                   disabled={loading}
-                  className="w-full h-12 rounded-2xl apice-gradient-primary text-white font-semibold text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 group"
+                  className="w-full h-12 rounded-2xl apice-gradient-primary text-white font-semibold text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover-lift transition-all duration-300 group"
                 >
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

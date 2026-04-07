@@ -32,9 +32,7 @@ export function MarketRegimeBadge({
   const { regime, regimeIcon } = useMarketIntelligence();
 
   if (!regime) {
-    return (
-      <div className="animate-pulse bg-zinc-800 rounded-lg h-8 w-24" />
-    );
+    return null;
   }
 
   const sizeClasses = {

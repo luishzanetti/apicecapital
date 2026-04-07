@@ -38,7 +38,7 @@ export function UpgradeRecommendation() {
   return (
     <button
       onClick={() => navigate('/portfolio')}
-      className="w-full text-left bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-xl p-4 hover:border-amber-500/40 transition-all active:scale-[0.99]"
+      className="w-full text-left glass-card border-glow-gold rounded-xl p-4 hover-lift press-scale transition-all"
     >
       <div className="flex items-start gap-3">
         <span className="text-2xl">{targetTier.emoji}</span>
@@ -46,10 +46,10 @@ export function UpgradeRecommendation() {
           <div className="flex items-center gap-2">
             <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">Upgrade Disponível</p>
           </div>
-          <h3 className="text-sm font-bold text-white mt-1">
+          <h3 className="text-sm font-bold text-foreground mt-1">
             Evolua para {targetTier.name}
           </h3>
-          <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
             {message}
           </p>
           <p className="text-xs text-primary font-semibold mt-2">

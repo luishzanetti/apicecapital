@@ -23,9 +23,11 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
-import { MarketRegimeBadge, DailyBriefingCard, SmartAlertsList, SmartDCACard, BehavioralScoreCard, RebalanceAlertCard, WarChestCard, UpgradeRecommendation } from '@/components/intelligence';
-import { useMarketIntelligence } from '@/hooks/useMarketIntelligence';
-import { PortfolioTierSelector } from '@/components/portfolio/PortfolioTierSelector';
+// Intelligence widgets commented out — the market-intelligence Edge Function and DB tables
+// are not deployed yet. Re-enable when the intelligence system is live.
+// import { MarketRegimeBadge, DailyBriefingCard, SmartAlertsList, SmartDCACard, BehavioralScoreCard, RebalanceAlertCard, WarChestCard, UpgradeRecommendation } from '@/components/intelligence';
+// import { useMarketIntelligence } from '@/hooks/useMarketIntelligence';
+// import { PortfolioTierSelector } from '@/components/portfolio/PortfolioTierSelector';
 
 function getCurrentWeekId(): string {
   const now = new Date();
@@ -145,38 +147,8 @@ const WIDGET_DEFINITIONS: WidgetDef[] = [
     usageUnlockKey: 'hasMinimumActivity',
     premiumRequired: null,
   },
-  {
-    id: 'intelligence',
-    label: 'widgets.intelligence',
-    icon: '🧠',
-    description: 'widgets.marketRegimeAlerts',
-    lockType: null,
-    premiumRequired: null,
-  },
-  {
-    id: 'war-chest',
-    label: 'widgets.warChest',
-    icon: '🛡️',
-    description: 'widgets.capitalDeGuerra',
-    lockType: null,
-    premiumRequired: null,
-  },
-  {
-    id: 'smart-dca',
-    label: 'widgets.smartDCA',
-    icon: '🎯',
-    description: 'widgets.dynamicDCAStrategy',
-    lockType: null,
-    premiumRequired: null,
-  },
-  {
-    id: 'behavioral-score',
-    label: 'widgets.behavioralScore',
-    icon: '📊',
-    description: 'widgets.investorEvolution',
-    lockType: null,
-    premiumRequired: null,
-  },
+  // Intelligence widgets removed — depends on market-intelligence Edge Function + DB tables not yet deployed.
+  // Re-add 'intelligence', 'war-chest', 'smart-dca', 'behavioral-score' when the system is live.
   {
     id: 'ai-score',
     label: 'widgets.aiPortfolioScore',
@@ -497,38 +469,12 @@ export default function Home() {
         // DCA is now rendered separately below the widget grid
         return null;
 
+      // Intelligence widgets disabled — market-intelligence Edge Function + DB tables not deployed yet.
       case 'intelligence':
-        return (
-          <motion.div key="intelligence" className="md:col-span-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-            <div className="space-y-3">
-              <DailyBriefingCard />
-              <UpgradeRecommendation />
-              <SmartAlertsList maxAlerts={3} compact />
-              <RebalanceAlertCard />
-            </div>
-          </motion.div>
-        );
-
       case 'war-chest':
-        return (
-          <motion.div key="war-chest" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-            <WarChestCard />
-          </motion.div>
-        );
-
       case 'smart-dca':
-        return (
-          <motion.div key="smart-dca" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-            <SmartDCACard />
-          </motion.div>
-        );
-
       case 'behavioral-score':
-        return (
-          <motion.div key="behavioral-score" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
-            <BehavioralScoreCard />
-          </motion.div>
-        );
+        return null;
 
       case 'ai-score':
         return (
@@ -685,10 +631,7 @@ export default function Home() {
           <div>
             <p className="text-xs text-muted-foreground">{t(getTimeGreetingKey())}, {investorType || t('common.investor')}!</p>
             <h1 className="text-xl font-bold">{t('home.yourDashboard')}</h1>
-            <div className="mt-1 flex items-center gap-2">
-              <p className="text-[11px] capitalize text-muted-foreground/80">{todayDate}</p>
-              <MarketRegimeBadge size="sm" />
-            </div>
+            <p className="mt-1 text-[11px] capitalize text-muted-foreground/80">{todayDate}</p>
           </div>
           <button
             onClick={() => setShowCustomizer(true)}

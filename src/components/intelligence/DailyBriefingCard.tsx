@@ -12,12 +12,12 @@ export function DailyBriefingCard() {
 
   if (isLoading && !briefing) {
     return (
-      <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 border border-zinc-700 rounded-xl p-5 animate-pulse">
-        <div className="h-5 bg-zinc-700 rounded w-48 mb-3" />
+      <div className="glass-card rounded-xl p-5 animate-pulse">
+        <div className="h-5 bg-secondary/40 rounded w-48 mb-3" />
         <div className="space-y-2">
-          <div className="h-4 bg-zinc-700 rounded w-full" />
-          <div className="h-4 bg-zinc-700 rounded w-3/4" />
-          <div className="h-4 bg-zinc-700 rounded w-5/6" />
+          <div className="h-4 bg-secondary/40 rounded w-full" />
+          <div className="h-4 bg-secondary/40 rounded w-3/4" />
+          <div className="h-4 bg-secondary/40 rounded w-5/6" />
         </div>
       </div>
     );
@@ -26,7 +26,7 @@ export function DailyBriefingCard() {
   if (!briefing) return null;
 
   return (
-    <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 border border-zinc-700 rounded-xl p-5 space-y-3">
+    <div className="glass-card rounded-xl p-5 space-y-3">
       {/* Header */}
       <div className="flex items-center gap-2">
         <span className="text-xl">📋</span>
@@ -35,7 +35,7 @@ export function DailyBriefingCard() {
 
       {/* Summary */}
       {briefing.summary && (
-        <p className="text-sm text-zinc-200 font-medium">
+        <p className="text-sm text-foreground font-medium">
           {briefing.summary}
         </p>
       )}
@@ -45,26 +45,26 @@ export function DailyBriefingCard() {
         {briefing.market && (
           <div className="flex items-start gap-2">
             <span className="text-xs mt-0.5">📊</span>
-            <p className="text-xs text-zinc-300">{briefing.market}</p>
+            <p className="text-xs text-foreground/80">{briefing.market}</p>
           </div>
         )}
 
         {briefing.portfolio && (
           <div className="flex items-start gap-2">
             <span className="text-xs mt-0.5">💼</span>
-            <p className="text-xs text-zinc-300">{briefing.portfolio}</p>
+            <p className="text-xs text-foreground/80">{briefing.portfolio}</p>
           </div>
         )}
 
         {briefing.next_action && (
           <div className="flex items-start gap-2">
             <span className="text-xs mt-0.5">✅</span>
-            <p className="text-xs text-zinc-300">{briefing.next_action}</p>
+            <p className="text-xs text-foreground/80">{briefing.next_action}</p>
           </div>
         )}
 
         {briefing.tip && (
-          <div className="flex items-start gap-2 bg-zinc-800/50 rounded-lg p-2 mt-2">
+          <div className="flex items-start gap-2 glass-light rounded-lg p-2 mt-2">
             <span className="text-xs mt-0.5">💡</span>
             <p className="text-xs text-amber-300/90">{briefing.tip}</p>
           </div>
@@ -75,7 +75,7 @@ export function DailyBriefingCard() {
       {briefing.next_action && (
         <button
           onClick={() => navigate('/dca-planner')}
-          className="w-full py-2.5 rounded-lg text-xs font-semibold transition-all bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 active:scale-[0.98]"
+          className="w-full py-2.5 rounded-lg text-xs font-semibold transition-all glass-light text-primary border-primary/20 hover:bg-primary/15 press-scale"
         >
           {briefing.next_action}
         </button>
@@ -83,7 +83,7 @@ export function DailyBriefingCard() {
 
       {/* Motivation */}
       {briefing.motivation && (
-        <p className="text-xs text-zinc-500 italic text-center pt-1 border-t border-zinc-700/50">
+        <p className="text-xs text-muted-foreground italic text-center pt-1 border-t border-border/30">
           {briefing.motivation}
         </p>
       )}
