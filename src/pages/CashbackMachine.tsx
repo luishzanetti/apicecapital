@@ -42,12 +42,12 @@ const subscriptions = [
   { name: 'ChatGPT', icon: '🤖', price: '$20/mo' },
   { name: 'Amazon Prime', icon: '📦', price: '$14.99/mo' },
   { name: 'TradingView', icon: '📊', price: '$14.95/mo' },
-  { name: 'YouTube Premium', icon: '▶️', price: '$13.99/mo' },
+  { name: 'Disney+', icon: '🏰', price: '$13.99/mo' },
 ];
 
 const milestones = [
-  { amount: 500, label: 'First $500', reward: 'Unlock 3% tier', icon: Target },
-  { amount: 2000, label: '$2,000 spent', reward: 'Unlock 5% tier', icon: TrendingUp },
+  { amount: 500, label: 'First $500', reward: 'Start at 2%', icon: Target },
+  { amount: 2000, label: '$2,000 spent', reward: 'Unlock 4% tier', icon: TrendingUp },
   { amount: 5000, label: '$5,000 spent', reward: 'Unlock 7% tier', icon: Star },
   { amount: 10000, label: '$10,000 spent', reward: 'Unlock 10% max tier', icon: Zap },
 ];
@@ -297,7 +297,7 @@ export default function CashbackMachine() {
                 step: 2,
                 title: 'Deposit $500',
                 description: 'Fund your account to activate the card and start earning immediately.',
-                detail: 'Your $500 deposit stays in YOUR account — it\'s not a fee. Use it for trading, DCA, or just hold it. The deposit unlocks the physical card and the 3% cashback tier.',
+                detail: 'Your $500 deposit stays in YOUR account — it\'s not a fee. Use it for trading, DCA, or just hold it. The deposit activates the physical card and the 2% cashback tier. Spend more to unlock higher tiers up to 10%.',
                 icon: DollarSign,
                 action: null,
               },
