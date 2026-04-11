@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { invokeEdgeFunction } from '@/lib/supabaseFunction';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 
@@ -444,6 +444,78 @@ export function useLeveragedTrading() {
       setIsLoading(false);
     }
   }, [fetchStrategies, fetchPositions, fetchRisk, fetchSignals, fetchPerformance]);
+
+  // ─── Supabase Realtime Subscriptions ────────────────────
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    const channel = supabase.channel('altis-realtime')
+      // Live position updates (mark_price, unrealized_pnl from price-updater)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'leveraged_positions',
+      }, (payload) => {
+        const updated = payload.new as any;
+        setPositions(prev => prev.map(p =>
+          p.id === updated.id ? {
+            ...p,
+            markPrice: updated.mark_price ?? p.markPrice,
+            unrealizedPnl: updated.unrealized_pnl ?? p.unrealizedPnl,
+            status: updated.status ?? p.status,
+          } : p
+        ));
+      })
+      // New positions opened by auto-executor
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'leveraged_positions',
+      }, () => {
+        fetchPositions(); // Full refresh on new position
+      })
+      // New signals from strategy-orchestrator
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'trading_signals',
+      }, (payload) => {
+        const sig = payload.new as any;
+        setSignals(prev => [{
+          id: sig.id,
+          strategyType: sig.strategy_type,
+          symbol: sig.symbol,
+          direction: sig.direction,
+          conviction: sig.conviction,
+          rationale: sig.rationale || '',
+          riskApproved: sig.risk_approved,
+          wasExecuted: sig.was_executed,
+          createdAt: sig.created_at,
+        }, ...prev].slice(0, 50)); // Keep last 50
+      })
+      // Risk events (circuit breaker, liquidation)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'risk_events',
+      }, (payload) => {
+        const event = payload.new as any;
+        if (event.event_type === 'circuit_breaker_tripped') {
+          setRisk(prev => ({
+            ...prev,
+            circuitBreaker: { isTripped: true, dailyPnlPct: event.daily_pnl_pct || -0.05 },
+          }));
+        }
+        // Refresh risk data
+        fetchRisk();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchPositions, fetchRisk]);
 
   // ─── Actions ────────────────────────────────────────────
 

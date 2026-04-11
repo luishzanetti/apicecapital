@@ -56,6 +56,9 @@ async function autoExecuteSignals(
   for (const signal of approved) {
     if (signal.direction === 'neutral') continue;
 
+    // Grid signals need limit orders (place-grid), not market orders — skip for auto-execute
+    if (signal.strategyType === 'grid') continue;
+
     try {
       // Idempotency: skip if position already exists for this user+symbol+direction
       const { data: existing } = await supabaseAdmin
@@ -102,8 +105,7 @@ async function autoExecuteSignals(
       const orderParams: Record<string, any> = {
         category: 'linear', symbol: signal.symbol, side, orderType: 'Market', qty,
       };
-      if (signal.takeProfit) orderParams.takeProfit = String(signal.takeProfit);
-      if (signal.stopLoss) orderParams.stopLoss = String(signal.stopLoss);
+      // TP/SL set after position opens — not with market order to avoid validation errors
 
       const orderResult = await bybitPost(creds.apiKey, creds.apiSecret, creds.testnet,
         '/v5/order/create', orderParams);
@@ -239,10 +241,11 @@ function generateTrendSignals(
     const rsi = data.rsi_14;
     const fundingRate = data.funding_rate || 0;
 
-    if (!sma7 || !sma30 || !rsi) continue;
+    // When SMA data is unavailable, use regime-based signals
+    const hasSMA = sma7 && sma30 && rsi;
 
     // Golden Cross: short SMA > long SMA + RSI confirms
-    if (sma7 > sma30 * 1.02 && rsi > 50 && regime === 'BULL') {
+    if (hasSMA && sma7 > sma30 * 1.02 && rsi > 50 && regime === 'BULL') {
       const isCrowded = fundingRate > 0.05; // Too many longs
       if (!isCrowded) {
         signals.push({
@@ -258,8 +261,30 @@ function generateTrendSignals(
       }
     }
 
+    // Regime-based signal when no SMA data available
+    if (!hasSMA && regime === 'BEAR') {
+      signals.push({
+        strategyType: 'trend_following', symbol, direction: 'short',
+        conviction: 65, suggestedLeverage: 2,
+        suggestedSizeUsd: symbol === 'BTCUSDT' ? 70 : 25, // min BTC=0.001≈$68, ETH=0.01≈$21
+        takeProfit: price * 0.95, stopLoss: price * 1.03,
+        rationale: `BEAR regime detected — short position (no SMA data, regime-based)`,
+        indicators: { regime, fundingRate, price },
+      });
+    }
+    if (!hasSMA && regime === 'BULL' && symbol === 'BTCUSDT') {
+      signals.push({
+        strategyType: 'trend_following', symbol, direction: 'long',
+        conviction: 65, suggestedLeverage: 2,
+        suggestedSizeUsd: Math.min(allocatedCapital * 0.15, 100),
+        takeProfit: price * 1.05, stopLoss: price * 0.97,
+        rationale: `BULL regime detected — long position (no SMA data, regime-based)`,
+        indicators: { regime, fundingRate, price },
+      });
+    }
+
     // Death Cross: short SMA < long SMA + RSI confirms
-    if (sma7 < sma30 * 0.98 && rsi < 50 && (regime === 'BEAR' || regime === 'HIGH_VOLATILITY')) {
+    if (hasSMA && sma7 < sma30 * 0.98 && rsi < 50 && (regime === 'BEAR' || regime === 'HIGH_VOLATILITY')) {
       const isCrowded = fundingRate < -0.03; // Too many shorts
       if (!isCrowded) {
         signals.push({

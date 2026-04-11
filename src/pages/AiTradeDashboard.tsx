@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLeveragedTrading } from '@/hooks/useLeveragedTrading';
 import { ALTIS_STRATEGIES } from '@/constants/strategies';
+import { CandlestickChart } from '@/components/altis/CandlestickChart';
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, YAxis, Tooltip } from 'recharts';
 
@@ -327,6 +328,18 @@ export default function AiTradeDashboard() {
       {/* ═══ OVERVIEW ═══ */}
       {tab === 'overview' && (
         <motion.div className="space-y-3" initial="hidden" animate="visible" custom={2} variants={fadeUp}>
+
+          {/* ═══ CANDLESTICK CHART ═══ */}
+          <CandlestickChart
+            symbol={positions.length > 0 ? positions[0].symbol : 'BTCUSDT'}
+            height={280}
+            positions={positions.map(p => ({
+              side: p.side,
+              entryPrice: p.entryPrice,
+              takeProfitPrice: p.takeProfitPrice,
+              stopLossPrice: p.stopLossPrice,
+            }))}
+          />
 
           {/* ═══ MARKET ANALYSIS ═══ */}
           <div className="glass-card rounded-xl p-4 space-y-3">

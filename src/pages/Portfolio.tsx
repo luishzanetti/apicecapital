@@ -27,8 +27,9 @@ import {
   DollarSign, ChevronRight, Edit3, Check,
   Wallet, PieChart, Lock, Key,
   ArrowRight, Target, Sparkles,
-  Brain, Rocket, Plus, Trash2, X
+  Brain, Rocket, Plus, Trash2, X, Info
 } from 'lucide-react';
+import { usePortfolioAnalytics } from '@/hooks/usePortfolioAnalytics';
 import { cn } from '@/lib/utils';
 
 export default function Portfolio() {
@@ -146,6 +147,7 @@ export default function Portfolio() {
   };
 
   const customAllocTotal = customAllocations.reduce((s, a) => s + a.percentage, 0);
+  const analytics = usePortfolioAnalytics();
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -201,6 +203,19 @@ export default function Portfolio() {
       </div>
 
       <div className="px-5 space-y-4 mt-4">
+        {!analytics?.isConnected && (
+          <div className="mb-4 rounded-xl bg-blue-500/10 border border-blue-500/20 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Info className="w-4 h-4 text-blue-400 shrink-0" />
+              <p className="text-xs text-blue-300">
+                Showing simulated data. Connect Bybit to see your real portfolio.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate('/settings')} className="shrink-0 text-xs">
+              Connect
+            </Button>
+          </div>
+        )}
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
             <motion.div
@@ -361,7 +376,7 @@ export default function Portfolio() {
                   <AllocationEngine
                     weeklyAmount={weeklyInvestment}
                     onAccept={handleAcceptAllocation}
-                    onCustomize={() => navigate('/portfolio/builder')}
+                    onCustomize={() => navigate('/portfolio')}
                   />
                 </motion.div>
               )}
@@ -599,7 +614,7 @@ export default function Portfolio() {
 
               <Card
                 className="border-dashed border-primary/30 cursor-pointer hover:border-primary/50 transition-colors active:scale-[0.98]"
-                onClick={() => navigate('/portfolio/builder')}
+                onClick={() => navigate('/portfolio')}
               >
                 <CardContent className="pt-4 pb-4 text-center">
                   <Target className="w-6 h-6 text-primary mx-auto mb-2" />

@@ -1,15 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+
 import { Badge } from '@/components/ui/badge';
 import { useAppStore } from '@/store/appStore';
 import {
     Bitcoin,
     TrendingUp,
-    Calendar,
+
     CreditCard,
     Settings,
     ChevronLeft,
@@ -155,33 +155,6 @@ function GatedSection({
     );
 }
 
-// Coming soon overlay for features not yet connected
-function ComingSoonOverlay({
-    children,
-    featureLabel,
-}: {
-    children: React.ReactNode;
-    featureLabel: string;
-}) {
-    return (
-        <div className="relative">
-            <div className="filter blur-[2px] pointer-events-none select-none opacity-50">
-                {children}
-            </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-[1px] rounded-2xl">
-                <div className="text-center space-y-2 p-4">
-                    <Badge variant="outline" className="gap-1.5 text-xs">
-                        <Sparkles className="w-3 h-3" />
-                        Coming Soon
-                    </Badge>
-                    <p className="text-xs text-muted-foreground mt-2">
-                        {featureLabel}
-                    </p>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 // Empty state component
 function EmptyState({ message, icon: Icon }: { message: string; icon: React.ElementType }) {
@@ -200,12 +173,7 @@ export default function CashbackDashboard() {
     const subscription = useAppStore((s) => s.subscription);
     const tier: Tier = subscription.tier;
 
-    const { summary, transactions, challenge, optimizations, isLoading } = useEstimatedCashbackData();
-
-    const progressPercentage = useMemo(
-        () => challenge.targetUsd > 0 ? (challenge.currentUsd / challenge.targetUsd) * 100 : 0,
-        [challenge]
-    );
+    const { summary, transactions, optimizations, isLoading } = useEstimatedCashbackData();
 
     const handleUpgrade = () => navigate('/settings');
 
@@ -296,35 +264,25 @@ export default function CashbackDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                 >
-                    <ComingSoonOverlay featureLabel="30-Day Cashback Challenge will be available when Bybit cashback API launches">
-                        <Card className="border-primary/20 bg-primary/5">
-                            <CardHeader className="pb-3">
-                                <div className="flex justify-between items-center">
-                                    <CardTitle className="text-base font-bold flex items-center gap-2">
-                                        <Target className="w-5 h-5 text-primary" />
-                                        30-Day Challenge
-                                    </CardTitle>
-                                    <Badge variant="outline" className="gap-1">
-                                        <Calendar className="w-3 h-3" />
-                                        {challenge.daysRemaining} days remaining
-                                    </Badge>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="flex justify-between items-baseline">
-                                    <span className="text-sm text-muted-foreground">Progress</span>
-                                    <span className="text-2xl font-bold">
-                                        ${challenge.currentUsd.toFixed(0)}
-                                        <span className="text-sm text-muted-foreground font-normal">/${challenge.targetUsd}</span>
-                                    </span>
-                                </div>
-                                <Progress value={progressPercentage} className="h-3" />
-                                <p className="text-xs text-muted-foreground text-center">
-                                    ${(challenge.targetUsd - challenge.currentUsd).toFixed(0)} remaining to complete the challenge
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </ComingSoonOverlay>
+                    <Card className="border-primary/20 bg-primary/5 opacity-75">
+                        <CardHeader className="pb-3">
+                            <div className="flex justify-between items-center">
+                                <CardTitle className="text-base font-bold flex items-center gap-2">
+                                    <Target className="w-5 h-5 text-primary" />
+                                    30-Day Challenge
+                                </CardTitle>
+                                <Badge variant="outline" className="gap-1 text-xs text-amber-400 border-amber-500/30">
+                                    <Sparkles className="w-3 h-3" />
+                                    Coming Q2 2026
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-xs text-muted-foreground">
+                                Challenge your cashback earnings with 30-day goals. Available when Bybit cashback API launches.
+                            </p>
+                        </CardContent>
+                    </Card>
                 </motion.div>
 
                 {/* Accumulation Projection - Free tier sees basic, Pro sees full */}
@@ -471,42 +429,23 @@ export default function CashbackDashboard() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                 >
-                    <ComingSoonOverlay featureLabel="Subscription cashback partners launching soon">
-                        <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
-                            <CardHeader className="pb-3">
+                    <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20 opacity-75">
+                        <CardHeader className="pb-3">
+                            <div className="flex justify-between items-start">
                                 <CardTitle className="text-base font-bold flex items-center gap-2">
                                     <Sparkles className="w-5 h-5 text-green-500" />
                                     100% Cashback Subscriptions
                                 </CardTitle>
-                                <p className="text-xs text-muted-foreground">
-                                    Get 100% back in Bitcoin on your favorite subscriptions
-                                </p>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {[
-                                        { name: 'Netflix', logo: '🎬', cashback: '100%' },
-                                        { name: 'Spotify', logo: '🎵', cashback: '100%' },
-                                        { name: 'Amazon Prime', logo: '📦', cashback: '100%' },
-                                        { name: 'Disney+', logo: '🏰', cashback: '100%' },
-                                    ].map((partner) => (
-                                        <Card key={partner.name} className="border-dashed">
-                                            <CardContent className="p-4 text-center space-y-2">
-                                                <div className="text-3xl">{partner.logo}</div>
-                                                <div>
-                                                    <p className="font-semibold text-xs">{partner.name}</p>
-                                                    <p className="text-[11px] text-green-500 font-bold">{partner.cashback}</p>
-                                                </div>
-                                                <Button size="sm" variant="outline" className="w-full h-7 text-[11px]" disabled>
-                                                    Coming Soon
-                                                </Button>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </ComingSoonOverlay>
+                                <Badge variant="outline" className="gap-1 text-xs text-amber-400 border-amber-500/30 shrink-0">
+                                    <Sparkles className="w-3 h-3" />
+                                    Coming Q2 2026
+                                </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Get 100% back in Bitcoin on Netflix, Spotify, and more.
+                            </p>
+                        </CardHeader>
+                    </Card>
                 </motion.div>
 
                 {/* CTA - Apply for Card */}

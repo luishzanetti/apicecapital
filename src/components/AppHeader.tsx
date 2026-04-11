@@ -179,6 +179,18 @@ export function AppHeader() {
             <CommandItem onSelect={() => { navigate('/settings'); setOpen(false); }}>
               {copy.settings}
             </CommandItem>
+            <CommandItem onSelect={() => { navigate('/automations'); setOpen(false); }}>
+              Automations
+            </CommandItem>
+            <CommandItem onSelect={() => { navigate('/ai-trade'); setOpen(false); }}>
+              ALTIS AI Trade
+            </CommandItem>
+            <CommandItem onSelect={() => { navigate('/referrals'); setOpen(false); }}>
+              Referrals
+            </CommandItem>
+            <CommandItem onSelect={() => { navigate('/cashback-dashboard'); setOpen(false); }}>
+              Cashback Dashboard
+            </CommandItem>
           </CommandGroup>
           <CommandGroup heading={copy.quickHeading}>
             <CommandItem onSelect={() => { navigate('/dca-planner'); setOpen(false); }}>
@@ -189,6 +201,9 @@ export function AppHeader() {
             </CommandItem>
             <CommandItem onSelect={() => { navigate('/upgrade'); setOpen(false); }}>
               {copy.upgrade}
+            </CommandItem>
+            <CommandItem onSelect={() => { navigate('/support'); setOpen(false); }}>
+              Support
             </CommandItem>
           </CommandGroup>
         </CommandList>

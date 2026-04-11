@@ -661,7 +661,7 @@ export default function Strategies() {
                         variant="premium"
                         size="sm"
                         className="w-full"
-                        onClick={() => navigate('/strategies/copy')}
+                        onClick={() => navigate('/portfolio')}
                       >
                         Copy This Portfolio
                         <ArrowRight className="w-3 h-3 ml-1" />

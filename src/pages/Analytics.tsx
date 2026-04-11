@@ -9,8 +9,9 @@ import {
   ArrowLeft, TrendingUp, TrendingDown, DollarSign, Activity,
   Wallet, PieChart as PieIcon, BarChart3, Calendar, Clock,
   ArrowUpRight, ArrowDownRight, Zap, Target, ChevronRight,
-  Layers, LineChart, ArrowRight,
+  Layers, LineChart, ArrowRight, Info,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 type TabId = 'overview' | 'operations' | 'investments' | 'performance';
@@ -155,6 +156,20 @@ export default function Analytics() {
       )}
 
       <div className="px-6 space-y-5 mt-2" style={{ display: analytics.isLoading ? 'none' : undefined }}>
+        {/* Simulated data banner */}
+        {!analytics.isConnected && dcaPlans.length > 0 && (
+          <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Info className="w-4 h-4 text-amber-400 shrink-0" />
+              <p className="text-xs text-amber-300">
+                Portfolio data is simulated — connect Bybit for real analytics.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate('/settings')} className="shrink-0 text-xs">
+              Connect
+            </Button>
+          </div>
+        )}
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
             <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5">
