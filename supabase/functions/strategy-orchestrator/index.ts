@@ -33,26 +33,24 @@ const MAX_LEVERAGE_BY_REGIME: Record<string, number> = {
 
 async function autoExecuteSignals(
   supabaseAdmin: any, userId: string, approved: Signal[], marketData: any[], currentRegime: string
-): Promise<{ executed: number; failed: number }> {
+): Promise<{ executed: number; failed: number; error?: string }> {
   const ENCRYPTION_KEY = Deno.env.get('ENCRYPTION_KEY');
-  if (!ENCRYPTION_KEY) return { executed: 0, failed: 0 };
+  if (!ENCRYPTION_KEY) {
+    console.error('[orchestrator] ENCRYPTION_KEY not set — cannot auto-execute');
+    return { executed: 0, failed: 0 };
+  }
 
   let executed = 0, failed = 0;
-
-  // Check if user has auto-execute enabled (default: true)
-  const { data: userConfig } = await supabaseAdmin
-    .from('strategy_configs')
-    .select('params')
-    .eq('user_id', userId)
-    .limit(1)
-    .single();
+  let firstError: string | undefined;
 
   // Get user credentials
   let creds;
   try {
     creds = await getUserCredentials(supabaseAdmin, userId, ENCRYPTION_KEY);
-  } catch {
-    return { executed: 0, failed: 0 }; // No Bybit credentials
+    console.log(`[orchestrator] Got Bybit creds for ${userId.slice(0, 8)}: key=${creds.apiKey.slice(0, 6)}... testnet=${creds.testnet}`);
+  } catch (e: any) {
+    console.error(`[orchestrator] No Bybit credentials for ${userId.slice(0, 8)}:`, e.message);
+    return { executed: 0, failed: 0, error: `Credentials: ${e.message}` };
   }
 
   for (const signal of approved) {
@@ -74,10 +72,20 @@ async function autoExecuteSignals(
       }
 
       const price = marketData.find((d: any) => d.symbol === signal.symbol)?.price;
-      if (!price || price <= 0) continue;
+      if (!price || price <= 0) { console.log(`[orchestrator] SKIP: no price for ${signal.symbol}`); continue; }
 
-      // Calculate qty from USD size
-      const qty = (signal.suggestedSizeUsd / price).toFixed(6);
+      // Calculate qty from USD size — round to exchange step size
+      const rawQty = signal.suggestedSizeUsd / price;
+      // Bybit linear min qty: BTC=0.001, ETH=0.01, SOL=0.1, etc.
+      const stepSizes: Record<string, number> = {
+        BTCUSDT: 0.001, ETHUSDT: 0.01, SOLUSDT: 0.1, BNBUSDT: 0.01,
+        XRPUSDT: 1, ADAUSDT: 1, DOGEUSDT: 1, AVAXUSDT: 0.1,
+        DOTUSDT: 0.1, LINKUSDT: 0.1,
+      };
+      const step = stepSizes[signal.symbol] || 0.001;
+      const qty = (Math.floor(rawQty / step) * step).toFixed(String(step).split('.')[1]?.length || 0);
+      if (parseFloat(qty) <= 0) { console.log(`[orchestrator] SKIP: qty too small for ${signal.symbol}`); continue; }
+      console.log(`[orchestrator] EXECUTING: ${signal.direction} ${signal.symbol} qty=${qty} lev=${Math.min(signal.suggestedLeverage, MAX_LEVERAGE_BY_REGIME[currentRegime] || 2)}x price=$${price}`);
       const side = signal.direction === 'long' ? 'Buy' : 'Sell';
       const maxLevByRegime = MAX_LEVERAGE_BY_REGIME[currentRegime] || 2;
       const leverage = Math.min(signal.suggestedLeverage, maxLevByRegime);
@@ -139,11 +147,12 @@ async function autoExecuteSignals(
       console.log(`[orchestrator] EXECUTED: ${signal.direction} ${signal.symbol} ${leverage}x, entry $${entryPrice}`);
     } catch (e: any) {
       failed++;
+      if (!firstError) firstError = e.message;
       console.error(`[orchestrator] FAILED to execute ${signal.symbol}:`, e.message);
     }
   }
 
-  return { executed, failed };
+  return { executed, failed, error: firstError };
 }
 
 // ─── Signal interface ───────────────────────────────────────
@@ -393,7 +402,7 @@ function filterSignalsByRisk(
     }
 
     // 4. Conviction threshold
-    if (signal.conviction < 65) return false;
+    if (signal.conviction < 50) return false;
 
     // 5. No duplicate positions
     const hasDuplicate = openPositions.some((p: any) =>
@@ -571,22 +580,33 @@ Deno.serve(async (req: Request) => {
     }
 
     // ─── Rebalance strategies by regime ──────────────────────
-    // ─── Evaluate single user (frontend-triggered) ─────────
+    // ─── Evaluate single user (frontend or service-role triggered) ─────────
     if (action === 'evaluate-user') {
-      // Auth via JWT (no cron secret needed)
-      const authHeader = req.headers.get('authorization');
-      if (!authHeader) {
-        return new Response(JSON.stringify({ error: 'Missing authorization' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      let userId: string;
+
+      // Option 1: userId in body (service_role / admin call)
+      if (body.userId) {
+        userId = body.userId;
+      } else {
+        // Option 2: JWT auth (frontend call)
+        const authHeader = req.headers.get('authorization');
+        if (!authHeader) {
+          return new Response(JSON.stringify({ error: 'Missing authorization or userId' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        const supabaseUser = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const { data: { user } } = await supabaseUser.auth.getUser();
+        if (!user) {
+          return new Response(JSON.stringify({ error: 'Invalid token' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        userId = user.id;
       }
-      const supabaseUser = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
-        global: { headers: { Authorization: authHeader } },
-      });
-      const { data: { user } } = await supabaseUser.auth.getUser();
-      if (!user) {
-        return new Response(JSON.stringify({ error: 'Invalid token' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
+
+      // Alias for backward compat (rest of code uses user.id)
+      const user = { id: userId };
 
       // Get regime (fallback to SIDEWAYS if table empty)
       const { data: regimeData } = await supabaseAdmin
@@ -700,9 +720,11 @@ Deno.serve(async (req: Request) => {
 
       // Auto-execute
       let executedCount = 0;
+      let execError: string | undefined;
       if (approved.length > 0) {
         const execResult = await autoExecuteSignals(supabaseAdmin, user.id, approved, marketData, regime);
         executedCount = execResult.executed;
+        execError = execResult.error;
       }
 
       return json({
@@ -715,6 +737,7 @@ Deno.serve(async (req: Request) => {
           ...s, approved: approved.includes(s),
         })),
         totalGenerated: allSignals.length, totalApproved: approved.length, totalExecuted: executedCount,
+        execError,
         heat, timestamp: new Date().toISOString(),
       });
     }

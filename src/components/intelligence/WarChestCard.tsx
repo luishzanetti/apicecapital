@@ -46,7 +46,7 @@ export function WarChestCard() {
       );
       if (data?.data) setStatus(data.data);
     } catch (e) {
-      console.error('Failed to fetch war chest:', e);
+      if (import.meta.env.DEV) console.error('Failed to fetch war chest:', e);
     } finally {
       setIsLoading(false);
     }

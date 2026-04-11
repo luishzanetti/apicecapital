@@ -18,10 +18,12 @@ import { AiPortfolioScore } from '@/components/ai/AiPortfolioScore';
 import { EarnSuggestionCard } from '@/components/intelligence/EarnSuggestionCard';
 import {
   TrendingUp, PieChart, BookOpen, Sparkles, Zap, Award, Settings2,
-  Lock, ArrowRight, Target, Plus, BarChart3, Clock, Flame
+  Lock, ArrowRight, Target, Plus, BarChart3, Clock, Flame, AlertTriangle
 } from 'lucide-react';
+import { isSupabaseConfigured } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // ── Utilities ──────────────────────────────────────────────────────────────────
 
@@ -161,6 +163,16 @@ export default function Home() {
 
       {/* Content wrapper */}
       <div className="relative z-10">
+        {/* ── Demo Mode Banner ───────────────────────────────────────────── */}
+        {!isSupabaseConfigured && (
+          <div className="mx-4 md:mx-6 mt-4 rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3 flex items-center gap-3">
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+            <p className="text-xs text-amber-300">
+              Running in demo mode — connect Supabase for real data.
+            </p>
+          </div>
+        )}
+
         {/* ── Greeting Bar ────────────────────────────────────────────────── */}
         <motion.div
           className="px-5 pt-7 pb-2 flex items-center justify-between"
@@ -199,7 +211,9 @@ export default function Home() {
         {/* ── Full-width Hero: Portfolio Board ──────────────────────────── */}
         <div className="px-4 md:px-6">
           <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp}>
-            <ExecutivePortfolioBoard />
+            <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Portfolio data unavailable</div>}>
+              <ExecutivePortfolioBoard />
+            </ErrorBoundary>
           </motion.div>
         </div>
 
@@ -257,9 +271,11 @@ export default function Home() {
             {/* Market Movers */}
             <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
               <SectionHeader icon={TrendingUp} label="Market Movers" action={{ label: 'View All', onClick: () => navigate('/explosive-list') }} />
-              <div className="rounded-2xl glass-card border border-border/20 overflow-hidden">
-                <TopCoinsList />
-              </div>
+              <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Market data unavailable</div>}>
+                <div className="rounded-2xl glass-card border border-border/20 overflow-hidden">
+                  <TopCoinsList />
+                </div>
+              </ErrorBoundary>
             </motion.div>
 
             {/* AI Insight */}

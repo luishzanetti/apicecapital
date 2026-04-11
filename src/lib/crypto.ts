@@ -7,7 +7,7 @@ const INSECURE_KEY_PATTERNS = [
 
 const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY;
 if (!ENCRYPTION_KEY) {
-    console.warn('[crypto] VITE_ENCRYPTION_KEY not configured — encryption disabled');
+    if (import.meta.env.DEV) console.warn('[crypto] VITE_ENCRYPTION_KEY not configured — encryption disabled');
 }
 
 /**

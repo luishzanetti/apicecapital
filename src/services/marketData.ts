@@ -135,7 +135,7 @@ async function fetchTickersViaEdge(symbols?: string[]): Promise<Record<string, T
         if (error) throw error;
         return (data?.data as Record<string, TickerData>) || {};
     } catch (err) {
-        console.warn('[marketData] Edge Function failed, falling back to direct:', err);
+        if (import.meta.env.DEV) console.warn('[marketData] Edge Function failed, falling back to direct:', err);
         return fetchBybitTickersDirect(symbols || Object.values(BYBIT_SYMBOL_MAP));
     }
 }
@@ -148,7 +148,7 @@ async function fetchSingleTickerViaEdge(symbol: string): Promise<TickerData | nu
         if (error) throw error;
         return (data?.data as TickerData) || null;
     } catch (err) {
-        console.warn('[marketData] Edge Function single ticker failed, falling back:', err);
+        if (import.meta.env.DEV) console.warn('[marketData] Edge Function single ticker failed, falling back:', err);
         return fetchBybitTickerDirect(symbol);
     }
 }
@@ -185,7 +185,7 @@ async function fetchBybitTickersDirect(symbols: string[]): Promise<Record<string
             }
         }
     } catch (err) {
-        console.warn('[marketData] Bybit bulk fetch failed:', err);
+        if (import.meta.env.DEV) console.warn('[marketData] Bybit bulk fetch failed:', err);
         showNetworkErrorToast();
     }
     return results;
@@ -242,7 +242,7 @@ export const getCryptoPrice = async (coinId: string): Promise<CoinData | null> =
 
     const symbol = BYBIT_SYMBOL_MAP[coinId];
     if (!symbol) {
-        console.warn(`[marketData] Unknown coinId: ${coinId}`);
+        if (import.meta.env.DEV) console.warn(`[marketData] Unknown coinId: ${coinId}`);
         return null;
     }
 

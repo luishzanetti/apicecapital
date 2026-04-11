@@ -29,6 +29,7 @@ export default function Upgrade() {
     : null;
 
   const handleUpgrade = (tier: 'free' | 'pro' | 'club') => {
+    trackEvent('upgrade_completed', { tier, previousTier: currentTier });
     setSubscription(tier);
     navigate('/home');
   };

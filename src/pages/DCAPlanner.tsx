@@ -45,6 +45,7 @@ import {
 import { useDCAExecution } from '@/hooks/useDCAExecution';
 import { isSupabaseConfigured } from '@/integrations/supabase/client';
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Recommended DCA plans per investor type
 const RECOMMENDED_PLANS: Record<InvestorType, {
@@ -467,13 +468,17 @@ export default function DCAPlanner() {
         ) : (
           <>
             {/* Summary stats */}
-            <DCASummaryBar />
+            <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">DCA summary unavailable</div>}>
+              <DCASummaryBar />
+            </ErrorBoundary>
 
             {/* Performance + Timeline — side by side on xl */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               <div>
                 <SectionHeader icon={TrendingUp} label="Performance" />
+                <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Performance chart unavailable</div>}>
                 <DCAPerformanceChart />
+              </ErrorBoundary>
               </div>
               <div>
                 <SectionHeader icon={History} label="Recent Executions" />

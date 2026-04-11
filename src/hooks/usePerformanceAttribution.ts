@@ -162,7 +162,7 @@ export function usePerformanceAttribution() {
         totalPnlPct,
       });
     } catch (err) {
-      console.error('[usePerformanceAttribution] Error:', err);
+      if (import.meta.env.DEV) console.error('[usePerformanceAttribution] Error:', err);
     } finally {
       setIsLoading(false);
     }

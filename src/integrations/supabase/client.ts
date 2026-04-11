@@ -6,7 +6,7 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
 
 if (!isSupabaseConfigured) {
-  console.warn('[Supabase] VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY not configured. Running in degraded/demo mode.');
+  if (import.meta.env.DEV) console.warn('[Supabase] VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY not configured. Running in degraded/demo mode.');
 }
 
 /**

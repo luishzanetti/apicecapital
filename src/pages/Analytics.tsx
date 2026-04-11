@@ -143,7 +143,18 @@ export default function Analytics() {
         </div>
       </div>
 
-      <div className="px-6 space-y-5 mt-2">
+      {/* Loading skeleton */}
+      {analytics.isLoading && (
+        <div className="px-6 mt-4 space-y-4 animate-pulse">
+          <div className="h-6 w-48 rounded bg-secondary/40" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1,2,3,4].map(i => <div key={i} className="h-20 rounded-xl bg-secondary/30" />)}
+          </div>
+          <div className="h-[200px] rounded-xl bg-secondary/30" />
+        </div>
+      )}
+
+      <div className="px-6 space-y-5 mt-2" style={{ display: analytics.isLoading ? 'none' : undefined }}>
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
             <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5">
@@ -156,18 +167,18 @@ export default function Analytics() {
                   className="rounded-2xl bg-card/50 border border-border/50 p-6 text-center"
                 >
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
-                    <Layers className="w-8 h-8 text-primary" />
+                    <BarChart3 className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="text-lg font-bold mb-1.5">No data yet</h3>
+                  <h3 className="text-lg font-bold mb-1.5">No analytics data yet</h3>
                   <p className="text-sm text-muted-foreground mb-5 max-w-[260px] mx-auto leading-relaxed">
-                    Connect your exchange and start investing to see your portfolio analytics come to life.
+                    Connect your exchange to see portfolio analytics, allocation breakdown, and performance tracking.
                   </p>
                   <div className="flex flex-col gap-2.5">
                     <button
                       onClick={() => navigate('/settings')}
                       className="w-full py-3 rounded-xl text-sm font-semibold text-white apice-gradient-primary transition-all hover:opacity-90 active:scale-[0.98]"
                     >
-                      Connect Exchange
+                      Connect Bybit
                     </button>
                     <button
                       onClick={() => navigate('/portfolio')}
