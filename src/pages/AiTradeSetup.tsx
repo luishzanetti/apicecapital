@@ -201,18 +201,28 @@ export default function AiTradeSetup() {
       }
 
       toast.success(`${robotName} activated — ${formatUsd(totalCapital)}`, {
-        description: `Analyzing market and placing first trades...`,
+        description: `${stratConfigs.length} strategies configured`,
       });
 
-      // Trigger immediate market analysis + trade execution
+      // Navigate immediately, then trigger evaluation in background
+      setTimeout(() => navigate('/ai-trade'), 300);
+
+      // Trigger market analysis + trade execution in background
       triggerEvaluation().then(result => {
         if (result.executed > 0) {
-          toast.success(`${result.executed} trades opened automatically`, {
-            description: `Based on current ${result.marketContext?.regime || ''} regime`,
+          toast.success(`${result.executed} trades opened`, {
+            description: `${result.marketContext?.regime || 'Market'} regime detected`,
+          });
+        } else if (result.pendingSignals.length > 0) {
+          toast.info(`${result.pendingSignals.filter(s => s.approved).length} signals detected`, {
+            description: 'Awaiting execution conditions',
+          });
+        } else if (result.marketContext) {
+          toast.info(`Market analyzed: ${result.marketContext.regime}`, {
+            description: 'No trading opportunities right now',
           });
         }
       });
-      setTimeout(() => navigate('/ai-trade'), 300);
     } catch {
       toast.error('Failed to activate. Try again.');
     } finally {

@@ -219,18 +219,18 @@ export default function Portfolio() {
                   className="rounded-2xl glass-card p-6 text-center"
                 >
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
-                    <Rocket className="w-8 h-8 text-primary" />
+                    <PieChart className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="text-lg font-bold mb-1.5">{t('portfolio.emptyState.title')}</h3>
+                  <h3 className="text-lg font-bold mb-1.5">Choose your investing style</h3>
                   <p className="text-sm text-muted-foreground mb-5 max-w-[280px] mx-auto leading-relaxed">
-                    {t('portfolio.emptyState.description')}
+                    Pick a portfolio strategy or build your own allocation from scratch.
                   </p>
                   <div className="flex flex-col gap-2.5">
                     <button
                       onClick={() => setActiveTab('strategies')}
                       className="w-full py-3 rounded-xl text-sm font-semibold text-white apice-gradient-primary transition-all hover:opacity-90 active:scale-[0.98]"
                     >
-                      {t('portfolio.emptyState.exploreStrategies')}
+                      Explore Portfolios
                     </button>
                     <button
                       onClick={() => navigate('/home')}

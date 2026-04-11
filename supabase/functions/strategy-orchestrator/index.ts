@@ -418,11 +418,16 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const action = body.action || 'evaluate';
 
-    const cronSecret = req.headers.get('x-cron-secret');
-    const expectedSecret = Deno.env.get('CRON_SECRET');
-    if (expectedSecret && cronSecret !== expectedSecret) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }),
+    // evaluate-user uses JWT auth (not cron secret) — handle it BEFORE cron check
+    if (action === 'evaluate-user') {
+      // Handler is below — skip cron check for this action
+    } else {
+      const cronSecret = req.headers.get('x-cron-secret');
+      const expectedSecret = Deno.env.get('CRON_SECRET');
+      if (expectedSecret && cronSecret !== expectedSecret) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
     }
 
     const json = (data: any) => new Response(
@@ -583,7 +588,7 @@ Deno.serve(async (req: Request) => {
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      // Get regime + market data
+      // Get regime (fallback to SIDEWAYS if table empty)
       const { data: regimeData } = await supabaseAdmin
         .from('market_regimes').select('regime, confidence')
         .is('ended_at', null).order('started_at', { ascending: false }).limit(1).single();
@@ -591,23 +596,63 @@ Deno.serve(async (req: Request) => {
       const regime = regimeData?.regime || 'SIDEWAYS';
       const maxLeverage = MAX_LEVERAGE_BY_REGIME[regime] || 2;
 
-      const { data: marketData } = await supabaseAdmin
+      // Get market data — try DB first, fallback to LIVE Bybit API
+      let marketData = null as any[] | null;
+      const { data: dbMarketData } = await supabaseAdmin
         .from('market_snapshots')
         .select('symbol, price, sma_7d, sma_30d, sma_90d, rsi_14, volatility_30d, funding_rate, fear_greed_index')
         .in('symbol', LINEAR_SYMBOLS)
         .order('captured_at', { ascending: false }).limit(LINEAR_SYMBOLS.length);
 
-      // Get user's active strategies
+      if (dbMarketData && dbMarketData.length > 0) {
+        marketData = dbMarketData;
+      } else {
+        // FALLBACK: Fetch live prices directly from Bybit (no auth needed for public endpoints)
+        console.log('[orchestrator] market_snapshots empty — fetching live from Bybit');
+        try {
+          const tickerResp = await fetch('https://api.bybit.com/v5/market/tickers?category=linear');
+          const tickerJson = await tickerResp.json();
+          if (tickerJson.retCode === 0 && tickerJson.result?.list) {
+            const symbolSet = new Set(LINEAR_SYMBOLS);
+            marketData = tickerJson.result.list
+              .filter((t: any) => symbolSet.has(t.symbol))
+              .map((t: any) => ({
+                symbol: t.symbol,
+                price: parseFloat(t.lastPrice) || 0,
+                sma_7d: null, sma_30d: null, sma_90d: null,
+                rsi_14: 50, // neutral default when no history
+                volatility_30d: parseFloat(t.price24hPcnt) ? Math.abs(parseFloat(t.price24hPcnt)) : 0.02,
+                funding_rate: parseFloat(t.fundingRate) || 0,
+                fear_greed_index: 50,
+              }));
+            console.log(`[orchestrator] Fetched ${marketData.length} live tickers from Bybit`);
+          }
+        } catch (e: any) {
+          console.error('[orchestrator] Failed to fetch live Bybit data:', e.message);
+        }
+      }
+
+      if (!marketData || marketData.length === 0) {
+        return json({ regime, signals: [], executed: 0, message: 'No market data available' });
+      }
+
+      // Get user's active strategies — if none in Supabase, that's OK (signals still generated for display)
       const { data: userConfigs } = await supabaseAdmin
         .from('strategy_configs').select('*').eq('user_id', user.id).eq('is_active', true);
 
-      if (!userConfigs || userConfigs.length === 0 || !marketData || marketData.length === 0) {
-        // Return market context even without signals
-        return json({
-          regime, marketData: marketData || [],
-          signals: [], executed: 0,
-          message: !userConfigs?.length ? 'No active strategies' : 'No market data',
-        });
+      // If no strategy_configs in DB, create defaults based on request body or balanced profile
+      let effectiveConfigs = userConfigs;
+      if (!effectiveConfigs || effectiveConfigs.length === 0) {
+        // Use a default balanced allocation so signals can still be generated
+        const defaultStrats = [
+          { strategy_type: 'grid', allocation_pct: 30, max_leverage: maxLeverage },
+          { strategy_type: 'mean_reversion', allocation_pct: 25, max_leverage: Math.min(2, maxLeverage) },
+          { strategy_type: 'trend_following', allocation_pct: 20, max_leverage: maxLeverage },
+          { strategy_type: 'funding_arb', allocation_pct: 15, max_leverage: 1 },
+          { strategy_type: 'ai_signal', allocation_pct: 10, max_leverage: maxLeverage },
+        ];
+        effectiveConfigs = defaultStrats;
+        console.log('[orchestrator] No strategy_configs in DB — using balanced defaults');
       }
 
       // Get open positions
@@ -627,7 +672,7 @@ Deno.serve(async (req: Request) => {
 
       // Generate signals
       let allSignals: Signal[] = [];
-      for (const config of userConfigs) {
+      for (const config of effectiveConfigs) {
         const allocatedCapital = estimatedEquity * (config.allocation_pct / 100);
         switch (config.strategy_type) {
           case 'grid': allSignals.push(...generateGridSignals(regime, marketData, allocatedCapital)); break;

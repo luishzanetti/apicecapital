@@ -50,6 +50,7 @@ import {
     Headphones,
     Copy,
     Check,
+    CheckCircle2,
     Info,
 } from 'lucide-react';
 import { z } from 'zod';
@@ -154,7 +155,7 @@ export default function Settings() {
             const test = data?.data as { valid: boolean; canTrade: boolean; isTestnet: boolean; error?: string } | undefined;
 
             if (!test?.valid) {
-                toast.error(test?.error || 'Invalid API key', { id: 'bybit-connect' });
+                toast.error(test?.error || 'Invalid API key. Please check your credentials and try again.', { id: 'bybit-connect' });
                 return;
             }
 
@@ -164,7 +165,7 @@ export default function Settings() {
             }
 
             if (!test.canTrade) {
-                toast.warning(test.error || 'Key lacks trade permission', {
+                toast.warning(test.error || 'Your API key is read-only. Enable "Trade" permission on Bybit to use DCA automation.', {
                     id: 'bybit-connect',
                     duration: 8000,
                 });
@@ -192,7 +193,7 @@ export default function Settings() {
 
             if (test.canTrade) {
                 toast.success(test.isTestnet
-                    ? '✅ Connected to Bybit Testnet! Redirecting to dashboard...'
+                    ? 'Connected to Bybit Testnet! Redirecting to dashboard...'
                     : t('settings.bybitModal.connectedFull'),
                     { id: 'bybit-connect' });
             } else {
@@ -268,12 +269,13 @@ export default function Settings() {
                     action: () => setShowPersonalModal(true),
                 },
                 {
-                    icon: LinkIcon,
+                    icon: isConnected ? CheckCircle2 : LinkIcon,
                     label: t('settings.bybitConnection'),
                     sub: isConnected ? t('settings.verifiedActive') : t('settings.connectForAutomation'),
                     action: () => isConnected ? handleDisconnectBybit() : setShowBybitModal(true),
                     badge: isConnected ? t('settings.connected') : null,
-                    badgeColor: isConnected ? "bg-green-500/10 text-green-500" : ""
+                    badgeColor: isConnected ? "bg-green-500/10 text-green-500 border-green-500/20" : "",
+                    iconOverride: isConnected ? "bg-green-500/10 text-green-500" : undefined,
                 },
                 {
                     icon: CreditCard,
@@ -477,9 +479,11 @@ export default function Settings() {
                                     <div className="flex items-center gap-3.5 text-left">
                                         <div className={cn(
                                             "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
-                                            item.variant === "destructive"
-                                                ? "bg-destructive/10 text-destructive"
-                                                : "bg-primary/8 text-primary/70 group-hover:text-primary group-hover:bg-primary/12"
+                                            item.iconOverride
+                                                ? item.iconOverride
+                                                : item.variant === "destructive"
+                                                    ? "bg-destructive/10 text-destructive"
+                                                    : "bg-primary/8 text-primary/70 group-hover:text-primary group-hover:bg-primary/12"
                                         )}>
                                             <item.icon className="w-4.5 h-4.5" />
                                         </div>

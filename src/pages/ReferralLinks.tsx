@@ -1,234 +1,449 @@
-import { useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useTranslation } from '@/hooks/useTranslation';
-import { referralLinks } from '@/data/sampleData';
+import { Progress } from '@/components/ui/progress';
 import { useAppStore } from '@/store/appStore';
-import { AnalyticsEvents, trackEvent } from '@/lib/analytics';
+import { useAuth } from '@/components/AuthProvider';
 import {
   ArrowLeft,
+  Check,
+  Copy,
+  Crown,
+  ExternalLink,
+  Gift,
+  KeyRound,
+  Link2,
   Bot,
   Brain,
-  ExternalLink,
-  KeyRound,
-  ShieldCheck,
-  Sparkles,
+  Share2,
+  Trophy,
+  UserPlus,
+  Users,
 } from 'lucide-react';
+
+// ─── Reward Tiers ──────────────────────────────────────────
+const REWARD_TIERS = [
+  { count: 1, reward: '1 week Pro free', label: 'Starter' },
+  { count: 3, reward: '1 month Pro free', label: 'Connector' },
+  { count: 10, reward: '3 months Pro free', label: 'Ambassador' },
+] as const;
+
+// ─── Leaderboard Placeholder ───────────────────────────────
+const LEADERBOARD_DATA = [
+  { rank: 1, name: 'Alex M.', referrals: 24 },
+  { rank: 2, name: 'Sarah K.', referrals: 18 },
+  { rank: 3, name: 'James R.', referrals: 15 },
+  { rank: 4, name: 'Maria L.', referrals: 11 },
+  { rank: 5, name: 'David W.', referrals: 9 },
+] as const;
+
+// ─── How It Works Steps ────────────────────────────────────
+const HOW_IT_WORKS = [
+  { icon: Link2, title: 'Share your link', description: 'Copy your unique referral link and share it with friends' },
+  { icon: UserPlus, title: 'Friend signs up', description: 'Your friend creates an account using your link' },
+  { icon: Gift, title: 'You earn rewards', description: 'Unlock Pro access as your referrals grow' },
+] as const;
+
+// ─── Link Config ───────────────────────────────────────────
+const LINK_CONFIG = [
+  {
+    id: 'bybit' as const,
+    storeKey: 'bybitClicked' as const,
+    storeAtKey: 'bybitClickedAt' as const,
+    trackKey: 'bybit' as const,
+    label: 'Bybit Exchange',
+    icon: KeyRound,
+  },
+  {
+    id: 'aiBot' as const,
+    storeKey: 'aiBotClicked' as const,
+    storeAtKey: 'aiBotClickedAt' as const,
+    trackKey: 'aiBot' as const,
+    label: 'AI Bot Access',
+    icon: Bot,
+  },
+  {
+    id: 'aiTrade' as const,
+    storeKey: 'aiTradeClicked' as const,
+    storeAtKey: 'aiTradeClickedAt' as const,
+    trackKey: 'aiTrade' as const,
+    label: 'AI Trade Platform',
+    icon: Brain,
+  },
+];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.06, duration: 0.4, ease: [0, 0, 0.58, 1] as const },
+  }),
+};
 
 export default function ReferralLinks() {
   const navigate = useNavigate();
-  const { language } = useTranslation();
-  const trackLinkClick = useAppStore((state) => state.trackLinkClick);
+  const { user } = useAuth();
   const linkClicks = useAppStore((state) => state.linkClicks);
 
-  const copy = useMemo(
-    () =>
-      language === 'pt'
-        ? {
-            categoryCopy: {
-              exchange: 'Infraestrutura de execução',
-              'ai-tool': 'Acesso convidado',
-              infrastructure: 'Infraestrutura de automação',
-            },
-            back: 'Voltar',
-            badge: 'Links convidados',
-            title: 'Abra a infraestrutura certa para executar o método Apice com clareza.',
-            body:
-              'Esta tela concentra os redirecionamentos operacionais. É aqui que o link convidado da ferramenta original aparece quando necessário; no restante da jornada, a experiência permanece 100% sob a visão Apice.',
-            clicked: 'Já acessado',
-            open: 'Abrir link',
-            securityTitle: 'Segurança da operação',
-            securityBody:
-              'O método Apice parte do princípio de custódia própria. Seus fundos continuam na corretora, e a estrutura operacional deve usar permissões mínimas.',
-            nextTitle: 'Próximos passos sugeridos',
-            nextBody:
-              'Abra o parceiro necessário, volte para a Apice e siga a configuração do setup, do DCA e da rotina diária.',
-            nextSteps: [
-              '1. Criar ou revisar a conta na corretora.',
-              '2. Acessar a ferramenta convidada quando o método pedir.',
-              '3. Voltar ao app para configurar o plano e acompanhar os insights.',
-            ],
-            aiTradeTitle: 'Cointech2U · acesso convidado',
-            aiTradeDescription:
-              'Ambiente original convidado usado como referência operacional do setup da Apice. O nome aparece somente aqui, no momento do redirecionamento.',
-            bybitDescription:
-              'Abra a corretora parceira para conta, custódia e execução do plano dentro da metodologia Apice.',
-            infraDescription:
-              'Camada complementar de automação para manter consistência operacional no ecossistema Apice.',
-          }
-        : {
-            categoryCopy: {
-              exchange: 'Execution infrastructure',
-              'ai-tool': 'Guest access',
-              infrastructure: 'Automation infrastructure',
-            },
-            back: 'Back',
-            badge: 'Guest links',
-            title: 'Open the right infrastructure to execute the Apice method with clarity.',
-            body:
-              'This screen concentrates the operational redirects. The original solution name appears only here, on the guest access card, while the rest of the journey stays fully under the Apice narrative.',
-            clicked: 'Opened already',
-            open: 'Open link',
-            securityTitle: 'Operational security',
-            securityBody:
-              'The Apice method starts from self-custody. Your funds stay on the exchange, and the operating structure should use minimal permissions.',
-            nextTitle: 'Suggested next steps',
-            nextBody:
-              'Open the needed partner, return to Apice, and continue the setup, DCA configuration, and daily operating routine.',
-            nextSteps: [
-              '1. Create or review the exchange account.',
-              '2. Open the guest tool only when the method calls for it.',
-              '3. Return to the app to configure the plan and follow the insights.',
-            ],
-            aiTradeTitle: 'Cointech2U · guest access',
-            aiTradeDescription:
-              'Original invited environment used as the operational reference behind the Apice setup. The name appears only here, at the redirect moment.',
-            bybitDescription:
-              'Open the partner exchange for account creation, custody, and plan execution inside the Apice methodology.',
-            infraDescription:
-              'Complementary automation layer that helps maintain operational consistency across the Apice ecosystem.',
-          },
-    [language]
-  );
+  const [copied, setCopied] = useState(false);
 
-  const links = useMemo(
-    () =>
-      referralLinks.map((link) => {
-        const isAiTrade = link.id === 'ai-trade';
-        const isClicked =
-          link.id === 'bybit'
-            ? linkClicks.bybitClicked
-            : link.id === 'ai-bot'
-              ? linkClicks.aiBotClicked
-              : linkClicks.aiTradeClicked;
+  // Build referral slug from user email or fallback
+  const refSlug = user?.email?.split('@')[0]?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'user';
+  const referralUrl = `apice.capital/ref/${refSlug}`;
 
-        return {
-          ...link,
-          isClicked,
-          title: isAiTrade ? copy.aiTradeTitle : link.name,
-          description: isAiTrade
-            ? copy.aiTradeDescription
-            : link.id === 'bybit'
-              ? copy.bybitDescription
-              : copy.infraDescription,
-        };
-      }),
-    [copy, linkClicks]
-  );
+  // Count total referrals from link clicks (simulated)
+  const totalReferrals = [
+    linkClicks.bybitClicked,
+    linkClicks.aiBotClicked,
+    linkClicks.aiTradeClicked,
+  ].filter(Boolean).length;
 
-  const handleOpenLink = (linkId: string, url: string) => {
-    if (linkId === 'bybit') {
-      trackLinkClick('bybit');
-    } else if (linkId === 'ai-bot') {
-      trackLinkClick('aiBot');
-    } else {
-      trackLinkClick('aiTrade');
+  // Determine current and next tier
+  const currentTier = [...REWARD_TIERS].reverse().find((t) => totalReferrals >= t.count) ?? null;
+  const nextTier = REWARD_TIERS.find((t) => totalReferrals < t.count) ?? REWARD_TIERS[REWARD_TIERS.length - 1];
+  const progressPercent = Math.min((totalReferrals / nextTier.count) * 100, 100);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(`https://${referralUrl}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = `https://${referralUrl}`;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
+  }, [referralUrl]);
 
-    trackEvent(AnalyticsEvents.REFERRAL_LINK_CLICKED, { linkId });
-    window.open(url, '_blank', 'noopener,noreferrer');
+  const handleShare = useCallback(async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join Apice Capital',
+          text: 'Start building wealth with crypto using the Apice method. Use my referral link:',
+          url: `https://${referralUrl}`,
+        });
+      } catch {
+        // User cancelled share
+      }
+    } else {
+      handleCopy();
+    }
+  }, [referralUrl, handleCopy]);
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return '--';
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
   return (
     <div className="min-h-screen bg-background px-5 py-6 pb-28 safe-top">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mx-auto max-w-5xl space-y-8">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="px-0">
-              <ArrowLeft className="h-4 w-4" />
-              {copy.back}
-            </Button>
-            <div className="space-y-3">
-              <Badge variant="outline" className="px-3 py-1 text-[11px] uppercase tracking-[0.24em]">
-                {copy.badge}
-              </Badge>
-              <h1 className="text-3xl font-black tracking-tight md:text-4xl">{copy.title}</h1>
-              <p className="max-w-3xl text-sm leading-7 text-muted-foreground md:text-base">{copy.body}</p>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="mx-auto max-w-5xl space-y-8"
+      >
+        {/* ─── Header ─────────────────────────────────────── */}
+        <div className="space-y-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="px-0">
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
+              <Gift className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black tracking-tight">Referral Program</h1>
+              <p className="text-sm text-muted-foreground">Invite friends, earn Pro access</p>
             </div>
           </div>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-4">
-            {links.map((link, index) => {
-              const Icon = link.id === 'bybit' ? KeyRound : link.id === 'ai-trade' ? Brain : Bot;
+        {/* ─── Two Column Layout on xl ────────────────────── */}
+        <div className="grid gap-6 xl:grid-cols-2">
+          {/* ─── Left Column ──────────────────────────────── */}
+          <div className="space-y-6">
+            {/* ─── Your Referral Link ─────────────────────── */}
+            <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
+              <Card className="border-primary/20 bg-[linear-gradient(135deg,hsl(var(--primary)/0.08),transparent_60%)]">
+                <CardContent className="space-y-4 pt-5">
+                  <h2 className="text-lg font-bold">Your Referral Link</h2>
+                  <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-background/50 px-4 py-3">
+                    <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="flex-1 truncate text-sm font-mono text-foreground/80">
+                      {referralUrl}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={copied ? 'default' : 'outline'}
+                      size="sm"
+                      className="flex-1"
+                      onClick={handleCopy}
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="h-4 w-4" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          Copy Link
+                        </>
+                      )}
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1" onClick={handleShare}>
+                      <Share2 className="h-4 w-4" />
+                      Share
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-              return (
-                <motion.div
-                  key={link.id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.06 }}
-                >
-                  <Card className="border-border/60 bg-card/95">
-                    <CardContent className="pt-5">
-                      <div className="flex flex-col gap-5 md:flex-row md:items-center">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-primary/10">
-                          <Icon className="h-6 w-6 text-primary" />
-                        </div>
+            {/* ─── Rewards Tracker ────────────────────────── */}
+            <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
+              <Card className="border-border/60 bg-card/95">
+                <CardContent className="space-y-5 pt-5">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-bold">Rewards Tracker</h2>
+                    <Badge variant="outline" className="text-xs">
+                      {totalReferrals} referral{totalReferrals !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h2 className="text-lg font-bold">{link.title}</h2>
-                            <Badge variant="outline" size="sm">
-                              {copy.categoryCopy[link.category]}
-                            </Badge>
-                            {link.isClicked && (
-                              <Badge variant="outline" size="sm" className="border-emerald-500/30 text-emerald-500">
-                                {copy.clicked}
-                              </Badge>
-                            )}
+                  {/* Tier Cards */}
+                  <div className="space-y-3">
+                    {REWARD_TIERS.map((tier) => {
+                      const reached = totalReferrals >= tier.count;
+                      return (
+                        <div
+                          key={tier.count}
+                          className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${
+                            reached
+                              ? 'border-primary/30 bg-primary/5'
+                              : 'border-border/40 bg-background/30'
+                          }`}
+                        >
+                          <div
+                            className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                              reached ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                            }`}
+                          >
+                            {reached ? <Check className="h-4 w-4" /> : <Gift className="h-4 w-4" />}
                           </div>
-
-                          <p className="mt-3 text-sm leading-7 text-muted-foreground">{link.description}</p>
-                          <p className="mt-3 truncate text-xs text-muted-foreground/80">{link.url}</p>
+                          <div className="flex-1">
+                            <p className={`text-sm font-semibold ${reached ? 'text-primary' : ''}`}>
+                              Invite {tier.count} friend{tier.count > 1 ? 's' : ''}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{tier.reward}</p>
+                          </div>
+                          {reached && (
+                            <Badge className="bg-primary/15 text-primary text-xs border-0">
+                              {tier.label}
+                            </Badge>
+                          )}
                         </div>
+                      );
+                    })}
+                  </div>
 
-                        <Button variant="premium" onClick={() => handleOpenLink(link.id, link.url)}>
-                          {copy.open}
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
+                  {/* Progress to next tier */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Progress to next tier</span>
+                      <span>
+                        {totalReferrals} / {nextTier.count}
+                      </span>
+                    </div>
+                    <Progress value={progressPercent} className="h-2" />
+                    {currentTier && (
+                      <p className="text-xs text-primary font-medium">
+                        Current tier: {currentTier.label}
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* ─── How It Works ───────────────────────────── */}
+            <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
+              <Card className="border-border/60 bg-card/95">
+                <CardContent className="space-y-5 pt-5">
+                  <h2 className="text-lg font-bold">How It Works</h2>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    {HOW_IT_WORKS.map((step, i) => {
+                      const StepIcon = step.icon;
+                      return (
+                        <div key={step.title} className="flex flex-col items-center text-center gap-3">
+                          <div className="relative">
+                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+                              <StepIcon className="h-6 w-6 text-primary" />
+                            </div>
+                            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                              {i + 1}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold">{step.title}</p>
+                            <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                              {step.description}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
 
-          <div className="space-y-4">
-            <Card className="border-primary/20 bg-[linear-gradient(180deg,hsl(var(--primary)/0.1),transparent)]">
-              <CardContent className="space-y-4 pt-5">
-                <div className="flex items-start gap-3">
-                  <ShieldCheck className="mt-0.5 h-5 w-5 text-primary" />
-                  <div>
-                    <h2 className="text-sm font-semibold">{copy.securityTitle}</h2>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{copy.securityBody}</p>
+          {/* ─── Right Column ─────────────────────────────── */}
+          <div className="space-y-6">
+            {/* ─── Leaderboard Preview ────────────────────── */}
+            <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
+              <Card className="border-border/60 bg-card/95">
+                <CardContent className="space-y-4 pt-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="h-5 w-5 text-amber-500" />
+                      <h2 className="text-lg font-bold">Top Referrers This Month</h2>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] uppercase tracking-wider border-amber-500/30 text-amber-500">
+                      Coming Soon
+                    </Badge>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            <Card className="border-border/60">
-              <CardContent className="space-y-4 pt-5">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="mt-0.5 h-5 w-5 text-amber-500" />
-                  <div>
-                    <h2 className="text-sm font-semibold">{copy.nextTitle}</h2>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{copy.nextBody}</p>
+                  <div className="space-y-2">
+                    {LEADERBOARD_DATA.map((entry) => (
+                      <div
+                        key={entry.rank}
+                        className="flex items-center gap-3 rounded-xl border border-border/30 bg-background/30 px-4 py-2.5"
+                      >
+                        <span
+                          className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+                            entry.rank === 1
+                              ? 'bg-amber-500/15 text-amber-500'
+                              : entry.rank === 2
+                                ? 'bg-zinc-400/15 text-zinc-400'
+                                : entry.rank === 3
+                                  ? 'bg-orange-600/15 text-orange-600'
+                                  : 'bg-muted text-muted-foreground'
+                          }`}
+                        >
+                          #{entry.rank}
+                        </span>
+                        <span className="flex-1 text-sm font-medium">{entry.name}</span>
+                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <Users className="h-3.5 w-3.5" />
+                          {entry.referrals}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
 
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  {copy.nextSteps.map((item) => (
-                    <p key={item}>{item}</p>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="flex items-center justify-between rounded-xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3">
+                    <span className="text-sm font-medium text-muted-foreground">Your position</span>
+                    <span className="text-sm font-bold text-primary">--</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* ─── Referral History ────────────────────────── */}
+            <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible">
+              <Card className="border-border/60 bg-card/95">
+                <CardContent className="space-y-4 pt-5">
+                  <div className="flex items-center gap-2">
+                    <ExternalLink className="h-5 w-5 text-primary" />
+                    <h2 className="text-lg font-bold">Referral History</h2>
+                  </div>
+
+                  <div className="space-y-3">
+                    {LINK_CONFIG.map((link) => {
+                      const LinkIcon = link.icon;
+                      const clicked = linkClicks[link.storeKey];
+                      const clickedAt = linkClicks[link.storeAtKey];
+
+                      return (
+                        <div
+                          key={link.id}
+                          className="flex items-center gap-3 rounded-xl border border-border/40 bg-background/30 px-4 py-3"
+                        >
+                          <div
+                            className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                              clicked ? 'bg-primary/10' : 'bg-muted'
+                            }`}
+                          >
+                            <LinkIcon
+                              className={`h-5 w-5 ${clicked ? 'text-primary' : 'text-muted-foreground'}`}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold">{link.label}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {clicked ? `Clicked on ${formatDate(clickedAt)}` : 'Not yet clicked'}
+                            </p>
+                          </div>
+                          {clicked ? (
+                            <Badge className="bg-emerald-500/15 text-emerald-500 border-0 text-xs">
+                              <Check className="mr-1 h-3 w-3" />
+                              Done
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs text-muted-foreground">
+                              Pending
+                            </Badge>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* ─── Pro Upgrade CTA ────────────────────────── */}
+            <motion.div custom={5} variants={fadeUp} initial="hidden" animate="visible">
+              <Card className="border-primary/20 bg-[linear-gradient(180deg,hsl(var(--primary)/0.1),transparent)]">
+                <CardContent className="flex items-center gap-4 pt-5">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15">
+                    <Crown className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold">Want Pro now?</p>
+                    <p className="text-xs text-muted-foreground">
+                      Upgrade instantly or keep referring friends for free access.
+                    </p>
+                  </div>
+                  <Button
+                    variant="premium"
+                    size="sm"
+                    onClick={() => navigate('/upgrade')}
+                  >
+                    Upgrade
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </div>
       </motion.div>

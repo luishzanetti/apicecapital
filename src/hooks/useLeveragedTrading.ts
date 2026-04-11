@@ -316,7 +316,13 @@ export function useLeveragedTrading() {
         'strategy-orchestrator', { body: { action: 'evaluate-user' } }
       );
 
-      if (fnError || !data?.data) {
+      if (fnError) {
+        console.error('[ALTIS] Evaluation failed:', fnError.message);
+        setError(`Evaluation failed: ${fnError.message}`);
+        return { marketContext: null, pendingSignals: [], executed: 0 };
+      }
+      if (!data?.data) {
+        console.warn('[ALTIS] Evaluation returned no data');
         return { marketContext: null, pendingSignals: [], executed: 0 };
       }
 

@@ -74,13 +74,24 @@ const fadeUp = {
 
 // ── Section Header ─────────────────────────────────────────────────────────────
 
-function SectionHeader({ icon: Icon, label }: { icon: React.ComponentType<{ className?: string }>; label: string }) {
+function SectionHeader({ icon: Icon, label, action }: { icon: React.ComponentType<{ className?: string }>; label: string; action?: { label: string; onClick: () => void } }) {
   return (
     <div className="flex items-center gap-2 mb-3">
       <Icon className="w-3.5 h-3.5 text-muted-foreground/60" />
       <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">
         {label}
       </span>
+      {action && (
+        <>
+          <span className="flex-1" />
+          <button
+            onClick={action.onClick}
+            className="text-[11px] text-primary font-semibold hover:text-primary/80 transition-colors"
+          >
+            {action.label}
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -200,7 +211,7 @@ export default function Home() {
             {/* Quick Actions — horizontal on desktop, 2x2 on mobile */}
             <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
               <SectionHeader icon={Zap} label="Quick Actions" />
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {quickActions.map((item) => (
                   <button
                     key={item.label}
@@ -244,7 +255,7 @@ export default function Home() {
 
             {/* Market Movers */}
             <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
-              <SectionHeader icon={TrendingUp} label="Market Movers" />
+              <SectionHeader icon={TrendingUp} label="Market Movers" action={{ label: 'View All', onClick: () => navigate('/explosive-list') }} />
               <div className="rounded-2xl glass-card border border-border/20 overflow-hidden">
                 <TopCoinsList />
               </div>
