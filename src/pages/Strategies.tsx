@@ -26,7 +26,10 @@ import {
   ArrowRightLeft,
   Layers,
   DollarSign,
-  Rocket
+  Rocket,
+  Flame,
+  Crown,
+  CircleDot,
 } from 'lucide-react';
 
 interface StrategyCard {
@@ -301,6 +304,63 @@ function StrategyOnboarding({
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Copy Portfolio Risk Tiers
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface CopyPortfolioTier {
+  id: string;
+  name: string;
+  targetReturn: string;
+  riskLevel: number; // 1-5
+  assets: string[];
+  description: string;
+  requiredTier: 'pro' | 'club';
+}
+
+const COPY_PORTFOLIO_TIERS: CopyPortfolioTier[] = [
+  {
+    id: 'conservative',
+    name: 'Conservative',
+    targetReturn: '10-30%',
+    riskLevel: 2,
+    assets: ['BTC', 'ETH', 'USDT Yield'],
+    description: 'Blue-chip crypto focus with stablecoin yield buffer. Ideal for capital preservation with moderate growth.',
+    requiredTier: 'pro',
+  },
+  {
+    id: 'balanced',
+    name: 'Balanced',
+    targetReturn: '25-40%',
+    riskLevel: 3,
+    assets: ['BTC', 'ETH', 'SOL', 'LINK', 'AVAX'],
+    description: 'Diversified allocation across top-20 assets with quarterly rebalancing. Best risk-adjusted returns.',
+    requiredTier: 'pro',
+  },
+  {
+    id: 'growth',
+    name: 'Growth',
+    targetReturn: '35-60%',
+    riskLevel: 4,
+    assets: ['ETH', 'SOL', 'AVAX', 'ARB', 'SUI', 'INJ'],
+    description: 'Aggressive allocation targeting high-growth L1/L2 ecosystems. Higher volatility, higher potential.',
+    requiredTier: 'club',
+  },
+];
+
+function RiskDots({ level, max = 5 }: { level: number; max?: number }) {
+  return (
+    <div className="flex gap-0.5">
+      {Array.from({ length: max }).map((_, i) => (
+        <CircleDot
+          key={i}
+          className={`w-3 h-3 ${i < level ? 'text-primary' : 'text-muted-foreground/20'}`}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function Strategies() {
   const navigate = useNavigate();
   const unlockState = useAppStore((s) => s.unlockState);
@@ -364,6 +424,22 @@ export default function Strategies() {
       features: ['3 risk profiles available', 'Proportional position sizing', 'Stop anytime', 'Quarterly rebalancing'],
       projection: 'Target: 10-60% annual (varies by risk)',
       isLocked: !unlockState.copyPortfolios,
+      lockMessage: 'Upgrade to Pro',
+      category: 'wealth-building',
+    },
+    {
+      id: 'explosive',
+      title: 'Explosive List',
+      subtitle: 'High-Momentum Picks',
+      description: 'Curated watchlist of high-momentum altcoins with explosive growth potential. Updated weekly by our research team.',
+      icon: Flame,
+      iconGradient: 'from-orange-500 to-red-500',
+      route: '/explosive-list',
+      badge: 'Pro',
+      badgeVariant: 'premium',
+      features: ['Weekly updated picks', 'Momentum scoring', 'Entry/exit zones', 'Risk-rated selections'],
+      projection: 'Top picks avg +45% in first 30 days (2024)',
+      isLocked: !unlockState.explosiveList,
       lockMessage: 'Upgrade to Pro',
       category: 'wealth-building',
     },
@@ -500,6 +576,101 @@ export default function Strategies() {
                 missionLocked={isStrategiesLocked}
               />
             ))}
+          </div>
+        </motion.div>
+
+        {/* Copy Portfolio Tiers Expanded Section */}
+        <motion.div variants={itemVariants}>
+          <h2 className="text-xs font-semibold mb-3 text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+            <PieChart className="w-3.5 h-3.5" />
+            Copy Portfolio Tiers
+          </h2>
+          <div className="space-y-3">
+            {COPY_PORTFOLIO_TIERS.map((tier) => {
+              const isTierLocked = tier.requiredTier === 'club'
+                ? subscription.tier !== 'club'
+                : subscription.tier === 'free';
+              const tierLabel = tier.requiredTier === 'club' ? 'Club' : 'Pro';
+
+              return (
+                <Card
+                  key={tier.id}
+                  className={`overflow-hidden transition-all duration-300 ${
+                    isTierLocked ? 'opacity-80' : 'hover:border-primary/20'
+                  }`}
+                >
+                  <CardContent className="pt-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-sm">{tier.name}</h3>
+                          {isTierLocked && (
+                            <Badge variant="premium" size="sm" className="gap-1">
+                              <Lock className="w-2.5 h-2.5" />
+                              {tierLabel}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{tier.description}</p>
+                      </div>
+                    </div>
+
+                    {/* Stats row */}
+                    <div className="grid grid-cols-3 gap-3 mb-3">
+                      <div className="p-2.5 rounded-lg bg-secondary/50 text-center">
+                        <p className="text-[11px] text-muted-foreground mb-0.5">Target Annual</p>
+                        <p className="text-sm font-bold text-primary">{tier.targetReturn}</p>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-secondary/50 text-center">
+                        <p className="text-[11px] text-muted-foreground mb-0.5">Risk Level</p>
+                        <div className="flex justify-center mt-0.5">
+                          <RiskDots level={tier.riskLevel} />
+                        </div>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-secondary/50 text-center">
+                        <p className="text-[11px] text-muted-foreground mb-0.5">Assets</p>
+                        <p className="text-sm font-bold">{tier.assets.length}</p>
+                      </div>
+                    </div>
+
+                    {/* Target assets */}
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {tier.assets.map((asset) => (
+                        <span
+                          key={asset}
+                          className="text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium"
+                        >
+                          {asset}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* CTA */}
+                    {isTierLocked ? (
+                      <Button
+                        variant="premium"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => navigate('/settings')}
+                      >
+                        <Crown className="w-3 h-3 mr-1.5" />
+                        Upgrade to {tierLabel} to Copy
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="premium"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => navigate('/strategies/copy')}
+                      >
+                        Copy This Portfolio
+                        <ArrowRight className="w-3 h-3 ml-1" />
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </motion.div>
 

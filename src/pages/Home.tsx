@@ -17,7 +17,7 @@ import { AiAdvisorChat } from '@/components/ai/AiAdvisorChat';
 import { AiPortfolioScore } from '@/components/ai/AiPortfolioScore';
 import {
   TrendingUp, PieChart, BookOpen, Sparkles, Zap, Award, Settings2,
-  Lock, ArrowRight, Target, Plus, BarChart3, Clock
+  Lock, ArrowRight, Target, Plus, BarChart3, Clock, Flame
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -134,6 +134,7 @@ export default function Home() {
     { icon: PieChart, label: 'Portfolio', color: 'text-blue-400', bg: 'bg-blue-500/10', action: () => navigate('/portfolio') },
     { icon: Plus, label: 'DCA', color: 'text-cyan-400', bg: 'bg-cyan-500/10', action: () => navigate('/dca-planner') },
     { icon: BookOpen, label: 'Learn', color: 'text-purple-400', bg: 'bg-purple-500/10', action: () => navigate('/learn') },
+    { icon: Flame, label: 'Explosive', color: 'text-orange-400', bg: 'bg-orange-500/10', action: () => navigate('/explosive-list') },
   ];
 
   // ── Render ─────────────────────────────────────────────────────────────────

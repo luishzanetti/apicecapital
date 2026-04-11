@@ -372,8 +372,8 @@ export default function AiTradeSetup() {
           {/* AI recommendation */}
           <div className="glass-card rounded-xl p-3 border border-blue-500/20 bg-blue-500/5">
             <div className="flex items-center gap-2 mb-1">
-              <span>🧠</span>
-              <span className="text-xs font-medium text-blue-400">AI Recommendation</span>
+              <span>💡</span>
+              <span className="text-xs font-medium text-blue-400">Suggested Allocation</span>
             </div>
             <p className="text-xs text-foreground/80">{aiRec.text}</p>
           </div>
@@ -440,7 +440,7 @@ export default function AiTradeSetup() {
           {/* AI suggestion button */}
           <button onClick={() => setAllocations({ ...aiRec.suggested })}
             className="w-full py-2 rounded-lg text-xs font-medium glass-light text-blue-400 border border-blue-500/20 hover:bg-blue-500/10 transition-colors">
-            🧠 Apply AI-recommended allocation for {formatUsd(totalCapital)}
+            💡 Apply suggested allocation for {formatUsd(totalCapital)}
           </button>
 
           {/* Strategy cards */}
@@ -474,7 +474,7 @@ export default function AiTradeSetup() {
 
                   {/* Slider + details */}
                   <div className="px-3 pb-3 space-y-2.5">
-                    <input type="range" min={0} max={60} step={5} value={s.allocPct}
+                    <input type="range" min={0} max={100} step={5} value={s.allocPct}
                       onChange={e => setAllocations(prev => ({ ...prev, [s.type]: Number(e.target.value) }))}
                       className="w-full accent-primary" />
 

@@ -101,7 +101,7 @@ export default function AiTradeDashboard() {
       <div className="p-4 flex flex-col items-center justify-center min-h-[70vh] space-y-6">
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center"><span className="text-4xl">🤖</span></div>
         <h2 className="text-xl font-bold">ALTIS Trading Engine</h2>
-        <p className="text-sm text-muted-foreground text-center max-w-sm">5 automated strategies. 7 layers of risk. Start with $50.</p>
+        <p className="text-sm text-muted-foreground text-center max-w-sm">5 automated strategies with active risk protection. Start with $50.</p>
         <div className="w-full max-w-sm grid grid-cols-5 gap-1.5">
           {Object.values(S).map(s => <div key={s.l} className="glass-light rounded-lg p-2 text-center"><span className="text-lg">{s.i}</span><p className="text-xs text-muted-foreground mt-0.5">{s.l}</p></div>)}
         </div>
@@ -457,7 +457,7 @@ export default function AiTradeDashboard() {
                     { l: 'Risk', v: fmt(cap * 0.02) },
                     { l: 'Lev', v: `${cfg.maxLeverage}x` },
                     { l: 'Open', v: `${nPos}` },
-                    { l: 'WR', v: sp?.winRate ? `${sp.winRate.toFixed(0)}%` : `${m.bt.wr}%*` },
+                    { l: 'WR', v: sp?.winRate ? `${sp.winRate.toFixed(0)}%` : '—' },
                   ].map(({ l, v }) => (
                     <div key={l} className="glass-light rounded p-1.5 text-center">
                       <p className="text-[7px] text-muted-foreground">{l}</p>
@@ -497,26 +497,24 @@ export default function AiTradeDashboard() {
             </div>
           )}
 
-          {/* Projections */}
+          {/* Risk limits summary */}
           <div className="glass-card rounded-xl p-3 space-y-2">
-            <h3 className="text-xs text-muted-foreground uppercase tracking-wider">
-              Projected Returns {performance.length > 0 ? '(live)' : '(backtest)'}
-            </h3>
+            <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Risk Limits</h3>
             <div className="grid grid-cols-3 gap-2">
               <div className="glass-light rounded-lg p-2 text-center">
-                <p className="text-[8px] text-muted-foreground">Monthly</p>
-                <p className="text-sm font-bold text-green-400">+{fmt(projMonthly)}</p>
-                <p className="text-[7px] text-muted-foreground">{totalCapital > 0 ? (projMonthly / totalCapital * 100).toFixed(1) : 0}%</p>
+                <p className="text-[8px] text-muted-foreground">Max Risk/Trade</p>
+                <p className="text-sm font-bold text-foreground">{fmt(totalCapital * (activeBot?.riskPerTradePct || 33) / 100)}</p>
+                <p className="text-[7px] text-muted-foreground">{activeBot?.riskPerTradePct || 33}%</p>
               </div>
               <div className="glass-light rounded-lg p-2 text-center">
-                <p className="text-[8px] text-muted-foreground">Yearly</p>
-                <p className="text-sm font-bold text-green-400">+{fmt(projMonthly * 12)}</p>
-                <p className="text-[7px] text-muted-foreground">{totalCapital > 0 ? (projMonthly * 12 / totalCapital * 100).toFixed(0) : 0}%</p>
-              </div>
-              <div className="glass-light rounded-lg p-2 text-center">
-                <p className="text-[8px] text-muted-foreground">Max Loss</p>
+                <p className="text-[8px] text-muted-foreground">Circuit Breaker</p>
                 <p className="text-sm font-bold text-red-400">-{fmt(totalCapital * 0.05)}</p>
-                <p className="text-[7px] text-muted-foreground">breaker</p>
+                <p className="text-[7px] text-muted-foreground">-5% daily</p>
+              </div>
+              <div className="glass-light rounded-lg p-2 text-center">
+                <p className="text-[8px] text-muted-foreground">Realized P&L</p>
+                <p className={`text-sm font-bold ${pc(realizedTotal)}`}>{sn(realizedTotal)}{fmt(realizedTotal)}</p>
+                <p className="text-[7px] text-muted-foreground">{performance.length > 0 ? 'live data' : 'no trades yet'}</p>
               </div>
             </div>
           </div>
@@ -605,20 +603,32 @@ export default function AiTradeDashboard() {
       {/* ═══ TIMELINE ═══ */}
       {tab === 'timeline' && (
         <motion.div className="space-y-3" initial="hidden" animate="visible" custom={2} variants={fadeUp}>
-          {/* Countdowns */}
-          <div className="space-y-1.5">
-            <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Automated Schedule</h3>
-            {[
-              { ms: 5*60000,   i: '🛡️', t: 'Risk Monitor',    d: 'Heat, liquidation, breaker' },
-              { ms: 15*60000,  i: '⚡', t: 'Strategy Eval',   d: 'Grid, MeanRev, Trend, Arb' },
-              { ms: 4*3600000, i: '🧠', t: 'AI Signal',       d: 'Claude market analysis' },
-            ].map((e, i) => (
-              <div key={i} className="glass-light rounded-xl px-3 py-2 flex items-center gap-3">
-                <span>{e.i}</span>
-                <div className="flex-1"><p className="text-xs font-medium">{e.t}</p><p className="text-xs text-muted-foreground">{e.d}</p></div>
-                <span className="text-xs text-primary font-mono font-semibold">{cd(e.ms)}</span>
+          {/* System status */}
+          <div className="glass-card rounded-xl p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs text-muted-foreground uppercase tracking-wider">System</h3>
+              <button onClick={() => { triggerEvaluation(); setLastChecked(new Date()); }} disabled={isEvaluating}
+                className="text-[10px] text-primary font-medium disabled:opacity-50">
+                {isEvaluating ? 'Analyzing...' : 'Run Analysis'}
+              </button>
+            </div>
+            {lastChecked && (
+              <p className="text-[10px] text-muted-foreground">Last checked: {lastChecked.toLocaleTimeString()}</p>
+            )}
+            <div className="grid grid-cols-3 gap-1.5 text-[10px]">
+              <div className="glass-light rounded-lg p-2 text-center">
+                <span className="block text-muted-foreground">Signals</span>
+                <span className="font-medium">{signals.length}</span>
               </div>
-            ))}
+              <div className="glass-light rounded-lg p-2 text-center">
+                <span className="block text-muted-foreground">Positions</span>
+                <span className="font-medium">{positions.length}</span>
+              </div>
+              <div className="glass-light rounded-lg p-2 text-center">
+                <span className="block text-muted-foreground">Heat</span>
+                <span className="font-medium">{(risk.totalHeat * 100).toFixed(1)}%</span>
+              </div>
+            </div>
           </div>
 
           {/* Feed */}
