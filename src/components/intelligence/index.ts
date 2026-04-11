@@ -8,3 +8,4 @@ export { RebalanceAlertCard } from './RebalanceAlertCard';
 export { IntelligenceDashboard } from './IntelligenceDashboard';
 export { WarChestCard } from './WarChestCard';
 export { UpgradeRecommendation } from './UpgradeRecommendation';
+export { EarnSuggestionCard } from './EarnSuggestionCard';

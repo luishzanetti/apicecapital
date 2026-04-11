@@ -114,6 +114,9 @@ export function useDCAExecution() {
         return simulatedResult;
       }
 
+      // TODO: Use POST /v5/order/create-batch for plans with 3+ assets
+      // to execute all buys in a single API call (up to 10 orders per batch)
+      // This reduces latency and ensures atomic execution
       const { data, error: fnError } = await invokeEdgeFunction('dca-execute', {
         body: {
           action: 'execute-plan',

@@ -12,6 +12,7 @@ export interface CoinData {
 }
 
 // Bybit symbol mapping (CoinGecko id → Bybit symbol)
+// Static map serves as default fallback; use getDynamicSymbols() for resolution
 const BYBIT_SYMBOL_MAP: Record<string, string> = {
     bitcoin: 'BTCUSDT',
     ethereum: 'ETHUSDT',
@@ -28,7 +29,61 @@ const BYBIT_SYMBOL_MAP: Record<string, string> = {
     tron: 'TRXUSDT',
     'shiba-inu': 'SHIBUSDT',
     uniswap: 'UNIUSDT',
+    cosmos: 'ATOMUSDT',
+    'near-protocol': 'NEARUSDT',
+    aptos: 'APTUSDT',
+    optimism: 'OPUSDT',
+    filecoin: 'FILUSDT',
+    'immutable-x': 'IMXUSDT',
+    thorchain: 'RUNEUSDT',
+    arbitrum: 'ARBUSDT',
+    sui: 'SUIUSDT',
+    'render-token': 'RENDERUSDT',
+    injective: 'INJUSDT',
 };
+
+// ─── Dynamic symbol resolution ──────────────────────────────────
+// TODO: Call GET /v5/market/instruments-info to populate dynamically when Edge Function is deployed
+
+// Module-scoped cache for dynamically resolved symbols
+const dynamicSymbolCache = new Map<string, string>();
+
+/**
+ * Resolves a CoinGecko ID to a Bybit trading symbol.
+ * Checks the dynamic cache first, then falls back to the static BYBIT_SYMBOL_MAP.
+ */
+export function resolveDynamicSymbol(coinId: string): string | undefined {
+    return dynamicSymbolCache.get(coinId) ?? BYBIT_SYMBOL_MAP[coinId];
+}
+
+/**
+ * Returns the full symbol map merged with any dynamically cached entries.
+ * Dynamic entries take precedence over static defaults.
+ */
+export function getDynamicSymbols(): Record<string, string> {
+    const merged = { ...BYBIT_SYMBOL_MAP };
+    for (const [key, value] of dynamicSymbolCache) {
+        merged[key] = value;
+    }
+    return merged;
+}
+
+/**
+ * Registers a dynamic symbol mapping (e.g., from instruments-info API response).
+ * Overwrites any existing entry in the cache.
+ */
+export function registerDynamicSymbol(coinId: string, bybitSymbol: string): void {
+    dynamicSymbolCache.set(coinId, bybitSymbol);
+}
+
+/**
+ * Bulk-register dynamic symbol mappings.
+ */
+export function registerDynamicSymbols(mappings: Record<string, string>): void {
+    for (const [coinId, symbol] of Object.entries(mappings)) {
+        dynamicSymbolCache.set(coinId, symbol);
+    }
+}
 
 // Coin metadata (icon + display name)
 const COIN_META: Record<string, { name: string; image: string }> = {
@@ -47,6 +102,17 @@ const COIN_META: Record<string, { name: string; image: string }> = {
     tron: { name: 'TRON', image: 'https://assets.coingecko.com/coins/images/1094/small/tron-logo.png' },
     'shiba-inu': { name: 'Shiba Inu', image: 'https://assets.coingecko.com/coins/images/11939/small/shiba.png' },
     uniswap: { name: 'Uniswap', image: 'https://assets.coingecko.com/coins/images/12504/small/uni.jpg' },
+    cosmos: { name: 'Cosmos', image: 'https://assets.coingecko.com/coins/images/1481/small/cosmos_hub.png' },
+    'near-protocol': { name: 'NEAR Protocol', image: 'https://assets.coingecko.com/coins/images/10365/small/near.jpg' },
+    aptos: { name: 'Aptos', image: 'https://assets.coingecko.com/coins/images/26455/small/aptos_round.png' },
+    optimism: { name: 'Optimism', image: 'https://assets.coingecko.com/coins/images/25244/small/Optimism.png' },
+    filecoin: { name: 'Filecoin', image: 'https://assets.coingecko.com/coins/images/12817/small/filecoin.png' },
+    'immutable-x': { name: 'Immutable', image: 'https://assets.coingecko.com/coins/images/17233/small/immutableX-symbol-BLK-RGB.png' },
+    thorchain: { name: 'THORChain', image: 'https://assets.coingecko.com/coins/images/6595/small/Rune200x200.png' },
+    arbitrum: { name: 'Arbitrum', image: 'https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg' },
+    sui: { name: 'Sui', image: 'https://assets.coingecko.com/coins/images/26375/small/sui_asset.jpeg' },
+    'render-token': { name: 'Render', image: 'https://assets.coingecko.com/coins/images/11636/small/rndr.png' },
+    injective: { name: 'Injective', image: 'https://assets.coingecko.com/coins/images/12882/small/Secondary_Symbol.png' },
 };
 
 // Cache

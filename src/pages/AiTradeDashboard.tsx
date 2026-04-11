@@ -34,9 +34,10 @@ export default function AiTradeDashboard() {
     strategies, positions, risk, signals, performance,
     marketContext, pendingSignals, isEvaluating,
     totalCapital, totalUnrealizedPnl, totalFundingIncome, activeStrategies,
-    isLoading, isSetupComplete,
+    isLoading, isSetupComplete, error: hookError,
     fetchAll, enableStrategy, disableStrategy, closePosition, closeAllPositions, triggerEvaluation,
   } = useLeveragedTrading();
+  const [evalResult, setEvalResult] = useState<string | null>(null);
 
   const [tab, setTab] = useState<'overview' | 'positions' | 'timeline' | 'config'>('overview');
   const [closingId, setClosingId] = useState<string | null>(null);
@@ -283,6 +284,16 @@ export default function AiTradeDashboard() {
         </div>
       </motion.div>
 
+      {/* ═══ ERROR/STATUS BANNER ═══ */}
+      {(hookError || evalResult) && (
+        <div className={`rounded-xl p-3 text-xs ${hookError ? 'bg-red-500/10 border border-red-500/30 text-red-400' : 'bg-blue-500/10 border border-blue-500/30 text-blue-400'}`}>
+          <div className="flex items-center justify-between">
+            <p className="font-medium">{hookError || evalResult}</p>
+            <button onClick={() => { setEvalResult(null); }} className="text-muted-foreground ml-2">✕</button>
+          </div>
+        </div>
+      )}
+
       {/* ═══ RISK ═══ */}
       <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp}
         className={`rounded-xl p-3 border ${risk.circuitBreaker.isTripped ? 'bg-red-500/10 border-red-500/30' : risk.totalHeat >= 0.15 ? 'bg-amber-500/10 border-amber-500/30' : 'glass-card'}`}>
@@ -321,7 +332,7 @@ export default function AiTradeDashboard() {
           <div className="glass-card rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Market Analysis</h3>
-              <button onClick={() => triggerEvaluation()} disabled={isEvaluating}
+              <button onClick={async () => { setEvalResult(null); const r = await triggerEvaluation(); setEvalResult(r.executed > 0 ? `${r.executed} orders placed!` : r.pendingSignals.length > 0 ? `${r.pendingSignals.length} signals found` : r.marketContext ? `Market: ${r.marketContext.regime} — no signals` : hookError || 'Check console for details'); }} disabled={isEvaluating}
                 className="text-xs text-primary font-medium disabled:opacity-50">
                 {isEvaluating ? 'Analyzing...' : '↻ Refresh'}
               </button>
@@ -382,7 +393,7 @@ export default function AiTradeDashboard() {
               </>
             ) : (
               <div className="text-center py-3">
-                <button onClick={() => triggerEvaluation()} disabled={isEvaluating}
+                <button onClick={async () => { setEvalResult(null); const r = await triggerEvaluation(); setEvalResult(r.executed > 0 ? `${r.executed} orders placed!` : r.pendingSignals.length > 0 ? `${r.pendingSignals.length} signals found` : r.marketContext ? `Market: ${r.marketContext.regime} — no signals` : hookError || 'Check console for details'); }} disabled={isEvaluating}
                   className="px-4 py-2 rounded-lg text-xs font-medium bg-primary/10 text-primary border border-primary/20 disabled:opacity-50">
                   {isEvaluating ? 'Analyzing market...' : 'Run Market Analysis'}
                 </button>
@@ -546,7 +557,7 @@ export default function AiTradeDashboard() {
               <span className="text-3xl">📋</span>
               <p className="text-sm text-muted-foreground">No open positions</p>
               <p className="text-[10px] text-muted-foreground">Strategies evaluate when market conditions change.</p>
-              <button onClick={() => triggerEvaluation()} disabled={isEvaluating}
+              <button onClick={async () => { setEvalResult(null); const r = await triggerEvaluation(); setEvalResult(r.executed > 0 ? `${r.executed} orders placed!` : r.pendingSignals.length > 0 ? `${r.pendingSignals.length} signals found` : r.marketContext ? `Market: ${r.marketContext.regime} — no signals` : hookError || 'Check console for details'); }} disabled={isEvaluating}
                 className="px-4 py-2 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/20 disabled:opacity-50">
                 {isEvaluating ? 'Analyzing...' : 'Run Analysis Now'}
               </button>
@@ -607,7 +618,7 @@ export default function AiTradeDashboard() {
           <div className="glass-card rounded-xl p-3 space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-xs text-muted-foreground uppercase tracking-wider">System</h3>
-              <button onClick={() => { triggerEvaluation(); setLastChecked(new Date()); }} disabled={isEvaluating}
+              <button onClick={async () => { setEvalResult(null); const r = await triggerEvaluation(); setLastChecked(new Date()); setEvalResult(r.executed > 0 ? `${r.executed} orders placed!` : r.marketContext ? `${r.marketContext.regime} — ${r.pendingSignals.length} signals` : hookError || 'No response'); }} disabled={isEvaluating}
                 className="text-[10px] text-primary font-medium disabled:opacity-50">
                 {isEvaluating ? 'Analyzing...' : 'Run Analysis'}
               </button>
