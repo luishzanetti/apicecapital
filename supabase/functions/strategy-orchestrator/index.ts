@@ -32,7 +32,7 @@ const MAX_LEVERAGE_BY_REGIME: Record<string, number> = {
 // ─── Auto-execute approved signals ──────────────────────────
 
 async function autoExecuteSignals(
-  supabaseAdmin: any, userId: string, approved: Signal[], marketData: any[]
+  supabaseAdmin: any, userId: string, approved: Signal[], marketData: any[], currentRegime: string
 ): Promise<{ executed: number; failed: number }> {
   const ENCRYPTION_KEY = Deno.env.get('ENCRYPTION_KEY');
   if (!ENCRYPTION_KEY) return { executed: 0, failed: 0 };
@@ -59,13 +59,28 @@ async function autoExecuteSignals(
     if (signal.direction === 'neutral') continue;
 
     try {
+      // Idempotency: skip if position already exists for this user+symbol+direction
+      const { data: existing } = await supabaseAdmin
+        .from('leveraged_positions')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('symbol', signal.symbol)
+        .eq('side', signal.direction)
+        .eq('status', 'open')
+        .limit(1);
+      if (existing && existing.length > 0) {
+        console.log(`[orchestrator] SKIP: ${signal.direction} ${signal.symbol} — position already open`);
+        continue;
+      }
+
       const price = marketData.find((d: any) => d.symbol === signal.symbol)?.price;
       if (!price || price <= 0) continue;
 
       // Calculate qty from USD size
       const qty = (signal.suggestedSizeUsd / price).toFixed(6);
       const side = signal.direction === 'long' ? 'Buy' : 'Sell';
-      const leverage = signal.suggestedLeverage;
+      const maxLevByRegime = MAX_LEVERAGE_BY_REGIME[currentRegime] || 2;
+      const leverage = Math.min(signal.suggestedLeverage, maxLevByRegime);
 
       // Set leverage
       try {
@@ -471,7 +486,8 @@ Deno.serve(async (req: Request) => {
 
         // Calculate heat
         const totalExposure = (openPositions || []).reduce((s: number, p: any) => s + p.size_usd * p.leverage, 0);
-        const estimatedEquity = totalExposure > 0 ? totalExposure / 2 : 10000;
+        const totalMargin = (openPositions || []).reduce((s: number, p: any) => s + (p.size_usd || 0), 0);
+      const estimatedEquity = totalMargin > 0 ? totalMargin : 10000;
         let totalRisk = 0;
         for (const p of (openPositions || [])) {
           const slDist = p.stop_loss_price && p.entry_price
@@ -535,7 +551,7 @@ Deno.serve(async (req: Request) => {
 
         // AUTO-EXECUTE approved signals on Bybit
         if (approved.length > 0) {
-          const execResult = await autoExecuteSignals(supabaseAdmin, userId, approved, marketData || []);
+          const execResult = await autoExecuteSignals(supabaseAdmin, userId, approved, marketData || [], regime);
           totalExecuted += execResult.executed;
         }
       }
@@ -599,7 +615,8 @@ Deno.serve(async (req: Request) => {
         .from('leveraged_positions').select('*').eq('user_id', user.id).eq('status', 'open');
 
       const totalExposure = (openPositions || []).reduce((s: number, p: any) => s + p.size_usd * p.leverage, 0);
-      const estimatedEquity = totalExposure > 0 ? totalExposure / 2 : 10000;
+      const totalMargin = (openPositions || []).reduce((s: number, p: any) => s + (p.size_usd || 0), 0);
+      const estimatedEquity = totalMargin > 0 ? totalMargin : 10000;
       let totalRisk = 0;
       for (const p of (openPositions || [])) {
         const slDist = p.stop_loss_price && p.entry_price
@@ -639,7 +656,7 @@ Deno.serve(async (req: Request) => {
       // Auto-execute
       let executedCount = 0;
       if (approved.length > 0) {
-        const execResult = await autoExecuteSignals(supabaseAdmin, user.id, approved, marketData);
+        const execResult = await autoExecuteSignals(supabaseAdmin, user.id, approved, marketData, regime);
         executedCount = execResult.executed;
       }
 

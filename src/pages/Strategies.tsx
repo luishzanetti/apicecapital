@@ -377,7 +377,7 @@ export default function Strategies() {
       route: '/ai-trade',
       badge: 'Featured',
       badgeVariant: 'recommended',
-      features: ['5 automated strategies', '7 layers of risk protection', 'AI-powered signals (Claude)', 'Grid + Arb + Trend + MeanRev'],
+      features: ['5 automated strategies', 'Active risk protection', 'AI-powered signals (Claude)', 'Grid + Arb + Trend + MeanRev'],
       projection: 'Backtest: +568% over 75 months (Full Stack)',
       isLocked: false,
       category: 'automation',

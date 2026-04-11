@@ -1,21 +1,16 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLeveragedTrading } from '@/hooks/useLeveragedTrading';
-// Trade execution is automated — no manual panel needed
+import { ALTIS_STRATEGIES } from '@/constants/strategies';
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, YAxis, Tooltip } from 'recharts';
 
-// ═══════════════════════════════════════════════════════════════
-// CONSTANTS (ALTIS-native, zero DCA deps)
-// ═══════════════════════════════════════════════════════════════
-
-const S: Record<string, { l: string; i: string; c: string; bg: string; cc: string; bt: { wr: number; pf: number; ar: number } }> = {
-  grid:            { l: 'Grid',     i: '📊', c: 'text-blue-400',   bg: 'bg-blue-500',   cc: '#3b82f6', bt: { wr: 52.1, pf: 5.93, ar: 25 } },
-  mean_reversion:  { l: 'Mean Rev', i: '🔄', c: 'text-purple-400', bg: 'bg-purple-500', cc: '#a855f7', bt: { wr: 93.3, pf: 28.55, ar: 20 } },
-  funding_arb:     { l: 'Arb',      i: '💰', c: 'text-amber-400',  bg: 'bg-amber-500',  cc: '#f59e0b', bt: { wr: 96.6, pf: 9280, ar: 30 } },
-  trend_following: { l: 'Trend',    i: '📈', c: 'text-green-400',  bg: 'bg-green-500',  cc: '#22c55e', bt: { wr: 31.3, pf: 0.84, ar: 15 } },
-  ai_signal:       { l: 'AI',       i: '🧠', c: 'text-cyan-400',   bg: 'bg-cyan-500',   cc: '#06b6d4', bt: { wr: 50, pf: 1, ar: 20 } },
-};
+// Strategy lookup from single source of truth
+const S = Object.fromEntries(
+  Object.entries(ALTIS_STRATEGIES).map(([k, v]) => [k, {
+    l: v.shortLabel, i: v.icon, c: v.textClass, bg: v.bgClass, cc: v.chartColor,
+  }])
+) as Record<string, { l: string; i: string; c: string; bg: string; cc: string }>;
 
 function fmt(v: number) { return Math.abs(v) >= 1e3 ? `$${(v / 1e3).toFixed(1)}K` : `$${v.toFixed(2)}`; }
 function pc(v: number) { return v > 0 ? 'text-green-400' : v < 0 ? 'text-red-400' : 'text-muted-foreground'; }
@@ -62,29 +57,18 @@ export default function AiTradeDashboard() {
     color: S[s.strategyType]?.cc || '#6b7280',
   })), [activeStrategies]);
 
-  const projMonthly = useMemo(() => activeStrategies.reduce((sum, s) => {
-    const ar = S[s.strategyType]?.bt.ar || 10;
-    return sum + (totalCapital * (s.allocationPct / 100) * (ar / 100 / 12));
-  }, 0), [activeStrategies, totalCapital]);
+  // Real P&L from performance data — no projections from fake backtests
+  const realizedTotal = performance.reduce((s, p) => s + p.totalPnlUsd, 0);
 
-  // Fake equity curve (from performance data or generate demo)
+  // Real equity curve — only show with actual performance data
   const equityData = useMemo(() => {
-    if (performance.length === 0) {
-      // Generate demo curve based on projected returns
-      const pts: { day: number; value: number }[] = [];
-      let val = totalCapital;
-      for (let d = 0; d < 30; d++) {
-        val += projMonthly / 30 * (0.5 + Math.random());
-        pts.push({ day: d, value: Math.round(val) });
-      }
-      return pts;
-    }
+    if (performance.length === 0) return [];
     let cum = totalCapital;
     return performance.map((p, i) => {
       cum += p.totalPnlUsd;
       return { day: i, value: Math.round(cum) };
     });
-  }, [performance, totalCapital, projMonthly]);
+  }, [performance, totalCapital]);
 
   const chartPositive = equityData.length > 1 && equityData[equityData.length - 1].value >= equityData[0].value;
 
@@ -107,9 +91,8 @@ export default function AiTradeDashboard() {
   ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()), [signals, positions]);
 
   // Live countdown
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => { const i = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(i); }, []);
-  const cd = (ms: number) => { const r = ms - (now % ms), m = Math.floor(r / 60000), s = Math.floor((r % 60000) / 1000); return m > 59 ? `${Math.floor(m / 60)}h${m % 60}m` : `${m}:${String(s).padStart(2, '0')}`; };
+  // Last fetch timestamp for honest "last checked" display
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
   // ─── No setup ───────────────────────────────────────────
 
@@ -564,7 +547,7 @@ export default function AiTradeDashboard() {
             <div className="glass-card rounded-xl p-8 text-center space-y-3">
               <span className="text-3xl">📋</span>
               <p className="text-sm text-muted-foreground">No open positions</p>
-              <p className="text-xs text-muted-foreground">Next check: <span className="text-primary font-mono">{cd(15 * 60000)}</span></p>
+              <p className="text-[10px] text-muted-foreground">Strategies evaluate when market conditions change.</p>
               <button onClick={() => triggerEvaluation()} disabled={isEvaluating}
                 className="px-4 py-2 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/20 disabled:opacity-50">
                 {isEvaluating ? 'Analyzing...' : 'Run Analysis Now'}

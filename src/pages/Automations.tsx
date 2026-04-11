@@ -116,7 +116,7 @@ export default function Automations() {
                     <div className="flex-1">
                       <h3 className="font-medium text-sm">ALTIS — AI Trading</h3>
                       <p className="text-xs text-muted-foreground">
-                        5 strategies, 7 layers of risk protection
+                        5 strategies with active risk protection
                       </p>
                     </div>
                     <ChevronRight className="w-5 h-5 text-muted-foreground" />

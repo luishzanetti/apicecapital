@@ -38,6 +38,8 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const AiTradeDashboard = lazy(() => import("./pages/AiTradeDashboard"));
 const AiTradeSetup = lazy(() => import("./pages/AiTradeSetup"));
 const AssetDetail = lazy(() => import("./pages/AssetDetail"));
+const QuickDCA = lazy(() => import("./pages/QuickDCA"));
+const ExplosiveList = lazy(() => import("./pages/ExplosiveList"));
 const MethodologyMission = lazy(() => import("./pages/MethodologyMission"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -142,6 +144,8 @@ function AppContent() {
         <Route path="/automations" element={<Automations />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/asset/:id" element={<AssetDetail />} />
+        <Route path="/quick-dca" element={<QuickDCA />} />
+        <Route path="/explosive-list" element={<ExplosiveList />} />
         <Route path="/dca-planner" element={<DCAPlanner />} />
         <Route path="/automations/dca" element={<DCAPlanner />} />
         <Route path="/investment-setup" element={<DCAPlanner />} />
