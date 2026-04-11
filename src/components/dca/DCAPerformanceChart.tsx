@@ -57,7 +57,7 @@ function CustomTooltip({ active, payload, label }: any) {
   const data = payload[0].payload as ChartPoint;
   return (
     <div className="rounded-xl bg-zinc-900/95 border border-white/10 px-3 py-2.5 shadow-xl backdrop-blur-md">
-      <p className="text-[10px] text-white/50 mb-1">{data.date}</p>
+      <p className="text-xs text-white/50 mb-1">{data.date}</p>
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-4">
           <span className="text-[11px] text-white/60">Total invested</span>
@@ -160,12 +160,12 @@ export function DCAPerformanceChart() {
             </div>
             <div>
               <p className="text-xs font-semibold text-white/80">DCA Performance</p>
-              <p className="text-[10px] text-white/30">Cumulative investment over time</p>
+              <p className="text-xs text-white/30">Cumulative investment over time</p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-lg font-bold text-white">{fmt(latestAmount)}</p>
-            <p className="text-[10px] text-white/40">{totalExecs} executions</p>
+            <p className="text-xs text-white/40">{totalExecs} executions</p>
           </div>
         </div>
 
@@ -174,21 +174,21 @@ export function DCAPerformanceChart() {
           <div className="rounded-xl bg-white/[0.04] border border-white/[0.06] px-2.5 py-2">
             <div className="flex items-center gap-1.5 mb-0.5">
               <DollarSign className="w-3 h-3 text-emerald-400/60" />
-              <span className="text-[9px] uppercase tracking-wider text-white/40 font-semibold">Avg / Exec</span>
+              <span className="text-xs uppercase tracking-wider text-white/40 font-semibold">Avg / Exec</span>
             </div>
             <p className="text-xs font-bold text-white">{fmt(avgPerExec)}</p>
           </div>
           <div className="rounded-xl bg-white/[0.04] border border-white/[0.06] px-2.5 py-2">
             <div className="flex items-center gap-1.5 mb-0.5">
               <Calendar className="w-3 h-3 text-blue-400/60" />
-              <span className="text-[9px] uppercase tracking-wider text-white/40 font-semibold">Monthly</span>
+              <span className="text-xs uppercase tracking-wider text-white/40 font-semibold">Monthly</span>
             </div>
             <p className="text-xs font-bold text-white">{fmt(stats.monthlyCommitment)}</p>
           </div>
           <div className="rounded-xl bg-white/[0.04] border border-white/[0.06] px-2.5 py-2">
             <div className="flex items-center gap-1.5 mb-0.5">
               <Activity className="w-3 h-3 text-amber-400/60" />
-              <span className="text-[9px] uppercase tracking-wider text-white/40 font-semibold">Success</span>
+              <span className="text-xs uppercase tracking-wider text-white/40 font-semibold">Success</span>
             </div>
             <p className="text-xs font-bold text-white">
               {totalExecs > 0 ? `${Math.round((totalExecs / (totalExecs + failedExecs)) * 100)}%` : '—'}
@@ -280,11 +280,11 @@ export function DCAPerformanceChart() {
 
       {/* Footer */}
       <div className="px-4 md:px-5 py-2.5 border-t border-white/[0.04] flex items-center justify-between">
-        <span className="text-[10px] text-white/25">
+        <span className="text-xs text-white/25">
           {chartData.length} data points · {chartData[0]?.date} → {chartData[chartData.length - 1]?.date}
         </span>
         {failedExecs > 0 && (
-          <span className="text-[10px] text-red-400/60">
+          <span className="text-xs text-red-400/60">
             {failedExecs} failed
           </span>
         )}

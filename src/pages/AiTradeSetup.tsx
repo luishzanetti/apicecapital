@@ -124,7 +124,7 @@ function formatUsd(v: number) {
 
 export default function AiTradeSetup() {
   const navigate = useNavigate();
-  const { enableStrategy, setTotalCapital: saveTotalCapital, addBot, bots } = useLeveragedTrading();
+  const { enableStrategy, setTotalCapital: saveTotalCapital, addBot, bots, triggerEvaluation } = useLeveragedTrading();
   const { data: balanceData, status: balanceStatus } = useExchangeBalance();
 
   const [step, setStep] = useState(0);
@@ -133,8 +133,14 @@ export default function AiTradeSetup() {
   const [profile, setProfile] = useState<keyof typeof RISK_PROFILES | null>(null);
   const [allocations, setAllocations] = useState<Record<string, number>>({});
   const [expandedStrategy, setExpandedStrategy] = useState<string | null>(null);
-  const [robotName, setRobotName] = useState('ALTIS Bot #1');
+  const [robotName, setRobotName] = useState(`ALTIS Bot #${bots.length + 1}`);
   const [isActivating, setIsActivating] = useState(false);
+  // Advanced customization
+  const [maxLeverage, setMaxLeverage] = useState(5);
+  const [riskPerTradePct, setRiskPerTradePct] = useState(33);
+  const [maxPositions, setMaxPositions] = useState(5);
+  const [autoExecute, setAutoExecute] = useState(true);
+  const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set(['BTCUSDT', 'ETHUSDT', 'SOLUSDT']));
 
   // Detect available balance
   const unifiedBalance = balanceData?.totalAvailableBalance || 0;
@@ -179,20 +185,32 @@ export default function AiTradeSetup() {
             strategyType: strat.type,
             isActive: true,
             allocationPct: strat.allocPct,
-            maxLeverage: config.maxLeverage,
-            assets: ['BTCUSDT', 'ETHUSDT'],
+            maxLeverage: maxLeverage,
+            assets: [...selectedAssets],
           });
         }
       }
-      addBot(robotName, totalCapital, profile, stratConfigs);
+      addBot(robotName, totalCapital, profile, stratConfigs, {
+        maxLeverage, riskPerTradePct, maxPositions, autoExecute,
+        selectedAssets: [...selectedAssets],
+      });
 
-      // Also sync to Supabase if available
+      // Sync to Supabase
       for (const strat of stratConfigs) {
         await enableStrategy(strat.strategyType, strat.allocationPct, strat.maxLeverage);
       }
 
       toast.success(`${robotName} activated — ${formatUsd(totalCapital)}`, {
-        description: `${stratConfigs.length} strategies, ${config.label} profile`,
+        description: `Analyzing market and placing first trades...`,
+      });
+
+      // Trigger immediate market analysis + trade execution
+      triggerEvaluation().then(result => {
+        if (result.executed > 0) {
+          toast.success(`${result.executed} trades opened automatically`, {
+            description: `Based on current ${result.marketContext?.regime || ''} regime`,
+          });
+        }
       });
       setTimeout(() => navigate('/ai-trade'), 300);
     } catch {
@@ -206,7 +224,7 @@ export default function AiTradeSetup() {
     <div className="p-4 min-h-screen flex flex-col pb-28">
       {/* Progress bar */}
       <div className="flex items-center gap-2 mb-5">
-        {[0, 1, 2, 3].map(i => (
+        {[0, 1, 2, 3, 4].map(i => (
           <div key={i} className={`flex-1 h-1 rounded-full transition-all duration-300 ${i <= step ? 'bg-primary' : 'bg-secondary/40'}`} />
         ))}
       </div>
@@ -253,7 +271,7 @@ export default function AiTradeSetup() {
                   <span className="text-xl">🔗</span>
                   <div>
                     <p className="text-sm font-medium text-foreground">Use Unified Account Balance</p>
-                    <p className="text-[10px] text-muted-foreground">Auto-detect your available trading capital</p>
+                    <p className="text-xs text-muted-foreground">Auto-detect your available trading capital</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -279,7 +297,7 @@ export default function AiTradeSetup() {
                 <span className="text-xl">✏️</span>
                 <div>
                   <p className="text-sm font-medium text-foreground">Set Custom Amount</p>
-                  <p className="text-[10px] text-muted-foreground">Manually define how much to allocate</p>
+                  <p className="text-xs text-muted-foreground">Manually define how much to allocate</p>
                 </div>
               </div>
             </button>
@@ -317,9 +335,9 @@ export default function AiTradeSetup() {
               <div className="glass-light rounded-lg p-3 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className={`text-xs font-semibold ${tier.color.split(' ')[0]}`}>{tier.emoji} {tier.name} Tier</span>
-                  <span className="text-[10px] text-muted-foreground">Up to {tier.maxStrats} strategies</span>
+                  <span className="text-xs text-muted-foreground">Up to {tier.maxStrats} strategies</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-[10px]">
+                <div className="grid grid-cols-3 gap-2 text-xs">
                   <div><span className="text-muted-foreground block">Risk/trade</span><span className="text-foreground font-medium">{formatUsd(totalCapital * 0.02)}</span></div>
                   <div><span className="text-muted-foreground block">Max at risk</span><span className="text-foreground font-medium">{formatUsd(totalCapital * 0.20)}</span></div>
                   <div><span className="text-muted-foreground block">Daily limit</span><span className="text-red-400 font-medium">-{formatUsd(totalCapital * 0.05)}</span></div>
@@ -331,7 +349,7 @@ export default function AiTradeSetup() {
           {/* DCA separation note */}
           <div className="glass-light rounded-lg px-3 py-2 flex items-center gap-2">
             <span className="text-sm">🔒</span>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Your DCA savings in the <strong>Funding Account</strong> are completely separate and untouched.
             </p>
           </div>
@@ -370,11 +388,11 @@ export default function AiTradeSetup() {
                   <span className="text-2xl">{p.icon}</span>
                   <div className="flex-1">
                     <p className="font-semibold text-foreground">{p.label}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{p.desc}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{p.desc}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-primary font-medium">Max {p.maxLeverage}x</p>
-                    <p className="text-[10px] text-muted-foreground">{Object.values(p.defaults).filter(v => v > 0).length} strategies</p>
+                    <p className="text-xs text-muted-foreground">{Object.values(p.defaults).filter(v => v > 0).length} strategies</p>
                   </div>
                 </div>
               </button>
@@ -440,16 +458,16 @@ export default function AiTradeSetup() {
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-medium text-foreground">{s.label}</p>
-                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${RISK_COLORS[s.riskLevel]} bg-current/10`}>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${RISK_COLORS[s.riskLevel]} bg-current/10`}>
                               {s.riskLevel}
                             </span>
                           </div>
-                          <p className="text-[10px] text-muted-foreground">{s.desc}</p>
+                          <p className="text-xs text-muted-foreground">{s.desc}</p>
                         </div>
                       </div>
                       <div className="text-right min-w-[60px]">
                         <p className="text-sm font-bold text-foreground">{s.allocPct}%</p>
-                        <p className="text-[10px] text-muted-foreground">{formatUsd(s.capital)}</p>
+                        <p className="text-xs text-muted-foreground">{formatUsd(s.capital)}</p>
                       </div>
                     </div>
                   </button>
@@ -461,7 +479,7 @@ export default function AiTradeSetup() {
                       className="w-full accent-primary" />
 
                     {/* Quick stats row */}
-                    <div className="flex items-center gap-2 text-[10px]">
+                    <div className="flex items-center gap-2 text-xs">
                       <span className="text-muted-foreground">Risk: {s.riskPerTrade}%</span>
                       <span className="text-muted-foreground">({formatUsd(s.riskPerTradeUsd)}/trade)</span>
                       <span className="text-muted-foreground">Lev: {s.maxLeverage}x</span>
@@ -471,7 +489,7 @@ export default function AiTradeSetup() {
 
                     {/* Backtest stats */}
                     {s.backtest.wr !== null && (
-                      <div className="flex items-center gap-3 text-[10px] glass-light rounded-lg px-2.5 py-1.5">
+                      <div className="flex items-center gap-3 text-xs glass-light rounded-lg px-2.5 py-1.5">
                         <span className="text-muted-foreground">Backtest:</span>
                         <span className="text-green-400 font-medium">WR {s.backtest.wr}%</span>
                         <span className="text-blue-400 font-medium">PF {s.backtest.pf}</span>
@@ -502,8 +520,117 @@ export default function AiTradeSetup() {
         </div>
       )}
 
-      {/* ═══ STEP 3: Review & Activate ═══ */}
+      {/* ═══ STEP 3: Advanced Configuration ═══ */}
       {step === 3 && profile && (
+        <div className="flex-1 space-y-5">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Advanced Settings</h1>
+            <p className="text-sm text-muted-foreground mt-1">Fine-tune risk, leverage, and execution.</p>
+          </div>
+
+          {/* Max Leverage */}
+          <div className="glass-card rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Max Leverage</p>
+                <p className="text-xs text-muted-foreground">Higher leverage = higher risk + higher potential return</p>
+              </div>
+              <span className={`text-lg font-bold ${maxLeverage > 5 ? 'text-amber-400' : 'text-foreground'}`}>{maxLeverage}x</span>
+            </div>
+            <input type="range" min={1} max={10} step={1} value={maxLeverage}
+              onChange={e => setMaxLeverage(Number(e.target.value))} className="w-full accent-primary" />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>1x Safe</span><span>3x Moderate</span><span>5x Aggressive</span><span>10x Max</span>
+            </div>
+            {maxLeverage > 5 && (
+              <p className="text-xs text-amber-400">Leverage above 5x significantly increases liquidation risk.</p>
+            )}
+          </div>
+
+          {/* Risk per Trade (Stop Loss) */}
+          <div className="glass-card rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Risk per Trade (Stop Loss)</p>
+                <p className="text-xs text-muted-foreground">Max % of capital to risk on a single trade</p>
+              </div>
+              <span className="text-lg font-bold text-foreground">{riskPerTradePct}%</span>
+            </div>
+            <input type="range" min={1} max={50} step={1} value={riskPerTradePct}
+              onChange={e => setRiskPerTradePct(Number(e.target.value))} className="w-full accent-primary" />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>1% Ultra-safe</span><span>10%</span><span>33% Default</span><span>50% Aggressive</span>
+            </div>
+            <div className="glass-light rounded-lg p-2.5 text-center">
+              <p className="text-xs text-muted-foreground">With {formatUsd(totalCapital)} capital:</p>
+              <p className="text-sm font-bold text-foreground">Max loss per trade: {formatUsd(totalCapital * riskPerTradePct / 100)}</p>
+            </div>
+          </div>
+
+          {/* Max Positions */}
+          <div className="glass-card rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Max Simultaneous Positions</p>
+                <p className="text-xs text-muted-foreground">How many trades can be open at once</p>
+              </div>
+              <span className="text-lg font-bold text-foreground">{maxPositions}</span>
+            </div>
+            <input type="range" min={1} max={20} step={1} value={maxPositions}
+              onChange={e => setMaxPositions(Number(e.target.value))} className="w-full accent-primary" />
+            <div className="flex gap-2">
+              {[1, 3, 5, 10].map(v => (
+                <button key={v} onClick={() => setMaxPositions(v)}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium ${maxPositions === v ? 'bg-primary/20 text-primary' : 'glass-light text-muted-foreground'}`}>{v}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Auto Execute */}
+          <div className="glass-card rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Auto-Execute Trades</p>
+                <p className="text-xs text-muted-foreground">Automatically open positions when signals are approved</p>
+              </div>
+              <button onClick={() => setAutoExecute(!autoExecute)}
+                className={`w-12 h-6 rounded-full transition-all ${autoExecute ? 'bg-green-500' : 'bg-secondary/60'}`}>
+                <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${autoExecute ? 'translate-x-6' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Selected Assets */}
+          <div className="glass-card rounded-xl p-4 space-y-3">
+            <p className="text-sm font-medium text-foreground">Trading Assets</p>
+            <div className="flex gap-2 flex-wrap">
+              {['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'LINKUSDT', 'AVAXUSDT', 'DOGEUSDT'].map(asset => {
+                const on = selectedAssets.has(asset);
+                return (
+                  <button key={asset} onClick={() => {
+                    const next = new Set(selectedAssets);
+                    if (on) next.delete(asset); else next.add(asset);
+                    setSelectedAssets(next);
+                  }}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                      on ? 'bg-primary/20 text-primary border border-primary/30' : 'glass-light text-muted-foreground'
+                    }`}>
+                    {asset.replace('USDT', '')}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <button onClick={() => setStep(2)} className="flex-1 py-3 rounded-xl glass-light text-muted-foreground font-medium">Back</button>
+            <button onClick={() => setStep(4)} className="flex-1 py-3 rounded-xl font-semibold bg-primary text-primary-foreground">Review</button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ STEP 4: Review & Activate ═══ */}
+      {step === 4 && profile && (
         <div className="flex-1 space-y-5">
           <div>
             <h1 className="text-xl font-bold text-foreground">Review — {robotName}</h1>
@@ -517,12 +644,12 @@ export default function AiTradeSetup() {
                 <span className="text-2xl">{RISK_PROFILES[profile].icon}</span>
                 <div>
                   <p className="font-semibold text-foreground">{RISK_PROFILES[profile].label}</p>
-                  <p className="text-[10px] text-muted-foreground">Max {RISK_PROFILES[profile].maxLeverage}x leverage</p>
+                  <p className="text-xs text-muted-foreground">Max {RISK_PROFILES[profile].maxLeverage}x leverage</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-foreground">{formatUsd(totalCapital)}</p>
-                <p className={`text-[10px] font-medium ${tier.color.split(' ')[0]}`}>{tier.emoji} {tier.name}</p>
+                <p className={`text-xs font-medium ${tier.color.split(' ')[0]}`}>{tier.emoji} {tier.name}</p>
               </div>
             </div>
 
@@ -534,7 +661,7 @@ export default function AiTradeSetup() {
                     <span className="text-xs font-medium text-foreground">{s.icon} {s.label}</span>
                     <span className="text-xs font-bold text-foreground">{formatUsd(s.capital)} <span className="text-muted-foreground font-normal">({s.allocPct}%)</span></span>
                   </div>
-                  <div className="flex items-center gap-3 mt-0.5 text-[10px] text-muted-foreground">
+                  <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
                     <span>Risk: {formatUsd(s.riskPerTradeUsd)}/trade</span>
                     <span>Max {s.maxPositions} positions</span>
                     <span>Lev: {s.maxLeverage}x</span>
@@ -554,18 +681,18 @@ export default function AiTradeSetup() {
 
           {/* Disclaimer */}
           <div className="glass-light rounded-xl p-3 border border-amber-500/20">
-            <p className="text-[10px] text-amber-300 font-medium mb-1">Risk Notice</p>
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
+            <p className="text-xs text-amber-300 font-medium mb-1">Risk Notice</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Leveraged trading carries risk. ALTIS uses 7 protection layers but cannot eliminate all risk.
               DCA savings (Funding Account) are completely separate. Only risk capital you can afford to lose.
             </p>
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(2)} className="flex-1 py-3 rounded-xl glass-light text-muted-foreground font-medium">Back</button>
+            <button onClick={() => setStep(3)} className="flex-1 py-3 rounded-xl glass-light text-muted-foreground font-medium">Back</button>
             <button onClick={handleActivate} disabled={isActivating}
               className="flex-1 py-3.5 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 text-white disabled:opacity-50 active:scale-[0.98]">
-              {isActivating ? 'Activating...' : `Activate ${robotName}`}
+              {isActivating ? 'Analyzing market...' : `Activate ${robotName}`}
             </button>
           </div>
         </div>

@@ -61,14 +61,14 @@ export function LeveragedPerformanceCard({ performance }: Props) {
           <p className={`text-lg font-bold ${pnlColor(totalPnl)}`}>
             {totalPnl >= 0 ? '+' : ''}{formatUsd(totalPnl)}
           </p>
-          <p className="text-[10px] text-muted-foreground">{totalTrades} trades</p>
+          <p className="text-xs text-muted-foreground">{totalTrades} trades</p>
         </div>
       </div>
 
       {/* Summary row */}
       {totalFunding > 0 && (
         <div className="glass-light rounded-lg p-2.5 flex items-center justify-between">
-          <span className="text-[10px] text-muted-foreground">Funding Income</span>
+          <span className="text-xs text-muted-foreground">Funding Income</span>
           <span className="text-xs font-semibold text-amber-400">+{formatUsd(totalFunding)}</span>
         </div>
       )}
@@ -82,7 +82,7 @@ export function LeveragedPerformanceCard({ performance }: Props) {
                 <div className={`w-2 h-2 rounded-full ${STRATEGY_COLORS[p.strategyType] || 'bg-secondary'}`} />
                 <span className="text-foreground/80 font-medium">{STRATEGY_LABELS[p.strategyType] || p.strategyType}</span>
               </div>
-              <div className="flex items-center gap-3 text-[10px]">
+              <div className="flex items-center gap-3 text-xs">
                 {p.tradesClosed > 0 && <span className="text-muted-foreground">{Math.round(p.tradesClosed * p.winRate / 100)}W {Math.round(p.tradesClosed * (1 - p.winRate / 100))}L</span>}
                 {p.winRate > 0 && <span className="text-muted-foreground">WR {p.winRate.toFixed(0)}%</span>}
                 {p.profitFactor > 0 && p.profitFactor < 999 && <span className="text-muted-foreground">PF {p.profitFactor.toFixed(2)}</span>}

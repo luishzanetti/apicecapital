@@ -7,7 +7,7 @@ import { useAppStore } from '@/store/appStore';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { encrypt } from '@/lib/crypto';
-import { testBybitApiKey } from '@/hooks/useDCAExecution';
+import { invokeEdgeFunction } from '@/lib/supabaseFunction';
 import {
   ArrowLeft, ChevronRight, Shield, Zap, TrendingUp,
   PieChart, Lock, ExternalLink, Copy, Check,
@@ -296,12 +296,16 @@ function APISetupStep({ onComplete }: { onComplete: () => void }) {
 
     try {
       toast.loading('Testing Bybit connection...', { id: 'api-test' });
-      const test = await testBybitApiKey(cleanKey, cleanSecret);
+      const { data, error: edgeFnError } = await invokeEdgeFunction('bybit-account', {
+        body: { action: 'test-credentials', apiKey: cleanKey, apiSecret: cleanSecret }
+      });
+      if (edgeFnError) throw edgeFnError;
+      const test = data?.data as { valid: boolean; canTrade: boolean; isTestnet: boolean; error?: string } | undefined;
 
-      if (!test.valid) {
+      if (!test?.valid) {
         setConnectionStatus('error');
-        setErrorMessage(test.error || 'Invalid API Key. Please check and try again.');
-        toast.error(test.error || 'Connection failed', { id: 'api-test' });
+        setErrorMessage(test?.error || 'Invalid API Key. Please check and try again.');
+        toast.error(test?.error || 'Connection failed', { id: 'api-test' });
         return;
       }
 

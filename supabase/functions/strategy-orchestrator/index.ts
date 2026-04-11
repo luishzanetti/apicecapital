@@ -1,14 +1,16 @@
 // Supabase Edge Function: strategy-orchestrator
-// The ALTIS brain — generates signals from 5 strategies, filters through risk, executes
+// The ALTIS brain — generates signals, filters risk, AUTO-EXECUTES approved trades
 // Cron: every 15 min for grid/mean-reversion, every 1h for trend
 //
 // Actions:
-//   "evaluate"              — Run all strategy signal generators for all active users
+//   "evaluate"              — Run all strategy signal generators + auto-execute (cron)
+//   "evaluate-user"         — Evaluate a single user (frontend-triggered, no cron secret)
 //   "rebalance-strategies"  — Adjust allocation by current market regime
 //   "calculate-performance" — Calculate strategy performance metrics (daily cron)
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { getCorsHeaders, LINEAR_SYMBOLS } from '../_shared/bybit-api.ts';
+import { getCorsHeaders, bybitPost, bybitGet, LINEAR_SYMBOLS } from '../_shared/bybit-api.ts';
+import { getUserCredentials } from '../_shared/auth.ts';
 
 // ─── Regime-based allocation ────────────────────────────────
 
@@ -24,8 +26,110 @@ const REGIME_ALLOCATIONS: Record<string, Record<string, number>> = {
 };
 
 const MAX_LEVERAGE_BY_REGIME: Record<string, number> = {
-  BULL: 3, BEAR: 2, SIDEWAYS: 3, HIGH_VOLATILITY: 1, ALTSEASON: 2, CAPITULATION: 0,
+  BULL: 5, BEAR: 3, SIDEWAYS: 5, HIGH_VOLATILITY: 2, ALTSEASON: 3, CAPITULATION: 0,
 };
+
+// ─── Auto-execute approved signals ──────────────────────────
+
+async function autoExecuteSignals(
+  supabaseAdmin: any, userId: string, approved: Signal[], marketData: any[]
+): Promise<{ executed: number; failed: number }> {
+  const ENCRYPTION_KEY = Deno.env.get('ENCRYPTION_KEY');
+  if (!ENCRYPTION_KEY) return { executed: 0, failed: 0 };
+
+  let executed = 0, failed = 0;
+
+  // Check if user has auto-execute enabled (default: true)
+  const { data: userConfig } = await supabaseAdmin
+    .from('strategy_configs')
+    .select('params')
+    .eq('user_id', userId)
+    .limit(1)
+    .single();
+
+  // Get user credentials
+  let creds;
+  try {
+    creds = await getUserCredentials(supabaseAdmin, userId, ENCRYPTION_KEY);
+  } catch {
+    return { executed: 0, failed: 0 }; // No Bybit credentials
+  }
+
+  for (const signal of approved) {
+    if (signal.direction === 'neutral') continue;
+
+    try {
+      const price = marketData.find((d: any) => d.symbol === signal.symbol)?.price;
+      if (!price || price <= 0) continue;
+
+      // Calculate qty from USD size
+      const qty = (signal.suggestedSizeUsd / price).toFixed(6);
+      const side = signal.direction === 'long' ? 'Buy' : 'Sell';
+      const leverage = signal.suggestedLeverage;
+
+      // Set leverage
+      try {
+        await bybitPost(creds.apiKey, creds.apiSecret, creds.testnet, '/v5/position/set-leverage', {
+          category: 'linear', symbol: signal.symbol,
+          buyLeverage: String(leverage), sellLeverage: String(leverage),
+        });
+      } catch { /* already set */ }
+
+      // Place order
+      const orderParams: Record<string, any> = {
+        category: 'linear', symbol: signal.symbol, side, orderType: 'Market', qty,
+      };
+      if (signal.takeProfit) orderParams.takeProfit = String(signal.takeProfit);
+      if (signal.stopLoss) orderParams.stopLoss = String(signal.stopLoss);
+
+      const orderResult = await bybitPost(creds.apiKey, creds.apiSecret, creds.testnet,
+        '/v5/order/create', orderParams);
+
+      const orderId = orderResult.orderId || '';
+
+      // Get fill price
+      let entryPrice = price;
+      if (orderId) {
+        await new Promise(r => setTimeout(r, 1000));
+        try {
+          const detail = await bybitGet(creds.apiKey, creds.apiSecret, creds.testnet,
+            '/v5/order/realtime', { category: 'linear', orderId });
+          entryPrice = parseFloat(detail.list?.[0]?.avgPrice) || price;
+        } catch { /* use market price */ }
+      }
+
+      // Record position
+      const { data: pos } = await supabaseAdmin.from('leveraged_positions').insert({
+        user_id: userId, strategy_type: signal.strategyType,
+        symbol: signal.symbol, side: signal.direction,
+        entry_price: entryPrice, size_qty: parseFloat(qty),
+        size_usd: signal.suggestedSizeUsd, leverage,
+        take_profit_price: signal.takeProfit, stop_loss_price: signal.stopLoss,
+        bybit_order_id: orderId, status: 'open',
+      }).select('id').single();
+
+      // Update signal as executed
+      if (pos) {
+        await supabaseAdmin.from('trading_signals')
+          .update({ was_executed: true, position_id: pos.id })
+          .eq('user_id', userId)
+          .eq('strategy_type', signal.strategyType)
+          .eq('symbol', signal.symbol)
+          .eq('was_executed', false)
+          .order('created_at', { ascending: false })
+          .limit(1);
+      }
+
+      executed++;
+      console.log(`[orchestrator] EXECUTED: ${signal.direction} ${signal.symbol} ${leverage}x, entry $${entryPrice}`);
+    } catch (e: any) {
+      failed++;
+      console.error(`[orchestrator] FAILED to execute ${signal.symbol}:`, e.message);
+    }
+  }
+
+  return { executed, failed };
+}
 
 // ─── Signal interface ───────────────────────────────────────
 
@@ -353,6 +457,7 @@ Deno.serve(async (req: Request) => {
       const userIds = [...new Set(activeConfigs.map(c => c.user_id))];
       let totalSignals = 0;
       let totalApproved = 0;
+      let totalExecuted = 0;
 
       for (const userId of userIds) {
         const userConfigs = activeConfigs.filter(c => c.user_id === userId);
@@ -424,8 +529,14 @@ Deno.serve(async (req: Request) => {
             portfolio_heat_at_signal: heat,
             market_regime: regime,
             indicators: signal.indicators,
-            expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 min expiry
+            expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
           });
+        }
+
+        // AUTO-EXECUTE approved signals on Bybit
+        if (approved.length > 0) {
+          const execResult = await autoExecuteSignals(supabaseAdmin, userId, approved, marketData || []);
+          totalExecuted += execResult.executed;
         }
       }
 
@@ -433,11 +544,119 @@ Deno.serve(async (req: Request) => {
         regime, regimeConfidence: regimeData?.confidence,
         maxLeverage, usersProcessed: userIds.length,
         signalsGenerated: totalSignals, signalsApproved: totalApproved,
+        signalsExecuted: totalExecuted,
         timestamp: new Date().toISOString(),
       });
     }
 
     // ─── Rebalance strategies by regime ──────────────────────
+    // ─── Evaluate single user (frontend-triggered) ─────────
+    if (action === 'evaluate-user') {
+      // Auth via JWT (no cron secret needed)
+      const authHeader = req.headers.get('authorization');
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: 'Missing authorization' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const supabaseUser = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user } } = await supabaseUser.auth.getUser();
+      if (!user) {
+        return new Response(JSON.stringify({ error: 'Invalid token' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      // Get regime + market data
+      const { data: regimeData } = await supabaseAdmin
+        .from('market_regimes').select('regime, confidence')
+        .is('ended_at', null).order('started_at', { ascending: false }).limit(1).single();
+
+      const regime = regimeData?.regime || 'SIDEWAYS';
+      const maxLeverage = MAX_LEVERAGE_BY_REGIME[regime] || 2;
+
+      const { data: marketData } = await supabaseAdmin
+        .from('market_snapshots')
+        .select('symbol, price, sma_7d, sma_30d, sma_90d, rsi_14, volatility_30d, funding_rate, fear_greed_index')
+        .in('symbol', LINEAR_SYMBOLS)
+        .order('captured_at', { ascending: false }).limit(LINEAR_SYMBOLS.length);
+
+      // Get user's active strategies
+      const { data: userConfigs } = await supabaseAdmin
+        .from('strategy_configs').select('*').eq('user_id', user.id).eq('is_active', true);
+
+      if (!userConfigs || userConfigs.length === 0 || !marketData || marketData.length === 0) {
+        // Return market context even without signals
+        return json({
+          regime, marketData: marketData || [],
+          signals: [], executed: 0,
+          message: !userConfigs?.length ? 'No active strategies' : 'No market data',
+        });
+      }
+
+      // Get open positions
+      const { data: openPositions } = await supabaseAdmin
+        .from('leveraged_positions').select('*').eq('user_id', user.id).eq('status', 'open');
+
+      const totalExposure = (openPositions || []).reduce((s: number, p: any) => s + p.size_usd * p.leverage, 0);
+      const estimatedEquity = totalExposure > 0 ? totalExposure / 2 : 10000;
+      let totalRisk = 0;
+      for (const p of (openPositions || [])) {
+        const slDist = p.stop_loss_price && p.entry_price
+          ? Math.abs(p.entry_price - p.stop_loss_price) / p.entry_price : 0.02;
+        totalRisk += p.size_usd * p.leverage * slDist;
+      }
+      const heat = estimatedEquity > 0 ? totalRisk / estimatedEquity : 0;
+
+      // Generate signals
+      let allSignals: Signal[] = [];
+      for (const config of userConfigs) {
+        const allocatedCapital = estimatedEquity * (config.allocation_pct / 100);
+        switch (config.strategy_type) {
+          case 'grid': allSignals.push(...generateGridSignals(regime, marketData, allocatedCapital)); break;
+          case 'trend_following': allSignals.push(...generateTrendSignals(regime, marketData, allocatedCapital)); break;
+          case 'mean_reversion': allSignals.push(...generateMeanRevSignals(regime, marketData, allocatedCapital)); break;
+          case 'funding_arb': allSignals.push(...generateFundingArbSignals(regime, marketData, allocatedCapital)); break;
+        }
+      }
+
+      const approved = filterSignalsByRisk(allSignals, openPositions || [], heat, regime, maxLeverage);
+
+      // Save signals
+      for (const signal of allSignals) {
+        const isApproved = approved.includes(signal);
+        await supabaseAdmin.from('trading_signals').insert({
+          user_id: user.id, strategy_type: signal.strategyType, symbol: signal.symbol,
+          direction: signal.direction, conviction: signal.conviction,
+          suggested_leverage: signal.suggestedLeverage, suggested_size_usd: signal.suggestedSizeUsd,
+          take_profit_price: signal.takeProfit, stop_loss_price: signal.stopLoss,
+          rationale: signal.rationale, risk_approved: isApproved,
+          portfolio_heat_at_signal: heat, market_regime: regime, indicators: signal.indicators,
+          expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        });
+      }
+
+      // Auto-execute
+      let executedCount = 0;
+      if (approved.length > 0) {
+        const execResult = await autoExecuteSignals(supabaseAdmin, user.id, approved, marketData);
+        executedCount = execResult.executed;
+      }
+
+      return json({
+        regime, confidence: regimeData?.confidence,
+        marketContext: (marketData || []).reduce((acc: any, d: any) => {
+          acc[d.symbol] = { price: d.price, rsi: d.rsi_14, sma7: d.sma_7d, sma30: d.sma_30d, funding: d.funding_rate, fg: d.fear_greed_index };
+          return acc;
+        }, {}),
+        signals: allSignals.map(s => ({
+          ...s, approved: approved.includes(s),
+        })),
+        totalGenerated: allSignals.length, totalApproved: approved.length, totalExecuted: executedCount,
+        heat, timestamp: new Date().toISOString(),
+      });
+    }
+
     if (action === 'rebalance-strategies') {
       const { data: regimeData } = await supabaseAdmin
         .from('market_regimes')

@@ -109,7 +109,7 @@ export function SmartAlertsList({ maxAlerts = 5, compact = false }: SmartAlertsL
             </button>
           )}
 
-          <p className="text-[10px] text-muted-foreground/60 mt-1">
+          <p className="text-xs text-muted-foreground/60 mt-1">
             {new Date(alert.created_at).toLocaleDateString('en-US', {
               day: '2-digit',
               month: 'short',

@@ -1,15 +1,16 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, PieChart, Compass, BookOpen, BarChart3, CalendarClock, Crown, Headphones, User, Gift } from 'lucide-react';
+import { Home, PieChart, Compass, BookOpen, BarChart3, CalendarClock, Crown, Headphones, User, Gift, Bot } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 const mainNav = [
   { to: '/home', icon: Home, label: 'Home' },
   { to: '/portfolio', icon: PieChart, label: 'Portfolio' },
-  { to: '/strategies', icon: Compass, label: 'Strategies' },
-  { to: '/learn', icon: BookOpen, label: 'Learn' },
-  { to: '/analytics', icon: BarChart3, label: 'Analytics' },
+  { to: '/ai-trade', icon: Bot, label: 'ALTIS Trading' },
   { to: '/dca-planner', icon: CalendarClock, label: 'DCA Planner' },
+  { to: '/strategies', icon: Compass, label: 'Strategies' },
+  { to: '/analytics', icon: BarChart3, label: 'Analytics' },
+  { to: '/learn', icon: BookOpen, label: 'Learn' },
 ];
 
 const secondaryNav = [

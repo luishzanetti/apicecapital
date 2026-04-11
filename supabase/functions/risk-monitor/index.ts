@@ -37,10 +37,10 @@ async function calculateHeat(supabaseAdmin: any, userId: string): Promise<HeatRe
     return { totalHeat: 0, totalExposure: 0, positionCount: 0, heatByStrategy: {}, canOpenNew: true };
   }
 
-  // Get account equity (approximate from positions + balance)
+  // Get account equity — use sum of margin (size_usd) as proxy, not leveraged exposure
   const totalExposure = positions.reduce((s: number, p: any) => s + p.size_usd * p.leverage, 0);
-  // Estimate equity as half of total exposure (conservative, assumes avg 2x leverage)
-  const estimatedEquity = totalExposure > 0 ? totalExposure / 2 : 10000; // fallback to $10K if no positions
+  const totalMargin = positions.reduce((s: number, p: any) => s + (p.size_usd || 0), 0);
+  const estimatedEquity = totalMargin > 0 ? totalMargin : 10000;
 
   let totalRisk = 0;
   const heatByStrategy: Record<string, number> = {};
@@ -135,7 +135,7 @@ async function tripCircuitBreaker(
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' });
 
-  // Emergency close all positions via internal function call
+  // Emergency close all positions — ACTUALLY close on Bybit first
   const { data: openPositions } = await supabaseAdmin
     .from('leveraged_positions')
     .select('id, symbol, side, size_qty, entry_price, leverage')
@@ -143,11 +143,31 @@ async function tripCircuitBreaker(
 
   const closedCount = openPositions?.length || 0;
 
-  // Mark all as closed (actual Bybit close would be done by leveraged-trade-execute)
+  // Call leveraged-trade-execute to close on Bybit
   if (openPositions && openPositions.length > 0) {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const cronSecret = Deno.env.get('CRON_SECRET') || '';
+    try {
+      await fetch(`${supabaseUrl}/functions/v1/leveraged-trade-execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+          'x-cron-secret': cronSecret,
+        },
+        body: JSON.stringify({ action: 'emergency-close-all', userId, reason }),
+      });
+      console.log(`[risk-monitor] Emergency close sent to Bybit for ${userId.slice(0, 8)}, ${closedCount} positions`);
+    } catch (e: any) {
+      console.error(`[risk-monitor] FAILED to close on Bybit for ${userId.slice(0, 8)}:`, e.message);
+      // Still mark as closed in DB as fallback
+    }
+
+    // Mark in DB (leveraged-trade-execute may have already done this, but ensure consistency)
     for (const pos of openPositions) {
       await supabaseAdmin.from('leveraged_positions').update({
-        status: 'closed', close_reason: 'circuit_breaker', closed_at: new Date().toISOString(),
+        status: 'closed', close_reason: reason, closed_at: new Date().toISOString(),
       }).eq('id', pos.id);
     }
   }

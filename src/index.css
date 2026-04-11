@@ -51,6 +51,12 @@
     --apice-text-secondary: 215 16% 47%;
     --apice-text-tertiary: 215 16% 67%;
 
+    /* Chart tokens */
+    --chart-positive: 160 84% 39%;
+    --chart-negative: 0 84% 60%;
+    --chart-neutral: 217 91% 60%;
+    --chart-accent: 38 92% 50%;
+
     /* v2: Neon accent tokens — light mode (subtle) */
     --apice-neon-blue: 222 80% 50%;
     --apice-neon-purple: 265 70% 55%;
@@ -113,6 +119,12 @@
     --border: 228 20% 15%;
     --input: 228 25% 16%;
     --ring: 222 89% 60%;
+
+    /* Chart tokens */
+    --chart-positive: 160 84% 39%;
+    --chart-negative: 0 84% 60%;
+    --chart-neutral: 217 91% 60%;
+    --chart-accent: 38 92% 50%;
 
     /* Apice custom tokens - dark v2 */
     --apice-gold: 45 93% 52%;
@@ -819,4 +831,10 @@
   outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
   border-radius: 8px;
+}
+
+/* Safe area utilities for mobile */
+@supports (padding: max(0px)) {
+  .pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+  .pt-safe { padding-top: max(2rem, calc(2rem + env(safe-area-inset-top))); }
 }

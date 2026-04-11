@@ -102,7 +102,7 @@ export function TradeExecutionPanel({ isOpen, onClose, onTradeExecuted, totalCap
               {!canOpenNew && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3">
                   <p className="text-xs text-red-400 font-medium">Heat limit reached — cannot open new positions</p>
-                  <p className="text-[10px] text-muted-foreground">Close existing positions or wait for heat to decrease.</p>
+                  <p className="text-xs text-muted-foreground">Close existing positions or wait for heat to decrease.</p>
                 </div>
               )}
 
@@ -148,7 +148,7 @@ export function TradeExecutionPanel({ isOpen, onClose, onTradeExecuted, totalCap
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-xs text-muted-foreground">Size (USD)</label>
-                      <span className="text-[10px] text-muted-foreground">Max: {maxSize > 0 ? `$${maxSize.toLocaleString()}` : '—'}</span>
+                      <span className="text-xs text-muted-foreground">Max: {maxSize > 0 ? `$${maxSize.toLocaleString()}` : '—'}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-xl font-bold text-foreground">${sizeUsd.toLocaleString()}</span>
@@ -159,7 +159,7 @@ export function TradeExecutionPanel({ isOpen, onClose, onTradeExecuted, totalCap
                     <div className="flex gap-2">
                       {[50, 100, 250, 500].filter(v => v <= maxSize || v <= 100).map(v => (
                         <button key={v} onClick={() => setSizeUsd(v)}
-                          className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium ${
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-medium ${
                             sizeUsd === v ? 'bg-primary/20 text-primary' : 'glass-light text-muted-foreground'
                           }`}>${v}</button>
                       ))}
@@ -178,7 +178,7 @@ export function TradeExecutionPanel({ isOpen, onClose, onTradeExecuted, totalCap
                     <div className="flex gap-2">
                       {[1, 2, 3, 5].filter(v => v <= maxLeverage).map(v => (
                         <button key={v} onClick={() => setLeverage(v)}
-                          className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium ${
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-medium ${
                             leverage === v ? 'bg-primary/20 text-primary' : 'glass-light text-muted-foreground'
                           }`}>{v}x</button>
                       ))}
@@ -195,13 +195,13 @@ export function TradeExecutionPanel({ isOpen, onClose, onTradeExecuted, totalCap
                     {showTpSl && (
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[10px] text-green-400">Take Profit %</label>
+                          <label className="text-xs text-green-400">Take Profit %</label>
                           <input type="number" value={tpPct} onChange={e => setTpPct(Number(e.target.value))}
                             min={1} max={50} step={0.5}
                             className="w-full bg-secondary/30 border border-green-500/20 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-green-500/50" />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] text-red-400">Stop Loss %</label>
+                          <label className="text-xs text-red-400">Stop Loss %</label>
                           <input type="number" value={slPct} onChange={e => setSlPct(Number(e.target.value))}
                             min={0.5} max={20} step={0.5}
                             className="w-full bg-secondary/30 border border-red-500/20 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-red-500/50" />
@@ -212,7 +212,7 @@ export function TradeExecutionPanel({ isOpen, onClose, onTradeExecuted, totalCap
 
                   {/* Risk preview */}
                   <div className={`rounded-xl p-3 space-y-1 ${isRiskOk ? 'glass-card' : 'bg-red-500/10 border border-red-500/30'}`}>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Risk Preview</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Risk Preview</p>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
                         <p className="text-[8px] text-muted-foreground">Position</p>
@@ -232,7 +232,7 @@ export function TradeExecutionPanel({ isOpen, onClose, onTradeExecuted, totalCap
                       </div>
                     </div>
                     {!isRiskOk && (
-                      <p className="text-[10px] text-red-400 text-center">Risk exceeds 5% of capital. Reduce size or leverage.</p>
+                      <p className="text-xs text-red-400 text-center">Risk exceeds 5% of capital. Reduce size or leverage.</p>
                     )}
                   </div>
 

@@ -76,6 +76,31 @@ export interface BotConfig {
   strategies: StrategyConfig[];
   createdAt: string;
   isActive: boolean;
+  maxLeverage: number;
+  riskPerTradePct: number;
+  maxPositions: number;
+  autoExecute: boolean;
+  selectedAssets: string[];
+}
+
+export interface MarketContext {
+  regime: string;
+  confidence: number;
+  data: Record<string, { price: number; rsi: number; sma7: number; sma30: number; funding: number; fg: number }>;
+  strategyStatus: Record<string, string>;
+}
+
+export interface PendingSignal {
+  strategyType: string;
+  symbol: string;
+  direction: string;
+  conviction: number;
+  suggestedLeverage: number;
+  suggestedSizeUsd: number;
+  takeProfit: number | null;
+  stopLoss: number | null;
+  rationale: string;
+  approved: boolean;
 }
 
 const BOTS_KEY = 'altis-bots';
@@ -95,6 +120,8 @@ function loadBots(): BotConfig[] {
           id: 'bot-1', name: 'ALTIS Bot #1',
           capital: Number(oldCapital) || 5000, profile: 'balanced',
           strategies: strats, createdAt: new Date().toISOString(), isActive: true,
+          maxLeverage: 5, riskPerTradePct: 33, maxPositions: 5,
+          autoExecute: true, selectedAssets: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
         };
         saveBots([migrated]);
         localStorage.setItem(ACTIVE_BOT_KEY, migrated.id);
@@ -143,11 +170,19 @@ export function useLeveragedTrading() {
     saveActiveBotId(id);
   }, []);
 
-  const addBot = useCallback((name: string, capital: number, profile: string, strategyConfigs: StrategyConfig[]) => {
+  const addBot = useCallback((
+    name: string, capital: number, profile: string, strategyConfigs: StrategyConfig[],
+    options?: { maxLeverage?: number; riskPerTradePct?: number; maxPositions?: number; autoExecute?: boolean; selectedAssets?: string[] }
+  ) => {
     const newBot: BotConfig = {
       id: `bot-${Date.now()}`, name, capital, profile,
       strategies: strategyConfigs,
       createdAt: new Date().toISOString(), isActive: true,
+      maxLeverage: options?.maxLeverage ?? 5,
+      riskPerTradePct: options?.riskPerTradePct ?? 33,
+      maxPositions: options?.maxPositions ?? 5,
+      autoExecute: options?.autoExecute ?? true,
+      selectedAssets: options?.selectedAssets ?? ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
     };
     setBots(prev => {
       const updated = [...prev, newBot];
@@ -190,7 +225,10 @@ export function useLeveragedTrading() {
   });
   const [signals, setSignals] = useState<TradingSignal[]>([]);
   const [performance, setPerformance] = useState<StrategyPerformance[]>([]);
+  const [marketContext, setMarketContext] = useState<MarketContext | null>(null);
+  const [pendingSignals, setPendingSignals] = useState<PendingSignal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEvaluating, setIsEvaluating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const lastFetch = useRef(0);
 
@@ -264,6 +302,66 @@ export function useLeveragedTrading() {
       });
     } catch { /* risk monitor unavailable */ }
   }, []);
+
+  // ─── Trigger strategy evaluation (calls backend) ───────
+
+  const triggerEvaluation = useCallback(async (): Promise<{
+    marketContext: MarketContext | null;
+    pendingSignals: PendingSignal[];
+    executed: number;
+  }> => {
+    setIsEvaluating(true);
+    try {
+      const { data, error: fnError } = await invokeEdgeFunction<{ data: any }>(
+        'strategy-orchestrator', { body: { action: 'evaluate-user' } }
+      );
+
+      if (fnError || !data?.data) {
+        return { marketContext: null, pendingSignals: [], executed: 0 };
+      }
+
+      const result = data.data;
+
+      const ctx: MarketContext = {
+        regime: result.regime || 'UNKNOWN',
+        confidence: result.confidence || 0,
+        data: result.marketContext || {},
+        strategyStatus: {},
+      };
+
+      const btc = ctx.data['BTCUSDT'];
+      if (btc) {
+        ctx.strategyStatus = {
+          grid: ctx.regime === 'SIDEWAYS' || ctx.regime === 'BULL' ? 'optimal' : 'waiting',
+          trend_following: ctx.regime === 'BULL' || ctx.regime === 'BEAR' ? 'active' : 'waiting',
+          mean_reversion: btc.rsi < 35 || btc.rsi > 65 ? 'signal' : 'neutral',
+          funding_arb: btc.funding > 0.005 ? 'collecting' : 'no_opportunity',
+          ai_signal: 'analyzing',
+        };
+      }
+      setMarketContext(ctx);
+
+      const pending = (result.signals || []).map((s: any) => ({
+        strategyType: s.strategyType, symbol: s.symbol, direction: s.direction,
+        conviction: s.conviction, suggestedLeverage: s.suggestedLeverage,
+        suggestedSizeUsd: s.suggestedSizeUsd, takeProfit: s.takeProfit,
+        stopLoss: s.stopLoss, rationale: s.rationale, approved: s.approved,
+      }));
+      setPendingSignals(pending);
+
+      await fetchPositions();
+      await fetchRisk();
+
+      return {
+        marketContext: ctx, pendingSignals: pending,
+        executed: result.totalExecuted || 0,
+      };
+    } catch {
+      return { marketContext: null, pendingSignals: [], executed: 0 };
+    } finally {
+      setIsEvaluating(false);
+    }
+  }, [fetchPositions, fetchRisk]);
 
   const fetchSignals = useCallback(async () => {
     if (!isSupabaseConfigured) return;
@@ -434,10 +532,11 @@ export function useLeveragedTrading() {
     bots, activeBot, setActiveBotId, addBot, removeBot,
     // Active bot data
     strategies, positions, risk, signals, performance,
+    marketContext, pendingSignals, isEvaluating,
     isLoading, error,
     totalCapital, setTotalCapital,
     totalUnrealizedPnl, totalFundingIncome, activeStrategies, isSetupComplete,
-    fetchAll, fetchPositions, fetchRisk,
+    fetchAll, fetchPositions, fetchRisk, triggerEvaluation,
     enableStrategy, disableStrategy, closePosition, closeAllPositions,
   };
 }

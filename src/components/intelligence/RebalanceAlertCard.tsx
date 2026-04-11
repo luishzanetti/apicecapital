@@ -80,7 +80,7 @@ export function RebalanceAlertCard() {
       {/* Recommendation */}
       {rebalance.recommendation && (
         <div className="glass-light rounded-lg p-3 space-y-1">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Próximo aporte sugerido</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">Próximo aporte sugerido</p>
           {Object.entries(rebalance.recommendation).map(([asset, pct]) => (
             <div key={asset} className="flex items-center justify-between text-xs">
               <span className="text-foreground/80">{asset.replace('USDT', '')}</span>
@@ -91,7 +91,7 @@ export function RebalanceAlertCard() {
       )}
 
       {/* Over/Under allocated */}
-      <div className="flex gap-3 text-[10px]">
+      <div className="flex gap-3 text-xs">
         {rebalance.over_allocated && rebalance.over_allocated.length > 0 && (
           <div>
             <span className="text-red-400">Acima do target: </span>
@@ -175,7 +175,7 @@ export function RebalanceAlertCard() {
         </div>
       ) : rebalanceResults.length > 0 ? (
         <div className="space-y-1 pt-1">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Results</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">Results</p>
           {rebalanceResults.map((r, i) => (
             <p key={i} className={`text-xs ${r.startsWith('Failed') ? 'text-red-400' : 'text-green-400'}`}>
               {r}
@@ -198,7 +198,7 @@ export function RebalanceAlertCard() {
                 .eq('is_active', true);
               setApplied(false);
             }}
-            className="w-full py-1.5 rounded-lg text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+            className="w-full py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             Cancelar override
           </button>

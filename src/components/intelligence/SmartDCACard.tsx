@@ -162,7 +162,7 @@ export function SmartDCACard() {
                       .eq('is_active', true);
                     setApplied(false);
                   }}
-                  className="w-full py-1.5 rounded-lg text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                  className="w-full py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Resetar para DCA padrão
                 </button>

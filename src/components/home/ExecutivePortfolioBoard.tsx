@@ -120,7 +120,7 @@ export function ExecutivePortfolioBoard() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Badge variant="outline" className={cn('text-[10px] h-5', isLive ? 'border-green-500/30 bg-green-500/10 text-green-400' : 'border-amber-500/30 bg-amber-500/10 text-amber-400')}>
+                <Badge variant="outline" className={cn('text-xs h-5', isLive ? 'border-green-500/30 bg-green-500/10 text-green-400' : 'border-amber-500/30 bg-amber-500/10 text-amber-400')}>
                   <span className={cn('mr-1 h-1.5 w-1.5 rounded-full inline-block', isLive ? 'bg-green-400' : 'bg-amber-400')} />
                   {isLive ? 'Live' : 'Estimated'}
                 </Badge>
@@ -135,10 +135,10 @@ export function ExecutivePortfolioBoard() {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => setHideBalance(!hideBalance)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/5 transition-colors">
+              <button onClick={() => setHideBalance(!hideBalance)} className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-white/5 transition-colors">
                 {hideBalance ? <Eye className="h-4 w-4 text-muted-foreground" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
               </button>
-              <button onClick={analytics.refresh} disabled={analytics.isRefreshing} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/5 transition-colors">
+              <button onClick={analytics.refresh} disabled={analytics.isRefreshing} className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-white/5 transition-colors">
                 <RefreshCw className={cn('h-4 w-4 text-muted-foreground', analytics.isRefreshing && 'animate-spin')} />
               </button>
             </div>
@@ -152,14 +152,14 @@ export function ExecutivePortfolioBoard() {
               {/* Funding + Unified */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-amber-400/70 font-semibold">Funding</p>
+                  <p className="text-xs uppercase tracking-wider text-amber-400/70 font-semibold">Funding</p>
                   <p className="text-base font-bold mt-1">{fmt(analytics.fundingBalance, hideBalance)}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{analytics.fundingHoldings.length} coins</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{analytics.fundingHoldings.length} coins</p>
                 </div>
                 <div className="rounded-xl border border-sky-500/10 bg-sky-500/5 p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-sky-400/70 font-semibold">Unified</p>
+                  <p className="text-xs uppercase tracking-wider text-sky-400/70 font-semibold">Unified</p>
                   <p className="text-base font-bold mt-1">{fmt(analytics.totalEquity, hideBalance)}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{analytics.spotCount} assets</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{analytics.spotCount} assets</p>
                 </div>
               </div>
 
@@ -198,8 +198,8 @@ export function ExecutivePortfolioBoard() {
               {topHoldings.length > 0 && (
                 <div className="rounded-xl border border-border/20 bg-black/20 p-3">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Holdings</p>
-                    <button onClick={() => navigate('/portfolio')} className="text-[10px] text-primary hover:text-primary/80 font-medium">View all</button>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Holdings</p>
+                    <button onClick={() => navigate('/portfolio')} className="text-xs text-primary hover:text-primary/80 font-medium">View all</button>
                   </div>
                   <div className="space-y-1.5">
                     {topHoldings.map((h) => {
@@ -207,15 +207,15 @@ export function ExecutivePortfolioBoard() {
                       return (
                         <div key={h.coin} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[9px] font-bold text-primary">{h.coin.slice(0, 2)}</div>
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">{h.coin.slice(0, 2)}</div>
                             <div>
                               <p className="text-[11px] font-semibold">{h.coin}</p>
-                              <p className="text-[9px] text-muted-foreground">{h.balance.toLocaleString('en-US', { maximumFractionDigits: 4 })}</p>
+                              <p className="text-xs text-muted-foreground">{h.balance.toLocaleString('en-US', { maximumFractionDigits: 4 })}</p>
                             </div>
                           </div>
                           <div className="text-right">
                             <p className="text-[11px] font-semibold">{fmt(h.usdValue, hideBalance)}</p>
-                            <p className="text-[9px] text-muted-foreground">{pct.toFixed(1)}%</p>
+                            <p className="text-xs text-muted-foreground">{pct.toFixed(1)}%</p>
                           </div>
                         </div>
                       );
@@ -229,10 +229,10 @@ export function ExecutivePortfolioBoard() {
             <div className="space-y-3">
               <div className="rounded-xl border border-border/20 bg-black/20 p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Equity Line</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Equity Line</p>
                   <div className="flex items-center gap-0.5 rounded-full bg-secondary/40 p-0.5">
                     {RANGE_OPTIONS.map((r) => (
-                      <button key={r} onClick={() => setTimeRange(r)} className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold transition-colors', timeRange === r ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground')}>{r}</button>
+                      <button key={r} onClick={() => setTimeRange(r)} className={cn('rounded-full px-3 py-1.5 text-xs font-semibold transition-colors', timeRange === r ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground')}>{r}</button>
                     ))}
                   </div>
                 </div>
@@ -256,12 +256,12 @@ export function ExecutivePortfolioBoard() {
               {/* Active Portfolio */}
               {userPortfolios.length > 0 && (
                 <div className="rounded-xl border border-border/20 bg-black/20 p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Active Portfolio</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Active Portfolio</p>
                   {userPortfolios.slice(0, 1).map((p) => (
                     <div key={p.id}>
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-xs font-bold">{p.name}</p>
-                        {p.isActive && <Badge variant="outline" className="border-green-500/20 text-[9px] text-green-400 h-4">Active</Badge>}
+                        {p.isActive && <Badge variant="outline" className="border-green-500/20 text-xs text-green-400 h-4">Active</Badge>}
                       </div>
                       <div className="flex h-2 overflow-hidden rounded-full bg-secondary/40">
                         {p.allocations.map((a) => (
@@ -270,7 +270,7 @@ export function ExecutivePortfolioBoard() {
                       </div>
                       <div className="flex flex-wrap gap-1 mt-2">
                         {p.allocations.slice(0, 5).map((a) => (
-                          <span key={a.asset} className="text-[9px] text-muted-foreground">{a.asset} {a.percentage}%</span>
+                          <span key={a.asset} className="text-xs text-muted-foreground">{a.asset} {a.percentage}%</span>
                         ))}
                       </div>
                     </div>
@@ -280,7 +280,7 @@ export function ExecutivePortfolioBoard() {
 
               {/* Available Balance */}
               <div className="flex items-center justify-between rounded-xl border border-border/20 bg-black/20 px-3 py-2">
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Available</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Available</span>
                 <span className="text-xs font-bold">{fmt(analytics.totalAvailableBalance, hideBalance)}</span>
               </div>
             </div>

@@ -116,7 +116,7 @@ export function DCAExecutionTimeline() {
                   <span className="text-xs font-medium text-white truncate">
                     {exec.asset_symbol}
                   </span>
-                  <span className="text-[10px] text-white/40 shrink-0">
+                  <span className="text-xs text-white/40 shrink-0">
                     {relativeDate(exec.executed_at)}
                   </span>
                 </div>
@@ -129,7 +129,7 @@ export function DCAExecutionTimeline() {
                   </span>
                   <span
                     className={cn(
-                      'text-[10px] font-medium',
+                      'text-xs font-medium',
                       isSuccess ? 'text-emerald-400/80' : 'text-red-400/80',
                     )}
                   >
@@ -137,7 +137,7 @@ export function DCAExecutionTimeline() {
                   </span>
                 </div>
                 {exec.error_message && (
-                  <p className="text-[10px] text-red-400/60 mt-0.5 truncate">
+                  <p className="text-xs text-red-400/60 mt-0.5 truncate">
                     {exec.error_message}
                   </p>
                 )}

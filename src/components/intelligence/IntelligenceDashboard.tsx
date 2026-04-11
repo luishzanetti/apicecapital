@@ -18,7 +18,7 @@ export function IntelligenceDashboard() {
           {/* BTC Price */}
           <div className="flex items-center gap-3">
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Bitcoin</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Bitcoin</p>
               <p className="text-lg font-bold text-foreground">
                 ${btcPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
               </p>

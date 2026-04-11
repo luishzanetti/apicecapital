@@ -56,7 +56,7 @@ import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { encrypt } from '@/lib/crypto';
-import { testBybitApiKey } from '@/hooks/useDCAExecution';
+import { invokeEdgeFunction } from '@/lib/supabaseFunction';
 
 // Bybit API key validation schema
 const bybitCredentialsSchema = z.object({
@@ -147,10 +147,14 @@ export default function Settings() {
         try {
             // Step 1: Validate API key and permissions
             toast.loading(t('settings.bybitModal.testingApiKey'), { id: 'bybit-connect' });
-            const test = await testBybitApiKey(cleanKey, cleanSecret);
+            const { data, error: edgeFnError } = await invokeEdgeFunction('bybit-account', {
+                body: { action: 'test-credentials', apiKey: cleanKey, apiSecret: cleanSecret }
+            });
+            if (edgeFnError) throw edgeFnError;
+            const test = data?.data as { valid: boolean; canTrade: boolean; isTestnet: boolean; error?: string } | undefined;
 
-            if (!test.valid) {
-                toast.error(test.error || 'Invalid API key', { id: 'bybit-connect' });
+            if (!test?.valid) {
+                toast.error(test?.error || 'Invalid API key', { id: 'bybit-connect' });
                 return;
             }
 

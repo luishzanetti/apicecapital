@@ -177,7 +177,7 @@ Deno.serve(async (req: Request) => {
     if (action === 'set-leverage') {
       const { symbol, leverage } = body;
       if (!symbol || !leverage) return err('Missing symbol or leverage');
-      if (leverage > 5) return err('Max leverage is 5x');
+      if (leverage > 10) return err('Max leverage is 10x');
 
       const creds = await getUserCredentials(supabaseAdmin, userId, ENCRYPTION_KEY);
       await bybitPost(creds.apiKey, creds.apiSecret, creds.testnet, '/v5/position/set-leverage', {
@@ -190,7 +190,7 @@ Deno.serve(async (req: Request) => {
     if (action === 'open-long' || action === 'open-short') {
       const { symbol, qty, leverage = 2, takeProfit, stopLoss, strategyType, signalId } = body;
       if (!symbol || !qty) return err('Missing symbol or qty');
-      if (leverage > 5) return err('Max leverage is 5x');
+      if (leverage > 10) return err('Max leverage is 10x');
 
       const creds = await getUserCredentials(supabaseAdmin, userId, ENCRYPTION_KEY);
       const side = action === 'open-long' ? 'Buy' as const : 'Sell' as const;
@@ -258,8 +258,8 @@ Deno.serve(async (req: Request) => {
 
       const realizedPnl = closePrice && pos.entry_price
         ? pos.side === 'long'
-          ? (closePrice - pos.entry_price) * pos.size_qty * pos.leverage
-          : (pos.entry_price - closePrice) * pos.size_qty * pos.leverage
+          ? (closePrice - pos.entry_price) * pos.size_qty
+          : (pos.entry_price - closePrice) * pos.size_qty
         : 0;
 
       await supabaseAdmin.from('leveraged_positions').update({
@@ -373,8 +373,8 @@ Deno.serve(async (req: Request) => {
 
           const realizedPnl = closePrice && pos.entry_price
             ? pos.side === 'long'
-              ? (closePrice - pos.entry_price) * pos.size_qty * pos.leverage
-              : (pos.entry_price - closePrice) * pos.size_qty * pos.leverage
+              ? (closePrice - pos.entry_price) * pos.size_qty
+              : (pos.entry_price - closePrice) * pos.size_qty
             : 0;
 
           await supabaseAdmin.from('leveraged_positions').update({

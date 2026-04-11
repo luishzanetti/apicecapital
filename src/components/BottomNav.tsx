@@ -126,7 +126,7 @@ export function BottomNav() {
       </AnimatePresence>
 
       {/* Bottom Nav Bar */}
-      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-40px)] max-w-[380px]">
+      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-40px)] max-w-[380px] pb-safe">
         <nav
           className="flex items-center justify-between px-4 py-2.5 rounded-[22px]"
           style={{

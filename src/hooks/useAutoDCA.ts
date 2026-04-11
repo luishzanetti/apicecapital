@@ -121,9 +121,15 @@ export function useAutoDCA() {
       checkAndExecuteDuePlans();
     }, CHECK_INTERVAL_MS);
 
+    const handleVisibility = () => {
+      if (!document.hidden) checkAndExecuteDuePlans();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
     return () => {
       clearTimeout(initialTimer);
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [user, checkAndExecuteDuePlans]);
 

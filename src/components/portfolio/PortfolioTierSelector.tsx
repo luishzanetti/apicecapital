@@ -72,17 +72,17 @@ function TierCard({
       {/* Badges */}
       <div className="absolute -top-2.5 right-3 flex gap-1.5">
         {isRecommended && (
-          <span className="px-2 py-0.5 text-[10px] font-bold bg-primary text-foreground rounded-full">
+          <span className="px-2 py-0.5 text-xs font-bold bg-primary text-foreground rounded-full">
             RECOMMENDED
           </span>
         )}
         {tier.isPro && (
-          <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-500 text-black rounded-full">
+          <span className="px-2 py-0.5 text-xs font-bold bg-amber-500 text-black rounded-full">
             PRO
           </span>
         )}
         {tier.highlight && !isRecommended && (
-          <span className="px-2 py-0.5 text-[10px] font-medium bg-secondary text-muted-foreground rounded-full">
+          <span className="px-2 py-0.5 text-xs font-medium bg-secondary text-muted-foreground rounded-full">
             {tier.highlight}
           </span>
         )}
@@ -107,7 +107,7 @@ function TierCard({
             {tier.assets.map((a) => (
               <span
                 key={a.symbol}
-                className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${
+                className={`text-xs px-1.5 py-0.5 rounded-md font-medium ${
                   a.isWarChest
                     ? 'bg-emerald-500/15 text-emerald-400'
                     : 'bg-secondary/50 text-foreground/80'
@@ -119,7 +119,7 @@ function TierCard({
           </div>
 
           {/* Meta */}
-          <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
             <span>{tier.riskLabel}</span>
             <span>•</span>
             <span>{tier.targetAnnualReturn} p.a.</span>
@@ -234,7 +234,7 @@ function QuickSetup({
 
           {/* Allocation preview */}
           <div className="pt-2 border-t border-border/50">
-            <p className="text-[10px] text-muted-foreground mb-1.5">Allocation per ${selectedAmount} contribution:</p>
+            <p className="text-xs text-muted-foreground mb-1.5">Allocation per ${selectedAmount} contribution:</p>
             {tier.assets.map((asset) => {
               const assetAmount = (selectedAmount * asset.percentage / 100).toFixed(2);
               return (
@@ -264,7 +264,7 @@ function QuickSetup({
           {isActivating ? 'Activating...' : `Activate ${tier.name} — Auto DCA`}
         </button>
 
-        <p className="text-[10px] text-muted-foreground/60 text-center">
+        <p className="text-xs text-muted-foreground/60 text-center">
           Smart DCA activated • Automatic execution • Cancel anytime
         </p>
       </div>

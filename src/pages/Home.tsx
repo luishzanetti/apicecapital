@@ -225,7 +225,7 @@ export default function Home() {
                 className="relative w-full rounded-2xl glass-card border border-border/20 p-4 text-left hover-lift transition-all group"
               >
                 <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-primary/80">
-                  <span className="rounded-full glass-light px-2 py-0.5 tracking-[0.12em] text-primary/90 text-[10px] font-semibold">
+                  <span className="rounded-full glass-light px-2 py-0.5 tracking-[0.12em] text-primary/90 text-xs font-semibold">
                     {getInsightTypeLabel(todayInsight.type, language)}
                   </span>
                 </div>

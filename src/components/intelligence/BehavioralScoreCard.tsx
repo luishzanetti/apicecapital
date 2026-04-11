@@ -73,14 +73,14 @@ export function BehavioralScoreCard() {
       <div className="space-y-2">
         {dimensions.map((dim) => (
           <div key={dim.label} className="flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground w-24 flex-shrink-0">{dim.label}</span>
+            <span className="text-xs text-muted-foreground w-24 flex-shrink-0">{dim.label}</span>
             <div className="flex-1 bg-secondary/40 rounded-full h-1.5">
               <div
                 className="h-1.5 rounded-full transition-all duration-700"
                 style={{ width: `${dim.value}%`, backgroundColor: dim.color }}
               />
             </div>
-            <span className="text-[10px] text-muted-foreground w-8 text-right">{dim.value}</span>
+            <span className="text-xs text-muted-foreground w-8 text-right">{dim.value}</span>
           </div>
         ))}
       </div>
@@ -89,15 +89,15 @@ export function BehavioralScoreCard() {
       <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/30">
         <div className="text-center">
           <p className="text-sm font-semibold text-foreground">{userIntel.current_streak_weeks}</p>
-          <p className="text-[10px] text-muted-foreground">Semanas streak</p>
+          <p className="text-xs text-muted-foreground">Semanas streak</p>
         </div>
         <div className="text-center">
           <p className="text-sm font-semibold text-foreground">{executionRate}%</p>
-          <p className="text-[10px] text-muted-foreground">Taxa execução</p>
+          <p className="text-xs text-muted-foreground">Taxa execução</p>
         </div>
         <div className="text-center">
           <p className="text-sm font-semibold text-foreground">{userIntel.confidence_index}</p>
-          <p className="text-[10px] text-muted-foreground">Confiança</p>
+          <p className="text-xs text-muted-foreground">Confiança</p>
         </div>
       </div>
 

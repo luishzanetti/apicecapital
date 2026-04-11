@@ -118,15 +118,15 @@ export default function CashbackMachine() {
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-center">
                   <p className="text-2xl font-bold text-amber-400">2-10%</p>
-                  <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">All purchases</p>
+                  <p className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">All purchases</p>
                 </div>
                 <div className="rounded-2xl border border-green-500/20 bg-green-500/10 p-3 text-center">
                   <p className="text-2xl font-bold text-green-400">100%</p>
-                  <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">Subscriptions</p>
+                  <p className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">Subscriptions</p>
                 </div>
                 <div className="rounded-2xl border border-primary/20 bg-primary/10 p-3 text-center">
                   <p className="text-2xl font-bold text-primary">24/7</p>
-                  <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">Auto compound</p>
+                  <p className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">Auto compound</p>
                 </div>
               </div>
             </CardContent>
@@ -144,7 +144,7 @@ export default function CashbackMachine() {
                 <div className="flex w-24 shrink-0 flex-col items-center justify-center bg-gradient-to-b from-amber-500/20 to-orange-500/10 p-4">
                   <CircleDollarSign className="mb-1 h-7 w-7 text-amber-400" />
                   <span className="text-2xl font-bold text-amber-400">2-10%</span>
-                  <span className="text-[10px] uppercase tracking-wider text-amber-400/70">back</span>
+                  <span className="text-xs uppercase tracking-wider text-amber-400/70">back</span>
                 </div>
                 <div className="flex-1 space-y-2 p-4">
                   <h3 className="text-base font-bold">Every Purchase, Every Day</h3>
@@ -154,7 +154,7 @@ export default function CashbackMachine() {
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {['Groceries', 'Gas', 'Dining', 'Shopping', 'Online', 'Rideshare'].map((tag) => (
-                      <span key={tag} className="rounded-full border border-border/40 px-2 py-0.5 text-[10px] text-muted-foreground">
+                      <span key={tag} className="rounded-full border border-border/40 px-2 py-0.5 text-xs text-muted-foreground">
                         {tag}
                       </span>
                     ))}
@@ -171,7 +171,7 @@ export default function CashbackMachine() {
                 <div className="flex w-24 shrink-0 flex-col items-center justify-center bg-gradient-to-b from-green-500/20 to-emerald-500/10 p-4">
                   <Gift className="mb-1 h-7 w-7 text-green-400" />
                   <span className="text-2xl font-bold text-green-400">100%</span>
-                  <span className="text-[10px] uppercase tracking-wider text-green-400/70">back</span>
+                  <span className="text-xs uppercase tracking-wider text-green-400/70">back</span>
                 </div>
                 <div className="flex-1 space-y-2 p-4">
                   <div className="flex items-center gap-2">
@@ -255,19 +255,19 @@ export default function CashbackMachine() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-2xl bg-secondary/50 p-4 text-center">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Monthly</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Monthly</p>
                   <p className="mt-1 text-xl font-bold">${currentProjection.monthly}</p>
-                  <p className="text-[10px] text-muted-foreground">in BTC</p>
+                  <p className="text-xs text-muted-foreground">in BTC</p>
                 </div>
                 <div className="rounded-2xl bg-primary/10 p-4 text-center">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Yearly</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Yearly</p>
                   <p className="mt-1 text-xl font-bold text-primary">${currentProjection.yearly.toLocaleString()}</p>
-                  <p className="text-[10px] text-muted-foreground">in BTC</p>
+                  <p className="text-xs text-muted-foreground">in BTC</p>
                 </div>
                 <div className="rounded-2xl bg-amber-500/10 p-4 text-center">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">BTC/year</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">BTC/year</p>
                   <p className="mt-1 text-lg font-bold text-amber-400">{currentProjection.btcYearly}</p>
-                  <p className="text-[10px] text-muted-foreground">accumulated</p>
+                  <p className="text-xs text-muted-foreground">accumulated</p>
                 </div>
               </div>
 
@@ -338,7 +338,7 @@ export default function CashbackMachine() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold uppercase text-primary">Step {item.step}</span>
+                            <span className="text-xs font-bold uppercase text-primary">Step {item.step}</span>
                           </div>
                           <h3 className="text-sm font-semibold">{item.title}</h3>
                           <p className="text-[11px] text-muted-foreground">{item.description}</p>

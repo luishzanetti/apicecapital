@@ -356,7 +356,7 @@ function AssetDetail() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-base font-bold">{coin.name}</h1>
-                <Badge variant="outline" className="text-[10px] uppercase">
+                <Badge variant="outline" className="text-xs uppercase">
                   {coin.symbol.toUpperCase()}
                 </Badge>
               </div>
@@ -491,7 +491,7 @@ function AssetDetail() {
                       <p className="text-[11px] text-muted-foreground">DCA Status</p>
                       <p className="text-sm font-bold mt-1">
                         {activeDCAPlan ? (
-                          <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px]">
+                          <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-xs">
                             Active
                           </Badge>
                         ) : (
@@ -579,7 +579,7 @@ function AssetDetail() {
                         }}
                       />
                     </div>
-                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <div className="flex justify-between text-xs text-muted-foreground">
                       <span>{formatPrice(low24h)}</span>
                       <span>{formatPrice(high24h)}</span>
                     </div>
@@ -600,7 +600,7 @@ function AssetDetail() {
                 </div>
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">AI Insight</p>
-                  <p className="text-[10px] text-muted-foreground">Apice Intelligence</p>
+                  <p className="text-xs text-muted-foreground">Apice Intelligence</p>
                 </div>
               </div>
               <p className="text-sm leading-relaxed text-foreground/90">{aiInsight}</p>
@@ -662,11 +662,11 @@ function AssetDetail() {
               <p className="text-sm leading-relaxed text-foreground/80">{coinInfo.description}</p>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl border border-white/5 bg-white/5 p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Consensus</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Consensus</p>
                   <p className="text-xs font-medium mt-1">{coinInfo.consensus}</p>
                 </div>
                 <div className="rounded-2xl border border-white/5 bg-white/5 p-3">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Use Case</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Use Case</p>
                   <p className="text-xs font-medium mt-1">{coinInfo.useCase}</p>
                 </div>
               </div>

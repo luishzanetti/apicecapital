@@ -269,7 +269,7 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
                     {lastResult.executions?.length > 0 && (
                       <div className="space-y-0.5">
                         {lastResult.executions.map((r, i) => (
-                          <p key={i} className="text-[10px] text-muted-foreground">
+                          <p key={i} className="text-xs text-muted-foreground">
                             {r.asset}: {r.status === 'success'
                               ? `Bought${r.quantity ? ` ${r.quantity}` : ''} ${r.price ? `@ $${r.price}` : `$${(r.amountUsdt ?? 0).toFixed(2)}`}`
                               : `Failed: ${r.error || 'Execution error'}`
@@ -320,7 +320,7 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
                       {history.map((exec) => (
                         <div
                           key={exec.id}
-                          className="flex items-center justify-between text-[10px] px-1.5 py-1 rounded bg-secondary/50"
+                          className="flex items-center justify-between text-xs px-1.5 py-1 rounded bg-secondary/50"
                         >
                           <div className="flex items-center gap-1">
                             {exec.status === 'success'

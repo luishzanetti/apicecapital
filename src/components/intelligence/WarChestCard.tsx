@@ -77,14 +77,14 @@ export function WarChestCard() {
           <span className="text-xl">{config.icon}</span>
           <div>
             <h3 className="text-sm font-semibold text-foreground">War Chest</h3>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{config.label}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">{config.label}</p>
           </div>
         </div>
         <div className="text-right">
           <p className={`text-lg font-bold ${config.color}`}>
             {status.currentReservePct}%
           </p>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             ${status.currentReserveUsd.toLocaleString()}
           </p>
         </div>
@@ -92,7 +92,7 @@ export function WarChestCard() {
 
       {/* Reserve bar */}
       <div className="space-y-1">
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>Current reserve</span>
           <span>Target: {status.targetReservePct}%</span>
         </div>
@@ -122,7 +122,7 @@ export function WarChestCard() {
       {/* Deploy targets (shown only when deploying) */}
       {isDeploy && status.deployTargets.length > 0 && (
         <div className="glass-light rounded-lg p-3 space-y-2">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Deploy Targets</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">Deploy Targets</p>
           {status.deployTargets.map((target) => (
             <div key={target.asset} className="flex items-center justify-between text-xs">
               <span className="text-foreground font-medium">{target.asset}</span>
@@ -225,7 +225,7 @@ export function WarChestCard() {
 
       {deployResults.length > 0 && (
         <div className="space-y-1 pt-1">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Deploy Results</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">Deploy Results</p>
           {deployResults.map((r, i) => (
             <p key={i} className={`text-xs ${r.startsWith('Failed') ? 'text-red-400' : 'text-green-400'}`}>
               {r}
@@ -250,7 +250,7 @@ export function WarChestCard() {
                 .eq('is_active', true);
               setDeployed(false);
             }}
-            className="w-full py-1.5 rounded-lg text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+            className="w-full py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             Cancel deploy
           </button>
@@ -267,7 +267,7 @@ export function WarChestCard() {
       )}
 
       {/* Context line */}
-      <div className="flex items-center justify-between text-[10px] pt-1 border-t border-border/30">
+      <div className="flex items-center justify-between text-xs pt-1 border-t border-border/30">
         <span className="text-muted-foreground/60">
           Fear & Greed: <span className={status.fearGreed < 25 ? 'text-red-400' : status.fearGreed > 75 ? 'text-green-400' : 'text-muted-foreground'}>
             {status.fearGreed}
