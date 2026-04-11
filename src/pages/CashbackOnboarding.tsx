@@ -65,7 +65,7 @@ export default function CashbackOnboarding() {
                         </div>
                     </motion.div>
 
-                    {/* Moedas BTC caindo */}
+                    {/* Falling BTC coins */}
                     {[...Array(5)].map((_, i) => (
                         <motion.div
                             key={i}

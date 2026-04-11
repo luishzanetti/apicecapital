@@ -1,12 +1,40 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useMarketIntelligence } from '@/hooks/useMarketIntelligence';
 import { MarketRegimeBadge } from './MarketRegimeBadge';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function SmartDCACard() {
   const { smartDCA, fetchSmartDCA, regime, isLoading, sendFeedback, logBehaviorEvent } = useMarketIntelligence();
+  const { language } = useTranslation();
   const [applied, setApplied] = useState(false);
   const [applying, setApplying] = useState(false);
+
+  const copy = useMemo(
+    () =>
+      language === 'pt'
+        ? {
+            empty: 'Nenhum plano DCA ativo para otimizar.',
+            suggested: 'Aporte sugerido',
+            allocationAdj: 'Alocação ajustada',
+            applying: 'Aplicando...',
+            applyPrefix: 'Aplicar Smart DCA',
+            perWeek: '/semana',
+            applied: 'Smart DCA aplicado ao próximo aporte!',
+            reset: 'Resetar para DCA padrão',
+          }
+        : {
+            empty: 'No active DCA plan to optimize.',
+            suggested: 'Suggested amount',
+            allocationAdj: 'Adjusted allocation',
+            applying: 'Applying...',
+            applyPrefix: 'Apply Smart DCA',
+            perWeek: '/week',
+            applied: 'Smart DCA applied to next deposit!',
+            reset: 'Reset to standard DCA',
+          },
+    [language]
+  );
 
   useEffect(() => {
     fetchSmartDCA();
@@ -25,7 +53,7 @@ export function SmartDCACard() {
     return (
       <div className="glass-card rounded-xl p-4">
         <h3 className="text-sm font-medium text-foreground/80 mb-2">Smart DCA</h3>
-        <p className="text-xs text-muted-foreground">Nenhum plano DCA ativo para otimizar.</p>
+        <p className="text-xs text-muted-foreground">{copy.empty}</p>
       </div>
     );
   }
@@ -50,7 +78,7 @@ export function SmartDCACard() {
             {/* Amount adjustment */}
             <div className="flex items-center justify-between glass-light rounded-lg p-3">
               <div>
-                <p className="text-xs text-muted-foreground">Aporte sugerido</p>
+                <p className="text-xs text-muted-foreground">{copy.suggested}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-muted-foreground line-through text-sm">
                     ${plan.original_amount}
@@ -74,7 +102,7 @@ export function SmartDCACard() {
             {/* Allocation adjustments */}
             {Object.keys(plan.allocation_adjustments).length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-xs text-muted-foreground">Alocação ajustada</p>
+                <p className="text-xs text-muted-foreground">{copy.allocationAdj}</p>
                 {Object.entries(plan.allocation_adjustments).map(([symbol, alloc]) => {
                   const diff = alloc.adjusted - alloc.original;
                   return (
@@ -143,13 +171,13 @@ export function SmartDCACard() {
                 disabled={applying}
                 className="w-full py-2.5 rounded-lg text-xs font-semibold transition-all bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 active:scale-[0.98] disabled:opacity-50"
               >
-                {applying ? 'Aplicando...' : `Aplicar Smart DCA — $${plan.adjusted_amount}/semana`}
+                {applying ? copy.applying : `${copy.applyPrefix} — $${plan.adjusted_amount}${copy.perWeek}`}
               </button>
             )}
             {applied && (
               <div className="space-y-2">
                 <div className="w-full py-2 rounded-lg text-center text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
-                  Smart DCA aplicado ao próximo aporte!
+                  {copy.applied}
                 </div>
                 <button
                   onClick={async () => {
@@ -164,7 +192,7 @@ export function SmartDCACard() {
                   }}
                   className="w-full py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Resetar para DCA padrão
+                  {copy.reset}
                 </button>
               </div>
             )}

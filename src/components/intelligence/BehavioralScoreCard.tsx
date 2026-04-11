@@ -1,12 +1,23 @@
+import { useMemo } from 'react';
 import { useMarketIntelligence } from '@/hooks/useMarketIntelligence';
+import { useTranslation } from '@/hooks/useTranslation';
 
-const SCORE_LEVELS = [
-  { min: 0, max: 30, label: 'Iniciante', color: '#ef4444', emoji: '🌱' },
-  { min: 31, max: 50, label: 'Aprendiz', color: '#f97316', emoji: '📈' },
-  { min: 51, max: 70, label: 'Consistente', color: '#eab308', emoji: '⭐' },
-  { min: 71, max: 85, label: 'Disciplinado', color: '#22c55e', emoji: '💪' },
-  { min: 86, max: 100, label: 'Mestre Apice', color: '#8b5cf6', emoji: '👑' },
-];
+const SCORE_LEVELS = {
+  pt: [
+    { min: 0, max: 30, label: 'Iniciante', color: '#ef4444', emoji: '🌱' },
+    { min: 31, max: 50, label: 'Aprendiz', color: '#f97316', emoji: '📈' },
+    { min: 51, max: 70, label: 'Consistente', color: '#eab308', emoji: '⭐' },
+    { min: 71, max: 85, label: 'Disciplinado', color: '#22c55e', emoji: '💪' },
+    { min: 86, max: 100, label: 'Mestre Apice', color: '#8b5cf6', emoji: '👑' },
+  ],
+  en: [
+    { min: 0, max: 30, label: 'Beginner', color: '#ef4444', emoji: '🌱' },
+    { min: 31, max: 50, label: 'Learner', color: '#f97316', emoji: '📈' },
+    { min: 51, max: 70, label: 'Consistent', color: '#eab308', emoji: '⭐' },
+    { min: 71, max: 85, label: 'Disciplined', color: '#22c55e', emoji: '💪' },
+    { min: 86, max: 100, label: 'Apice Master', color: '#8b5cf6', emoji: '👑' },
+  ],
+};
 
 interface ScoreDimension {
   label: string;
@@ -17,6 +28,39 @@ interface ScoreDimension {
 
 export function BehavioralScoreCard() {
   const { userIntel } = useMarketIntelligence();
+  const { language } = useTranslation();
+
+  const copy = useMemo(
+    () =>
+      language === 'pt'
+        ? {
+            title: 'Score Comportamental',
+            consistency: 'Consistência',
+            discipline: 'Disciplina',
+            knowledge: 'Conhecimento',
+            engagement: 'Engajamento',
+            commitment: 'Comprometimento',
+            weeksStreak: 'Semanas streak',
+            execRate: 'Taxa execução',
+            confidence: 'Confiança',
+            evolved: 'Perfil evoluiu:',
+          }
+        : {
+            title: 'Behavioral Score',
+            consistency: 'Consistency',
+            discipline: 'Discipline',
+            knowledge: 'Knowledge',
+            engagement: 'Engagement',
+            commitment: 'Commitment',
+            weeksStreak: 'Weeks streak',
+            execRate: 'Exec. rate',
+            confidence: 'Confidence',
+            evolved: 'Profile evolved:',
+          },
+    [language]
+  );
+
+  const levels = SCORE_LEVELS[language];
 
   if (!userIntel) {
     return (
@@ -28,14 +72,14 @@ export function BehavioralScoreCard() {
   }
 
   const score = userIntel.behavioral_score;
-  const level = SCORE_LEVELS.find(l => score >= l.min && score <= l.max) || SCORE_LEVELS[0];
+  const level = levels.find(l => score >= l.min && score <= l.max) || levels[0];
 
   const dimensions: ScoreDimension[] = [
-    { label: 'Consistência', value: userIntel.consistency_score, weight: '30%', color: '#3b82f6' },
-    { label: 'Disciplina', value: userIntel.discipline_score, weight: '25%', color: '#8b5cf6' },
-    { label: 'Conhecimento', value: userIntel.knowledge_score, weight: '20%', color: '#22c55e' },
-    { label: 'Engajamento', value: userIntel.engagement_score, weight: '15%', color: '#f97316' },
-    { label: 'Comprometimento', value: userIntel.capital_commitment_score, weight: '10%', color: '#eab308' },
+    { label: copy.consistency, value: userIntel.consistency_score, weight: '30%', color: '#3b82f6' },
+    { label: copy.discipline, value: userIntel.discipline_score, weight: '25%', color: '#8b5cf6' },
+    { label: copy.knowledge, value: userIntel.knowledge_score, weight: '20%', color: '#22c55e' },
+    { label: copy.engagement, value: userIntel.engagement_score, weight: '15%', color: '#f97316' },
+    { label: copy.commitment, value: userIntel.capital_commitment_score, weight: '10%', color: '#eab308' },
   ];
 
   const executionRate = userIntel.total_dca_executed + userIntel.total_dca_skipped > 0
@@ -49,7 +93,7 @@ export function BehavioralScoreCard() {
         <div className="flex items-center gap-2">
           <span className="text-xl">{level.emoji}</span>
           <div>
-            <h3 className="text-sm font-medium text-foreground">Score Comportamental</h3>
+            <h3 className="text-sm font-medium text-foreground">{copy.title}</h3>
             <p className="text-xs text-muted-foreground">{level.label}</p>
           </div>
         </div>
@@ -89,15 +133,15 @@ export function BehavioralScoreCard() {
       <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/30">
         <div className="text-center">
           <p className="text-sm font-semibold text-foreground">{userIntel.current_streak_weeks}</p>
-          <p className="text-xs text-muted-foreground">Semanas streak</p>
+          <p className="text-xs text-muted-foreground">{copy.weeksStreak}</p>
         </div>
         <div className="text-center">
           <p className="text-sm font-semibold text-foreground">{executionRate}%</p>
-          <p className="text-xs text-muted-foreground">Taxa execução</p>
+          <p className="text-xs text-muted-foreground">{copy.execRate}</p>
         </div>
         <div className="text-center">
           <p className="text-sm font-semibold text-foreground">{userIntel.confidence_index}</p>
-          <p className="text-xs text-muted-foreground">Confiança</p>
+          <p className="text-xs text-muted-foreground">{copy.confidence}</p>
         </div>
       </div>
 
@@ -105,7 +149,7 @@ export function BehavioralScoreCard() {
       {userIntel.evolved_investor_type && userIntel.evolved_investor_type !== userIntel.original_investor_type && (
         <div className="glass-light border-purple-500/20 rounded-lg p-2">
           <p className="text-xs text-purple-300">
-            🎓 Perfil evoluiu: <span className="line-through text-muted-foreground">{userIntel.original_investor_type}</span>{' '}
+            🎓 {copy.evolved} <span className="line-through text-muted-foreground">{userIntel.original_investor_type}</span>{' '}
             → <span className="font-medium">{userIntel.evolved_investor_type}</span>
           </p>
         </div>

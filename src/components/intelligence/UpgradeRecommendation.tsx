@@ -3,13 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store/appStore';
 import { useMarketIntelligence } from '@/hooks/useMarketIntelligence';
 import { PORTFOLIO_TIERS, getUpgradeRecommendation } from '@/data/portfolioTiers';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function UpgradeRecommendation() {
   const navigate = useNavigate();
+  const { language } = useTranslation();
   const selectedPortfolio = useAppStore((s) => s.selectedPortfolio);
   const { regime, userIntel } = useMarketIntelligence();
   const dcaPlans = useAppStore((s) => s.dcaPlans);
   const totalInvested = dcaPlans.reduce((s, p) => s + (p.totalInvested || 0), 0);
+
+  const copy = useMemo(
+    () =>
+      language === 'pt'
+        ? { badge: 'Upgrade Disponível', evolve: 'Evolua para', details: 'Ver detalhes' }
+        : { badge: 'Upgrade Available', evolve: 'Evolve to', details: 'View details' },
+    [language]
+  );
 
   const recommendation = useMemo(() => {
     const currentTierId = selectedPortfolio?.portfolioId || '';
@@ -44,16 +54,16 @@ export function UpgradeRecommendation() {
         <span className="text-2xl">{targetTier.emoji}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">Upgrade Disponível</p>
+            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">{copy.badge}</p>
           </div>
           <h3 className="text-sm font-bold text-foreground mt-1">
-            Evolua para {targetTier.name}
+            {copy.evolve} {targetTier.name}
           </h3>
           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
             {message}
           </p>
           <p className="text-xs text-primary font-semibold mt-2">
-            Ver detalhes →
+            {copy.details} →
           </p>
         </div>
       </div>
