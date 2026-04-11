@@ -16,7 +16,7 @@ export default function Splash() {
       if (hasCompletedOnboarding) {
         navigate('/home', { replace: true });
       } else {
-        navigate('/onboarding', { replace: true });
+        navigate('/welcome', { replace: true });
       }
     }, delay);
     return () => clearTimeout(timer);
