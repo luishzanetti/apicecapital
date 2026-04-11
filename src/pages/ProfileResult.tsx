@@ -8,7 +8,8 @@ import { ArrowRight, Check, Shield, Target, Zap, ExternalLink, Wallet, PieChart 
 
 export default function ProfileResult() {
   const navigate = useNavigate();
-  const investorType = useAppStore((s) => s.investorType);
+  const investorType = useAppStore((s) => s.investorType) || 'Balanced Optimizer';
+  const missionProgress = useAppStore((s) => s.missionProgress);
   const setupProgress = useAppStore((s) => s.setupProgress);
 
   const description = investorType ? investorTypeDescriptions[investorType] : null;
@@ -17,24 +18,30 @@ export default function ProfileResult() {
   const setupSteps = [
     {
       id: 'exchange',
-      label: 'Create Exchange Account',
+      label: 'Connect Exchange',
       sublabel: 'Via Bybit referral link',
-      done: setupProgress.exchangeAccountCreated,
+      timeEstimate: '2 min',
+      done: missionProgress.m2_apiConnected || setupProgress.exchangeAccountCreated,
       icon: ExternalLink,
+      route: '/settings',
     },
     {
       id: 'portfolio',
-      label: 'Choose Core Portfolio',
+      label: 'Choose Portfolio',
       sublabel: 'One-tap selection',
-      done: setupProgress.corePortfolioSelected,
+      timeEstimate: '3 min',
+      done: missionProgress.m3_portfolioSelected || setupProgress.corePortfolioSelected,
       icon: PieChart,
+      route: '/strategies',
     },
     {
       id: 'dca',
-      label: 'Activate DCA Plan',
+      label: 'Start DCA',
       sublabel: 'Simple schedule setup',
-      done: setupProgress.dcaPlanConfigured,
+      timeEstimate: '2 min',
+      done: missionProgress.m4_weeklyPlanSet || setupProgress.dcaPlanConfigured,
       icon: Zap,
+      route: '/dca-planner',
     },
   ];
 
@@ -125,11 +132,12 @@ export default function ProfileResult() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 + i * 0.1 }}
-                  className="flex items-center gap-3"
+                  onClick={() => !step.done && navigate(step.route)}
+                  className={`flex items-center gap-3 ${!step.done ? 'cursor-pointer hover:bg-secondary/40 rounded-xl p-1 -m-1 transition-colors' : ''}`}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                    step.done 
-                      ? 'bg-apice-success text-white' 
+                    step.done
+                      ? 'bg-apice-success text-white'
                       : 'bg-secondary text-muted-foreground'
                   }`}>
                     {step.done ? (
@@ -139,11 +147,14 @@ export default function ProfileResult() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${step.done ? 'text-muted-foreground' : 'text-foreground'}`}>
+                    <p className={`text-sm font-medium ${step.done ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
                       {step.label}
                     </p>
                     <p className="text-xs text-muted-foreground">{step.sublabel}</p>
                   </div>
+                  <span className="text-[11px] text-muted-foreground/60 font-medium shrink-0">
+                    {step.timeEstimate}
+                  </span>
                   <step.icon className="w-4 h-4 text-muted-foreground/50" />
                 </motion.div>
               ))}
@@ -163,11 +174,11 @@ export default function ProfileResult() {
         <Button
           variant="premium"
           size="lg"
-          className="w-full"
+          className="w-full h-14 text-base font-bold apice-gradient-primary text-white shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/35 transition-all duration-300"
           onClick={() => navigate('/home')}
         >
           Start Your Setup
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="w-5 h-5 ml-1" />
         </Button>
       </motion.div>
     </div>

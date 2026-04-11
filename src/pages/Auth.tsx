@@ -68,6 +68,34 @@ export default function Auth() {
     if (session) navigate(redirectPath, { replace: true });
   }, [session, navigate, redirectPath]);
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error('Enter your email address first');
+      return;
+    }
+    try {
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+      toast.success('Password reset email sent! Check your inbox.');
+    } catch {
+      toast.error('Could not send reset email. Try again.');
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      toast.error('Enter your email address first');
+      return;
+    }
+    try {
+      await supabase.auth.resend({ type: 'signup', email });
+      toast.success('Confirmation email resent! Check your inbox.');
+    } catch {
+      toast.error('Could not resend email. Try again.');
+    }
+  };
+
   const handleAuth = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -294,6 +322,22 @@ export default function Auth() {
                 </div>
               </div>
 
+              {/* Forgot Password (login only) */}
+              {!isSignUp && (
+                <div className="flex justify-end -mt-2">
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              )}
+
+              {/* Error announcements for screen readers */}
+              <div aria-live="polite" className="sr-only" />
+
               {/* Submit */}
               <motion.div whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}>
                 <Button
@@ -324,6 +368,19 @@ export default function Auth() {
                   {t('common.privacyPolicy')}
                 </Link>.
               </p>
+            )}
+
+            {/* Resend confirmation (sign-up mode) */}
+            {isSignUp && (
+              <div className="text-center mt-3">
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                >
+                  Didn't receive it? Resend
+                </button>
+              </div>
             )}
 
             {/* Toggle */}

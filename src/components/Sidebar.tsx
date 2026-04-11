@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, PieChart, Compass, BookOpen, BarChart3, CalendarClock, Crown, Headphones, User, Gift, Bot } from 'lucide-react';
+import { Home, PieChart, Compass, BookOpen, BarChart3, CalendarClock, Crown, Headphones, User, Gift, Bot, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -50,7 +51,7 @@ function SidebarLink({ item }: { item: { to: string; icon: typeof Home; label: s
           'relative z-10 flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150',
           isActive
             ? 'text-primary'
-            : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
+            : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-lg transition-colors'
         )}
       >
         <item.icon
@@ -69,6 +70,8 @@ function SidebarLink({ item }: { item: { to: string; icon: typeof Home; label: s
 }
 
 export function Sidebar() {
+  const [moreExpanded, setMoreExpanded] = useState(false);
+
   return (
     <aside className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-[240px] bg-background/80 backdrop-blur-xl border-r border-border/40 z-50">
       {/* Brand */}
@@ -93,23 +96,37 @@ export function Sidebar() {
           <SidebarLink key={item.to} item={item} />
         ))}
 
-        {/* Divider */}
-        <div className="pt-3 pb-2">
+        {/* Collapsible More section */}
+        <div className="pt-3 pb-1">
           <div className="h-px bg-border/30" />
-          <p className="text-[11px] text-muted-foreground/60 uppercase tracking-wider font-medium px-3 pt-3">
-            More
-          </p>
+          <button
+            onClick={() => setMoreExpanded(!moreExpanded)}
+            className="w-full flex items-center justify-between px-3 pt-3 pb-1 hover:bg-secondary/50 rounded-lg transition-colors"
+          >
+            <span className="text-[11px] text-muted-foreground/60 uppercase tracking-wider font-medium">
+              More
+            </span>
+            {moreExpanded ? (
+              <ChevronUp className="w-3.5 h-3.5 text-muted-foreground/40" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+            )}
+          </button>
         </div>
 
-        {secondaryNav.map((item) => (
-          <SidebarLink key={item.to} item={item} />
-        ))}
+        {moreExpanded && (
+          <div className="space-y-1">
+            {secondaryNav.map((item) => (
+              <SidebarLink key={item.to} item={item} />
+            ))}
+          </div>
+        )}
       </nav>
 
       {/* Footer */}
       <div className="px-4 py-3 border-t border-border/30">
         <p className="text-[11px] text-muted-foreground text-center">
-          Apice Capital v1.0
+          Apice Capital v1.5
         </p>
       </div>
     </aside>

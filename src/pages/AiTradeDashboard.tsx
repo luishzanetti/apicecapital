@@ -322,23 +322,28 @@ export default function AiTradeDashboard() {
               <span className="text-2xl">📡</span>
               <p className="text-sm text-muted-foreground mt-2">No activity yet</p>
             </div>
-          ) : signals.slice(0, 25).map(sig => (
-            <div key={sig.id} className="glass-light rounded-xl px-3 py-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span>{ST[sig.strategyType as SType]?.icon || '📡'}</span>
-                  <span className={`text-xs font-medium ${sig.direction === 'long' ? 'text-green-400' : sig.direction === 'short' ? 'text-red-400' : ''}`}>
-                    {sig.direction.toUpperCase()} {sig.symbol.replace('USDT', '')}
-                  </span>
+          ) : (<>
+            {signals.slice(0, 25).map(sig => (
+              <div key={sig.id} className="glass-light rounded-xl px-3 py-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span>{ST[sig.strategyType as SType]?.icon || '📡'}</span>
+                    <span className={`text-xs font-medium ${sig.direction === 'long' ? 'text-green-400' : sig.direction === 'short' ? 'text-red-400' : ''}`}>
+                      {sig.direction.toUpperCase()} {sig.symbol.replace('USDT', '')}
+                    </span>
+                  </div>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
+                    sig.wasExecuted ? 'bg-green-500/20 text-green-400' :
+                    sig.riskApproved ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'
+                  }`}>{sig.wasExecuted ? 'Traded' : sig.riskApproved ? 'Ready' : 'Filtered'}</span>
                 </div>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
-                  sig.wasExecuted ? 'bg-green-500/20 text-green-400' :
-                  sig.riskApproved ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'
-                }`}>{sig.wasExecuted ? 'Traded' : sig.riskApproved ? 'Ready' : 'Filtered'}</span>
+                {sig.rationale && <p className="text-[9px] text-muted-foreground mt-0.5">{sig.rationale}</p>}
               </div>
-              {sig.rationale && <p className="text-[9px] text-muted-foreground mt-0.5 truncate">{sig.rationale}</p>}
-            </div>
-          ))}
+            ))}
+            {signals.length > 25 && (
+              <p className="text-[10px] text-muted-foreground text-center py-2">+{signals.length - 25} more signals</p>
+            )}
+          </>)}
         </motion.div>
       )}
     </div>

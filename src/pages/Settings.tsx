@@ -663,7 +663,10 @@ export default function Settings() {
                     </DialogHeader>
                     <div className="space-y-3 py-2">
                         <button
-                            onClick={() => useAppStore.getState().setTheme('dark')}
+                            onClick={() => {
+                                useAppStore.getState().setTheme('dark');
+                                toast.success('Theme updated');
+                            }}
                             className={cn(
                                 'w-full flex items-center justify-between p-4 rounded-2xl transition-all press-scale',
                                 theme === 'dark' ? 'glass-card border-glow-blue' : 'glass-light'
@@ -681,7 +684,10 @@ export default function Settings() {
                             {theme === 'dark' && <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center"><Check className="w-3 h-3 text-white" /></div>}
                         </button>
                         <button
-                            onClick={() => useAppStore.getState().setTheme('light')}
+                            onClick={() => {
+                                useAppStore.getState().setTheme('light');
+                                toast.success('Theme updated');
+                            }}
                             className={cn(
                                 'w-full flex items-center justify-between p-4 rounded-2xl transition-all press-scale',
                                 theme === 'light' ? 'glass-card border-glow-blue' : 'glass-light'
@@ -723,6 +729,7 @@ export default function Settings() {
                                 key={lang.code}
                                 onClick={() => {
                                     setLanguage(lang.code);
+                                    toast.success(t('settings.preferenceUpdated'));
                                     setShowLanguageModal(false);
                                 }}
                                 className={cn(

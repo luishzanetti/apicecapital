@@ -115,8 +115,9 @@ function QuizInner() {
     }
   }, []);
 
-  // Focus management on step change
+  // Focus management + smooth scroll on step change
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     requestAnimationFrame(() => {
       const container = contentRef.current;
       if (container) {
@@ -400,7 +401,7 @@ function QuizInner() {
               if (currentStep < totalSteps - 1) {
                 setCurrentStep(currentStep + 1);
               } else {
-                navigate('/investment-setup');
+                navigate('/home');
               }
             }}
           >
