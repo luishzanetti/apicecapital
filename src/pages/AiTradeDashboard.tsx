@@ -44,6 +44,7 @@ export default function AiTradeDashboard() {
   } = useLeveragedTrading();
 
   const [tab, setTab] = useState<'strategies' | 'trades' | 'activity'>('strategies');
+  const [chartSymbol, setChartSymbol] = useState('BTCUSDT');
   const [closingId, setClosingId] = useState<string | null>(null);
   const [confirmCloseAll, setConfirmCloseAll] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -143,18 +144,44 @@ export default function AiTradeDashboard() {
         </div>
       )}
 
-      {/* ═══ CHART ═══ */}
-      <CandlestickChart
-        symbol={positions.length > 0 ? positions[0].symbol : 'BTCUSDT'}
-        height={220}
-        positions={positions.map(p => ({ side: p.side, entryPrice: p.entryPrice, takeProfitPrice: p.takeProfitPrice, stopLossPrice: p.stopLossPrice }))}
-      />
+      {/* ═══ CHART with symbol selector ═══ */}
+      <div className="space-y-1">
+        {/* Symbol tabs — show all traded symbols + BTC default */}
+        <div className="flex gap-1 px-1">
+          {(['BTCUSDT', 'ETHUSDT', 'SOLUSDT', ...positions.map(p => p.symbol)]
+            .filter((v, i, a) => a.indexOf(v) === i) // unique
+            .slice(0, 6)
+            .map(sym => (
+              <button key={sym} onClick={() => setChartSymbol(sym)}
+                className={`px-2 py-1 rounded-lg text-[10px] font-medium transition-all ${
+                  chartSymbol === sym ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'
+                }`}>
+                {sym.replace('USDT', '')}
+              </button>
+            ))
+          )}
+        </div>
+        <CandlestickChart
+          symbol={chartSymbol}
+          height={220}
+          positions={positions.filter(p => p.symbol === chartSymbol).map(p => ({
+            side: p.side, entryPrice: p.entryPrice,
+            takeProfitPrice: p.takeProfitPrice, stopLossPrice: p.stopLossPrice,
+          }))}
+        />
+      </div>
 
-      {/* ═══ ANALYZE ═══ */}
-      <button onClick={analyze} disabled={isEvaluating}
-        className="w-full py-2.5 rounded-xl text-xs font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 active:scale-[0.98] disabled:opacity-50">
-        {isEvaluating ? 'Analyzing...' : '🔍 Analyze Market & Find Trades'}
-      </button>
+      {/* ═══ AUTO-TRADING STATUS ═══ */}
+      <div className="flex items-center justify-between glass-light rounded-xl px-3 py-2">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-[10px] text-muted-foreground">Auto-trading active — analyzing every 15 min</span>
+        </div>
+        <button onClick={analyze} disabled={isEvaluating}
+          className="text-[10px] text-primary font-medium disabled:opacity-50">
+          {isEvaluating ? 'Running...' : 'Run now'}
+        </button>
+      </div>
 
       {/* ═══ UPCOMING TRADES ═══ */}
       {pendingSignals.filter(s => s.approved).length > 0 && (

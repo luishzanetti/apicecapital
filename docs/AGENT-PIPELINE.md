@@ -1,225 +1,255 @@
-# Apice Capital — Agent Pipeline System
+# Apice Capital — Intelligent Agent Pipeline v2
 
-> Sistema estilo Trello/ClickUp onde agentes AIOS trabalham diariamente sob direcao do Jarvis.
-> CEO aprova e corrige a rota. Agentes executam de forma independente.
-
----
-
-## Como Funciona
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    CEO (Luis)                            │
-│         Aprova PRs, corrige rota, define prioridades    │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                    ┌────▼────┐
-                    │ JARVIS  │ (Orchestrator)
-                    │ Master  │
-                    └────┬────┘
-                         │
-          ┌──────────────┼──────────────┐
-          │              │              │
-     ┌────▼────┐   ┌────▼────┐   ┌────▼────┐
-     │  @dev   │   │  @qa    │   │  @po    │
-     │  Daily  │   │  Daily  │   │ Weekly  │
-     └─────────┘   └─────────┘   └─────────┘
-```
-
-### Ciclo Diario
-1. **Jarvis** analisa o estado do app (build, TODOs, bugs, metricas)
-2. **Jarvis** prioriza tarefas para o dia
-3. **Agentes** executam suas tarefas especializadas
-4. **Jarvis** faz code review e verifica qualidade
-5. **CEO** recebe resumo e aprova/corrige
-
-### Ciclo Semanal
-1. **@po** propoe features para a semana (baseado no roadmap V2)
-2. **@architect** valida viabilidade tecnica
-3. **CEO** aprova o sprint
-4. **Agentes** executam durante a semana
-5. **Sexta-feira**: retrospectiva e planejamento
+> Sistema de evolucao continua onde agentes AIOS colaboram em equipe.
+> Cada feature passa por um pipeline completo: Plan → Build → Review → Polish → Ship.
+> O sistema aprende e melhora com o tempo.
 
 ---
 
-## Tarefas Agendadas
+## Filosofia
 
-### DIARIAS (executam toda manha)
+**Nenhuma linha de codigo entra no app sem passar por pelo menos 3 agentes.**
 
-#### 1. Daily Health Check (@dev)
 ```
-Frequencia: Diaria, 9:00 AM
-Prompt: Analyze the Apice Capital app and:
-1. Run build (npx vite build) - report errors
-2. Search for TODO/FIXME/HACK comments - prioritize
-3. Check for unused imports or dead code
-4. Verify no console.log in production code
-5. Check bundle size (warn if >3MB)
-6. Report: what broke, what needs attention, what improved
-Output: Create /docs/daily-reports/YYYY-MM-DD.md
+Ideia → @po planeja → @architect valida → @dev implementa → @qa revisa
+     → @apple-ux lapida → @bybit valida API → @qa final → CEO aprova → Ship
 ```
 
-#### 2. Daily Code Quality (@qa)
-```
-Frequencia: Diaria, 10:00 AM
-Prompt: Review the last 24h of commits in Apice Capital:
-1. Check for security issues (hardcoded secrets, XSS, injection)
-2. Check for TypeScript 'any' usage
-3. Check for accessibility issues (missing aria labels, contrast)
-4. Check for performance anti-patterns (unnecessary re-renders)
-5. Verify all new components have error boundaries
-Output: Create issues or fix directly if < 10 lines
-```
-
-### SEMANAIS (executam toda segunda)
-
-#### 3. Weekly Sprint Planning (@po)
-```
-Frequencia: Segunda, 8:00 AM
-Prompt: Review V2-ROADMAP.md and current app state:
-1. What was completed last week?
-2. What are the top 5 priorities for this week?
-3. Any blockers or dependencies?
-4. Update the roadmap with progress
-Output: Create /docs/sprints/YYYY-WXX-plan.md
-```
-
-#### 4. Weekly Architecture Review (@architect)
-```
-Frequencia: Segunda, 9:00 AM
-Prompt: Review Apice Capital architecture:
-1. Bundle size analysis (compare with last week)
-2. Component complexity audit (files > 500 lines)
-3. Dependency health (outdated packages, vulnerabilities)
-4. Database schema review (missing indexes, RLS gaps)
-5. Edge Function performance review
-Output: Create /docs/architecture/YYYY-WXX-review.md
-```
-
-#### 5. Weekly UX Audit (@apple-ux)
-```
-Frequencia: Quarta, 9:00 AM
-Prompt: Audit UX quality of Apice Capital:
-1. Check all pages for visual consistency
-2. Verify mobile responsiveness (375px, 768px, 1440px)
-3. Check loading states, empty states, error states
-4. Verify touch targets (44px minimum)
-5. Check typography hierarchy
-6. Test critical user flows end-to-end
-Output: Create /docs/ux-audits/YYYY-WXX-audit.md
-```
+Isso garante que cada feature e:
+- **Bem planejada** (nao so codigo jogado)
+- **Tecnicamente solida** (arquitetura validada)
+- **Bonita e usavel** (UX revisada)
+- **Segura e funcional** (QA testado)
+- **Lapidada** (multiplas passadas de melhoria)
 
 ---
 
-## Board de Tarefas (Pipeline)
+## Os 8 Agentes
 
-### Colunas
-
-| Backlog | To Do (Sprint) | In Progress | Review | Done |
-|---------|---------------|-------------|--------|------|
-| Ideas do roadmap V2 | Tarefas desta semana | Agente executando | CEO revisando | Merged |
-
-### Labels
-
-| Label | Significado | Cor |
-|-------|------------|-----|
-| `security` | Vulnerabilidade | Vermelho |
-| `bug` | Algo quebrado | Laranja |
-| `feature` | Feature nova | Azul |
-| `polish` | UX/visual | Roxo |
-| `perf` | Performance | Verde |
-| `infra` | CI/CD, deploy | Cinza |
-| `docs` | Documentacao | Branco |
-
-### Prioridades
-
-| Prioridade | Significado | SLA |
-|-----------|------------|-----|
-| P0 - Critical | Bloqueia lancamento | Mesmo dia |
-| P1 - High | Afeta UX principal | 2 dias |
-| P2 - Medium | Melhoria importante | 1 semana |
-| P3 - Low | Nice-to-have | Sprint seguinte |
+| Agente | Papel | Especialidade |
+|--------|-------|--------------|
+| **@jarvis** | Orchestrator Master | Coordena tudo, prioriza, decide rota |
+| **@po** | Product Owner | Define O QUE construir e POR QUE |
+| **@architect** | System Architect | Define COMO construir, valida viabilidade |
+| **@dev** | Developer | IMPLEMENTA o codigo |
+| **@qa** | Quality Assurance | TESTA e encontra bugs |
+| **@apple-ux** | UX Designer | LAPIDA visual, usabilidade, acessibilidade |
+| **@bybit-fintech** | Fintech Expert | Valida integracoes exchange, API, seguranca |
+| **@design-system** | Visual Design | Consistencia visual, tokens, componentes |
 
 ---
 
-## Backlog Atual (V1.5 → V2)
+## O Pipeline (6 Fases)
 
-### P0 - Critical
-- [ ] PWA icons (192px, 512px) — design needed
-- [ ] Bybit affiliate code real — business decision
-- [ ] Stripe integration — payments reais
-- [ ] Deploy Edge Functions — supabase CLI
+Cada feature, melhoria, ou bug fix passa por TODAS as fases:
 
-### P1 - High (V2 Phase 1)
-- [ ] WebSocket live prices — replace polling
-- [ ] OHLCV data pipeline — price history storage
-- [ ] Portfolio daily snapshots — real performance tracking
-- [ ] Order execution logging — every trade recorded
-- [ ] Sentry integration — error tracking
-- [ ] PostHog integration — product analytics
-- [ ] GitHub Actions CI/CD — automated deploys
+### Fase 1: PLAN (@po + @architect)
 
-### P2 - Medium (V2 Phase 2)
-- [ ] AI Agent Trading — Claude executes trades
-- [ ] Copy Trading execution — real orders
-- [ ] Daily AI Briefing — personalized morning report
-- [ ] Performance analytics — Sharpe, drawdown, attribution
-- [ ] Mobile app (React Native) — iOS + Android
+```
+Input: Ideia ou problema identificado
+```
 
-### P3 - Low (V2 Phase 3-4)
-- [ ] Multi-exchange support — Binance, Coinbase
-- [ ] Social layer — profiles, leaderboards
-- [ ] Cashback engine — Stripe card integration
-- [ ] Strategy marketplace — creator economy
-- [ ] B2B API — white-label DCA engine
+**@po analisa:**
+- Qual o valor de negocio?
+- Quem e o usuario afetado?
+- Qual a prioridade (P0-P3)?
+- Como medir sucesso?
+- Dependencias com outras features?
+
+**@architect valida:**
+- E viavel tecnicamente?
+- Qual o impacto na arquitetura?
+- Quais arquivos serao modificados?
+- Existe algo reutilizavel?
+- Estimativa de esforco?
+
+**Output:** Feature Brief (markdown com scope, criterios de aceite, arquivos)
 
 ---
 
-## Como Configurar
+### Fase 2: BUILD (@dev)
 
-### Opcao 1: Cloud Scheduled Tasks (Recomendado)
+```
+Input: Feature Brief aprovado
+```
 
-Acesse `claude.ai/code/scheduled` e crie:
+**@dev implementa:**
+- Segue o brief exatamente
+- Usa padroes existentes do codebase
+- Cria/modifica apenas os arquivos necessarios
+- Todo texto em ingles
+- Sem console.log em producao
+- Sem `any` no TypeScript
+- Build deve passar (npx vite build)
 
-**Task: Daily Health Check**
-- Repo: luishzanetti/apicecapital
-- Frequency: Daily (9:00 AM)
-- Prompt: (usar prompt acima)
+**Output:** Codigo implementado + commit local (NAO push)
 
-**Task: Weekly Sprint Planning**
-- Repo: luishzanetti/apicecapital
-- Frequency: Weekly (Monday 8:00 AM)
-- Prompt: (usar prompt acima)
+---
 
-### Opcao 2: Desktop Scheduled Tasks
+### Fase 3: REVIEW (@qa + @bybit-fintech)
 
-No Claude Code desktop app:
-1. Sidebar → Schedule → New Local Task
-2. Configure nome, prompt, frequencia
-3. Definir permission mode (automatic para daily checks)
+```
+Input: Codigo implementado
+```
 
-### Opcao 3: CLI com /schedule
+**@qa verifica:**
+- Build passa sem erros?
+- Funcionalidade funciona como descrito no brief?
+- Edge cases tratados? (empty state, error state, loading state)
+- Seguranca: sem secrets expostos, inputs validados
+- Performance: sem re-renders desnecessarios
+- Acessibilidade: aria-labels, contraste, keyboard nav
 
-```bash
-# Criar tarefa diaria
-/schedule create "Daily Health Check" --cron "0 9 * * *" --prompt "..."
+**@bybit-fintech verifica (se envolve exchange):**
+- API calls corretos? Endpoints certos?
+- Rate limits respeitados?
+- Error handling para todos os codigos de erro Bybit?
+- Dados sensíveis apenas server-side (Edge Functions)?
+- Retry logic implementada?
 
-# Listar tarefas
-/schedule list
+**Output:** Lista de issues (PASS / NEEDS_FIX / BLOCK)
 
-# Executar manualmente
-/schedule run <task-id>
+---
 
-# Atualizar
-/schedule update <task-id>
+### Fase 4: POLISH (@apple-ux + @design-system)
+
+```
+Input: Codigo que passou na review
+```
+
+**@apple-ux lapida:**
+- Typography: hierarquia clara, tamanhos corretos (min 12px)
+- Spacing: ritmo consistente (8px grid)
+- Touch targets: minimo 44px
+- Animations: suaves, nao bloqueiam interacao
+- Information hierarchy: o que o usuario ve primeiro?
+- Mobile: funciona bem em 375px?
+- Micro-interacoes: feedback ao clicar, hover states
+
+**@design-system valida:**
+- Cores: usa tokens CSS (nao hex hardcoded)
+- Cards: segue anatomia padrao (header, body, footer)
+- Charts: segue style guide (gradients, tooltips, axis)
+- Glass-morphism: aplicado consistentemente
+- Dark theme: contraste adequado
+
+**Output:** Lista de refinamentos aplicados
+
+---
+
+### Fase 5: FINAL CHECK (@qa)
+
+```
+Input: Codigo polido
+```
+
+**@qa faz verificacao final:**
+- Build passa?
+- Tudo que foi pedido no brief foi entregue?
+- Nenhum regression em outras paginas?
+- Bundle size nao aumentou mais de 10%?
+- Pronto para producao?
+
+**Output:** APPROVED ou NEEDS_REVISION (volta para fase adequada)
+
+---
+
+### Fase 6: SHIP (@jarvis)
+
+```
+Input: Codigo aprovado
+```
+
+**@jarvis finaliza:**
+- Commit com mensagem clara (conventional commits)
+- Tag de versao se necessario
+- Atualiza docs/changelog
+- Notifica CEO para push
+
+**Output:** Commit pronto para CEO aprovar e dar push
+
+---
+
+## Ciclo de Evolucao Diario
+
+```
+06:00  @jarvis    Analisa estado do app, prioriza tarefas do dia
+07:00  @po        Refina briefs para features do dia
+08:00  @architect Valida viabilidade tecnica
+09:00  @dev       Comeca implementacao (feature 1)
+10:00  @qa        Review do trabalho da manha
+11:00  @apple-ux  Polish do que passou na review
+12:00  @dev       Implementa feature 2
+13:00  @qa        Review feature 2
+14:00  @design    Consistencia visual global
+15:00  @qa        Final check de tudo
+16:00  @jarvis    Commit, report, notifica CEO
+
+CEO chega → ve relatorio → aprova push ou corrige rota
 ```
 
 ---
 
-## Hooks Automaticos
+## Ciclo Semanal
 
-Adicionar em `.claude/settings.json`:
+### Segunda — Sprint Planning
+```
+@po       → Propoe 5-7 features para a semana (baseado no V2 roadmap)
+@architect → Valida viabilidade de cada uma
+@jarvis   → Prioriza e distribui
+CEO       → Aprova o sprint
+```
 
+### Terca a Quinta — Execucao
+```
+Pipeline completo para cada feature:
+Plan → Build → Review → Polish → Final → Ship
+```
+
+### Sexta — Retrospectiva
+```
+@jarvis   → Gera relatorio da semana
+@qa       → Metricas de qualidade
+@po       → Avalia progresso vs roadmap
+CEO       → Ajusta prioridades para proxima semana
+```
+
+---
+
+## Sistema de Aprendizado
+
+O pipeline fica mais inteligente com o tempo:
+
+### 1. Feedback Loop
+
+Cada task completada gera um registro:
+```markdown
+## Task: [nome]
+- Tempo estimado vs real
+- Quantas revisoes foram necessarias
+- Quais issues @qa encontrou
+- Quais issues @apple-ux encontrou
+- O que o CEO corrigiu
+```
+
+### 2. Pattern Library
+
+Padroes que funcionam sao documentados:
+```
+docs/patterns/
+├── card-anatomy.md          (como fazer cards)
+├── empty-state-pattern.md   (como fazer empty states)
+├── loading-pattern.md       (como fazer loading)
+├── error-handling.md        (como tratar erros)
+├── form-validation.md       (como validar forms)
+├── chart-design.md          (como fazer graficos)
+├── mobile-first.md          (como fazer responsivo)
+└── api-integration.md       (como integrar APIs)
+```
+
+### 3. Quality Gates Automaticos
+
+Hooks que rodam automaticamente:
 ```json
 {
   "hooks": {
@@ -238,49 +268,178 @@ Adicionar em `.claude/settings.json`:
 }
 ```
 
-Isso roda TypeScript check automaticamente apos cada edit — pega erros antes de commitar.
+### 4. Scoreboard
 
----
-
-## Metricas do Pipeline
-
-| Metrica | Target | Como Medir |
-|---------|--------|------------|
-| Tasks completed/week | 10+ | Count completed items |
-| Build success rate | 100% | Daily health check |
-| Bug fix time (P0) | < 4h | Time from report to fix |
-| Feature delivery | 2-3/week | Count new features |
-| Code quality score | > 85% | Weekly QA audit |
-| Bundle size | < 2.5MB | Daily check |
-| Test coverage | > 80% | Weekly report |
-
----
-
-## Template: Sprint Report
-
-```markdown
-# Sprint Report — Week XX
-
-## Completed
-- [x] Feature: description
-- [x] Bug fix: description
-- [x] Polish: description
-
-## In Progress
-- [ ] Feature: description (X% done)
-
-## Blocked
-- [ ] Feature: blocked by (reason)
-
-## Metrics
-- Build: PASS/FAIL
-- Bundle: X.XX MB
-- Tests: XX% coverage
-- Bugs fixed: X
-- Features shipped: X
-
-## Next Week Priorities
-1. ...
-2. ...
-3. ...
+Cada agente tem um score baseado na qualidade:
 ```
+@dev   — % de builds que passam na primeira tentativa
+@qa    — % de bugs encontrados ANTES do CEO
+@apple — % de issues de UX corrigidos no primeiro polish
+@po    — % de features que nao precisaram re-scope
+```
+
+---
+
+## Backlog Organizado por Pipeline
+
+### READY TO PLAN (esperando @po + @architect)
+
+| # | Feature | Prioridade | Origem |
+|---|---------|-----------|--------|
+| 1 | WebSocket live prices | P1 | V2 Roadmap Phase 1 |
+| 2 | Stripe payment integration | P0 | Launch blocker |
+| 3 | OHLCV data pipeline | P1 | V2 Roadmap Phase 1 |
+| 4 | Portfolio daily snapshots | P1 | V2 Roadmap Phase 1 |
+| 5 | Sentry error tracking | P1 | V2 Roadmap Phase 1 |
+| 6 | PostHog analytics | P1 | V2 Roadmap Phase 1 |
+| 7 | GitHub Actions CI/CD | P1 | V2 Roadmap Phase 1 |
+| 8 | AI Agent Trading | P2 | V2 Roadmap Phase 2 |
+| 9 | Copy Trading execution | P2 | V2 Roadmap Phase 2 |
+| 10 | Daily AI Briefing | P2 | V2 Roadmap Phase 2 |
+
+### IN PIPELINE (passando pelas fases)
+
+| # | Feature | Fase Atual | Agente Ativo |
+|---|---------|-----------|-------------|
+| — | (nenhuma agora) | — | — |
+
+### SHIPPED (completadas)
+
+| # | Feature | Data | Commits |
+|---|---------|------|---------|
+| 1 | Dashboard redesign | Apr 10 | a163ac0..793824b |
+| 2 | DCA Planner rewrite | Apr 10 | f8d2f35 |
+| 3 | QuickDCA activation | Apr 10 | f8d2f35 |
+| 4 | Explosive List | Apr 10 | f8d2f35 |
+| 5 | Referral Dashboard | Apr 10 | 4bd986b |
+| 6 | Academy gating | Apr 10 | 4bd986b |
+| 7 | Support page rewrite | Apr 11 | c44d36d |
+| 8 | Sparklines coin cards | Apr 11 | c44d36d |
+| 9 | Auth forgot password | Apr 11 | 1f1f7a6 |
+
+---
+
+## Todas as Paginas — Status do Pipeline
+
+Cada pagina existente tambem passa pelo pipeline de revisao:
+
+| Pagina | Plan | Build | Review | Polish | Final | Status |
+|--------|------|-------|--------|--------|-------|--------|
+| Home | ✅ | ✅ | ✅ | ✅ | ✅ | SHIPPED |
+| Portfolio | ✅ | ✅ | ✅ | ✅ | ⬜ | POLISH |
+| DCA Planner | ✅ | ✅ | ✅ | ✅ | ✅ | SHIPPED |
+| Quick DCA | ✅ | ✅ | ✅ | ⬜ | ⬜ | REVIEW |
+| Analytics | ✅ | ✅ | ✅ | ⬜ | ⬜ | REVIEW |
+| Explosive List | ✅ | ✅ | ✅ | ⬜ | ⬜ | REVIEW |
+| Strategies | ✅ | ✅ | ✅ | ⬜ | ⬜ | REVIEW |
+| Learn | ✅ | ✅ | ✅ | ✅ | ⬜ | POLISH |
+| Lesson Detail | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+| Settings | ✅ | ✅ | ✅ | ⬜ | ⬜ | REVIEW |
+| Upgrade | ✅ | ✅ | ✅ | ⬜ | ⬜ | REVIEW |
+| Referrals | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+| Support | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+| Asset Detail | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+| Cashback Dashboard | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+| Cashback Machine | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+| AI Trade Dashboard | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+| AI Trade Setup | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+| Automations | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+| Auth | ✅ | ✅ | ✅ | ⬜ | ⬜ | REVIEW |
+| Quiz | ✅ | ✅ | ✅ | ⬜ | ⬜ | REVIEW |
+| Profile Result | ✅ | ✅ | ✅ | ⬜ | ⬜ | REVIEW |
+| Onboarding | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+| Welcome | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+| Splash | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+| Portfolio Detail | ✅ | ✅ | ⬜ | ⬜ | ⬜ | BUILD |
+
+**Meta: todas as paginas em SHIPPED antes do lancamento.**
+
+---
+
+## Prompt Template para Executar Pipeline
+
+Quando Jarvis inicia uma feature no pipeline, usa este template:
+
+```
+PIPELINE EXECUTION: [Feature Name]
+
+## Context
+[O que e esta feature e por que importa]
+
+## Current State
+[O que existe hoje, links para arquivos]
+
+## Fase 1: PLAN
+@po: Define scope, acceptance criteria, success metrics
+@architect: Validate feasibility, identify files, estimate effort
+
+## Fase 2: BUILD
+@dev: Implement following the brief. Files to create/modify:
+- [file1.tsx] — [what to do]
+- [file2.ts] — [what to do]
+
+## Fase 3: REVIEW
+@qa: Verify build, test functionality, check edge cases
+@bybit: Validate API usage (if applicable)
+
+## Fase 4: POLISH
+@apple-ux: Typography, spacing, touch targets, animations
+@design-system: Color tokens, card anatomy, chart styling
+
+## Fase 5: FINAL CHECK
+@qa: Final verification, no regressions, ready to ship
+
+## Fase 6: SHIP
+@jarvis: Commit with conventional message, update pipeline status
+```
+
+---
+
+## Como Usar
+
+### Para o CEO (Luis):
+
+1. **Definir prioridade:** "Quero que foquem em WebSocket esta semana"
+2. **Aprovar sprint:** Ver sprint plan na segunda, aprovar ou ajustar
+3. **Revisar trabalho:** Ver commits pendentes, aprovar push
+4. **Corrigir rota:** "Isso nao ficou bom, refazer com X abordagem"
+
+### Para Jarvis (na sessao Claude):
+
+1. **Iniciar feature:** Seguir o template de pipeline
+2. **Chamar agentes:** Usar Agent tool com subagent_type especifico
+3. **Coordenar:** Garantir que cada fase completa antes da proxima
+4. **Reportar:** Manter docs/daily-reports/ atualizado
+
+### Para executar via CLI:
+
+```bash
+# Pedir para Jarvis iniciar o pipeline de uma feature
+"@jarvis execute pipeline for WebSocket live prices"
+
+# Pedir revisao de uma pagina especifica
+"@jarvis run review+polish pipeline on Portfolio.tsx"
+
+# Pedir sprint planning
+"@jarvis plan this week's sprint"
+```
+
+---
+
+## Metricas de Evolucao
+
+| Metrica | Semana 1 | Meta Semana 4 | Meta Semana 12 |
+|---------|----------|---------------|----------------|
+| Features shipped/semana | 3-5 | 5-8 | 8-12 |
+| First-pass build success | 70% | 85% | 95% |
+| Issues found by @qa | 5+/feature | 3/feature | 1/feature |
+| Polish iterations needed | 2-3 | 1-2 | 1 |
+| Pages at SHIPPED status | 3/26 | 15/26 | 26/26 |
+| CEO corrections needed | 5/semana | 2/semana | 0-1/semana |
+| Time per feature (avg) | 4h | 2h | 1h |
+
+O sistema fica mais rapido porque:
+- Pattern library cresce (menos decisoes de design)
+- Agentes aprendem com feedback do CEO
+- Quality gates automaticos pegam mais coisas
+- Menos retrabalho (mais acerto de primeira)

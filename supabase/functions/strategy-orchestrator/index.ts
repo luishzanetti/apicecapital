@@ -641,17 +641,9 @@ Deno.serve(async (req: Request) => {
       const regime = regimeData?.regime || 'SIDEWAYS';
       const maxLeverage = MAX_LEVERAGE_BY_REGIME[regime] || 2;
 
-      // Get market data — try DB first, fallback to LIVE Bybit API
+      // Get market data — ALWAYS fetch live from Bybit for freshest prices
       let marketData = null as any[] | null;
-      const { data: dbMarketData } = await supabaseAdmin
-        .from('market_snapshots')
-        .select('symbol, price, sma_7d, sma_30d, sma_90d, rsi_14, volatility_30d, funding_rate, fear_greed_index')
-        .in('symbol', LINEAR_SYMBOLS)
-        .order('captured_at', { ascending: false }).limit(LINEAR_SYMBOLS.length);
-
-      if (dbMarketData && dbMarketData.length > 0) {
-        marketData = dbMarketData;
-      } else {
+      {
         // FALLBACK: Fetch live prices directly from Bybit (no auth needed for public endpoints)
         console.log('[orchestrator] market_snapshots empty — fetching live from Bybit');
         try {

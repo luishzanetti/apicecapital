@@ -15,7 +15,7 @@ import { useAutoDCA } from '@/hooks/useAutoDCA';
 import { AiInsightCard } from '@/components/ai/AiInsightCard';
 import { AiAdvisorChat } from '@/components/ai/AiAdvisorChat';
 import { AiPortfolioScore } from '@/components/ai/AiPortfolioScore';
-import { EarnSuggestionCard } from '@/components/intelligence/EarnSuggestionCard';
+// EarnSuggestionCard removed — not relevant for the app
 import {
   TrendingUp, PieChart, BookOpen, Sparkles, Zap, Award, Settings2,
   Lock, ArrowRight, Target, Plus, BarChart3, Clock, Flame, AlertTriangle
@@ -294,11 +294,6 @@ export default function Home() {
               <div className="rounded-2xl glass-card border border-border/20 overflow-hidden">
                 <DCATracker />
               </div>
-            </motion.div>
-
-            {/* Earn Suggestion */}
-            <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
-              <EarnSuggestionCard />
             </motion.div>
 
             {/* AI Portfolio Score */}
