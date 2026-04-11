@@ -53,8 +53,8 @@ export default function Automations() {
             <Zap className="w-5 h-5 text-primary" />
             <h1 className="text-xl font-bold">Automations</h1>
           </div>
-          <p className="text-muted-foreground text-xs">
-            DCA plans, AI guides, and copy portfolios
+          <p className="text-muted-foreground text-sm">
+            Automate your crypto strategy with DCA plans, AI-powered trading, and copy portfolios.
           </p>
         </div>
 
@@ -108,18 +108,21 @@ export default function Automations() {
                 className="cursor-pointer hover:border-primary/20 transition-colors"
                 onClick={() => navigate('/ai-trade')}
               >
-                <CardContent className="pt-4 pb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center shrink-0">
-                      <Bot className="w-5 h-5 text-primary" />
+                <CardContent className="pt-5 pb-5">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center shrink-0">
+                      <Bot className="w-6 h-6 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-sm">ALTIS — AI Trading</h3>
-                      <p className="text-xs text-muted-foreground">
-                        5 strategies with active risk protection
+                      <h3 className="font-semibold text-sm mb-1">ALTIS -- AI Trading</h3>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        5 curated strategies powered by AI with built-in risk management and automatic rebalancing.
                       </p>
+                      <Button variant="outline" size="sm" className="border-primary/20 text-primary hover:bg-primary/10">
+                        Explore Strategies
+                        <ArrowRight className="w-3 h-3" />
+                      </Button>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
                   </div>
                 </CardContent>
               </Card>
@@ -133,18 +136,21 @@ export default function Automations() {
                 className="cursor-pointer hover:border-primary/20 transition-colors"
                 onClick={() => navigate(unlockState.aiBotGuides ? '/ai-trade/setup' : '/upgrade')}
               >
-                <CardContent className="pt-4 pb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <Zap className="w-5 h-5 text-primary" />
+                <CardContent className="pt-5 pb-5">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-cyan-500/20 flex items-center justify-center shrink-0">
+                      <Zap className="w-6 h-6 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-sm">AI Bot (Bitradex)</h3>
-                      <p className="text-xs text-muted-foreground">
-                        Automation infrastructure setup
+                      <h3 className="font-semibold text-sm mb-1">AI Bot (Bitradex)</h3>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Fully automated trading bot with step-by-step setup guide. Connect your exchange API and let AI handle execution.
                       </p>
+                      <Button variant="outline" size="sm" className="border-primary/20 text-primary hover:bg-primary/10">
+                        {unlockState.aiBotGuides ? 'Setup Guide' : 'Unlock with Pro'}
+                        <ArrowRight className="w-3 h-3" />
+                      </Button>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
                   </div>
                 </CardContent>
               </Card>

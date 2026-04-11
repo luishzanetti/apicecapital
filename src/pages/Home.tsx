@@ -15,10 +15,11 @@ import { useAutoDCA } from '@/hooks/useAutoDCA';
 import { AiInsightCard } from '@/components/ai/AiInsightCard';
 import { AiAdvisorChat } from '@/components/ai/AiAdvisorChat';
 import { AiPortfolioScore } from '@/components/ai/AiPortfolioScore';
+import { ExplosivePicksWidget } from '@/components/home/ExplosivePicksWidget';
 // EarnSuggestionCard removed — not relevant for the app
 import {
   TrendingUp, PieChart, BookOpen, Sparkles, Zap, Award, Settings2,
-  Lock, ArrowRight, Target, Plus, BarChart3, Clock, Flame, AlertTriangle
+  Lock, ArrowRight, Target, Plus, BarChart3, Clock, AlertTriangle
 } from 'lucide-react';
 import { isSupabaseConfigured } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -148,7 +149,6 @@ export default function Home() {
     { icon: PieChart, label: 'Portfolio', color: 'text-blue-400', bg: 'bg-blue-500/10', action: () => navigate('/portfolio') },
     { icon: Plus, label: 'DCA', color: 'text-cyan-400', bg: 'bg-cyan-500/10', action: () => navigate('/dca-planner') },
     { icon: BookOpen, label: 'Learn', color: 'text-purple-400', bg: 'bg-purple-500/10', action: () => navigate('/learn') },
-    { icon: Flame, label: 'Explosive', color: 'text-orange-400', bg: 'bg-orange-500/10', action: () => navigate('/explosive-list') },
   ];
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -226,7 +226,7 @@ export default function Home() {
             {/* Quick Actions — horizontal on desktop, 2x2 on mobile */}
             <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
               <SectionHeader icon={Zap} label="Quick Actions" />
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {quickActions.map((item) => (
                   <button
                     key={item.label}
@@ -244,8 +244,15 @@ export default function Home() {
               </div>
             </motion.div>
 
-            {/* Today's Context */}
+            {/* Explosive Picks AI Widget */}
             <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp}>
+              <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Explosive picks unavailable</div>}>
+                <ExplosivePicksWidget />
+              </ErrorBoundary>
+            </motion.div>
+
+            {/* Today's Context */}
+            <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
               <SectionHeader icon={Sparkles} label="Today's Context" />
               <button
                 onClick={() => navigate(getInsightRoute(todayInsight.type))}
@@ -269,7 +276,7 @@ export default function Home() {
             </motion.div>
 
             {/* Market Movers */}
-            <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
+            <motion.div initial="hidden" animate="visible" custom={5} variants={fadeUp}>
               <SectionHeader icon={TrendingUp} label="Market Movers" action={{ label: 'View All', onClick: () => navigate('/explosive-list') }} />
               <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Market data unavailable</div>}>
                 <div className="rounded-2xl glass-card border border-border/20 overflow-hidden">
@@ -279,7 +286,7 @@ export default function Home() {
             </motion.div>
 
             {/* AI Insight */}
-            <motion.div initial="hidden" animate="visible" custom={5} variants={fadeUp}>
+            <motion.div initial="hidden" animate="visible" custom={6} variants={fadeUp}>
               <SectionHeader icon={Sparkles} label="AI Insight" />
               <AiInsightCard />
             </motion.div>
@@ -289,7 +296,7 @@ export default function Home() {
           <div className="xl:col-span-1 space-y-5 mt-5 xl:mt-0">
 
             {/* DCA Status */}
-            <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp}>
+            <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
               <SectionHeader icon={TrendingUp} label="DCA Automation" />
               <div className="rounded-2xl glass-card border border-border/20 overflow-hidden">
                 <DCATracker />
@@ -297,7 +304,7 @@ export default function Home() {
             </motion.div>
 
             {/* AI Portfolio Score */}
-            <motion.div initial="hidden" animate="visible" custom={5} variants={fadeUp}>
+            <motion.div initial="hidden" animate="visible" custom={6} variants={fadeUp}>
               <SectionHeader icon={Sparkles} label="AI Portfolio Score" />
               <AiPortfolioScore />
             </motion.div>
@@ -306,7 +313,7 @@ export default function Home() {
 
         {/* ── Full-width: Apice Journey ────────────────────────────────── */}
         <div className="px-4 md:px-6 mt-5">
-          <motion.div initial="hidden" animate="visible" custom={6} variants={fadeUp}>
+          <motion.div initial="hidden" animate="visible" custom={7} variants={fadeUp}>
             <SectionHeader icon={Target} label={isJourneyCompleted ? 'Your Journey' : 'Apice Journey'} />
             <SetupMissions />
           </motion.div>
@@ -314,7 +321,7 @@ export default function Home() {
 
         {/* ── Full-width: Gamification ─────────────────────────────────── */}
         <div className="px-4 md:px-6 mt-5">
-          <motion.div initial="hidden" animate="visible" custom={7} variants={fadeUp}>
+          <motion.div initial="hidden" animate="visible" custom={8} variants={fadeUp}>
             {isGamificationUnlocked ? (
               <>
                 <SectionHeader icon={Award} label="Levels & Badges" />

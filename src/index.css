@@ -431,6 +431,12 @@
     box-shadow: 0 8px 32px -8px hsl(0 0% 0% / 0.25);
   }
 
+  .shimmer-sweep {
+    background: linear-gradient(90deg, transparent, hsl(30 90% 60% / 0.15), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
   .hover-glow {
     transition: box-shadow 0.3s ease;
   }

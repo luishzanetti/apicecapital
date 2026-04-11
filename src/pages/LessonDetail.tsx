@@ -21,16 +21,21 @@ const XP_PER_QUIZ = 30;
 function ContentBlockView({ block }: { block: ContentBlock }) {
   if (block.type === 'paragraph') {
     return (
-      <p className="text-sm text-muted-foreground leading-relaxed">
+      <p className="text-[15px] text-foreground/80 leading-[1.75] tracking-[-0.01em]">
         {block.content}
       </p>
     );
   }
   if (block.type === 'highlight') {
     return (
-      <div className="flex gap-3 p-4 rounded-xl bg-primary/8 border border-primary/20">
-        <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-        <p className="text-sm font-medium text-foreground leading-relaxed">{block.content}</p>
+      <div className="flex gap-3.5 p-4 rounded-2xl bg-primary/8 border border-primary/20 shadow-sm shadow-primary/5">
+        <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
+          <Lightbulb className="w-4 h-4 text-primary" />
+        </div>
+        <div>
+          <p className="text-[11px] font-semibold text-primary uppercase tracking-wider mb-1">Key Concept</p>
+          <p className="text-[15px] font-medium text-foreground leading-[1.65]">{block.content}</p>
+        </div>
       </div>
     );
   }
@@ -48,10 +53,10 @@ function ContentBlockView({ block }: { block: ContentBlock }) {
   }
   if (block.type === 'quote') {
     return (
-      <div className="pl-4 border-l-2 border-primary/40 space-y-1">
+      <div className="pl-4 border-l-2 border-primary/40 space-y-1.5 py-1">
         <div className="flex items-start gap-2">
           <Quote className="w-4 h-4 text-primary/60 mt-0.5 shrink-0" />
-          <p className="text-sm italic text-foreground/80 leading-relaxed">"{block.content}"</p>
+          <p className="text-[15px] italic text-foreground/80 leading-[1.7]">"{block.content}"</p>
         </div>
         {block.author && (
           <p className="text-xs text-muted-foreground pl-6">
@@ -487,7 +492,7 @@ export default function LessonDetail() {
                   <BookOpen className="w-4 h-4 text-primary" />
                   Lesson
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {lesson.contentBlocks ? (
                     lesson.contentBlocks.map((block, i) => (
                       <motion.div
@@ -500,7 +505,7 @@ export default function LessonDetail() {
                       </motion.div>
                     ))
                   ) : (
-                    <p className="text-sm text-muted-foreground leading-relaxed">{lesson.content}</p>
+                    <p className="text-[15px] text-foreground/80 leading-[1.75]">{lesson.content}</p>
                   )}
                 </div>
               </CardContent>

@@ -126,3 +126,68 @@ create policy "Users can update own transactions" on public.transactions
 
 create policy "Users can delete own transactions" on public.transactions
   for delete using (auth.uid() = user_id);
+
+-- ============================================================
+-- EXPLOSIVE PICKS — AI-Scored Crypto Universe
+-- ============================================================
+
+-- Curated coin universe managed by scoring pipeline
+create table public.explosive_universe (
+  id uuid default uuid_generate_v4() primary key,
+  coin_id text not null unique,
+  symbol text not null,
+  name text not null,
+  defillama_slug text,
+  bybit_symbol text,
+  sector text not null check (sector in ('defi','l1','l2','ai','gaming','meme','rwa','infra')),
+  is_active boolean default true,
+  added_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Computed scores, refreshed every 4 hours
+create table public.explosive_scores (
+  id uuid default uuid_generate_v4() primary key,
+  coin_id text not null references public.explosive_universe(coin_id) on delete cascade,
+  total_score numeric not null,
+  fundamental_score numeric default 0,
+  momentum_score numeric default 0,
+  market_position_score numeric default 0,
+  risk_score numeric default 0,
+  narrative_score numeric default 0,
+  timing_score numeric default 0,
+  risk_level text not null check (risk_level in ('conservative','balanced','high','extreme')),
+  rationale text,
+  buying_strategy jsonb,
+  raw_metrics jsonb,
+  computed_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique (coin_id)
+);
+
+-- Historical snapshots for computing deltas (social, TVL, volume)
+create table public.coin_snapshots (
+  id uuid default uuid_generate_v4() primary key,
+  coin_id text not null,
+  twitter_followers integer,
+  reddit_subscribers integer,
+  tvl numeric,
+  volume_24h numeric,
+  market_cap numeric,
+  snapshot_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create index idx_coin_snapshots_coin_id on public.coin_snapshots (coin_id, snapshot_at desc);
+create index idx_explosive_scores_total on public.explosive_scores (total_score desc);
+
+-- RLS: explosive tables are read-only for authenticated users
+alter table public.explosive_universe enable row level security;
+alter table public.explosive_scores enable row level security;
+alter table public.coin_snapshots enable row level security;
+
+create policy "Authenticated users can read universe" on public.explosive_universe
+  for select using (auth.role() = 'authenticated');
+
+create policy "Authenticated users can read scores" on public.explosive_scores
+  for select using (auth.role() = 'authenticated');
+
+create policy "Snapshots are system-only" on public.coin_snapshots
+  for select using (auth.role() = 'service_role');

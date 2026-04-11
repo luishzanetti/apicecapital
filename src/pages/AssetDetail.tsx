@@ -659,17 +659,43 @@ function AssetDetail() {
                   About {coin.name}
                 </p>
               </div>
-              <p className="text-sm leading-relaxed text-foreground/80">{coinInfo.description}</p>
+              <p className="text-sm leading-[1.7] text-foreground/80">{coinInfo.description}</p>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl border border-white/5 bg-white/5 p-3">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Consensus</p>
-                  <p className="text-xs font-medium mt-1">{coinInfo.consensus}</p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Consensus</p>
+                  <p className="text-xs font-medium mt-1.5">{coinInfo.consensus}</p>
                 </div>
                 <div className="rounded-2xl border border-white/5 bg-white/5 p-3">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Use Case</p>
-                  <p className="text-xs font-medium mt-1">{coinInfo.useCase}</p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Use Case</p>
+                  <p className="text-xs font-medium mt-1.5">{coinInfo.useCase}</p>
                 </div>
               </div>
+
+              {/* Contextual DCA prompt for users without a position */}
+              {!holding && !activeDCAPlan && (
+                <div className="mt-4 p-3.5 rounded-2xl bg-primary/5 border border-primary/20">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 shrink-0">
+                      <Repeat className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold">Interested in {coin.name}?</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Start a DCA plan to build a position gradually with reduced volatility risk.
+                      </p>
+                      <Button
+                        variant="premium"
+                        size="sm"
+                        className="mt-2.5"
+                        onClick={() => navigate('/dca-planner')}
+                      >
+                        <Repeat className="mr-1.5 h-3.5 w-3.5" />
+                        Add to DCA Plan
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
