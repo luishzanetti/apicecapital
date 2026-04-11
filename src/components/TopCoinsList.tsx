@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { getTopMarketCoins, type CoinData } from "@/services/marketData";
@@ -6,6 +6,35 @@ import { TrendingUp, TrendingDown, ArrowRight, WifiOff, RefreshCw } from "lucide
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ResponsiveContainer, LineChart, Line } from "recharts";
+
+function generateSparkline(price: number, change24h: number): number[] {
+    const points = 12;
+    const startPrice = price / (1 + change24h / 100);
+    return Array.from({ length: points }, (_, i) => {
+        const progress = i / (points - 1);
+        const noise = (Math.sin(i * 2.5) * 0.003 + Math.cos(i * 1.7) * 0.002) * price;
+        return startPrice + (price - startPrice) * progress + noise;
+    });
+}
+
+function MiniSparkline({ data, isPositive }: { data: number[]; isPositive: boolean }) {
+    const chartData = useMemo(() => data.map((v) => ({ v })), [data]);
+    return (
+        <ResponsiveContainer width={60} height={24}>
+            <LineChart data={chartData}>
+                <Line
+                    type="monotone"
+                    dataKey="v"
+                    stroke={isPositive ? '#22c55e' : '#ef4444'}
+                    strokeWidth={1.5}
+                    dot={false}
+                    isAnimationActive={false}
+                />
+            </LineChart>
+        </ResponsiveContainer>
+    );
+}
 
 function CoinCardSkeleton() {
     return (
@@ -105,36 +134,48 @@ export function TopCoinsList() {
 
             <ScrollArea className="w-full whitespace-nowrap rounded-xl">
                 <div className="flex w-max space-x-4 p-1 pb-4">
-                    {coins.map((coin) => (
-                        <Card
-                            key={coin.id}
-                            className="w-[160px] cursor-pointer hover:border-primary/50 transition-all active:scale-95"
-                            onClick={() => navigate(`/asset/${coin.id}`)} // We'll need to create this route eventually, or handle it
-                        >
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded-full" />
-                                    <div>
-                                        <p className="font-bold text-sm truncate max-w-[80px]">{coin.symbol.toUpperCase()}</p>
-                                        <p className="text-[11px] text-muted-foreground truncate max-w-[80px]">{coin.name}</p>
+                    {coins.map((coin) => {
+                        const change = coin.price_change_percentage_24h || 0;
+                        const isPositive = change >= 0;
+                        const sparklineData =
+                            coin.sparkline_in_7d?.price?.length
+                                ? coin.sparkline_in_7d.price.slice(-12)
+                                : generateSparkline(coin.current_price || 0, change);
+
+                        return (
+                            <Card
+                                key={coin.id}
+                                className="w-[160px] cursor-pointer hover:border-primary/20 hover:bg-white/[0.02] transition-all active:scale-95"
+                                onClick={() => navigate(`/asset/${coin.id}`)}
+                            >
+                                <CardContent className="p-4">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded-full" />
+                                        <div>
+                                            <p className="font-bold text-sm truncate max-w-[80px]">{coin.symbol.toUpperCase()}</p>
+                                            <p className="text-[11px] text-muted-foreground truncate max-w-[80px]">{coin.name}</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="font-bold text-sm">
-                                        ${coin.current_price?.toLocaleString() || '0.00'}
-                                    </p>
-                                    <div className={`flex items-center text-xs ${(coin.price_change_percentage_24h || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                        {(coin.price_change_percentage_24h || 0) >= 0 ? (
-                                            <TrendingUp className="w-3 h-3 mr-1" />
-                                        ) : (
-                                            <TrendingDown className="w-3 h-3 mr-1" />
-                                        )}
-                                        {Math.abs(coin.price_change_percentage_24h || 0).toFixed(2)}%
+                                    <div className="flex items-end justify-between">
+                                        <div className="space-y-1">
+                                            <p className="font-bold text-sm">
+                                                ${coin.current_price?.toLocaleString() || '0.00'}
+                                            </p>
+                                            <div className={`flex items-center text-xs ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                                                {isPositive ? (
+                                                    <TrendingUp className="w-3 h-3 mr-1" />
+                                                ) : (
+                                                    <TrendingDown className="w-3 h-3 mr-1" />
+                                                )}
+                                                {Math.abs(change).toFixed(2)}%
+                                            </div>
+                                        </div>
+                                        <MiniSparkline data={sparklineData} isPositive={isPositive} />
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
                 </div>
                 <ScrollBar orientation="horizontal" />
             </ScrollArea>

@@ -1267,8 +1267,8 @@ export const missionDefinitions: MissionDef[] = [
     badgeIcon: '👁️',
     xpTotal: 300,
     tasks: [
-      { id: 'm1-1', storeKey: 'm1_onboardingCompleted', title: 'The Manifesto', description: 'Unlock the vision. Understand how elite capital flows and why you were invited.', actionLabel: 'Explore Vision', actionRoute: '/onboarding', xp: 150 },
-      { id: 'm1-2', storeKey: 'm1_profileQuizDone', title: 'DNA Analysis', description: 'Our AI needs to understand your core. Reveal your investor DNA to open the path.', actionLabel: 'Start Analysis', actionRoute: '/quiz', xp: 150 },
+      { id: 'm1-1', storeKey: 'm1_onboardingCompleted', title: 'Discover Your Edge (2 min)', description: 'See the Apice methodology in action. Unlocks your personalized dashboard and investment roadmap.', actionLabel: 'Explore Vision', actionRoute: '/onboarding', xp: 150 },
+      { id: 'm1-2', storeKey: 'm1_profileQuizDone', title: 'Find Your Investor DNA (3 min)', description: 'Quick 6-question quiz that tailors every recommendation to your goals and risk tolerance.', actionLabel: 'Start Analysis', actionRoute: '/quiz', xp: 150 },
     ],
   },
   {
@@ -1282,9 +1282,9 @@ export const missionDefinitions: MissionDef[] = [
     badgeIcon: '📚',
     xpTotal: 550,
     tasks: [
-      { id: 'm2-1', storeKey: 'm2_methodologyRead', title: 'Master the Apice Method', description: 'Internalize the 3 pillars: DCA + diversification + micro-leverage for explosive performance.', actionLabel: 'Go Deeper', actionRoute: '/mission2/method', xp: 200 },
-      { id: 'm2-2', storeKey: 'm2_apiConnected', title: 'Connect the Strategy Engine', description: 'Link your Bybit account via API to enable automated DCA, AI Advisor, and real-time execution.', actionLabel: 'Connect', actionRoute: '/mission2/api-setup', xp: 200 },
-      { id: 'm2-3', storeKey: 'm2_strategiesExplored', title: 'Explore Strategies', description: 'Discover the wealth-building and automation frameworks that power the Apice engine.', actionLabel: 'Explore', actionRoute: '/strategies', xp: 150 },
+      { id: 'm2-1', storeKey: 'm2_methodologyRead', title: 'Learn the 3 Pillars (5 min)', description: 'Understand DCA + diversification + micro-leverage. This knowledge alone puts you ahead of 90% of investors.', actionLabel: 'Go Deeper', actionRoute: '/mission2/method', xp: 200 },
+      { id: 'm2-2', storeKey: 'm2_apiConnected', title: 'Go Live -- Connect Your Exchange (2 min)', description: 'Link your Bybit account via API. Unlocks real portfolio tracking, automated DCA, and AI-powered execution.', actionLabel: 'Connect', actionRoute: '/mission2/api-setup', xp: 200 },
+      { id: 'm2-3', storeKey: 'm2_strategiesExplored', title: 'Explore Your Strategy Options (3 min)', description: 'Browse wealth-building frameworks curated by AI. Find the one that matches your goals and risk profile.', actionLabel: 'Explore', actionRoute: '/strategies', xp: 150 },
     ],
   },
   {
@@ -1298,9 +1298,9 @@ export const missionDefinitions: MissionDef[] = [
     badgeIcon: '🏗️',
     xpTotal: 400,
     tasks: [
-      { id: 'm3-1', storeKey: 'm3_strategyChosen', title: 'Strategic Alignment', description: 'Align your goals to the right risk profile: conservative, balanced, or aggressive.', actionLabel: 'Align Now', actionRoute: '/portfolio', xp: 100 },
-      { id: 'm3-2', storeKey: 'm3_portfolioSelected', title: 'Architect Selection', description: 'Choose a market-tested portfolio blueprint optimized by our AI for the current cycle.', actionLabel: 'Choose Blueprint', actionRoute: '/portfolio', xp: 150 },
-      { id: 'm3-3', storeKey: 'm3_allocationReviewed', title: 'Precision Check', description: 'Review the weights. Understand exactly what you own and why it is there.', actionLabel: 'Verify Weights', actionRoute: '/portfolio', xp: 150 },
+      { id: 'm3-1', storeKey: 'm3_strategyChosen', title: 'Pick Your Risk Profile (1 min)', description: 'Conservative, balanced, or growth? This single choice shapes your entire portfolio. Unlocks tailored allocations.', actionLabel: 'Align Now', actionRoute: '/portfolio', xp: 100 },
+      { id: 'm3-2', storeKey: 'm3_portfolioSelected', title: 'Choose Your Portfolio Blueprint (2 min)', description: 'Select an AI-optimized portfolio tested against real market cycles. Your money starts working smarter immediately.', actionLabel: 'Choose Blueprint', actionRoute: '/portfolio', xp: 150 },
+      { id: 'm3-3', storeKey: 'm3_allocationReviewed', title: 'Review Your Allocation (1 min)', description: 'See exactly what you own and why. Understanding your weights gives you confidence to stay the course.', actionLabel: 'Verify Weights', actionRoute: '/portfolio', xp: 150 },
     ],
   },
   {
@@ -1314,9 +1314,9 @@ export const missionDefinitions: MissionDef[] = [
     badgeIcon: '💎',
     xpTotal: 500,
     tasks: [
-      { id: 'm4-1', storeKey: 'm4_weeklyPlanSet', title: 'Discipline Protocol', description: 'Set your automated DCA frequency. Consistency is the ultimate weapon.', actionLabel: 'Set Protocol', actionRoute: '/dca-planner', xp: 150 },
-      { id: 'm4-2', storeKey: 'm4_firstDepositConfirmed', title: 'Initial Deployment', description: 'Execute your first allocation across assets and watch the engine come to life.', actionLabel: 'Launch Portfolio', actionRoute: '/portfolio', xp: 150 },
-      { id: 'm4-3', storeKey: 'm4_allocationExecuted', title: 'Market Presence', description: 'Establish your presence. Your first real-time execution across the portfolio.', actionLabel: 'Execute Plan', actionRoute: '/portfolio', xp: 200 },
+      { id: 'm4-1', storeKey: 'm4_weeklyPlanSet', title: 'Automate Your Wealth -- Set Your Weekly Amount (2 min)', description: 'Choose how much to invest per week. Once set, your money compounds automatically without any manual work.', actionLabel: 'Set Protocol', actionRoute: '/dca-planner', xp: 150 },
+      { id: 'm4-2', storeKey: 'm4_firstDepositConfirmed', title: 'Launch Your First DCA -- Watch Money Work For You (3 min)', description: 'Execute your first allocation and watch the engine come alive. This is where passive wealth-building begins.', actionLabel: 'Launch Portfolio', actionRoute: '/portfolio', xp: 150 },
+      { id: 'm4-3', storeKey: 'm4_allocationExecuted', title: 'Confirm Your First Execution (1 min)', description: 'Your portfolio is live. Verify your first real-time trade went through -- you are now building wealth on autopilot.', actionLabel: 'Execute Plan', actionRoute: '/portfolio', xp: 200 },
     ],
   },
   {
@@ -1330,9 +1330,9 @@ export const missionDefinitions: MissionDef[] = [
     badgeIcon: '✨',
     xpTotal: 700,
     tasks: [
-      { id: 'm5-1', storeKey: 'm5_foundationsCourseCompleted', title: 'Advanced Intel', description: 'Complete the full Foundations course to unlock a deeper market read.', actionLabel: 'Get Intel', actionRoute: '/learn', xp: 250 },
-      { id: 'm5-2', storeKey: 'm5_firstStrategyMastered', title: 'Elite Strategy', description: 'Demonstrate DCA mastery for 4 consecutive weeks to prove your consistency.', actionLabel: 'Show Mastery', actionRoute: '/learn', xp: 250 },
-      { id: 'm5-3', storeKey: 'm5_advancedUnlocked', title: 'Final Ascension', description: 'Unlock institutional-grade optimized portfolios and automated copy trading.', actionLabel: 'Ascend Now', xp: 200 },
+      { id: 'm5-1', storeKey: 'm5_foundationsCourseCompleted', title: 'Complete Foundations Course (15 min)', description: 'Finish all lessons to unlock advanced market analysis tools and deeper portfolio insights.', actionLabel: 'Get Intel', actionRoute: '/learn', xp: 250 },
+      { id: 'm5-2', storeKey: 'm5_firstStrategyMastered', title: 'Prove Your Consistency -- 4-Week DCA Streak', description: 'Run your DCA plan for 4 consecutive weeks. Consistency is what separates builders from speculators.', actionLabel: 'Show Mastery', actionRoute: '/learn', xp: 250 },
+      { id: 'm5-3', storeKey: 'm5_advancedUnlocked', title: 'Unlock Elite Strategies -- Copy Trading & More', description: 'Gain access to institutional-grade portfolios, automated copy trading, and AI-optimized allocations.', actionLabel: 'Ascend Now', xp: 200 },
     ],
   },
 ];

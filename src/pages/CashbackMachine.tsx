@@ -54,8 +54,13 @@ const milestones = [
 export default function CashbackMachine() {
   const navigate = useNavigate();
   const trackLinkClick = useAppStore((s) => s.trackLinkClick);
+  const dcaPlans = useAppStore((s) => s.dcaPlans);
   const [selectedSpend, setSelectedSpend] = useState(2000);
   const [activeStep, setActiveStep] = useState<number | null>(null);
+
+  // Use total DCA invested as proxy for spending until real cashback API exists
+  const totalInvested = dcaPlans.reduce((sum, p) => sum + (p.totalInvested ?? 0), 0);
+  const estimatedCashback = totalInvested * 0.05; // 5% average cashback rate
 
   const currentProjection = projections.find((p) => p.spend === selectedSpend) || projections[2];
   const bybitLink = referralLinks.find((l) => l.id === 'bybit');
@@ -201,11 +206,17 @@ export default function CashbackMachine() {
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Unlock higher rates</h2>
           <Card className="border-primary/10">
             <CardContent className="space-y-3 p-4">
-              <p className="text-xs text-muted-foreground">
-                The more you use the card, the higher your cashback rate. Deposit <span className="font-semibold text-foreground">$500</span> and make it your primary card to unlock tiers faster.
-              </p>
+              {totalInvested > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  Based on your <span className="font-semibold text-foreground">${totalInvested.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span> invested, estimated cashback: <span className="font-semibold text-green-400">${estimatedCashback.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  The more you use the card, the higher your cashback rate. Deposit <span className="font-semibold text-foreground">$500</span> and make it your primary card to unlock tiers faster.
+                </p>
+              )}
               {milestones.map((m, i) => {
-                const progress = Math.min(100, (0 / m.amount) * 100); // Will be dynamic with real data
+                const progress = Math.min(100, (totalInvested / m.amount) * 100);
                 return (
                   <div key={m.amount} className="flex items-center gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
@@ -221,6 +232,51 @@ export default function CashbackMachine() {
                   </div>
                 );
               })}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* CONNECT BYBIT CARD */}
+        <motion.div {...fadeUp} transition={{ delay: 0.2, duration: 0.5 }}>
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Connect your card</h2>
+          <Card className="border-amber-500/10">
+            <CardContent className="space-y-3 p-4">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500">
+                  <CreditCard className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold">Connect Bybit Card</h3>
+                  <p className="text-[11px] text-muted-foreground">4 steps to start earning cashback in BTC</p>
+                </div>
+              </div>
+              {[
+                { step: 1, text: 'Open the Bybit app on your phone', icon: '📱' },
+                { step: 2, text: 'Navigate to More > Bybit Card section', icon: '💳' },
+                { step: 3, text: 'Apply for the Bybit Card (free, instant approval)', icon: '✅' },
+                { step: 4, text: 'Link your card to Apice for automatic tracking', icon: '🔗' },
+              ].map((item) => (
+                <div key={item.step} className="flex items-center gap-3 rounded-xl bg-secondary/30 p-3">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                    <span className="text-xs font-bold text-primary">{item.step}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground flex-1">{item.text}</span>
+                  <span className="text-sm">{item.icon}</span>
+                </div>
+              ))}
+              <Button
+                size="sm"
+                className="w-full gap-2 mt-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600"
+                onClick={() => {
+                  if (bybitLink) {
+                    trackLinkClick('bybit');
+                    window.open(bybitLink.url, '_blank');
+                  }
+                }}
+              >
+                Open Bybit App
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Button>
             </CardContent>
           </Card>
         </motion.div>

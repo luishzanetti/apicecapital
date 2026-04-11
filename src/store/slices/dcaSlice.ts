@@ -102,6 +102,17 @@ export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
       // Supabase sync failed; local state is authoritative
     }
 
+    // Notify user about the new plan
+    const addNotification = get().addNotification;
+    addNotification({
+      type: 'success',
+      category: 'dca',
+      title: 'New DCA Plan Created',
+      message: `$${newPlan.amountPerInterval}/${newPlan.frequency} across ${newPlan.assets.length} asset${newPlan.assets.length > 1 ? 's' : ''}`,
+      actionRoute: '/dca-planner',
+      actionLabel: 'View plan',
+    });
+
     return newPlan;
   },
 

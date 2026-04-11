@@ -5,7 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { portfolios } from '@/data/sampleData';
 import { useAppStore } from '@/store/appStore';
-import { ArrowLeft, Check, Shield, AlertTriangle, PieChart, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Check, Shield, AlertTriangle, PieChart as PieChartIcon, Plus, Trash2, Copy, Sliders, Play } from 'lucide-react';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { toast } from 'sonner';
+
+const DONUT_COLORS = [
+  'hsl(33, 100%, 50%)',
+  'hsl(217, 100%, 60%)',
+  'hsl(280, 100%, 60%)',
+  'hsl(152, 70%, 50%)',
+  'hsl(230, 70%, 55%)',
+  'hsl(350, 80%, 55%)',
+  'hsl(45, 90%, 55%)',
+  'hsl(190, 80%, 50%)',
+];
 
 export default function PortfolioDetail() {
   const { id } = useParams();
@@ -94,38 +107,108 @@ export default function PortfolioDetail() {
         animate={{ opacity: 1, y: 0 }}
         className="px-5 py-6 space-y-6 pb-32"
       >
-        {/* Allocation Visualization */}
-        <Card>
+        {/* Allocation Donut Chart */}
+        <Card className="border-border/30 bg-card/50 backdrop-blur-sm">
           <CardContent className="pt-5">
             <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
-              <PieChart className="w-4 h-4 text-primary" />
+              <PieChartIcon className="w-4 h-4 text-primary" />
               Allocation Breakdown
             </h3>
-            
+
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={allocations}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={80}
+                  paddingAngle={3}
+                  dataKey="percentage"
+                  nameKey="asset"
+                >
+                  {allocations.map((a, i) => (
+                    <Cell key={a.asset} fill={a.color || DONUT_COLORS[i % DONUT_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                  }}
+                  formatter={(value: number, name: string) => [`${value}%`, name]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+
             {/* Allocation Bar */}
-            <div className="flex gap-1 h-4 rounded-full overflow-hidden mb-4">
+            <div className="flex gap-1 h-3 rounded-full overflow-hidden mt-2 mb-4">
               {allocations.map((alloc, i) => (
                 <div
                   key={i}
                   className="h-full transition-all"
-                  style={{ 
-                    width: `${alloc.percentage}%`, 
-                    backgroundColor: alloc.color 
+                  style={{
+                    width: `${alloc.percentage}%`,
+                    backgroundColor: alloc.color || DONUT_COLORS[i % DONUT_COLORS.length],
                   }}
                 />
               ))}
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Allocation Legend */}
-            <div className="grid grid-cols-2 gap-3">
+        {/* Action Buttons */}
+        <div className="grid grid-cols-3 gap-3">
+          <Button
+            variant="outline"
+            className="flex flex-col items-center gap-1.5 h-auto py-3"
+            onClick={() => {
+              setSelectedPortfolio(portfolio.id, allocations);
+              toast.success('Portfolio applied!');
+              navigate('/home');
+            }}
+          >
+            <Play className="w-4 h-4 text-primary" />
+            <span className="text-[11px]">Apply</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="flex flex-col items-center gap-1.5 h-auto py-3"
+            onClick={() => navigate('/portfolio')}
+          >
+            <Sliders className="w-4 h-4 text-primary" />
+            <span className="text-[11px]">Customize</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="flex flex-col items-center gap-1.5 h-auto py-3"
+            onClick={() => {
+              navigator.clipboard.writeText(`${window.location.origin}/portfolio/${portfolio.id}`);
+              toast.success('Portfolio link copied!');
+            }}
+          >
+            <Copy className="w-4 h-4 text-primary" />
+            <span className="text-[11px]">Share</span>
+          </Button>
+        </div>
+
+        {/* Assets in this portfolio */}
+        <Card className="border-border/30 bg-card/50 backdrop-blur-sm">
+          <CardContent className="pt-5">
+            <h3 className="font-semibold text-sm mb-4">Assets in this portfolio</h3>
+            <div className="space-y-3">
               {allocations.map((alloc, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: alloc.color }}
-                  />
-                  <span className="text-sm font-medium">{alloc.asset}</span>
-                  <span className="text-sm text-muted-foreground">{alloc.percentage}%</span>
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-3 h-3 rounded-full shrink-0"
+                      style={{ backgroundColor: alloc.color || DONUT_COLORS[i % DONUT_COLORS.length] }}
+                    />
+                    <span className="text-sm font-medium">{alloc.asset}</span>
+                  </div>
+                  <span className="text-sm text-muted-foreground font-mono">{alloc.percentage}%</span>
                 </div>
               ))}
             </div>
