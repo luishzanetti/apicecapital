@@ -154,3 +154,43 @@ ALTER TABLE public.analytics_events ENABLE ROW LEVEL SECURITY;
 -- Allow authenticated users to insert events only — no read/update/delete from client
 CREATE POLICY "Authenticated users can insert events" ON public.analytics_events
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+-- ============================================================
+-- PROFIT ENGINE: Smart DCA Override + Trade Orders
+-- ============================================================
+
+-- Smart DCA override column on dca_plans
+-- Stores regime-adjusted amount and allocation overrides applied by user
+-- Consumed and cleared by dca-execute Edge Function after execution
+ALTER TABLE public.dca_plans
+  ADD COLUMN IF NOT EXISTS smart_dca_override JSONB DEFAULT NULL;
+
+-- Trade Orders table (sell orders, take-profit, stop-loss)
+CREATE TABLE IF NOT EXISTS public.trade_orders (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  asset_symbol TEXT NOT NULL,
+  side TEXT NOT NULL CHECK (side IN ('buy', 'sell')),
+  order_type TEXT NOT NULL CHECK (order_type IN ('market', 'limit', 'take_profit', 'stop_loss')),
+  amount_usdt NUMERIC,
+  quantity NUMERIC,
+  target_price NUMERIC,
+  trigger_price NUMERIC,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'filled', 'cancelled', 'failed')),
+  bybit_order_id TEXT,
+  fill_price NUMERIC,
+  fill_quantity NUMERIC,
+  realized_pnl NUMERIC,
+  cost_basis NUMERIC,
+  source TEXT DEFAULT 'manual' CHECK (source IN ('manual', 'smart_dca', 'rebalance', 'war_chest', 'take_profit_rule')),
+  market_regime TEXT,
+  error_message TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  filled_at TIMESTAMPTZ
+);
+
+ALTER TABLE public.trade_orders ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own trades" ON public.trade_orders FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own trades" ON public.trade_orders FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own trades" ON public.trade_orders FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own trades" ON public.trade_orders FOR DELETE USING (auth.uid() = user_id);

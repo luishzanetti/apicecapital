@@ -4,29 +4,8 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { crypto } from 'https://deno.land/std@0.208.0/crypto/mod.ts';
-
-// Dynamic CORS: accept production domain + localhost for dev
-function getCorsHeaders(req?: Request): Record<string, string> {
-  const allowedOrigins = [
-    Deno.env.get('ALLOWED_ORIGIN'),
-    'http://localhost:8080',
-    'http://localhost:8081',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:4173',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-  ].filter(Boolean) as string[];
-
-  const origin = req?.headers.get('origin') || '';
-  const allowOrigin = allowedOrigins.includes(origin) ? origin : (allowedOrigins[0] || '*');
-
-  return {
-    'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-user-token',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  };
-}
+import { hmacSHA256 as sharedHmacSHA256, aesDecryptAsync as sharedAesDecryptAsync, evpBytesToKey as sharedEvpBytesToKey, md5 as sharedMd5 } from '../_shared/crypto.ts';
+import { getCorsHeaders } from '../_shared/bybit-api.ts';
 
 // Legacy constant for backwards compatibility within handler
 const CORS_HEADERS = getCorsHeaders();

@@ -5,8 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useAppStore } from '@/store/appStore';
 import { getReturnRateForInvestorType } from '@/data/sampleData';
 import {
-    TrendingUp, DollarSign, Flame, Eye, EyeOff, Edit3,
-    Trash2, Check, X, ChevronRight
+    TrendingUp, DollarSign, Eye, EyeOff, Edit3,
+    Check, X, ChevronRight
 } from 'lucide-react';
 import {
     AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer
@@ -41,30 +41,23 @@ export default function InvestmentDashboard({ compact }: Props) {
     const investmentFrequency = useAppStore((s) => s.investmentFrequency);
     const setWeeklyInvestment = useAppStore((s) => s.setWeeklyInvestment);
     const setInvestmentFrequency = useAppStore((s) => s.setInvestmentFrequency);
-    const weeklyDepositHistory = useAppStore((s) => s.weeklyDepositHistory);
-    const weeklyDepositStreak = useAppStore((s) => s.weeklyDepositStreak);
+    const dcaPlans = useAppStore((s) => s.dcaPlans);
     const investorType = useAppStore((s) => s.investorType);
-    const editDeposit = useAppStore((s) => s.editDeposit);
-    const removeDeposit = useAppStore((s) => s.removeDeposit);
 
     const [hideBalance, setHideBalance] = useState(false);
-    const [editingWeekId, setEditingWeekId] = useState<string | null>(null);
-    const [editValue, setEditValue] = useState(0);
     const [editingInvestment, setEditingInvestment] = useState(false);
     const [tempInvestment, setTempInvestment] = useState(weeklyInvestment);
 
-    const totalDeposited = weeklyDepositHistory.reduce((sum, d) => sum + d.amount, 0);
+    const totalDeposited = dcaPlans.reduce((sum, p) => sum + p.totalInvested, 0);
     const annualRate = getReturnRateForInvestorType(investorType);
-    const simulatedGain = totalDeposited * annualRate * (weeklyDepositHistory.length / 52);
+    const weeksActive = dcaPlans.length > 0
+        ? Math.max(1, Math.round((Date.now() - new Date(dcaPlans[0].startDate).getTime()) / (7 * 86400000)))
+        : 0;
+    const simulatedGain = totalDeposited * annualRate * (weeksActive / 52);
     const estimatedValue = totalDeposited + simulatedGain;
     const gainPercent = totalDeposited > 0 ? ((simulatedGain / totalDeposited) * 100).toFixed(1) : '0';
 
-    const growthData = generateGrowthData(weeklyInvestment, weeklyDepositHistory.length, annualRate);
-
-    const handleEditSave = (weekId: string) => {
-        editDeposit(weekId, editValue);
-        setEditingWeekId(null);
-    };
+    const growthData = generateGrowthData(weeklyInvestment, weeksActive, annualRate);
 
     if (compact) {
         return (
@@ -96,12 +89,6 @@ export default function InvestmentDashboard({ compact }: Props) {
                                 </div>
                             </div>
                         </div>
-                        {weeklyDepositStreak > 0 && (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-orange-500/10">
-                                <Flame className="w-3 h-3 text-orange-400" />
-                                <span className="text-[11px] text-orange-400 font-bold">{weeklyDepositStreak}w</span>
-                            </div>
-                        )}
                     </div>
 
                     {/* Mini stats row */}
@@ -212,9 +199,7 @@ export default function InvestmentDashboard({ compact }: Props) {
                                             </span>
                                             <Edit3 className="w-3 h-3 text-muted-foreground/40 group-hover:text-primary transition-colors" />
                                         </button>
-                                        {weeklyDepositStreak === 0 && (
-                                            <span className="text-[11px] text-muted-foreground/50">tap to edit</span>
-                                        )}
+                                        <span className="text-[11px] text-muted-foreground/50">tap to edit</span>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -267,21 +252,14 @@ export default function InvestmentDashboard({ compact }: Props) {
                     </div>
 
                     {/* Stats row */}
-                    <div className="grid grid-cols-3 gap-3 mt-4">
+                    <div className="grid grid-cols-2 gap-3 mt-4">
                         <div className="p-3 rounded-xl bg-secondary/30">
                             <p className="text-[11px] text-muted-foreground">Invested</p>
                             <p className="text-sm font-bold">{hideBalance ? '•••' : `$${totalDeposited.toLocaleString()}`}</p>
                         </div>
                         <div className="p-3 rounded-xl bg-secondary/30">
-                            <p className="text-[11px] text-muted-foreground">Deposits</p>
-                            <p className="text-sm font-bold">{weeklyDepositHistory.length}</p>
-                        </div>
-                        <div className="p-3 rounded-xl bg-secondary/30">
-                            <p className="text-[11px] text-muted-foreground">Streak</p>
-                            <p className="text-sm font-bold flex items-center gap-1">
-                                {weeklyDepositStreak}w
-                                {weeklyDepositStreak > 0 && <Flame className="w-3 h-3 text-orange-400" />}
-                            </p>
+                            <p className="text-[11px] text-muted-foreground">Active Plans</p>
+                            <p className="text-sm font-bold">{dcaPlans.filter((p) => p.isActive).length}</p>
                         </div>
                     </div>
 
@@ -311,68 +289,6 @@ export default function InvestmentDashboard({ compact }: Props) {
                 </CardContent>
             </Card>
 
-            {/* Recent deposits with edit/delete */}
-            {weeklyDepositHistory.length > 0 && (
-                <Card>
-                    <CardContent className="pt-4 pb-4">
-                        <p className="text-xs font-semibold mb-3">Recent Deposits</p>
-                        <div className="space-y-2">
-                            {[...weeklyDepositHistory].reverse().slice(0, 5).map((deposit) => (
-                                <div key={deposit.weekId} className="flex items-center gap-3 p-2.5 rounded-xl bg-secondary/20">
-                                    <div className="w-7 h-7 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                                        <DollarSign className="w-3.5 h-3.5 text-green-500" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-medium">{deposit.weekId}</p>
-                                        {editingWeekId === deposit.weekId ? (
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <input
-                                                    type="number"
-                                                    value={editValue}
-                                                    onChange={(e) => setEditValue(Number(e.target.value))}
-                                                    className="w-20 px-2 py-1 rounded bg-secondary text-xs border border-border"
-                                                    autoFocus
-                                                />
-                                                <button onClick={() => handleEditSave(deposit.weekId)} className="text-green-500">
-                                                    <Check className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button onClick={() => setEditingWeekId(null)} className="text-muted-foreground">
-                                                    <X className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-wrap gap-1 mt-0.5">
-                                                {deposit.allocations.slice(0, 3).map((a) => (
-                                                    <span key={a.asset} className="text-[11px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">
-                                                        {a.asset} ${a.amount.toFixed(0)}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                    {editingWeekId !== deposit.weekId && (
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            <span className="text-xs font-bold text-green-400">+${deposit.amount}</span>
-                                            <button
-                                                onClick={() => { setEditingWeekId(deposit.weekId); setEditValue(deposit.amount); }}
-                                                className="p-1 rounded-md hover:bg-secondary"
-                                            >
-                                                <Edit3 className="w-3 h-3 text-muted-foreground" />
-                                            </button>
-                                            <button
-                                                onClick={() => removeDeposit(deposit.weekId)}
-                                                className="p-1 rounded-md hover:bg-red-500/10"
-                                            >
-                                                <Trash2 className="w-3 h-3 text-red-400/60" />
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
         </div>
     );
 }

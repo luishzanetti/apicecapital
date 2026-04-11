@@ -51,6 +51,29 @@
     --apice-text-secondary: 215 16% 47%;
     --apice-text-tertiary: 215 16% 67%;
 
+    /* v2: Neon accent tokens — light mode (subtle) */
+    --apice-neon-blue: 222 80% 50%;
+    --apice-neon-purple: 265 70% 55%;
+    --apice-neon-cyan: 190 80% 42%;
+    --apice-profit: 152 69% 36%;
+    --apice-loss: 0 75% 50%;
+
+    /* v2: Glass tokens — light mode (higher opacity, less blur) */
+    --glass-blur-light: 8px;
+    --glass-blur-medium: 14px;
+    --glass-blur-heavy: 20px;
+    --glass-bg-light: 0.70;
+    --glass-bg-medium: 0.80;
+    --glass-bg-heavy: 0.90;
+    --glass-border: 0.15;
+    --glass-saturate: 120%;
+
+    /* v2: Depth layers — light mode */
+    --layer-base: 210 20% 98%;
+    --layer-1: 0 0% 100%;
+    --layer-2: 210 40% 96%;
+    --layer-3: 214 32% 91%;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -201,7 +224,7 @@
     -webkit-backdrop-filter: blur(var(--glass-blur-medium, 20px)) saturate(var(--glass-saturate, 180%));
     background: hsl(var(--card) / var(--glass-bg-medium, 0.70));
     border: 1px solid hsl(var(--border) / var(--glass-border, 0.12));
-    box-shadow: 0 4px 24px -4px hsl(0 0% 0% / 0.2);
+    box-shadow: 0 4px 24px -4px hsl(var(--foreground) / 0.08);
   }
 
   /* Level 3: Heavy — nav bars, modals, overlays */
@@ -210,7 +233,7 @@
     -webkit-backdrop-filter: blur(var(--glass-blur-heavy, 28px)) saturate(var(--glass-saturate, 180%));
     background: hsl(var(--card) / var(--glass-bg-heavy, 0.82));
     border: 1px solid hsl(var(--border) / 0.18);
-    box-shadow: 0 8px 32px -8px hsl(0 0% 0% / 0.3);
+    box-shadow: 0 8px 32px -8px hsl(var(--foreground) / 0.12);
   }
 
   /* Legacy aliases */

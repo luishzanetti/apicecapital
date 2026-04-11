@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Home, PieChart, Compass, BookOpen, MoreHorizontal, BarChart3, CalendarClock, Crown, Headphones, User, Gift, X } from 'lucide-react';
+import { Home, PieChart, Compass, BookOpen, MoreHorizontal, BarChart3, CalendarClock, Crown, Headphones, User, Gift, X, Bot } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -14,14 +14,15 @@ export function BottomNav() {
   const navItems = [
     { to: '/home', icon: Home, label: t('nav.home') },
     { to: '/portfolio', icon: PieChart, label: t('nav.portfolio') },
-    { to: '/strategies', icon: Compass, label: t('nav.strategies') },
-    { to: '/learn', icon: BookOpen, label: t('nav.learn') },
+    { to: '/ai-trade', icon: Bot, label: 'ALTIS' },
+    { to: '/dca-planner', icon: CalendarClock, label: 'DCA' },
     { to: '__more__', icon: MoreHorizontal, label: t('nav.more') },
   ];
 
   const moreMenuItems = [
+    { to: '/strategies', icon: Compass, label: t('nav.strategies'), desc: 'Explore all investment strategies' },
     { to: '/analytics', icon: BarChart3, label: t('nav.analytics'), desc: t('nav.analyticsDesc') },
-    { to: '/dca-planner', icon: CalendarClock, label: t('nav.dcaPlanner'), desc: t('nav.dcaPlannerDesc') },
+    { to: '/learn', icon: BookOpen, label: t('nav.learn'), desc: 'Courses and educational content' },
     { to: '/settings', icon: User, label: t('nav.profileSettings'), desc: t('nav.profileSettingsDesc') },
     { to: '/upgrade', icon: Crown, label: t('nav.upgrade'), desc: t('nav.upgradeDesc') },
     { to: '/referrals', icon: Gift, label: t('nav.referrals'), desc: t('nav.referralsDesc') },
@@ -52,7 +53,7 @@ export function BottomNav() {
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
               className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl overflow-hidden"
               style={{
-                background: 'hsl(228 25% 9% / 0.92)',
+                background: 'hsl(var(--card) / var(--glass-bg-heavy, 0.90))',
                 backdropFilter: 'blur(40px) saturate(200%)',
                 WebkitBackdropFilter: 'blur(40px) saturate(200%)',
                 border: '1px solid hsl(var(--border) / 0.15)',
@@ -61,7 +62,7 @@ export function BottomNav() {
             >
               {/* Handle bar */}
               <div className="flex justify-center pt-3 pb-1">
-                <div className="w-10 h-1 rounded-full bg-white/20" />
+                <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
               </div>
 
               {/* Header */}
@@ -69,7 +70,7 @@ export function BottomNav() {
                 <h3 className="text-sm font-semibold text-foreground">{t('nav.more')}</h3>
                 <button
                   onClick={() => setShowMore(false)}
-                  className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center"
+                  className="w-8 h-8 rounded-lg bg-secondary/30 flex items-center justify-center"
                   aria-label="Fechar menu"
                 >
                   <X className="w-4 h-4 text-muted-foreground" />
@@ -94,13 +95,13 @@ export function BottomNav() {
                         'w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition-colors',
                         isActive
                           ? 'bg-primary/10 text-primary'
-                          : 'text-foreground hover:bg-white/5'
+                          : 'text-foreground hover:bg-secondary/30'
                       )}
                     >
                       <div
                         className={cn(
                           'w-9 h-9 rounded-xl flex items-center justify-center shrink-0',
-                          isActive ? 'bg-primary/15' : 'bg-white/5'
+                          isActive ? 'bg-primary/15' : 'bg-secondary/30'
                         )}
                       >
                         <item.icon
@@ -129,12 +130,12 @@ export function BottomNav() {
         <nav
           className="flex items-center justify-between px-4 py-2.5 rounded-[22px]"
           style={{
-            background: 'hsl(228 25% 9% / 0.72)',
+            background: 'hsl(var(--card) / var(--glass-bg-heavy, 0.82))',
             backdropFilter: 'blur(40px) saturate(200%)',
             WebkitBackdropFilter: 'blur(40px) saturate(200%)',
             border: '1px solid hsl(var(--border) / 0.15)',
             boxShadow:
-              '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px hsl(var(--primary) / 0.04), inset 0 1px 0 hsl(var(--foreground) / 0.04)',
+              '0 8px 32px hsl(var(--foreground) / 0.15), 0 0 0 1px hsl(var(--primary) / 0.04), inset 0 1px 0 hsl(var(--foreground) / 0.04)',
           }}
         >
           {navItems.map((item) => {
@@ -160,7 +161,7 @@ export function BottomNav() {
                     <MoreHorizontal
                       className={cn(
                         'w-[22px] h-[22px] transition-colors duration-200',
-                        isActive ? 'text-white' : 'text-white/40'
+                        isActive ? 'text-foreground' : 'text-muted-foreground'
                       )}
                       strokeWidth={isActive ? 2.2 : 1.8}
                     />
@@ -168,7 +169,7 @@ export function BottomNav() {
                   <span
                     className={cn(
                       'text-[11px] font-medium tracking-wide transition-colors duration-200',
-                      isActive ? 'text-white' : 'text-white/40'
+                      isActive ? 'text-foreground' : 'text-muted-foreground'
                     )}
                   >
                     {item.label}
@@ -198,7 +199,7 @@ export function BottomNav() {
                   <item.icon
                     className={cn(
                       'w-[22px] h-[22px] transition-colors duration-200',
-                      isActive ? 'text-white' : 'text-white/40'
+                      isActive ? 'text-foreground' : 'text-muted-foreground'
                     )}
                     strokeWidth={isActive ? 2.2 : 1.8}
                   />
@@ -206,7 +207,7 @@ export function BottomNav() {
                 <span
                   className={cn(
                     'text-[11px] font-medium tracking-wide transition-colors duration-200',
-                    isActive ? 'text-white' : 'text-white/40'
+                    isActive ? 'text-foreground' : 'text-muted-foreground'
                   )}
                 >
                   {item.label}

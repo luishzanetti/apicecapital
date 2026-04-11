@@ -117,7 +117,7 @@ export function AiAdvisorChat() {
               style={{
                 height: '75vh',
                 maxHeight: '600px',
-                background: 'hsl(228 25% 9% / 0.92)',
+                background: 'hsl(var(--card) / 0.92)',
                 backdropFilter: 'blur(40px) saturate(200%)',
                 WebkitBackdropFilter: 'blur(40px) saturate(200%)',
                 border: '1px solid hsl(var(--border) / 0.15)',

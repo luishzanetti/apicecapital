@@ -13,6 +13,15 @@ export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
   daysActive: 0,
   lastOpenDate: null,
   currentInsightIndex: 0,
+  theme: 'dark' as 'light' | 'dark',
+  setTheme: (theme: 'light' | 'dark') => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    set({ theme });
+  },
   widgetOrder: [
     'nextstep',
     'insight',
@@ -108,8 +117,6 @@ export const createAppSlice: SliceCreator<AppSlice> = (set, get) => ({
       },
       weeklyInvestment: 0,
       investmentFrequency: 'weekly',
-      weeklyDepositHistory: [],
-      weeklyDepositStreak: 0,
       portfolioAccepted: false,
       linkClicks: defaultLinkClicks,
       learnProgress: defaultLearnProgress,

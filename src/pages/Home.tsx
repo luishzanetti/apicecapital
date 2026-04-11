@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,23 +15,14 @@ import { useAutoDCA } from '@/hooks/useAutoDCA';
 import { AiInsightCard } from '@/components/ai/AiInsightCard';
 import { AiAdvisorChat } from '@/components/ai/AiAdvisorChat';
 import { AiPortfolioScore } from '@/components/ai/AiPortfolioScore';
-import { WeeklyDepositConfirm } from '@/components/WeeklyDepositConfirm';
 import {
   TrendingUp, PieChart, BookOpen, Sparkles, Zap, Award, Settings2,
-  Lock, Crown, ArrowRight, Target, Plus, BarChart3, Clock
+  Lock, ArrowRight, Target, Plus, BarChart3, Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 
 // ── Utilities ──────────────────────────────────────────────────────────────────
-
-function getCurrentWeekId(): string {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const diff = now.getTime() - start.getTime();
-  const weekNum = Math.ceil((diff / 86400000 + start.getDay() + 1) / 7);
-  return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
-}
 
 function getTimeGreetingKey(): string {
   const hour = new Date().getHours();
@@ -98,34 +89,21 @@ function SectionHeader({ icon: Icon, label }: { icon: React.ComponentType<{ clas
 
 export default function Home() {
   const navigate = useNavigate();
-  const [showDepositConfirm, setShowDepositConfirm] = useState(false);
   const { t, language } = useTranslation();
 
   // Auto-execute due DCA plans on app load + every 5 min
   useAutoDCA();
 
   // ── Store selectors ────────────────────────────────────────────────────────
-  const weeklyInvestment = useAppStore((s) => s.weeklyInvestment);
-  const weeklyDepositHistory = useAppStore((s) => s.weeklyDepositHistory);
-  const weeklyDepositStreak = useAppStore((s) => s.weeklyDepositStreak);
   const investorType = useAppStore((s) => s.investorType);
   const currentInsightIndex = useAppStore((s) => s.currentInsightIndex);
   const missionProgress = useAppStore((s) => s.missionProgress);
   const userProfile = useAppStore((state) => state.userProfile);
   const subscription = useAppStore((state) => state.subscription);
   const daysActive = useAppStore((state) => state.daysActive);
-  const dcaPlans = useAppStore((s) => s.dcaPlans);
-
   // ── Derived state ──────────────────────────────────────────────────────────
   const isJourneyCompleted = useMemo(() => missionProgress.m5_advancedUnlocked, [missionProgress]);
 
-  const hasActiveDCA = dcaPlans.some((p) => p.isActive);
-  const isMission4Complete = missionProgress.m4_weeklyPlanSet && missionProgress.m4_firstDepositConfirmed && missionProgress.m4_allocationExecuted;
-  const showAdvancedWidgets = hasActiveDCA || isMission4Complete;
-
-  const currentWeekId = getCurrentWeekId();
-  const totalDeposited = weeklyDepositHistory.reduce((sum, d) => sum + d.amount, 0);
-  const hasFirstDeposit = weeklyDepositHistory.length > 0;
   const todayInsight = dailyInsights[currentInsightIndex % dailyInsights.length];
   const dateLocale = language === 'pt' ? 'pt-BR' : language === 'es' ? 'es' : 'en-US';
   const todayDate = new Intl.DateTimeFormat(dateLocale, {
@@ -134,24 +112,7 @@ export default function Home() {
     month: 'long',
   }).format(new Date());
 
-  const milestones = [
-    { threshold: 0, label: 'Start', icon: '🌱' },
-    { threshold: 500, label: 'Builder', icon: '🔨' },
-    { threshold: 2000, label: 'Optimizer', icon: '⚡' },
-    { threshold: 5000, label: 'Pro', icon: '🚀' },
-    { threshold: 10000, label: 'Elite', icon: '💎' },
-  ];
-  const currentMilestone = [...milestones].reverse().find(m => totalDeposited >= m.threshold) || milestones[0];
-  const nextMilestone = milestones.find(m => m.threshold > totalDeposited);
-  const milestoneProgress = nextMilestone
-    ? ((totalDeposited - currentMilestone.threshold) / (nextMilestone.threshold - currentMilestone.threshold)) * 100
-    : 100;
-  const weeksToNext = nextMilestone && weeklyInvestment > 0
-    ? Math.ceil((nextMilestone.threshold - totalDeposited) / weeklyInvestment)
-    : null;
-
   const isGamificationUnlocked = daysActive >= 3;
-  const isMilestoneUnlocked = hasFirstDeposit;
 
   const nextStep = useMemo(() => {
     for (const mission of missionDefinitions) {
@@ -356,12 +317,6 @@ export default function Home() {
           </span>
         </motion.div>
       </div>
-
-      {/* ── Modals & Overlays ───────────────────────────────────────────────── */}
-      <WeeklyDepositConfirm
-        isOpen={showDepositConfirm}
-        onClose={() => setShowDepositConfirm(false)}
-      />
 
       {/* AI Advisor Chat FAB */}
       <AiAdvisorChat />

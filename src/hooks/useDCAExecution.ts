@@ -60,7 +60,7 @@ function simulateExecution(plan: LocalPlanData): ExecutePlanResult {
         price: null,
         orderId: null,
         status: 'failed' as const,
-        error: `Valor muito baixo para executar: $${amountUsdt.toFixed(2)} (mínimo $1)`,
+        error: `Amount too low to execute: $${amountUsdt.toFixed(2)} (minimum $1)`,
       };
     }
 
@@ -183,7 +183,7 @@ export function useDCAExecution() {
 
   const executePlan = useCallback(async (planId: string, localPlan?: LocalPlanData): Promise<ExecutePlanResult | null> => {
     if (!user) {
-      setError('Faça login para executar o DCA.');
+      setError('Log in to execute DCA.');
       return null;
     }
 
@@ -194,7 +194,7 @@ export function useDCAExecution() {
     try {
       if (!isSupabaseConfigured) {
         if (!localPlan) {
-          throw new Error('Modo local sem plano disponível para simulação.');
+          throw new Error('Local mode: no plan available for simulation.');
         }
 
         const simulatedResult = simulateExecution(localPlan);
@@ -221,7 +221,7 @@ export function useDCAExecution() {
 
       const result = data?.data as ExecutePlanResult;
       if (!result) {
-        throw new Error('Nenhum resultado de execução foi retornado pelo servidor.');
+        throw new Error('No execution result returned from server.');
       }
 
       setLastResult(result);
@@ -230,7 +230,7 @@ export function useDCAExecution() {
       const msg = err instanceof Error ? err.message : 'Execution failed';
       setError(
         msg.includes('no_credentials') || msg.includes('Connect')
-          ? 'Conecte sua conta Bybit primeiro em Configurações.'
+          ? 'Connect your Bybit account first in Settings.'
           : msg
       );
       return null;

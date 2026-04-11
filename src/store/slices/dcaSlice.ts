@@ -22,9 +22,6 @@ export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
   },
   weeklyInvestment: 0,
   investmentFrequency: 'weekly',
-  weeklyDepositHistory: [],
-  weeklyDepositStreak: 0,
-
   addDcaPlan: async (plan) => {
     const startDate = plan.startDate || new Date().toISOString();
     const newPlan: DCAPlan = {
@@ -175,80 +172,4 @@ export const createDCASlice: SliceCreator<DCASlice> = (set, get) => ({
   },
 
   setInvestmentFrequency: (frequency) => set({ investmentFrequency: frequency }),
-
-  confirmWeeklyDeposit: (weekId, amount, allocations) =>
-    set((state) => {
-      const deposit = {
-        weekId,
-        amount,
-        confirmedAt: new Date().toISOString(),
-        allocations,
-      };
-
-      const lastDeposit = state.weeklyDepositHistory[state.weeklyDepositHistory.length - 1];
-      let newStreak = state.weeklyDepositStreak;
-      if (lastDeposit) {
-        const lastWeekNum = parseInt(lastDeposit.weekId.split('-W')[1]);
-        const thisWeekNum = parseInt(weekId.split('-W')[1]);
-        newStreak = thisWeekNum - lastWeekNum === 1 ? newStreak + 1 : 1;
-      } else {
-        newStreak = 1;
-      }
-
-      const newTotalCommitted = state.dcaGamification.totalAmountCommitted + amount;
-
-      try {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-        const user = session?.user;
-          if (user) {
-            supabase
-              .from('transactions')
-              .insert(
-                allocations.map((a) => ({
-                  user_id: user.id,
-                  asset_symbol: a.asset,
-                  type: 'buy',
-                  amount: a.amount / 1,
-                  price_per_unit: 1,
-                  date: new Date().toISOString(),
-                  fees: 0,
-                  notes: `Weekly deposit W${weekId}`,
-                }))
-              )
-              .then(() => {});
-          }
-        }).catch(() => {});
-      } catch {
-        // Supabase sync failed; local state is authoritative
-      }
-
-      return {
-        weeklyDepositHistory: [...state.weeklyDepositHistory, deposit],
-        weeklyDepositStreak: newStreak,
-        dcaGamification: {
-          ...state.dcaGamification,
-          totalAmountCommitted: newTotalCommitted,
-          lastDcaAction: new Date().toISOString(),
-        },
-      };
-    }),
-
-  editDeposit: (weekId, newAmount) =>
-    set((state) => {
-      const history = state.weeklyDepositHistory.map((d) => {
-        if (d.weekId !== weekId) return d;
-        const ratio = newAmount / d.amount;
-        return {
-          ...d,
-          amount: newAmount,
-          allocations: d.allocations.map((a) => ({ ...a, amount: a.amount * ratio })),
-        };
-      });
-      return { weeklyDepositHistory: history };
-    }),
-
-  removeDeposit: (weekId) =>
-    set((state) => ({
-      weeklyDepositHistory: state.weeklyDepositHistory.filter((d) => d.weekId !== weekId),
-    })),
 });

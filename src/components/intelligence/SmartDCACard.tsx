@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useMarketIntelligence } from '@/hooks/useMarketIntelligence';
 import { MarketRegimeBadge } from './MarketRegimeBadge';
+import { supabase } from '@/integrations/supabase/client';
 
 export function SmartDCACard() {
   const { smartDCA, fetchSmartDCA, regime, isLoading, sendFeedback, logBehaviorEvent } = useMarketIntelligence();
   const [applied, setApplied] = useState(false);
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     fetchSmartDCA();
@@ -99,27 +101,71 @@ export function SmartDCACard() {
               {plan.explanation}
             </p>
 
-            {/* 1-CLICK APPLY BUTTON */}
+            {/* 1-CLICK APPLY BUTTON — writes override to database */}
             {plan.adjustment_pct !== 0 && !applied && (
               <button
                 onClick={async () => {
-                  await logBehaviorEvent('recommendation_accepted', {
-                    type: 'smart_dca',
-                    regime: plan.regime,
-                    adjustment_pct: plan.adjustment_pct,
-                    original_amount: plan.original_amount,
-                    adjusted_amount: plan.adjusted_amount,
-                  });
-                  setApplied(true);
+                  setApplying(true);
+                  try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
+
+                    const override = {
+                      adjusted_amount: plan.adjusted_amount,
+                      allocation_adjustments: Object.fromEntries(
+                        Object.entries(plan.allocation_adjustments).map(([symbol, alloc]) => [
+                          symbol.replace('USDT', ''),
+                          alloc.adjusted,
+                        ])
+                      ),
+                      regime: plan.regime,
+                      applied_at: new Date().toISOString(),
+                    };
+
+                    await supabase
+                      .from('dca_plans')
+                      .update({ smart_dca_override: override })
+                      .eq('user_id', user.id)
+                      .eq('is_active', true);
+
+                    await logBehaviorEvent('recommendation_accepted', {
+                      type: 'smart_dca',
+                      regime: plan.regime,
+                      adjustment_pct: plan.adjustment_pct,
+                      original_amount: plan.original_amount,
+                      adjusted_amount: plan.adjusted_amount,
+                    });
+                    setApplied(true);
+                  } finally {
+                    setApplying(false);
+                  }
                 }}
-                className="w-full py-2.5 rounded-lg text-xs font-semibold transition-all bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 active:scale-[0.98]"
+                disabled={applying}
+                className="w-full py-2.5 rounded-lg text-xs font-semibold transition-all bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 active:scale-[0.98] disabled:opacity-50"
               >
-                Aplicar Smart DCA — ${plan.adjusted_amount}/semana
+                {applying ? 'Aplicando...' : `Aplicar Smart DCA — $${plan.adjusted_amount}/semana`}
               </button>
             )}
             {applied && (
-              <div className="w-full py-2 rounded-lg text-center text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
-                Smart DCA aplicado ao próximo aporte!
+              <div className="space-y-2">
+                <div className="w-full py-2 rounded-lg text-center text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
+                  Smart DCA aplicado ao próximo aporte!
+                </div>
+                <button
+                  onClick={async () => {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
+                    await supabase
+                      .from('dca_plans')
+                      .update({ smart_dca_override: null })
+                      .eq('user_id', user.id)
+                      .eq('is_active', true);
+                    setApplied(false);
+                  }}
+                  className="w-full py-1.5 rounded-lg text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Resetar para DCA padrão
+                </button>
               </div>
             )}
           </div>

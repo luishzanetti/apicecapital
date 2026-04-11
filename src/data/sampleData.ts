@@ -68,69 +68,6 @@ export const dcaAssets: DCAAsset[] = [
   { symbol: 'JUP', name: 'Jupiter', category: 'emerging', categoryLabel: 'Emerging', color: 'hsl(30, 100%, 55%)', riskLevel: 'high' },
 ];
 
-// ============== DCA HISTORICAL DATA ==============
-
-export interface DCAHistoricalReturn {
-  period: string;
-  weeklyAmount: number;
-  totalInvested: number;
-  currentValue: number;
-  returnPercent: number;
-}
-
-export const dcaHistoricalData: Record<string, DCAHistoricalReturn[]> = {
-  BTC: [
-    { period: '1 year', weeklyAmount: 25, totalInvested: 1300, currentValue: 2145, returnPercent: 65.0 },
-    { period: '2 years', weeklyAmount: 25, totalInvested: 2600, currentValue: 5720, returnPercent: 120.0 },
-    { period: '4 years', weeklyAmount: 25, totalInvested: 5200, currentValue: 18200, returnPercent: 250.0 },
-  ],
-  ETH: [
-    { period: '1 year', weeklyAmount: 25, totalInvested: 1300, currentValue: 1950, returnPercent: 50.0 },
-    { period: '2 years', weeklyAmount: 25, totalInvested: 2600, currentValue: 5460, returnPercent: 110.0 },
-    { period: '4 years', weeklyAmount: 25, totalInvested: 5200, currentValue: 15600, returnPercent: 200.0 },
-  ],
-  'Apice Strategy': [
-    { period: '1 year', weeklyAmount: 100, totalInvested: 5200, currentValue: 7020, returnPercent: 35.0 },
-    { period: '2 years', weeklyAmount: 100, totalInvested: 10400, currentValue: 18980, returnPercent: 82.5 },
-    { period: '4 years', weeklyAmount: 100, totalInvested: 20800, currentValue: 56160, returnPercent: 170.0 },
-  ],
-};
-
-// ============== DCA QUOTES ==============
-
-export interface DCAQuote {
-  author: string;
-  quote: string;
-  role?: string;
-}
-
-export const dcaQuotes: DCAQuote[] = [
-  { author: 'Warren Buffett', quote: 'The stock market transfers money from the impatient to the patient.', role: 'Legendary Investor' },
-  { author: 'Benjamin Graham', quote: 'The essence of investment management is the management of risks, not returns.', role: 'Father of Value Investing' },
-  { author: 'Jack Bogle', quote: 'Time is your friend; impulse is your enemy.', role: 'Founder of Vanguard' },
-  { author: 'Peter Lynch', quote: 'The key to making money in stocks is not to get scared out of them.', role: 'Fidelity Legend' },
-];
-
-// ============== DCA BADGES ==============
-
-export interface DCABadge {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  requirement: string;
-  category: 'beginner' | 'consistency' | 'diversification' | 'commitment';
-}
-
-export const dcaBadges: DCABadge[] = [
-  { id: 'first-step', name: 'First Step', description: 'Created your first DCA plan', icon: '🚀', requirement: 'Create 1 DCA plan', category: 'beginner' },
-  { id: 'consistency-king', name: 'Consistency King', description: '30 days with an active DCA plan', icon: '👑', requirement: 'Plan active for 30 days', category: 'consistency' },
-  { id: 'diversifier', name: 'Diversifier', description: 'DCA into 3+ different assets', icon: '🎯', requirement: '3+ assets in DCA', category: 'diversification' },
-  { id: 'long-game', name: 'Long Game', description: 'Created a 90+ day DCA plan', icon: '🏆', requirement: '90+ day plan', category: 'commitment' },
-  { id: 'committed', name: 'Committed', description: 'Committed $1,000+ to DCA', icon: '💎', requirement: '$1,000+ committed', category: 'commitment' },
-  { id: 'diamond-hands', name: 'Diamond Hands', description: 'Started an indefinite DCA plan', icon: '💪', requirement: 'DCA Forever mode', category: 'commitment' },
-];
-
 // ============== DCA RECOMMENDATIONS ==============
 
 export interface DCARecommendation {

@@ -12,7 +12,7 @@ export default function ActionPlanWidget() {
     const userProfile = useAppStore((s) => s.userProfile);
     const selectedPortfolio = useAppStore((s) => s.selectedPortfolio);
     const weeklyInvestment = useAppStore((s) => s.weeklyInvestment);
-    const weeklyDepositHistory = useAppStore((s) => s.weeklyDepositHistory);
+    const dcaPlans = useAppStore((s) => s.dcaPlans);
     const portfolioAccepted = useAppStore((s) => s.portfolioAccepted);
 
     const getStepStatus = (status: string): 'done' | 'active' | 'locked' => {
@@ -27,9 +27,9 @@ export default function ActionPlanWidget() {
                 return weeklyInvestment > 0 ? 'done' : 'active';
             case 'executed':
                 if (weeklyInvestment <= 0) return 'locked';
-                return weeklyDepositHistory.length > 0 ? 'done' : 'active';
+                return dcaPlans.some((p) => p.isActive) ? 'done' : 'active';
             case 'optimized':
-                return weeklyDepositHistory.length >= 4 ? 'done' : 'locked';
+                return dcaPlans.some((p) => p.isActive && p.totalInvested > 0) ? 'done' : 'locked';
             default:
                 return 'locked';
         }
@@ -44,7 +44,7 @@ export default function ActionPlanWidget() {
             case 'weeklySet':
                 return weeklyInvestment <= 0 ? () => navigate('/investment-setup') : null;
             case 'executed':
-                return weeklyDepositHistory.length === 0 ? () => navigate('/portfolio') : null;
+                return !dcaPlans.some((p) => p.isActive) ? () => navigate('/dca-planner') : null;
             default:
                 return null;
         }

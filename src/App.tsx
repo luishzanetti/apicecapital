@@ -35,6 +35,8 @@ const CashbackOnboarding = lazy(() => import("./pages/CashbackOnboarding"));
 const CashbackMachine = lazy(() => import("./pages/CashbackMachine"));
 const CashbackDashboard = lazy(() => import("./pages/CashbackDashboard"));
 const Analytics = lazy(() => import("./pages/Analytics"));
+const AiTradeDashboard = lazy(() => import("./pages/AiTradeDashboard"));
+const AiTradeSetup = lazy(() => import("./pages/AiTradeSetup"));
 const AssetDetail = lazy(() => import("./pages/AssetDetail"));
 const MethodologyMission = lazy(() => import("./pages/MethodologyMission"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -95,11 +97,18 @@ function AppContent() {
   const incrementDaysActive = useAppStore((s) => s.incrementDaysActive);
   const checkTrialExpiry = useAppStore((s) => s.checkTrialExpiry);
 
+  const theme = useAppStore((s) => s.theme);
+
   useEffect(() => {
     incrementDaysActive();
     checkTrialExpiry();
-    document.documentElement.classList.add('dark');
-  }, [incrementDaysActive, checkTrialExpiry]);
+    // Apply persisted theme (default: dark)
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [incrementDaysActive, checkTrialExpiry, theme]);
 
   return (
     <Suspense fallback={<AppLoading />}>
@@ -117,7 +126,9 @@ function AppContent() {
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/portfolio/:id" element={<PortfolioDetail />} />
         <Route path="/strategies" element={<Strategies />} />
-        <Route path="/strategies/ai-trade" element={<Navigate to="/onboarding" replace />} />
+        <Route path="/strategies/ai-trade" element={<Navigate to="/ai-trade" replace />} />
+        <Route path="/ai-trade" element={<AiTradeDashboard />} />
+        <Route path="/ai-trade/setup" element={<AiTradeSetup />} />
         <Route path="/learn" element={<Learn />} />
         <Route path="/learn/:trackId/:lessonId" element={<LessonDetail />} />
         <Route path="/settings" element={<Settings />} />

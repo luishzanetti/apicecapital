@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { invokeEdgeFunction } from '@/lib/supabaseFunction';
 import { useMarketIntelligence } from '@/hooks/useMarketIntelligence';
+import { useTradeExecution } from '@/hooks/useTradeExecution';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WarChestStatus {
   regime: string;
@@ -30,7 +32,9 @@ export function WarChestCard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployed, setDeployed] = useState(false);
+  const [deployResults, setDeployResults] = useState<string[]>([]);
   const { regime, logBehaviorEvent } = useMarketIntelligence();
+  const { buyAsset } = useTradeExecution();
   const navigate = useNavigate();
 
   const fetchWarChest = useCallback(async () => {
@@ -141,31 +145,115 @@ export function WarChestCard() {
         </div>
       )}
 
-      {/* ACTION BUTTONS — 1-click execution */}
-      {isDeploy && !deployed && (
-        <button
-          onClick={async () => {
-            setIsDeploying(true);
-            await logBehaviorEvent('war_chest_deployed', {
-              regime: status.regime,
-              deploy_pct: status.deployablePct,
-              deploy_usd: status.deployableUsd,
-              targets: status.deployTargets,
-              fear_greed: status.fearGreed,
-            });
-            setDeployed(true);
-            setIsDeploying(false);
-          }}
-          disabled={isDeploying}
-          className="w-full py-3 rounded-lg font-semibold text-sm transition-all bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-foreground active:scale-[0.98] disabled:opacity-50"
-        >
-          {isDeploying ? 'Deploying...' : `Deploy $${status.deployableUsd.toLocaleString()} Now`}
-        </button>
+      {/* ACTION BUTTONS */}
+      {isDeploy && !deployed && deployResults.length === 0 && (
+        <div className="space-y-2">
+          {/* Option 1: Apply to next DCA (soft deploy) */}
+          <button
+            onClick={async () => {
+              setIsDeploying(true);
+              try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+
+                const allocationAdjustments: Record<string, number> = {};
+                for (const target of status.deployTargets) {
+                  allocationAdjustments[target.asset] = target.pct;
+                }
+
+                await supabase
+                  .from('dca_plans')
+                  .update({
+                    smart_dca_override: {
+                      adjusted_amount: status.deployableUsd,
+                      allocation_adjustments: allocationAdjustments,
+                      regime: status.regime,
+                      applied_at: new Date().toISOString(),
+                    },
+                  })
+                  .eq('user_id', user.id)
+                  .eq('is_active', true);
+
+                await logBehaviorEvent('war_chest_deployed', {
+                  regime: status.regime, deploy_pct: status.deployablePct,
+                  deploy_usd: status.deployableUsd, targets: status.deployTargets,
+                  fear_greed: status.fearGreed, mode: 'next_dca',
+                });
+                setDeployed(true);
+              } finally {
+                setIsDeploying(false);
+              }
+            }}
+            disabled={isDeploying}
+            className="w-full py-3 rounded-lg font-semibold text-sm transition-all bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-foreground active:scale-[0.98] disabled:opacity-50"
+          >
+            {isDeploying ? 'Deploying...' : `Deploy $${status.deployableUsd.toLocaleString()} on Next DCA`}
+          </button>
+
+          {/* Option 2: Instant deploy via market buys NOW */}
+          <button
+            onClick={async () => {
+              setIsDeploying(true);
+              const results: string[] = [];
+              try {
+                const regimeStr = status.regime;
+                for (const target of status.deployTargets) {
+                  const amountUsd = status.deployableUsd * (target.pct / 100);
+                  if (amountUsd < 1) continue;
+                  const result = await buyAsset(target.asset, amountUsd, 'war_chest', regimeStr);
+                  results.push(result?.status === 'success'
+                    ? `Bought $${amountUsd.toFixed(0)} ${target.asset}`
+                    : `Failed: ${target.asset} — ${result?.error || 'unknown'}`
+                  );
+                }
+                await logBehaviorEvent('war_chest_instant_deployed', {
+                  regime: regimeStr, deploy_usd: status.deployableUsd,
+                  targets: status.deployTargets, results,
+                });
+              } finally {
+                setDeployResults(results);
+                setIsDeploying(false);
+              }
+            }}
+            disabled={isDeploying}
+            className="w-full py-2.5 rounded-lg text-xs font-semibold transition-all bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/20 active:scale-[0.98] disabled:opacity-50"
+          >
+            {isDeploying ? 'Executing...' : `Instant Deploy $${status.deployableUsd.toLocaleString()} Now`}
+          </button>
+        </div>
+      )}
+
+      {deployResults.length > 0 && (
+        <div className="space-y-1 pt-1">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Deploy Results</p>
+          {deployResults.map((r, i) => (
+            <p key={i} className={`text-xs ${r.startsWith('Failed') ? 'text-red-400' : 'text-green-400'}`}>
+              {r}
+            </p>
+          ))}
+        </div>
       )}
 
       {deployed && (
-        <div className="w-full py-3 rounded-lg text-center text-sm font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
-          Deploy registered! Apply it on your next DCA contribution.
+        <div className="space-y-2">
+          <div className="w-full py-3 rounded-lg text-center text-sm font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+            War Chest deployed! Next DCA will execute with deploy targets.
+          </div>
+          <button
+            onClick={async () => {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (!user) return;
+              await supabase
+                .from('dca_plans')
+                .update({ smart_dca_override: null })
+                .eq('user_id', user.id)
+                .eq('is_active', true);
+              setDeployed(false);
+            }}
+            className="w-full py-1.5 rounded-lg text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Cancel deploy
+          </button>
         </div>
       )}
 

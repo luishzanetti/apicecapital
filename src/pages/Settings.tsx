@@ -46,6 +46,7 @@ import {
     Link as LinkIcon,
     Loader2,
     Moon,
+    Sun,
     Headphones,
     Copy,
     Check,
@@ -80,6 +81,7 @@ export default function Settings() {
     const investorType = useAppStore((s) => s.investorType);
     const subscription = useAppStore((s) => s.subscription);
     const daysActive = useAppStore((s) => s.daysActive);
+    const theme = useAppStore((s) => s.theme);
 
     // Bybit Connection State
     const [showBybitModal, setShowBybitModal] = useState(false);
@@ -289,7 +291,7 @@ export default function Settings() {
                 {
                     icon: Moon,
                     label: t('settings.appearance'),
-                    sub: t('settings.darkModeActive'),
+                    sub: theme === 'dark' ? t('settings.darkModeActive') : 'Light mode',
                     action: () => setShowAppearanceModal(true),
                 },
                 {
@@ -646,39 +648,48 @@ export default function Settings() {
 
             {/* ─── Appearance Modal ─── */}
             <Dialog open={showAppearanceModal} onOpenChange={setShowAppearanceModal}>
-                <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-border/40 rounded-3xl">
+                <DialogContent className="sm:max-w-md glass-heavy rounded-3xl">
                     <DialogHeader>
                         <DialogTitle>{t('settings.appearanceModal.title')}</DialogTitle>
                         <DialogDescription className="text-xs">{t('settings.appearanceModal.subtitle')}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3 py-2">
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-secondary/30">
+                        <button
+                            onClick={() => useAppStore.getState().setTheme('dark')}
+                            className={cn(
+                                'w-full flex items-center justify-between p-4 rounded-2xl transition-all press-scale',
+                                theme === 'dark' ? 'glass-card border-glow-blue' : 'glass-light'
+                            )}
+                        >
                             <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
                                     <Moon className="w-4 h-4 text-primary" />
                                 </div>
-                                <div>
+                                <div className="text-left">
                                     <p className="text-sm font-semibold">{t('settings.appearanceModal.darkMode')}</p>
-                                    <p className="text-[11px] text-muted-foreground">{t('settings.appearanceModal.currentlyActive')}</p>
+                                    <p className="text-[11px] text-muted-foreground">Premium fintech aesthetic</p>
                                 </div>
                             </div>
-                            <Switch checked={true} disabled />
-                        </div>
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-secondary/30 opacity-50">
+                            {theme === 'dark' && <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center"><Check className="w-3 h-3 text-white" /></div>}
+                        </button>
+                        <button
+                            onClick={() => useAppStore.getState().setTheme('light')}
+                            className={cn(
+                                'w-full flex items-center justify-between p-4 rounded-2xl transition-all press-scale',
+                                theme === 'light' ? 'glass-card border-glow-blue' : 'glass-light'
+                            )}
+                        >
                             <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center">
-                                    <SettingsIcon className="w-4 h-4 text-muted-foreground" />
+                                <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                                    <Sun className="w-4 h-4 text-amber-500" />
                                 </div>
-                                <div>
+                                <div className="text-left">
                                     <p className="text-sm font-semibold">{t('settings.appearanceModal.lightMode')}</p>
-                                    <p className="text-[11px] text-muted-foreground">{t('settings.appearanceModal.comingFuture')}</p>
+                                    <p className="text-[11px] text-muted-foreground">Clean & minimal</p>
                                 </div>
                             </div>
-                            <Badge variant="outline" className="text-[11px]">{t('common.soon')}</Badge>
-                        </div>
-                        <p className="text-[11px] text-muted-foreground text-center px-2 mt-4">
-                            {t('settings.appearanceModal.designedDark')}
-                        </p>
+                            {theme === 'light' && <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center"><Check className="w-3 h-3 text-white" /></div>}
+                        </button>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" className="w-full rounded-xl" onClick={() => setShowAppearanceModal(false)}>

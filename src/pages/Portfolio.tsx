@@ -13,7 +13,6 @@ import {
 import { useAppStore } from '@/store/appStore';
 import { portfolios, aiMarketRecommendations } from '@/data/sampleData';
 import { AllocationEngine } from '@/components/AllocationEngine';
-import { WeeklyDepositConfirm } from '@/components/WeeklyDepositConfirm';
 import DCAOnboarding from '@/components/DCAOnboarding';
 import InvestmentDashboard from '@/components/InvestmentDashboard';
 import ActionPlanWidget from '@/components/ActionPlanWidget';
@@ -26,27 +25,17 @@ import { DCATracker } from '@/components/portfolio/DCATracker';
 import { PerformanceMetrics } from '@/components/portfolio/PerformanceMetrics';
 import {
   DollarSign, ChevronRight, Edit3, Check,
-  Wallet, PieChart, Lock, Flame, Key,
-  ArrowRight, CheckCircle2, Target, Sparkles,
+  Wallet, PieChart, Lock, Key,
+  ArrowRight, Target, Sparkles,
   Brain, Rocket, Plus, Trash2, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-function getCurrentWeekId(): string {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const diff = now.getTime() - start.getTime();
-  const weekNum = Math.ceil((diff / 86400000 + start.getDay() + 1) / 7);
-  return `${now.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
-}
 
 export default function Portfolio() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const weeklyInvestment = useAppStore((s) => s.weeklyInvestment);
   const setWeeklyInvestment = useAppStore((s) => s.setWeeklyInvestment);
-  const weeklyDepositHistory = useAppStore((s) => s.weeklyDepositHistory);
-  const weeklyDepositStreak = useAppStore((s) => s.weeklyDepositStreak);
   const selectedPortfolio = useAppStore((s) => s.selectedPortfolio);
   const selectPortfolio = useAppStore((s) => s.selectPortfolio);
   const userPortfolios = useAppStore((s) => s.userPortfolios);
@@ -56,7 +45,6 @@ export default function Portfolio() {
 
   const [editingWeekly, setEditingWeekly] = useState(false);
   const [editAmount, setEditAmount] = useState(weeklyInvestment);
-  const [showDepositConfirm, setShowDepositConfirm] = useState(false);
   const [showDCAOnboarding, setShowDCAOnboarding] = useState(false);
   const [pendingAllocations, setPendingAllocations] = useState<any[]>([]);
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -68,10 +56,6 @@ export default function Portfolio() {
     { asset: 'ETH', percentage: 30, color: 'hsl(217, 100%, 60%)' },
     { asset: 'SOL', percentage: 20, color: 'hsl(280, 100%, 60%)' },
   ]);
-
-  const totalDeposited = weeklyDepositHistory.reduce((sum, d) => sum + d.amount, 0);
-  const currentWeekId = getCurrentWeekId();
-  const thisWeekDeposited = weeklyDepositHistory.some(d => d.weekId === currentWeekId);
 
   const corePortfolios = portfolios.filter(p => p.type === 'core');
   const proPortfolios = portfolios.filter(p => p.type === 'optimized');
@@ -177,15 +161,6 @@ export default function Portfolio() {
             <h1 className="text-2xl font-bold tracking-tight mt-0.5">{t('nav.portfolio')}</h1>
           </div>
           <div className="flex items-center gap-2">
-            {weeklyDepositStreak > 0 && (
-              <Badge
-                variant="outline"
-                className="gap-1.5 border-orange-500/30 bg-orange-500/5 text-orange-400 text-[11px] font-bold"
-              >
-                <Flame className="w-3 h-3" />
-                {weeklyDepositStreak}w streak
-              </Badge>
-            )}
             <button
               onClick={() => setShowAddMenu(true)}
               className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
@@ -379,40 +354,6 @@ export default function Portfolio() {
                   </CardContent>
                 </Card>
               </motion.div>
-
-              {/* Confirm Deposit CTA */}
-              {weeklyInvestment > 0 && !thisWeekDeposited && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
-                  <button onClick={() => setShowDepositConfirm(true)} className="w-full press-scale">
-                    <div className="p-4 rounded-2xl glass-card border-glow-blue hover-lift">
-                      <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-xl bg-primary/12 flex items-center justify-center shrink-0 glow-primary">
-                          <Wallet className="w-5 h-5 text-primary" />
-                        </div>
-                        <div className="flex-1 text-left">
-                          <p className="text-sm font-bold">{t('portfolio.confirmWeeklyDeposit')}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            ${weeklyInvestment} {t('portfolio.readyToAllocate')}
-                          </p>
-                        </div>
-                        <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <ArrowRight className="w-4 h-4 text-primary" />
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                </motion.div>
-              )}
-
-              {thisWeekDeposited && (
-                <div className="flex items-center gap-3 p-4 rounded-xl glass-light border-glow-success">
-                  <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-green-400">{t('portfolio.depositConfirmed')}</p>
-                    <p className="text-xs text-muted-foreground">{t('portfolio.nextDepositNextWeek')}</p>
-                  </div>
-                </div>
-              )}
 
               {/* Smart Allocation Engine */}
               {weeklyInvestment > 0 && (
@@ -677,36 +618,12 @@ export default function Portfolio() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-4"
             >
-              <div className="grid grid-cols-3 gap-3">
-                <Card>
-                  <CardContent className="pt-3 pb-3 text-center">
-                    <p className="text-[11px] text-muted-foreground uppercase">{t('portfolio.totalInvested')}</p>
-                    <p className="text-sm font-bold">${totalDeposited.toLocaleString()}</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-3 pb-3 text-center">
-                    <p className="text-[11px] text-muted-foreground uppercase">{t('portfolio.deposits')}</p>
-                    <p className="text-sm font-bold">{weeklyDepositHistory.length}</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-3 pb-3 text-center">
-                    <p className="text-[11px] text-muted-foreground uppercase">{t('portfolio.streak')}</p>
-                    <p className="text-sm font-bold">{weeklyDepositStreak}w</p>
-                  </CardContent>
-                </Card>
-              </div>
               <InvestmentDashboard />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <WeeklyDepositConfirm
-        isOpen={showDepositConfirm}
-        onClose={() => setShowDepositConfirm(false)}
-      />
       <DCAOnboarding
         isOpen={showDCAOnboarding}
         onClose={() => setShowDCAOnboarding(false)}

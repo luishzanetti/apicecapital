@@ -47,14 +47,12 @@ export default function Analytics() {
   const navigate = useNavigate();
   const analytics = usePortfolioAnalytics();
   const dcaPlans = useAppStore((s) => s.dcaPlans);
-  const weeklyDepositHistory = useAppStore((s) => s.weeklyDepositHistory);
-  const weeklyDepositStreak = useAppStore((s) => s.weeklyDepositStreak);
   const notifications = useAppStore((s) => s.notifications);
   const [activeTab, setActiveTab] = useState<TabId>('overview');
 
   const totalDeposited = useMemo(
-    () => weeklyDepositHistory.reduce((sum, d) => sum + d.amount, 0),
-    [weeklyDepositHistory]
+    () => dcaPlans.reduce((sum, p) => sum + p.totalInvested, 0),
+    [dcaPlans]
   );
 
   const dcaNotifications = useMemo(
@@ -86,16 +84,6 @@ export default function Analytics() {
         color: CHART_COLORS[i % CHART_COLORS.length],
       }));
   }, [analytics]);
-
-  // Deposit history chart
-  const depositChartData = useMemo(() => {
-    return weeklyDepositHistory
-      .slice(-12)
-      .map((d) => ({
-        week: d.weekId.replace(/^\d{4}-/, ''),
-        amount: d.amount,
-      }));
-  }, [weeklyDepositHistory]);
 
   // Category breakdown
   const categoryBreakdown = useMemo(() => {
@@ -204,7 +192,7 @@ export default function Analytics() {
                   icon={DollarSign}
                   label="Total Invested"
                   value={fmt(totalDeposited + analytics.totalDCAInvested)}
-                  sub={`${weeklyDepositHistory.length} deposits`}
+                  sub={`${dcaPlans.length} plans`}
                   color="bg-green-500/10 text-green-400"
                 />
                 <StatCard
@@ -459,15 +447,8 @@ export default function Analytics() {
                   icon={DollarSign}
                   label="Total Deposited"
                   value={fmt(totalDeposited)}
-                  sub={`${weeklyDepositHistory.length} deposits`}
+                  sub={`${dcaPlans.length} plans`}
                   color="bg-green-500/10 text-green-400"
-                />
-                <StatCard
-                  icon={Calendar}
-                  label="Deposit Streak"
-                  value={`${weeklyDepositStreak}`}
-                  sub="consecutive weeks"
-                  color="bg-amber-500/10 text-amber-400"
                 />
                 <StatCard
                   icon={Zap}
@@ -484,63 +465,6 @@ export default function Analytics() {
                   color="bg-primary/10 text-primary"
                 />
               </div>
-
-              {/* Deposit History Chart */}
-              {depositChartData.length > 0 && (
-                <Card>
-                  <CardContent className="pt-4 pb-4">
-                    <SectionHeader title="Deposit History" icon={BarChart3} />
-                    <div className="h-[180px] md:h-[260px] lg:h-[320px] -mx-2">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={depositChartData}>
-                          <XAxis dataKey="week" tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                          <YAxis hide />
-                          <Tooltip
-                            contentStyle={{
-                              background: 'hsl(var(--card))',
-                              border: '1px solid hsl(var(--border))',
-                              borderRadius: '10px',
-                              fontSize: '11px',
-                              padding: '6px 10px',
-                            }}
-                            formatter={(value: number) => [`$${value}`, 'Deposit']}
-                          />
-                          <Bar dataKey="amount" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Deposit Log */}
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <SectionHeader title="Deposit Log" icon={Calendar} />
-                  {weeklyDepositHistory.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-6">No deposits recorded yet</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {[...weeklyDepositHistory].reverse().slice(0, 20).map((d) => (
-                        <div key={d.weekId} className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 border border-border/20">
-                          <div>
-                            <p className="text-xs font-semibold">{d.weekId}</p>
-                            <p className="text-[11px] text-muted-foreground">
-                              {d.allocations.map((a) => `${a.asset} ${a.percentage}%`).join(' · ')}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-bold text-green-400">+{fmt(d.amount)}</p>
-                            <p className="text-[11px] text-muted-foreground">
-                              {new Date(d.confirmedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
             </motion.div>
           )}
 

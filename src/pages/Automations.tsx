@@ -104,31 +104,25 @@ export default function Automations() {
           </h2>
 
           <div className="space-y-3">
-            <LockedOverlay
-              isLocked={!unlockState.aiTradeGuides}
-              message="Upgrade to Pro"
-              onUnlock={() => navigate('/upgrade')}
-            >
               <Card
                 className="cursor-pointer hover:border-primary/20 transition-colors"
-                onClick={() => navigate(unlockState.aiTradeGuides ? '/strategies' : '/upgrade')}
+                onClick={() => navigate('/ai-trade')}
               >
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center shrink-0">
                       <Bot className="w-5 h-5 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-sm">AI Trade Setup</h3>
+                      <h3 className="font-medium text-sm">ALTIS — AI Trading</h3>
                       <p className="text-xs text-muted-foreground">
-                        Guided API trading configuration
+                        5 strategies, 7 layers of risk protection
                       </p>
                     </div>
                     <ChevronRight className="w-5 h-5 text-muted-foreground" />
                   </div>
                 </CardContent>
               </Card>
-            </LockedOverlay>
 
             <LockedOverlay
               isLocked={!unlockState.aiBotGuides}
@@ -137,7 +131,7 @@ export default function Automations() {
             >
               <Card
                 className="cursor-pointer hover:border-primary/20 transition-colors"
-                onClick={() => navigate(unlockState.aiBotGuides ? '/strategies' : '/upgrade')}
+                onClick={() => navigate(unlockState.aiBotGuides ? '/ai-trade/setup' : '/upgrade')}
               >
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-4">

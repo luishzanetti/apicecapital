@@ -23,7 +23,6 @@ export type {
   SelectedPortfolio,
   UserPortfolio,
   LinkClick,
-  WeeklyDeposit,
   LearnProgress,
   HomeWidget,
   UnlockState,

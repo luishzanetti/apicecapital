@@ -97,13 +97,6 @@ export interface DCABadge {
   unlockedAt: string | null;
 }
 
-export interface WeeklyDeposit {
-  weekId: string;
-  amount: number;
-  confirmedAt: string;
-  allocations: { asset: string; amount: number; percentage: number }[];
-}
-
 // ─── Learning ───────────────────────────────────────────────
 export interface LearnProgress {
   completedLessons: string[];
@@ -218,8 +211,6 @@ export interface DCASlice {
   dcaGamification: DCAGamification;
   weeklyInvestment: number;
   investmentFrequency: 'weekly' | 'monthly';
-  weeklyDepositHistory: WeeklyDeposit[];
-  weeklyDepositStreak: number;
   addDcaPlan: (plan: DCAPlanDraft) => Promise<DCAPlan>;
   updateDcaPlan: (id: string, updates: Partial<DCAPlan>) => void;
   deleteDcaPlan: (id: string) => void;
@@ -227,9 +218,6 @@ export interface DCASlice {
   unlockDcaBadge: (badgeId: string) => void;
   setWeeklyInvestment: (amount: number) => void;
   setInvestmentFrequency: (frequency: 'weekly' | 'monthly') => void;
-  confirmWeeklyDeposit: (weekId: string, amount: number, allocations: { asset: string; amount: number; percentage: number }[]) => void;
-  editDeposit: (weekId: string, newAmount: number) => void;
-  removeDeposit: (weekId: string) => void;
 }
 
 export interface LearnSlice {
@@ -263,6 +251,8 @@ export interface AppSlice {
   daysActive: number;
   lastOpenDate: string | null;
   currentInsightIndex: number;
+  theme: 'light' | 'dark';
+  setTheme: (theme: 'light' | 'dark') => void;
   widgetOrder: string[];
   linkClicks: LinkClick;
   trackLinkClick: (link: 'bybit' | 'aiBot' | 'aiTrade') => void;
