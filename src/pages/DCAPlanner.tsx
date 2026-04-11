@@ -685,9 +685,31 @@ export default function DCAPlanner() {
                   </div>
                 </div>
 
-                {/* Disclaimer */}
-                <p className="text-[11px] text-center text-muted-foreground">
-                  Crypto is volatile. Past returns do not guarantee future results. Invest only what you can sustain.
+                {/* Confidence Section */}
+                <div className="space-y-2 mt-4 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                  <div className="flex items-center gap-2 text-xs text-emerald-400">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    <span className="font-semibold">Why this works</span>
+                  </div>
+                  <ul className="space-y-1.5 text-xs text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/60 mt-0.5 shrink-0" />
+                      <span>DCA removes emotion from investing — you buy consistently regardless of market noise.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/60 mt-0.5 shrink-0" />
+                      <span>Historical data shows DCA into BTC over any 4-year period has been profitable 100% of the time.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/60 mt-0.5 shrink-0" />
+                      <span>Your plan executes automatically — set it and let compound interest do the work.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Risk Disclosure */}
+                <p className="text-xs text-muted-foreground/50 mt-2">
+                  Past performance does not guarantee future results. Crypto is volatile — expect drawdowns of 30-50% during bear markets. Only invest what you can afford to hold for 2+ years.
                 </p>
 
                 {/* Create button */}

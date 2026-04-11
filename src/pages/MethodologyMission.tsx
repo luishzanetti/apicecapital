@@ -20,6 +20,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { portfolios } from '@/data/sampleData';
 
+const BYBIT_AFFILIATE_ID = import.meta.env.VITE_BYBIT_AFFILIATE_ID || 'APICE';
+
 // ─── Step 1: The Apice Method ───────────────────────────────────────────────
 
 function ApiceMethodStep({ onComplete }: { onComplete: () => void }) {
@@ -703,7 +705,7 @@ function GatewayAccessStep({ onComplete }: { onComplete: () => void }) {
   const trackLinkClick = useAppStore((s) => s.trackLinkClick);
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText('APICE');
+    navigator.clipboard.writeText(BYBIT_AFFILIATE_ID);
     setCopied(true);
     toast.success('Referral code copied!');
     setTimeout(() => setCopied(false), 2000);
@@ -711,8 +713,7 @@ function GatewayAccessStep({ onComplete }: { onComplete: () => void }) {
 
   const handleOpenBybit = () => {
     trackLinkClick('bybit');
-    // TODO: Replace APICE with your real Bybit affiliate ID from https://www.bybit.com/affiliates/
-    window.open('https://www.bybit.com/invite?ref=APICE', '_blank');
+    window.open(`https://www.bybit.com/invite?ref=${BYBIT_AFFILIATE_ID}`, '_blank');
   };
 
   const handleAccountCreated = () => {
@@ -781,7 +782,7 @@ function GatewayAccessStep({ onComplete }: { onComplete: () => void }) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-muted-foreground">Your Apice referral code</p>
-            <p className="text-xl font-bold tracking-widest text-amber-400">APICE</p>
+            <p className="text-xl font-bold tracking-widest text-amber-400">{BYBIT_AFFILIATE_ID}</p>
           </div>
           <button
             onClick={handleCopyCode}
@@ -965,7 +966,7 @@ function EliteBenefitsStep({ onComplete }: { onComplete: () => void }) {
         {!verified ? (
           <div className="p-4 rounded-2xl bg-secondary/40 border border-border/30">
             <p className="text-xs text-muted-foreground mb-3">
-              Confirm that you used the referral code <span className="font-bold text-amber-400">APICE</span> when creating your account to activate all benefits.
+              Confirm that you used the referral code <span className="font-bold text-amber-400">{BYBIT_AFFILIATE_ID}</span> when creating your account to activate all benefits.
             </p>
             <div className="flex gap-2">
               <Button
@@ -975,14 +976,14 @@ function EliteBenefitsStep({ onComplete }: { onComplete: () => void }) {
                 onClick={() => { setVerified(true); }}
               >
                 <Check className="w-3.5 h-3.5 mr-1.5" />
-                Yes, I used APICE
+                Yes, I used {BYBIT_AFFILIATE_ID}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 className="flex-1"
                 onClick={() => {
-                  navigator.clipboard.writeText('APICE');
+                  navigator.clipboard.writeText(BYBIT_AFFILIATE_ID);
                   toast.success('Code copied! Apply it in Bybit settings.');
                 }}
               >

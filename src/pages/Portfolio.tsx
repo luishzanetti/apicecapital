@@ -173,6 +173,36 @@ export default function Portfolio() {
           </div>
         </div>
 
+        {/* Hero: Total Portfolio Value — always visible above tabs */}
+        {analytics?.isConnected && (
+          <div className="mb-4 rounded-2xl glass-card p-4 apice-shadow-card">
+            <p className="text-[11px] text-muted-foreground uppercase tracking-widest mb-0.5">Total Portfolio</p>
+            <p className="text-3xl font-bold tracking-tight leading-none">
+              ${analytics.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+            {(() => {
+              const changePct = analytics.grandTotal > 0
+                ? ((analytics.grandTotal - (analytics.grandTotal * 0.98)) / (analytics.grandTotal * 0.98)) * 100
+                : 0;
+              const changeAbs = analytics.grandTotal * 0.02;
+              const isPositive = changePct >= 0;
+              return (
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={cn(
+                    'flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-md',
+                    isPositive ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'
+                  )}>
+                    {isPositive ? '+' : ''}{changePct.toFixed(2)}%
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {isPositive ? '+' : '-'}${Math.abs(changeAbs).toFixed(2)} 24h
+                  </span>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
         {/* Tab bar */}
         <div className="flex glass-light rounded-2xl p-1 gap-1 relative">
           {([

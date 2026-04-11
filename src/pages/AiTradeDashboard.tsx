@@ -115,6 +115,14 @@ export default function AiTradeDashboard() {
   return (
     <div className="p-4 space-y-3 pb-28">
 
+      {/* ═══ AI VALUE PROP HERO ═══ */}
+      <div className="rounded-2xl bg-gradient-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20 p-5 mb-2">
+        <h2 className="text-lg font-bold mb-1">AI-Powered Trading</h2>
+        <p className="text-xs text-muted-foreground max-w-lg">
+          Our AI analyzes market regime, fear &amp; greed, and technical indicators 24/7 to optimize your trading strategies automatically.
+        </p>
+      </div>
+
       {/* ═══ BOT SELECTOR + ALL BOTS VIEW ═══ */}
       {bots.length > 0 && (
         <div className="space-y-2">
@@ -354,7 +362,7 @@ export default function AiTradeDashboard() {
             {marketContext ? (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                  <div className="glass-light rounded-lg p-2 text-center">
+                  <div className="glass-light rounded-lg p-2 text-center" title="Current market trend classification based on price action and momentum">
                     <p className="text-[8px] text-muted-foreground">Regime</p>
                     <p className={`text-xs font-bold ${
                       marketContext.regime === 'BULL' ? 'text-green-400' :
@@ -365,18 +373,18 @@ export default function AiTradeDashboard() {
                   </div>
                   {marketContext.data['BTCUSDT'] && (
                     <>
-                      <div className="glass-light rounded-lg p-2 text-center">
+                      <div className="glass-light rounded-lg p-2 text-center" title="Current Bitcoin price in USD">
                         <p className="text-[8px] text-muted-foreground">BTC</p>
                         <p className="text-xs font-bold">${marketContext.data['BTCUSDT'].price?.toLocaleString()}</p>
                       </div>
-                      <div className="glass-light rounded-lg p-2 text-center">
+                      <div className="glass-light rounded-lg p-2 text-center" title="Relative Strength Index: below 30 = oversold (buy signal), above 70 = overbought (sell signal)">
                         <p className="text-[8px] text-muted-foreground">RSI</p>
                         <p className={`text-xs font-bold ${
                           marketContext.data['BTCUSDT'].rsi < 35 ? 'text-green-400' :
                           marketContext.data['BTCUSDT'].rsi > 65 ? 'text-red-400' : 'text-foreground'
                         }`}>{marketContext.data['BTCUSDT'].rsi?.toFixed(0)}</p>
                       </div>
-                      <div className="glass-light rounded-lg p-2 text-center">
+                      <div className="glass-light rounded-lg p-2 text-center" title="Fear & Greed Index: 0-25 = extreme fear, 75-100 = extreme greed">
                         <p className="text-[8px] text-muted-foreground">Sentiment</p>
                         <p className={`text-xs font-bold ${
                           marketContext.data['BTCUSDT'].fg < 30 ? 'text-red-400' :
@@ -477,18 +485,32 @@ export default function AiTradeDashboard() {
                 </div>
                 <div className="grid grid-cols-5 gap-1">
                   {[
-                    { l: 'Capital', v: fmt(cap) },
-                    { l: 'Risk', v: fmt(cap * 0.02) },
-                    { l: 'Lev', v: `${cfg.maxLeverage}x` },
-                    { l: 'Open', v: `${nPos}` },
-                    { l: 'WR', v: sp?.winRate ? `${sp.winRate.toFixed(0)}%` : '—' },
-                  ].map(({ l, v }) => (
-                    <div key={l} className="glass-light rounded p-1.5 text-center">
+                    { l: 'Capital', v: fmt(cap), tip: 'Amount allocated to this strategy' },
+                    { l: 'Risk', v: fmt(cap * 0.02), tip: 'Maximum loss per trade (2% of capital)' },
+                    { l: 'Lev', v: `${cfg.maxLeverage}x`, tip: 'Maximum leverage multiplier' },
+                    { l: 'Open', v: `${nPos}`, tip: 'Currently open positions' },
+                    { l: 'WR', v: sp?.winRate ? `${sp.winRate.toFixed(0)}%` : '—', tip: 'Percentage of profitable trades' },
+                  ].map(({ l, v, tip }) => (
+                    <div key={l} className="glass-light rounded p-1.5 text-center" title={tip}>
                       <p className="text-[7px] text-muted-foreground">{l}</p>
                       <p className="text-xs font-semibold">{v}</p>
                     </div>
                   ))}
                 </div>
+                {sp?.winRate != null && (
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                      sp.winRate > 60 ? 'bg-green-500/15 text-green-400' :
+                      sp.winRate >= 40 ? 'bg-amber-500/15 text-amber-400' :
+                      'bg-red-500/15 text-red-400'
+                    }`}>
+                      {sp.winRate > 60 ? 'Strong' : sp.winRate >= 40 ? 'Moderate' : 'Review Strategy'}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground" title="Win rate measures profitability of closed trades">
+                      {sp.tradesClosed} trades closed
+                    </span>
+                  </div>
+                )}
               </div>
             );
           })}

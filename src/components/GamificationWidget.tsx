@@ -11,9 +11,10 @@ export function GamificationWidget() {
   const subscription = useAppStore((state) => state.subscription);
   const { language } = useTranslation();
 
-  const { totalXP, earnedBadges, currentLevel, xpForNextLevel, progressToNextLevel } = useMemo(() => {
+  const { totalXP, earnedBadges, currentLevel, xpForNextLevel, progressToNextLevel, nextBadge, xpToNextLevel } = useMemo(() => {
     let xp = 0;
     const badges: { title: string; icon: string; color: string }[] = [];
+    let firstUnearned: { title: string; icon: string; xpNeeded: number } | null = null;
 
     missionDefinitions.forEach((mission) => {
       const completedTasks = mission.tasks.filter(
@@ -24,6 +25,11 @@ export function GamificationWidget() {
 
       if (completedTasks.length === mission.tasks.length) {
         badges.push({ title: mission.badge, icon: mission.badgeIcon, color: mission.color });
+      } else if (!firstUnearned) {
+        const remainingXP = mission.tasks
+          .filter((task) => !missionProgress[task.storeKey as keyof MissionProgress])
+          .reduce((sum, task) => sum + task.xp, 0);
+        firstUnearned = { title: mission.badge, icon: mission.badgeIcon, xpNeeded: remainingXP };
       }
     });
 
@@ -49,6 +55,8 @@ export function GamificationWidget() {
       currentLevel: level,
       xpForNextLevel: nextThreshold,
       progressToNextLevel: percent,
+      nextBadge: firstUnearned as { title: string; icon: string; xpNeeded: number } | null,
+      xpToNextLevel: nextThreshold - xp,
     };
   }, [missionProgress]);
 
@@ -62,6 +70,11 @@ export function GamificationWidget() {
             plan: 'Plano',
             lockedBadges: 'Conclua missões para ganhar conquistas',
             nextLevel: 'para o nível',
+            nextBadgeLabel: 'Próximo:',
+            xpToGo: 'XP restantes',
+            pathToNext: 'XP para o nível',
+            keepInvesting: 'Continue investindo para alcançar',
+            allBadgesEarned: 'Todas as conquistas desbloqueadas! Você está no top 1%.',
             premiumUpsell: 'Faça upgrade para desbloquear recursos Pro',
             premiumActive: 'Conta premium ativa ✓',
             tierLabels: {
@@ -78,6 +91,11 @@ export function GamificationWidget() {
             plan: 'Plan',
             lockedBadges: 'Complete missions to unlock achievements',
             nextLevel: 'to level',
+            nextBadgeLabel: 'Next:',
+            xpToGo: 'XP to go',
+            pathToNext: 'XP to level',
+            keepInvesting: 'Keep investing to reach',
+            allBadgesEarned: 'All badges earned! You\'re in the top 1%.',
             premiumUpsell: 'Upgrade to unlock Pro features',
             premiumActive: 'Premium account active ✓',
             tierLabels: {
@@ -176,6 +194,13 @@ export function GamificationWidget() {
               <span>{copy.progress}</span>
               <span>{progressToNextLevel}%</span>
             </div>
+            {currentLevel < 5 && (
+              <p className="text-[11px] text-muted-foreground">
+                {xpToNextLevel.toLocaleString()} {copy.pathToNext} {currentLevel + 1}
+                {' — '}
+                {copy.keepInvesting} {levelInfo[currentLevel]?.name || ''}.
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -192,7 +217,8 @@ export function GamificationWidget() {
                 <div
                   key={index}
                   title={badge.title}
-                  className="flex h-10 w-10 cursor-default items-center justify-center rounded-xl glass-light text-xl shadow-sm transition-transform hover:scale-110"
+                  className="flex h-12 w-12 cursor-default items-center justify-center rounded-xl glass-light text-2xl shadow-md transition-transform hover:scale-110"
+                  style={{ boxShadow: '0 0 12px hsl(var(--primary) / 0.3)' }}
                 >
                   {badge.icon}
                 </div>
@@ -203,12 +229,19 @@ export function GamificationWidget() {
             {Array.from({ length: Math.max(0, 4 - earnedBadges.length) }).map((_, index) => (
               <div
                 key={`locked-${index}`}
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-border/30 bg-secondary/20 opacity-30"
+                className="flex h-12 w-12 items-center justify-center rounded-xl border border-dashed border-border/30 bg-secondary/20 opacity-30"
               >
                 <Lock className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
             ))}
           </div>
+          {earnedBadges.length > 0 && earnedBadges.length >= missionDefinitions.length ? (
+            <p className="mt-2 text-[11px] font-semibold text-primary">{copy.allBadgesEarned}</p>
+          ) : nextBadge ? (
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              {copy.nextBadgeLabel} {nextBadge.icon} {nextBadge.title} — {nextBadge.xpNeeded.toLocaleString()} {copy.xpToGo}
+            </p>
+          ) : null}
         </div>
 
         <div className="rounded-3xl glass-card p-4">

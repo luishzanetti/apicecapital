@@ -175,34 +175,49 @@ export default function Analytics() {
             <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5">
               {/* Empty state when no exchange and no deposits */}
               {!analytics.isConnected && totalDeposited === 0 && dcaPlans.length === 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="rounded-2xl bg-card/50 border border-border/50 p-6 text-center"
-                >
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
-                    <BarChart3 className="w-8 h-8 text-primary" />
+                <div className="space-y-5 p-4 md:p-6">
+                  {/* Connect Banner */}
+                  <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-purple-500/10 border border-primary/20 p-6 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                      <BarChart3 className="w-7 h-7 text-primary/60" />
+                    </div>
+                    <h3 className="text-base font-bold mb-1">Unlock Your Analytics</h3>
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto mb-4">
+                      Connect your Bybit account and create a DCA plan to see real portfolio performance, P&L tracking, and investment analytics.
+                    </p>
+                    <div className="flex items-center justify-center gap-3">
+                      <Button size="sm" onClick={() => navigate('/settings')} className="gap-2">
+                        Connect Bybit
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => navigate('/dca-planner')} className="gap-2">
+                        Create DCA Plan
+                      </Button>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold mb-1.5">No analytics data yet</h3>
-                  <p className="text-sm text-muted-foreground mb-5 max-w-[260px] mx-auto leading-relaxed">
-                    Connect your exchange to see portfolio analytics, allocation breakdown, and performance tracking.
-                  </p>
-                  <div className="flex flex-col gap-2.5">
-                    <button
-                      onClick={() => navigate('/settings')}
-                      className="w-full py-3 rounded-xl text-sm font-semibold text-white apice-gradient-primary transition-all hover:opacity-90 active:scale-[0.98]"
-                    >
-                      Connect Bybit
-                    </button>
-                    <button
-                      onClick={() => navigate('/portfolio')}
-                      className="w-full py-3 rounded-xl text-sm font-semibold border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all active:scale-[0.98]"
-                    >
-                      Go to Portfolio
-                    </button>
+
+                  {/* What you'll see (preview) */}
+                  <div className="space-y-3">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">What you'll see</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 opacity-50">
+                      <div className="rounded-xl bg-secondary/30 p-3 space-y-1">
+                        <p className="text-xs text-muted-foreground">Total Value</p>
+                        <p className="text-lg font-bold text-muted-foreground">$••,•••</p>
+                      </div>
+                      <div className="rounded-xl bg-secondary/30 p-3 space-y-1">
+                        <p className="text-xs text-muted-foreground">Monthly Return</p>
+                        <p className="text-lg font-bold text-emerald-400/50">+•.••%</p>
+                      </div>
+                      <div className="rounded-xl bg-secondary/30 p-3 space-y-1">
+                        <p className="text-xs text-muted-foreground">DCA Invested</p>
+                        <p className="text-lg font-bold text-muted-foreground">$•,•••</p>
+                      </div>
+                      <div className="rounded-xl bg-secondary/30 p-3 space-y-1">
+                        <p className="text-xs text-muted-foreground">Win Rate</p>
+                        <p className="text-lg font-bold text-muted-foreground">••%</p>
+                      </div>
+                    </div>
                   </div>
-                </motion.div>
+                </div>
               )}
 
               {/* Key Metrics */}

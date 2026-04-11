@@ -3,115 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useLeveragedTrading } from '@/hooks/useLeveragedTrading';
 import { useExchangeBalance } from '@/hooks/useExchangeBalance';
 import { toast } from 'sonner';
+import { ALTIS_STRATEGIES, RISK_PROFILES, getSuggestedAllocation, getCapitalTier } from '@/constants/strategies';
+import type { RiskProfile } from '@/constants/strategies';
 
-// ═══════════════════════════════════════════════════════════════
-// STRATEGY DEFINITIONS
-// ═══════════════════════════════════════════════════════════════
-
-const STRATEGIES = [
-  {
-    type: 'grid', label: 'Grid Trading', icon: '📊',
-    desc: 'Captures profit from price bouncing in a range',
-    longDesc: 'Places buy orders below and sell orders above current price. When price oscillates, each bounce generates profit. Works best in sideways markets which occur 49% of the time.',
-    minCapital: 50, riskPerTrade: 2, maxLeverage: 3,
-    backtest: { pf: 5.93, wr: 52.1, trades: 576, regime: 'SIDEWAYS' },
-    riskLevel: 'low' as const,
-  },
-  {
-    type: 'mean_reversion', label: 'Mean Reversion', icon: '🔄',
-    desc: 'Buys oversold, sells overbought using RSI',
-    longDesc: 'When RSI drops below 35, the asset is oversold — historically bounces back 93% of the time. Tight 3% stop-loss limits downside. Best risk-reward ratio in the system.',
-    minCapital: 30, riskPerTrade: 2, maxLeverage: 2,
-    backtest: { pf: 28.55, wr: 93.3, trades: 30, regime: 'ANY' },
-    riskLevel: 'low' as const,
-  },
-  {
-    type: 'funding_arb', label: 'Funding Rate Arb', icon: '💰',
-    desc: 'Delta-neutral yield — zero market risk',
-    longDesc: 'Long spot + short perpetual = zero net exposure. Collects funding rate payments 3x/day. Like a savings account but with crypto yields. Completely market-neutral.',
-    minCapital: 200, riskPerTrade: 0, maxLeverage: 1,
-    backtest: { pf: 9280, wr: 96.6, trades: 59, regime: 'Funding > 0.01%' },
-    riskLevel: 'minimal' as const,
-  },
-  {
-    type: 'trend_following', label: 'Trend Following', icon: '📈',
-    desc: 'Rides momentum with SMA crossovers',
-    longDesc: 'Detects trend direction using moving average crossovers. Goes long in uptrends, short in downtrends. Captures big moves but has lower win rate — few big wins compensate many small losses.',
-    minCapital: 30, riskPerTrade: 3, maxLeverage: 3,
-    backtest: { pf: 0.84, wr: 31.3, trades: 16, regime: 'BULL/BEAR' },
-    riskLevel: 'medium' as const,
-  },
-  {
-    type: 'ai_signal', label: 'AI Signal (Claude)', icon: '🧠',
-    desc: 'AI analyzes market every 4h for high-conviction plays',
-    longDesc: 'Claude AI receives full market context (regime, RSI, SMA, funding, positions) and generates trading signals. Only acts on conviction ≥70%. Uses Haiku for speed, Sonnet for daily deep analysis.',
-    minCapital: 20, riskPerTrade: 2, maxLeverage: 5,
-    backtest: { pf: null, wr: null, trades: null, regime: 'Always' },
-    riskLevel: 'variable' as const,
-  },
-];
-
-// ═══════════════════════════════════════════════════════════════
-// RISK PROFILES + AI RECOMMENDATIONS
-// ═══════════════════════════════════════════════════════════════
-
-const RISK_PROFILES = {
-  conservative: {
-    label: 'Conservative', icon: '🛡️', desc: 'Steady income, lower risk. Focus on proven strategies.',
-    maxLeverage: 2, color: 'blue',
-    defaults: { grid: 40, mean_reversion: 25, funding_arb: 30, trend_following: 0, ai_signal: 5 },
-  },
-  balanced: {
-    label: 'Balanced', icon: '⚖️', desc: 'Mix of income + directional plays. Best diversification.',
-    maxLeverage: 3, color: 'purple',
-    defaults: { grid: 30, mean_reversion: 20, funding_arb: 20, trend_following: 20, ai_signal: 10 },
-  },
-  growth: {
-    label: 'Growth', icon: '🚀', desc: 'Higher risk for higher reward. More directional exposure.',
-    maxLeverage: 5, color: 'amber',
-    defaults: { grid: 20, mean_reversion: 15, funding_arb: 15, trend_following: 30, ai_signal: 20 },
-  },
-};
-
-function getAIRecommendation(capital: number, profile: string) {
-  // AI recommendation based on backtest results + capital
-  if (capital < 100) {
-    return {
-      text: 'With less than $100, focus on Mean Reversion (93% win rate). Single strategy, maximum efficiency.',
-      highlight: 'mean_reversion',
-      suggested: { grid: 0, mean_reversion: 70, funding_arb: 0, trend_following: 0, ai_signal: 30 },
-    };
-  }
-  if (capital < 500) {
-    return {
-      text: 'Best combo for your capital: Mean Reversion + Grid Trading. Both validated with strong profit factors.',
-      highlight: 'mean_reversion',
-      suggested: { grid: 40, mean_reversion: 40, funding_arb: 0, trend_following: 0, ai_signal: 20 },
-    };
-  }
-  if (capital < 2000) {
-    return {
-      text: 'Add Funding Arb for risk-free yield alongside Grid and Mean Rev. 3 strategies = optimal diversification.',
-      highlight: 'funding_arb',
-      suggested: { grid: 35, mean_reversion: 25, funding_arb: 25, trend_following: 0, ai_signal: 15 },
-    };
-  }
-  return {
-    text: 'Full 5-strategy deployment. Maximum diversification across all market regimes.',
-    highlight: null,
-    suggested: RISK_PROFILES[profile as keyof typeof RISK_PROFILES]?.defaults || RISK_PROFILES.balanced.defaults,
-  };
-}
-
-function getTierInfo(capital: number) {
-  if (capital >= 5000) return { name: 'Full', emoji: '👑', maxStrats: 5, color: 'text-green-400 bg-green-500/20' };
-  if (capital >= 2000) return { name: 'Standard', emoji: '⭐', maxStrats: 5, color: 'text-blue-400 bg-blue-500/20' };
-  if (capital >= 500)  return { name: 'Starter', emoji: '🌱', maxStrats: 3, color: 'text-purple-400 bg-purple-500/20' };
-  if (capital >= 100)  return { name: 'Micro', emoji: '🔬', maxStrats: 2, color: 'text-amber-400 bg-amber-500/20' };
-  return { name: 'Nano', emoji: '⚡', maxStrats: 1, color: 'text-muted-foreground bg-secondary/40' };
-}
-
+// Convert to array for iteration + keep local helpers
+const STRATEGIES = Object.values(ALTIS_STRATEGIES);
 const RISK_COLORS = { minimal: 'text-green-400', low: 'text-blue-400', medium: 'text-amber-400', variable: 'text-purple-400' };
+
+// ═══════════════════════════════════════════════════════════════
+// (Strategy & risk profile definitions imported from constants/strategies.ts)
 
 function formatUsd(v: number) {
   if (v >= 10000) return `$${(v / 1000).toFixed(1)}K`;
@@ -124,7 +24,7 @@ function formatUsd(v: number) {
 
 export default function AiTradeSetup() {
   const navigate = useNavigate();
-  const { enableStrategy, setTotalCapital: saveTotalCapital, addBot, bots, triggerEvaluation } = useLeveragedTrading();
+  const { enableStrategy, addBot, bots, triggerEvaluation } = useLeveragedTrading();
   const { data: balanceData, status: balanceStatus } = useExchangeBalance();
 
   const [step, setStep] = useState(0);
@@ -155,8 +55,15 @@ export default function AiTradeSetup() {
     }
   }, [hasBalance, unifiedBalance, capitalMode]);
 
-  const tier = getTierInfo(totalCapital);
-  const aiRec = useMemo(() => getAIRecommendation(totalCapital, profile || 'balanced'), [totalCapital, profile]);
+  const tier = getCapitalTier(totalCapital);
+  const aiRec = useMemo(() => {
+    const suggested = getSuggestedAllocation(totalCapital, (profile || 'balanced') as RiskProfile);
+    const text = totalCapital < 100 ? 'Focus on Mean Reversion — single strategy, maximum efficiency.'
+      : totalCapital < 500 ? 'Best combo: Mean Reversion + Grid Trading — both validated.'
+      : totalCapital < 2000 ? 'Add Funding Arb for risk-free yield alongside Grid and Mean Rev.'
+      : 'Full 5-strategy deployment. Maximum diversification.';
+    return { text, suggested };
+  }, [totalCapital, profile]);
 
   const strategyDetails = useMemo(() => {
     return STRATEGIES.map(s => {
@@ -176,7 +83,6 @@ export default function AiTradeSetup() {
     if (!profile) return;
     setIsActivating(true);
     try {
-      const config = RISK_PROFILES[profile];
       const stratConfigs: { id: string; strategyType: string; isActive: boolean; allocationPct: number; maxLeverage: number; assets: string[] }[] = [];
       for (const strat of strategyDetails) {
         if (strat.allocPct > 0 && strat.canAfford) {
@@ -398,7 +304,7 @@ export default function AiTradeSetup() {
                   <span className="text-2xl">{p.icon}</span>
                   <div className="flex-1">
                     <p className="font-semibold text-foreground">{p.label}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{p.desc}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{p.description}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-primary font-medium">Max {p.maxLeverage}x</p>
@@ -472,7 +378,7 @@ export default function AiTradeSetup() {
                               {s.riskLevel}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground">{s.desc}</p>
+                          <p className="text-xs text-muted-foreground">{s.description}</p>
                         </div>
                       </div>
                       <div className="text-right min-w-[60px]">
@@ -497,21 +403,17 @@ export default function AiTradeSetup() {
                       {!s.canAfford && s.allocPct > 0 && <span className="text-red-400 font-medium">Under min!</span>}
                     </div>
 
-                    {/* Backtest stats */}
-                    {s.backtest.wr !== null && (
-                      <div className="flex items-center gap-3 text-xs glass-light rounded-lg px-2.5 py-1.5">
-                        <span className="text-muted-foreground">Backtest:</span>
-                        <span className="text-green-400 font-medium">WR {s.backtest.wr}%</span>
-                        <span className="text-blue-400 font-medium">PF {s.backtest.pf}</span>
-                        <span className="text-muted-foreground">{s.backtest.trades} trades</span>
-                        <span className="text-muted-foreground">Best: {s.backtest.regime}</span>
-                      </div>
-                    )}
+                    {/* Strategy regime info */}
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <span>Best in: <strong className="text-foreground/70">{s.bestRegime}</strong></span>
+                      <span>•</span>
+                      <span>Min: ${s.minCapital}</span>
+                    </div>
 
                     {/* Expanded description */}
                     {isExpanded && (
                       <div className="glass-light rounded-lg p-3 text-xs text-foreground/70 leading-relaxed">
-                        {s.longDesc}
+                        {s.longDescription}
                       </div>
                     )}
                   </div>

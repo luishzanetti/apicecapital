@@ -1,5 +1,10 @@
 // Complete sample data for the Apice MVP
 
+// ============== AFFILIATE CONSTANTS ==============
+
+const BYBIT_AFFILIATE_ID = import.meta.env.VITE_BYBIT_AFFILIATE_ID || 'APICE';
+const BITRADEX_AFFILIATE_URL = import.meta.env.VITE_BITRADEX_AFFILIATE_URL || 'https://example.com/bitradex?ref=apice';
+
 // ============== APICE RETURN RATES ==============
 // Conservative: 15% annual (DCA + stablecoin buffer + blue-chip focus)
 // Balanced: 35% annual (DCA + diversification + strategic rebalancing)
@@ -1115,8 +1120,7 @@ export const referralLinks: ReferralLink[] = [
     id: 'bybit',
     name: 'Bybit',
     description: 'Primary exchange for trading and DCA execution.',
-    // TODO: Replace APICE with your real Bybit affiliate ID from https://www.bybit.com/affiliates/
-    url: 'https://www.bybit.com/invite?ref=APICE',
+    url: `https://www.bybit.com/invite?ref=${BYBIT_AFFILIATE_ID}`,
     category: 'exchange',
   },
   {
@@ -1131,8 +1135,7 @@ export const referralLinks: ReferralLink[] = [
     id: 'ai-bot',
     name: 'Bitradex AI Bot',
     description: 'AI automation infrastructure for consistent execution.',
-    // TODO: Replace with real Bitradex affiliate URL once partnership is finalized
-    url: 'https://example.com/bitradex?ref=apice',
+    url: BITRADEX_AFFILIATE_URL,
     category: 'infrastructure',
   },
 ];
@@ -1409,9 +1412,8 @@ export const activationChallenge: ChallengeDay[] = [
 // ============== BYBIT GUIDE ==============
 
 export const bybitGuide = {
-  // TODO: Replace APICE with your real Bybit affiliate ID from https://www.bybit.com/affiliates/
-  referralLink: 'https://www.bybit.com/invite?ref=APICE',
-  referralCode: 'APICE', // TODO: Replace with real affiliate code
+  referralLink: `https://www.bybit.com/invite?ref=${BYBIT_AFFILIATE_ID}`,
+  referralCode: BYBIT_AFFILIATE_ID,
   benefits: [
     { icon: '💰', title: 'Sign-up bonus', description: 'Receive benefits when creating your account with the Apice invite' },
     { icon: '📉', title: 'Reduced fees', description: 'Trading fee discounts through the Apice partner link' },

@@ -572,6 +572,7 @@ export function useLeveragedTrading() {
   }, []);
 
   const closePosition = useCallback(async (positionId: string) => {
+    setError(null);
     if (!isSupabaseConfigured) {
       setPositions(prev => prev.filter(p => p.id !== positionId));
       return true;
@@ -585,6 +586,7 @@ export function useLeveragedTrading() {
   }, [fetchPositions]);
 
   const closeAllPositions = useCallback(async () => {
+    setError(null);
     if (!isSupabaseConfigured) {
       setPositions([]);
       return true;

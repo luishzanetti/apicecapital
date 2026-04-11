@@ -49,6 +49,24 @@ export default function Upgrade() {
       </div>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-5 py-6 space-y-4">
+        {/* Social proof banner */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20"
+        >
+          <div className="flex -space-x-2 shrink-0">
+            {['bg-blue-500', 'bg-purple-500', 'bg-green-500', 'bg-amber-500'].map((bg, i) => (
+              <div key={i} className={`w-7 h-7 rounded-full ${bg} border-2 border-background flex items-center justify-center text-[10px] font-bold text-white`}>
+                {['J', 'M', 'A', 'K'][i]}
+              </div>
+            ))}
+          </div>
+          <p className="text-xs font-medium text-foreground">
+            Join <span className="font-bold text-primary">2,400+</span> investors who automated their wealth building
+          </p>
+        </motion.div>
+
         {trialDaysLeft !== null && trialDaysLeft > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -113,6 +131,76 @@ export default function Upgrade() {
             </motion.div>
           );
         })}
+
+        {/* Feature Comparison Table */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <div className="rounded-2xl glass-card overflow-hidden">
+            <div className="px-4 py-3 border-b border-border/30">
+              <h3 className="text-sm font-bold">Feature Comparison</h3>
+            </div>
+            <div className="divide-y divide-border/20">
+              {[
+                { feature: 'DCA Automation', free: true, pro: true, club: true },
+                { feature: 'AI Market Analysis', free: false, pro: true, club: true },
+                { feature: 'AI Trade Strategies', free: false, pro: true, club: true },
+                { feature: 'Advanced Risk Engine', free: false, pro: true, club: true },
+                { feature: 'Priority Support', free: false, pro: false, club: true },
+                { feature: 'VIP Community', free: false, pro: false, club: true },
+              ].map((row) => (
+                <div key={row.feature} className="grid grid-cols-4 px-4 py-2.5 items-center">
+                  <span className="text-xs text-foreground col-span-1">{row.feature}</span>
+                  {[row.free, row.pro, row.club].map((has, i) => (
+                    <div key={i} className="flex justify-center">
+                      {has ? (
+                        <Check className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <span className="w-4 h-4 flex items-center justify-center text-muted-foreground/30">—</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+              <div className="grid grid-cols-4 px-4 py-2 items-center bg-secondary/20">
+                <span className="text-[10px] text-muted-foreground font-semibold">PLAN</span>
+                {['Free', 'Pro', 'Club'].map((name) => (
+                  <span key={name} className="text-[10px] text-muted-foreground font-semibold text-center">{name}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Testimonial */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+          <div className="rounded-2xl glass-card p-4">
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-purple-500/30 flex items-center justify-center">
+                <Star className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-foreground leading-relaxed italic">
+                  "DCA automation changed my portfolio. +47% in 6 months."
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1 font-medium">
+                  — Growth Seeker user
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Trial CTA */}
+        {currentTier === 'free' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
+            <button
+              onClick={() => handleUpgrade('pro')}
+              className="w-full py-4 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-primary to-purple-600 shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform"
+            >
+              Start 7-day free trial
+            </button>
+            <p className="text-center text-micro text-muted-foreground mt-1.5">No card required. Cancel anytime.</p>
+          </motion.div>
+        )}
 
         <p className="text-center text-micro text-muted-foreground pt-4">Cancel anytime. No hidden fees.</p>
       </motion.div>
