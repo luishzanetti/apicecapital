@@ -29,12 +29,21 @@ import {
   CircleDollarSign,
 } from 'lucide-react';
 
-const projections = [
-  { spend: 500, monthly: 25, yearly: 300, btcYearly: 0.0032 },
-  { spend: 1000, monthly: 50, yearly: 600, btcYearly: 0.0063 },
-  { spend: 2000, monthly: 100, yearly: 1200, btcYearly: 0.0126 },
-  { spend: 5000, monthly: 250, yearly: 3000, btcYearly: 0.0316 },
-];
+// Cashback rates vary by investor profile — conservative users tend to spend less aggressively
+const cashbackRateByType: Record<string, number> = {
+  'Conservative Builder': 0.03,
+  'Balanced Optimizer': 0.05,
+  'Growth Seeker': 0.07,
+};
+
+function buildProjections(rate: number) {
+  return [
+    { spend: 500, monthly: Math.round(500 * rate), yearly: Math.round(500 * rate * 12), btcYearly: +(500 * rate * 12 / 95000).toFixed(4) },
+    { spend: 1000, monthly: Math.round(1000 * rate), yearly: Math.round(1000 * rate * 12), btcYearly: +(1000 * rate * 12 / 95000).toFixed(4) },
+    { spend: 2000, monthly: Math.round(2000 * rate), yearly: Math.round(2000 * rate * 12), btcYearly: +(2000 * rate * 12 / 95000).toFixed(4) },
+    { spend: 5000, monthly: Math.round(5000 * rate), yearly: Math.round(5000 * rate * 12), btcYearly: +(5000 * rate * 12 / 95000).toFixed(4) },
+  ];
+}
 
 const subscriptions = [
   { name: 'Netflix', icon: '🎬', price: '$15.99/mo' },
@@ -55,12 +64,17 @@ export default function CashbackMachine() {
   const navigate = useNavigate();
   const trackLinkClick = useAppStore((s) => s.trackLinkClick);
   const dcaPlans = useAppStore((s) => s.dcaPlans);
+  const investorType = useAppStore((s) => s.investorType);
   const [selectedSpend, setSelectedSpend] = useState(2000);
   const [activeStep, setActiveStep] = useState<number | null>(null);
 
+  // Dynamic cashback rate based on investor profile
+  const cashbackRate = cashbackRateByType[investorType ?? 'Balanced Optimizer'] ?? 0.05;
+  const projections = buildProjections(cashbackRate);
+
   // Use total DCA invested as proxy for spending until real cashback API exists
   const totalInvested = dcaPlans.reduce((sum, p) => sum + (p.totalInvested ?? 0), 0);
-  const estimatedCashback = totalInvested * 0.05; // 5% average cashback rate
+  const estimatedCashback = totalInvested * cashbackRate;
 
   const currentProjection = projections.find((p) => p.spend === selectedSpend) || projections[2];
   const bybitLink = referralLinks.find((l) => l.id === 'bybit');
@@ -138,6 +152,30 @@ export default function CashbackMachine() {
           </Card>
         </motion.div>
 
+        {/* QUICK ESTIMATE — Prominent earnings visual */}
+        <motion.div {...fadeUp} transition={{ delay: 0.04, duration: 0.5 }}>
+          <Card className="border-green-500/20 bg-gradient-to-r from-green-500/5 to-emerald-500/5">
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-500/15">
+                <Bitcoin className="h-7 w-7 text-green-400" />
+              </div>
+              <div className="flex-1 space-y-0.5">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {investorType ? `As a ${investorType}` : 'Estimated earnings'}
+                </p>
+                <p className="text-base font-bold">
+                  Spend <span className="text-amber-400">${selectedSpend.toLocaleString()}/mo</span>{' '}
+                  <ArrowRight className="mb-0.5 inline h-3.5 w-3.5 text-muted-foreground" />{' '}
+                  earn <span className="text-green-400">~${currentProjection.monthly} in BTC</span> monthly
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  That is <span className="font-semibold text-foreground">${currentProjection.yearly.toLocaleString()}/year</span> in Bitcoin — with zero extra effort
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* CASHBACK TIERS — Only 2, prominent */}
         <motion.div {...fadeUp} transition={{ delay: 0.08, duration: 0.5 }}>
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">How you earn</h2>
@@ -208,7 +246,7 @@ export default function CashbackMachine() {
             <CardContent className="space-y-3 p-4">
               {totalInvested > 0 ? (
                 <p className="text-xs text-muted-foreground">
-                  Based on your <span className="font-semibold text-foreground">${totalInvested.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span> invested, estimated cashback: <span className="font-semibold text-green-400">${estimatedCashback.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                  Based on your <span className="font-semibold text-foreground">${totalInvested.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span> invested at {Math.round(cashbackRate * 100)}% rate, estimated cashback: <span className="font-semibold text-green-400">${estimatedCashback.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                 </p>
               ) : (
                 <p className="text-xs text-muted-foreground">
@@ -328,7 +366,7 @@ export default function CashbackMachine() {
               </div>
 
               <p className="text-center text-[11px] text-muted-foreground">
-                Based on average 5% cashback rate. If BTC grows 50%/year, your $1,200 becomes $1,800+.
+                Based on {Math.round(cashbackRate * 100)}% avg cashback rate{investorType ? ` (${investorType} profile)` : ''}. If BTC grows 50%/year, your ${currentProjection.yearly.toLocaleString()} becomes ${Math.round(currentProjection.yearly * 1.5).toLocaleString()}+.
               </p>
             </CardContent>
           </Card>

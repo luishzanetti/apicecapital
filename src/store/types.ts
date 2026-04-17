@@ -163,6 +163,113 @@ export interface HomeWidget {
   enabled: boolean;
 }
 
+// ─── Education (gamified learning) ──────────────────────────
+export interface Track {
+  id: string;
+  slug: string;
+  title: string;
+  description?: string;
+  tier: 'free' | 'pro' | 'club';
+  order: number;
+  icon?: string;
+  colorTheme?: string;
+  lessonCount: number;
+  xpTotal: number;
+}
+
+export interface Lesson {
+  id: string;
+  trackId: string;
+  slug: string;
+  title: string;
+  summary?: string;
+  videoUrl?: string;
+  videoDurationSec?: number;
+  durationMin: number;
+  xp: number;
+  order: number;
+  requiredTier: 'free' | 'pro' | 'club';
+  quiz?: unknown[];
+  challenge?: unknown;
+}
+
+export interface Badge {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary' | 'mythic';
+  earnedAt?: string;
+}
+
+export interface Challenge {
+  id: string;
+  slug: string;
+  title: string;
+  description?: string;
+  type: 'daily' | 'weekly' | 'seasonal' | 'evergreen' | 'cohort';
+  rulesJson: unknown;
+  rewardXp: number;
+  activeFrom?: string;
+  activeTo?: string;
+  progress?: { current: number; target: number; completedAt?: string };
+}
+
+export type CelebrationType = 'xp' | 'level' | 'badge' | 'streak';
+export interface Celebration {
+  type: CelebrationType;
+  payload: unknown;
+  seen: boolean;
+}
+
+// ─── Balance / Fund Alerts ──────────────────────────────────
+export interface CurrentBalances {
+  spot: number;
+  unified: number;
+  funding: number;
+  total: number;
+}
+
+export interface FundAlertContext {
+  remainingExecutions?: number;
+  remainingMonths?: number;
+  required?: number;
+  available?: number;
+}
+
+export interface FundAlert {
+  id: string;
+  planId: string | null;
+  severity: 'info' | 'warning' | 'critical' | 'blocked';
+  code: string;
+  message: string;
+  contextJson: FundAlertContext;
+  triggeredAt: string;
+}
+
+// ─── Transfers ──────────────────────────────────────────────
+export interface Transfer {
+  id: string;
+  fromAccount: string;
+  toAccount: string;
+  coin: string;
+  amount: number;
+  status: 'pending' | 'success' | 'failed' | 'cancelled';
+  bybitTxnId?: string;
+  errorMessage?: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
+export interface TransferInput {
+  fromAccount: string;
+  toAccount: string;
+  coin: string;
+  amount: number;
+  initiatedFrom?: string;
+}
+
 // ─── Slice State Interfaces ─────────────────────────────────
 
 export interface OnboardingSlice {
@@ -262,6 +369,103 @@ export interface AppSlice {
   resetApp: () => void;
 }
 
+// ─── ALTIS (leveraged trading) ──────────────────────────────
+export interface StrategyConfig {
+  id: string;
+  strategyType: string;
+  isActive: boolean;
+  allocationPct: number;
+  maxLeverage: number;
+  assets: string[];
+}
+
+export interface BotConfig {
+  id: string;
+  name: string;
+  capital: number;
+  profile: string;
+  strategies: StrategyConfig[];
+  createdAt: string;
+  isActive: boolean;
+  maxLeverage: number;
+  riskPerTradePct: number;
+  maxPositions: number;
+  autoExecute: boolean;
+  selectedAssets: string[];
+}
+
+export interface AltisSlice {
+  bots: BotConfig[];
+  activeBotId: string | null;
+  addBot: (
+    name: string,
+    capital: number,
+    profile: string,
+    strategies: StrategyConfig[],
+    options?: {
+      maxLeverage?: number;
+      riskPerTradePct?: number;
+      maxPositions?: number;
+      autoExecute?: boolean;
+      selectedAssets?: string[];
+    }
+  ) => string;
+  removeBot: (botId: string) => void;
+  setActiveBotId: (id: string) => void;
+  updateActiveBot: (updates: Partial<BotConfig>) => void;
+  updateStrategies: (updater: (prev: StrategyConfig[]) => StrategyConfig[]) => void;
+  migrateFromLocalStorage: () => void;
+}
+
+// ─── Education Slice ────────────────────────────────────────
+export interface EducationSlice {
+  tracks: Track[];
+  lessonsByTrack: Record<string, Lesson[]>;
+  badges: Badge[];
+  completedLessons: string[];
+  lessonScores: Record<string, number>;
+  totalXP: number;
+  level: number;
+  levelTitle: string;
+  nextLevelThreshold: number;
+  streak: number;
+  longestStreak: number;
+  lastActiveDate: string | null;
+  earnedBadges: Badge[];
+  activeChallenges: Challenge[];
+  lastCelebration: Celebration | null;
+
+  hydrateEducation: () => Promise<void>;
+  completeLesson_v2: (
+    lessonId: string,
+    score: number,
+    timeSpentSec: number
+  ) => Promise<{ leveledUp: boolean; badgesUnlocked: Badge[] }>;
+  recordLessonView: (lessonId: string, timeSpentSec: number) => Promise<void>;
+  acknowledgeCelebration: () => void;
+}
+
+// ─── Balance Slice ──────────────────────────────────────────
+export interface BalanceSlice {
+  currentBalances: CurrentBalances;
+  alerts: FundAlert[];
+  lastSnapshot: string | null;
+  isRefreshing: boolean;
+  refreshBalances: () => Promise<void>;
+  dismissAlert: (id: string) => Promise<void>;
+  getActiveAlert: (planId?: string) => FundAlert | null;
+}
+
+// ─── Transfer Slice ─────────────────────────────────────────
+export interface TransferSlice {
+  transfers: Transfer[];
+  isTransferring: boolean;
+  transferError: string | null;
+  executeTransfer: (input: TransferInput) => Promise<Transfer | null>;
+  fetchTransferHistory: (limit?: number) => Promise<void>;
+  clearTransferError: () => void;
+}
+
 // ─── Combined AppState ──────────────────────────────────────
 export type AppState =
   OnboardingSlice &
@@ -271,7 +475,11 @@ export type AppState =
   LearnSlice &
   SubscriptionSlice &
   NotificationSlice &
-  AppSlice;
+  AppSlice &
+  AltisSlice &
+  EducationSlice &
+  BalanceSlice &
+  TransferSlice;
 
 // Slice creator helper type
 export type SliceCreator<T> = StateCreator<AppState, [], [], T>;

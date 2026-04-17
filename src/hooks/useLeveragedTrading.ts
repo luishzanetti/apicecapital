@@ -1,17 +1,14 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { invokeEdgeFunction } from '@/lib/supabaseFunction';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+import { useAppStore } from '@/store/appStore';
+import type { BotConfig, StrategyConfig } from '@/store/types';
+
+// ─── Re-export types for backward compatibility ─────────────
+
+export type { BotConfig, StrategyConfig } from '@/store/types';
 
 // ─── Types ──────────────────────────────────────────────────
-
-export interface StrategyConfig {
-  id: string;
-  strategyType: string;
-  isActive: boolean;
-  allocationPct: number;
-  maxLeverage: number;
-  assets: string[];
-}
 
 export interface LeveragedPosition {
   id: string;
@@ -64,25 +61,6 @@ export interface StrategyPerformance {
   fundingIncome: number;
 }
 
-// ─── Local storage key ──────────────────────────────────────
-
-// ─── Multi-bot storage ──────────────────────────────────────
-
-export interface BotConfig {
-  id: string;
-  name: string;
-  capital: number;
-  profile: string;
-  strategies: StrategyConfig[];
-  createdAt: string;
-  isActive: boolean;
-  maxLeverage: number;
-  riskPerTradePct: number;
-  maxPositions: number;
-  autoExecute: boolean;
-  selectedAssets: string[];
-}
-
 export interface MarketContext {
   regime: string;
   confidence: number;
@@ -103,120 +81,64 @@ export interface PendingSignal {
   approved: boolean;
 }
 
-const BOTS_KEY = 'altis-bots';
-const ACTIVE_BOT_KEY = 'altis-active-bot';
-
-function loadBots(): BotConfig[] {
-  try {
-    const raw = localStorage.getItem(BOTS_KEY);
-    if (raw) return JSON.parse(raw);
-    // Migrate from old format
-    const oldStrats = localStorage.getItem('altis-strategies');
-    const oldCapital = localStorage.getItem('altis-total-capital');
-    if (oldStrats) {
-      const strats = JSON.parse(oldStrats);
-      if (strats.length > 0) {
-        const migrated: BotConfig = {
-          id: 'bot-1', name: 'ALTIS Bot #1',
-          capital: Number(oldCapital) || 5000, profile: 'balanced',
-          strategies: strats, createdAt: new Date().toISOString(), isActive: true,
-          maxLeverage: 5, riskPerTradePct: 33, maxPositions: 5,
-          autoExecute: true, selectedAssets: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
-        };
-        saveBots([migrated]);
-        localStorage.setItem(ACTIVE_BOT_KEY, migrated.id);
-        return [migrated];
-      }
-    }
-    return [];
-  } catch { return []; }
-}
-
-function saveBots(bots: BotConfig[]) {
-  localStorage.setItem(BOTS_KEY, JSON.stringify(bots));
-}
-
-function loadActiveBotId(): string | null {
-  return localStorage.getItem(ACTIVE_BOT_KEY);
-}
-
-function saveActiveBotId(id: string) {
-  localStorage.setItem(ACTIVE_BOT_KEY, id);
-}
-
 // ─── Hook ───────────────────────────────────────────────────
 
 const CACHE_TTL = 30_000;
 
 export function useLeveragedTrading() {
-  const [bots, setBots] = useState<BotConfig[]>(() => loadBots());
-  const [activeBotId, setActiveBotIdState] = useState<string | null>(() => loadActiveBotId());
+  // ─── Store-backed multi-bot state ───────────────────────
+  const bots = useAppStore((s) => s.bots);
+  const activeBotId = useAppStore((s) => s.activeBotId);
+  const addBotStore = useAppStore((s) => s.addBot);
+  const removeBotStore = useAppStore((s) => s.removeBot);
+  const setActiveBotIdStore = useAppStore((s) => s.setActiveBotId);
+  const updateActiveBotStore = useAppStore((s) => s.updateActiveBot);
+  const updateStrategiesStore = useAppStore((s) => s.updateStrategies);
+  const migrateFromLocalStorage = useAppStore((s) => s.migrateFromLocalStorage);
 
-  const activeBot = bots.find(b => b.id === activeBotId) || bots[0] || null;
-  const totalCapital = activeBot?.capital || 0;
-  const strategies = activeBot?.strategies || [] as StrategyConfig[];
+  // One-shot migration from legacy localStorage (e.g. if persist upgrade didn't run).
+  useEffect(() => {
+    migrateFromLocalStorage();
+  }, [migrateFromLocalStorage]);
+
+  const activeBot = useMemo<BotConfig | null>(
+    () => bots.find((b) => b.id === activeBotId) ?? bots[0] ?? null,
+    [bots, activeBotId]
+  );
+  const totalCapital = activeBot?.capital ?? 0;
+  const strategies: StrategyConfig[] = activeBot?.strategies ?? [];
 
   const setTotalCapital = useCallback((amount: number) => {
-    if (!activeBot) return;
-    setBots(prev => {
-      const updated = prev.map(b => b.id === activeBot.id ? { ...b, capital: amount } : b);
-      saveBots(updated);
-      return updated;
-    });
-  }, [activeBot]);
+    updateActiveBotStore({ capital: amount });
+  }, [updateActiveBotStore]);
 
   const setActiveBotId = useCallback((id: string) => {
-    setActiveBotIdState(id);
-    saveActiveBotId(id);
-  }, []);
+    setActiveBotIdStore(id);
+  }, [setActiveBotIdStore]);
 
   const addBot = useCallback((
-    name: string, capital: number, profile: string, strategyConfigs: StrategyConfig[],
-    options?: { maxLeverage?: number; riskPerTradePct?: number; maxPositions?: number; autoExecute?: boolean; selectedAssets?: string[] }
-  ) => {
-    const newBot: BotConfig = {
-      id: `bot-${Date.now()}`, name, capital, profile,
-      strategies: strategyConfigs,
-      createdAt: new Date().toISOString(), isActive: true,
-      maxLeverage: options?.maxLeverage ?? 5,
-      riskPerTradePct: options?.riskPerTradePct ?? 33,
-      maxPositions: options?.maxPositions ?? 5,
-      autoExecute: options?.autoExecute ?? true,
-      selectedAssets: options?.selectedAssets ?? ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
-    };
-    setBots(prev => {
-      const updated = [...prev, newBot];
-      saveBots(updated);
-      return updated;
-    });
-    setActiveBotIdState(newBot.id);
-    saveActiveBotId(newBot.id);
-    return newBot.id;
-  }, []);
+    name: string,
+    capital: number,
+    profile: string,
+    strategyConfigs: StrategyConfig[],
+    options?: {
+      maxLeverage?: number;
+      riskPerTradePct?: number;
+      maxPositions?: number;
+      autoExecute?: boolean;
+      selectedAssets?: string[];
+    }
+  ) => addBotStore(name, capital, profile, strategyConfigs, options), [addBotStore]);
 
   const removeBot = useCallback((botId: string) => {
-    setBots(prev => {
-      const updated = prev.filter(b => b.id !== botId);
-      saveBots(updated);
-      if (activeBotId === botId && updated.length > 0) {
-        setActiveBotIdState(updated[0].id);
-        saveActiveBotId(updated[0].id);
-      }
-      return updated;
-    });
-  }, [activeBotId]);
+    removeBotStore(botId);
+  }, [removeBotStore]);
 
-  // Keep backward compat: setStrategies updates the active bot's strategies
   const setStrategies = useCallback((updater: (prev: StrategyConfig[]) => StrategyConfig[]) => {
-    if (!activeBot) return;
-    setBots(prev => {
-      const updated = prev.map(b =>
-        b.id === activeBot.id ? { ...b, strategies: updater(b.strategies) } : b
-      );
-      saveBots(updated);
-      return updated;
-    });
-  }, [activeBot]);
+    updateStrategiesStore(updater);
+  }, [updateStrategiesStore]);
+
+  // ─── Local (non-persisted) runtime state ─────────────────
   const [positions, setPositions] = useState<LeveragedPosition[]>([]);
   const [risk, setRisk] = useState<RiskStatus>({
     totalHeat: 0, maxHeat: 0.20, canOpenNew: true,
@@ -248,7 +170,7 @@ export function useLeveragedTrading() {
         .order('strategy_type');
 
       if (data && data.length > 0) {
-        const mapped = data.map(d => ({
+        const mapped: StrategyConfig[] = data.map((d) => ({
           id: d.id,
           strategyType: d.strategy_type,
           isActive: d.is_active,
@@ -274,7 +196,7 @@ export function useLeveragedTrading() {
       .order('opened_at', { ascending: false });
 
     if (data) {
-      setPositions(data.map(d => ({
+      setPositions(data.map((d) => ({
         id: d.id, strategyType: d.strategy_type, symbol: d.symbol,
         side: d.side, entryPrice: d.entry_price, markPrice: d.mark_price || d.entry_price,
         sizeQty: d.size_qty, sizeUsd: d.size_usd, leverage: d.leverage,
@@ -382,7 +304,7 @@ export function useLeveragedTrading() {
       .limit(20);
 
     if (data) {
-      setSignals(data.map(d => ({
+      setSignals(data.map((d) => ({
         id: d.id, strategyType: d.strategy_type, symbol: d.symbol,
         direction: d.direction, conviction: d.conviction,
         rationale: d.rationale || '', riskApproved: d.risk_approved,
@@ -419,7 +341,7 @@ export function useLeveragedTrading() {
         s.tradesClosed += d.trades_closed || 0;
       }
       for (const key of Object.keys(byStrategy)) {
-        const entries = data.filter(d => d.strategy_type === key && d.trades_closed > 0);
+        const entries = data.filter((d) => d.strategy_type === key && d.trades_closed > 0);
         if (entries.length > 0) {
           byStrategy[key].winRate = entries.reduce((s, d) => s + (d.win_rate || 0), 0) / entries.length;
           byStrategy[key].profitFactor = entries.reduce((s, d) => s + (d.profit_factor || 0), 0) / entries.length;
@@ -458,7 +380,7 @@ export function useLeveragedTrading() {
         table: 'leveraged_positions',
       }, (payload) => {
         const updated = payload.new as any;
-        setPositions(prev => prev.map(p =>
+        setPositions((prev) => prev.map((p) =>
           p.id === updated.id ? {
             ...p,
             markPrice: updated.mark_price ?? p.markPrice,
@@ -482,7 +404,7 @@ export function useLeveragedTrading() {
         table: 'trading_signals',
       }, (payload) => {
         const sig = payload.new as any;
-        setSignals(prev => [{
+        setSignals((prev) => [{
           id: sig.id,
           strategyType: sig.strategy_type,
           symbol: sig.symbol,
@@ -502,7 +424,7 @@ export function useLeveragedTrading() {
       }, (payload) => {
         const event = payload.new as any;
         if (event.event_type === 'circuit_breaker_tripped') {
-          setRisk(prev => ({
+          setRisk((prev) => ({
             ...prev,
             circuitBreaker: { isTripped: true, dailyPnlPct: event.daily_pnl_pct || -0.05 },
           }));
@@ -520,7 +442,7 @@ export function useLeveragedTrading() {
   // ─── Actions ────────────────────────────────────────────
 
   const enableStrategy = useCallback(async (strategyType: string, allocationPct: number, maxLeverage: number = 2) => {
-    // Always update local state first (instant UI response)
+    // Always update store state first (instant UI response)
     const newConfig: StrategyConfig = {
       id: `local-${strategyType}`,
       strategyType,
@@ -530,8 +452,8 @@ export function useLeveragedTrading() {
       assets: ['BTCUSDT', 'ETHUSDT'],
     };
 
-    setStrategies(prev => {
-      const existing = prev.filter(s => s.strategyType !== strategyType);
+    updateStrategiesStore((prev) => {
+      const existing = prev.filter((s) => s.strategyType !== strategyType);
       return [...existing, newConfig];
     });
 
@@ -551,10 +473,10 @@ export function useLeveragedTrading() {
         }
       } catch { /* Supabase unavailable — local state is source of truth */ }
     }
-  }, []);
+  }, [updateStrategiesStore]);
 
   const disableStrategy = useCallback(async (strategyType: string) => {
-    setStrategies(prev => prev.map(s =>
+    updateStrategiesStore((prev) => prev.map((s) =>
       s.strategyType === strategyType ? { ...s, isActive: false } : s
     ));
 
@@ -569,12 +491,12 @@ export function useLeveragedTrading() {
         }
       } catch { /* local state is source of truth */ }
     }
-  }, []);
+  }, [updateStrategiesStore]);
 
   const closePosition = useCallback(async (positionId: string) => {
     setError(null);
     if (!isSupabaseConfigured) {
-      setPositions(prev => prev.filter(p => p.id !== positionId));
+      setPositions((prev) => prev.filter((p) => p.id !== positionId));
       return true;
     }
     const { error: fnError } = await invokeEdgeFunction('leveraged-trade-execute', {
@@ -604,8 +526,8 @@ export function useLeveragedTrading() {
 
   const totalUnrealizedPnl = positions.reduce((s, p) => s + p.unrealizedPnl, 0);
   const totalFundingIncome = positions.reduce((s, p) => s + p.fundingReceived, 0);
-  const activeStrategies = strategies.filter(s => s.isActive);
-  const isSetupComplete = strategies.length > 0;
+  const activeStrategies = strategies.filter((s) => s.isActive);
+  const isSetupComplete = bots.length > 0 && strategies.length > 0;
 
   return {
     // Multi-bot

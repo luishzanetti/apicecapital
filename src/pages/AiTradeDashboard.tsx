@@ -39,9 +39,12 @@ export default function AiTradeDashboard() {
     strategies, positions, risk, signals, performance,
     marketContext, pendingSignals, isEvaluating,
     totalCapital, totalUnrealizedPnl, activeStrategies,
-    isLoading, isSetupComplete, error: hookError,
+    isLoading, error: hookError,
     fetchAll, enableStrategy, disableStrategy, closePosition, closeAllPositions, triggerEvaluation,
   } = useLeveragedTrading();
+
+  // Authoritative setup state from the store — reactive and in sync after activation.
+  const hasBots = bots.length > 0;
 
   const [tab, setTab] = useState<'strategies' | 'trades' | 'activity'>('strategies');
   const [chartSymbol, setChartSymbol] = useState('BTCUSDT');
@@ -67,8 +70,10 @@ export default function AiTradeDashboard() {
   };
 
   // ─── Empty state ───────────────────────────────────────
+  // Gate on bot presence (authoritative store state) rather than derived
+  // isSetupComplete, so a freshly-activated bot never re-prompts setup.
 
-  if (!isSetupComplete && !isLoading) {
+  if (!hasBots && !isLoading) {
     return (
       <div className="p-4 flex flex-col items-center justify-center min-h-[70vh] space-y-5">
         <span className="text-5xl">🤖</span>

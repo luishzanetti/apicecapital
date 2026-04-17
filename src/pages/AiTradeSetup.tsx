@@ -110,10 +110,10 @@ export default function AiTradeSetup() {
         description: `${stratConfigs.length} strategies configured`,
       });
 
-      // Navigate immediately, then trigger evaluation in background
-      setTimeout(() => navigate('/ai-trade'), 300);
+      // Navigate synchronously — store state is already committed, no race.
+      navigate('/ai-trade', { replace: true });
 
-      // Trigger market analysis + trade execution in background
+      // Trigger market analysis + trade execution in background (fire and forget).
       triggerEvaluation().then(result => {
         if (result.executed > 0) {
           toast.success(`${result.executed} trades opened`, {
@@ -128,6 +128,8 @@ export default function AiTradeSetup() {
             description: 'No trading opportunities right now',
           });
         }
+      }).catch((err) => {
+        if (import.meta.env.DEV) console.error('[ALTIS] triggerEvaluation failed:', err);
       });
     } catch {
       toast.error('Failed to activate. Try again.');

@@ -82,6 +82,22 @@ export const ALTIS_STRATEGIES = {
     textClass: 'text-cyan-400',
     bestRegime: 'Always',
   },
+  micro_scalp: {
+    type: 'micro_scalp',
+    label: 'Micro-Scalp',
+    shortLabel: 'Scalp',
+    icon: '⚡',
+    description: 'Micro-profit every hour. High win rate, low risk per trade.',
+    longDescription: 'Opens and closes positions rapidly, capturing 0.5-2% per trade. Multiple simultaneous positions with small sizing. CoinTech2U methodology.',
+    minCapital: 50,
+    riskPerTrade: 5,
+    maxLeverage: 3,
+    riskLevel: 'low' as const,
+    chartColor: '#f97316',
+    bgClass: 'bg-orange-500',
+    textClass: 'text-orange-400',
+    bestRegime: 'ALL',
+  },
 } as const;
 
 export type StrategyType = keyof typeof ALTIS_STRATEGIES;
