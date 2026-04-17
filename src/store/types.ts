@@ -331,6 +331,7 @@ export interface LearnSlice {
   learnProgress: LearnProgress;
   completeLesson: (lessonId: string) => void;
   unlockTrack: (trackId: string) => void;
+  resetLearnProgress: () => void;
 }
 
 export interface SubscriptionSlice {

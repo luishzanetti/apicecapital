@@ -52,6 +52,9 @@ import {
     Check,
     CheckCircle2,
     Info,
+    Award,
+    Trophy,
+    GraduationCap,
 } from 'lucide-react';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
@@ -85,6 +88,7 @@ export default function Settings() {
     const subscription = useAppStore((s) => s.subscription);
     const daysActive = useAppStore((s) => s.daysActive);
     const theme = useAppStore((s) => s.theme);
+    const resetLearnProgress = useAppStore((s) => s.resetLearnProgress);
 
     // Bybit Connection State
     const [showBybitModal, setShowBybitModal] = useState(false);
@@ -336,6 +340,43 @@ export default function Settings() {
                     label: t('settings.language'),
                     sub: t('settings.languageSub'),
                     action: () => setShowLanguageModal(true),
+                },
+            ]
+        },
+        {
+            title: 'Apice Academy',
+            items: [
+                {
+                    icon: Award,
+                    label: 'View Badges',
+                    sub: 'Every achievement you have unlocked',
+                    action: () => navigate('/badges'),
+                },
+                {
+                    icon: Trophy,
+                    label: 'View Challenges',
+                    sub: 'Daily, weekly and seasonal missions',
+                    action: () => navigate('/challenges'),
+                },
+                {
+                    icon: GraduationCap,
+                    label: 'Open Academy',
+                    sub: 'Learning tracks, lessons, and XP progress',
+                    action: () => navigate('/learn'),
+                },
+                {
+                    icon: RotateCcw,
+                    label: 'Reset Learning Progress',
+                    sub: 'Clears local lessons, streak, and earned badges',
+                    action: () => {
+                        const confirmed = window.confirm(
+                            'Reset Academy progress? This clears your local lesson completions, streak, XP, and earned badges on this device. This cannot be undone.'
+                        );
+                        if (!confirmed) return;
+                        resetLearnProgress();
+                        toast.success('Academy progress reset');
+                    },
+                    variant: 'destructive',
                 },
             ]
         },

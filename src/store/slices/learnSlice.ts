@@ -36,4 +36,23 @@ export const createLearnSlice: SliceCreator<LearnSlice> = (set) => ({
         unlockedTracks: [...new Set([...state.learnProgress.unlockedTracks, trackId])],
       },
     })),
+
+  // Resets the local gamified learning state — clears completed lessons,
+  // streak, and earned-badge cache. Remote (server-side) XP/streaks managed
+  // by the education-progress edge function are NOT reset here; that requires
+  // a dedicated admin action.
+  resetLearnProgress: () =>
+    set(() => ({
+      learnProgress: { ...defaultLearnProgress },
+      completedLessons: [],
+      lessonScores: {},
+      earnedBadges: [],
+      totalXP: 0,
+      level: 1,
+      levelTitle: 'Novice',
+      nextLevelThreshold: 300,
+      streak: 0,
+      longestStreak: 0,
+      lastActiveDate: null,
+    })),
 });

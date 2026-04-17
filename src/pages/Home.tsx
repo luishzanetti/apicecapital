@@ -17,6 +17,7 @@ import { AiAdvisorChat } from '@/components/ai/AiAdvisorChat';
 import { AiPortfolioScore } from '@/components/ai/AiPortfolioScore';
 import { ExplosivePicksWidget } from '@/components/home/ExplosivePicksWidget';
 import { InsufficientFundsAlert } from '@/components/balance/InsufficientFundsAlert';
+import { AcademyHomeWidget } from '@/components/academy/AcademyHomeWidget';
 // EarnSuggestionCard removed — not relevant for the app
 import {
   TrendingUp, PieChart, BookOpen, Sparkles, Zap, Award, Settings2,
@@ -260,15 +261,23 @@ export default function Home() {
               </div>
             </motion.div>
 
-            {/* Explosive Picks AI Widget */}
+            {/* Apice Academy — compact progress + continue lesson CTA */}
             <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp}>
+              <SectionHeader icon={BookOpen} label="Apice Academy" action={{ label: 'View Academy', onClick: () => navigate('/learn') }} />
+              <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Academy unavailable</div>}>
+                <AcademyHomeWidget />
+              </ErrorBoundary>
+            </motion.div>
+
+            {/* Explosive Picks AI Widget */}
+            <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
               <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Explosive picks unavailable</div>}>
                 <ExplosivePicksWidget />
               </ErrorBoundary>
             </motion.div>
 
             {/* Today's Context */}
-            <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
+            <motion.div initial="hidden" animate="visible" custom={5} variants={fadeUp}>
               <SectionHeader icon={Sparkles} label="Today's Context" />
               <button
                 onClick={() => navigate(getInsightRoute(todayInsight.type))}
