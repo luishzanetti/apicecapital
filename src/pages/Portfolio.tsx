@@ -23,6 +23,7 @@ import { SpotHoldingsTable } from '@/components/portfolio/SpotHoldingsTable';
 import { AccountOverviewCard } from '@/components/portfolio/AccountOverviewCard';
 import { DCATracker } from '@/components/portfolio/DCATracker';
 import { PerformanceMetrics } from '@/components/portfolio/PerformanceMetrics';
+import { QuickTransferButton } from '@/components/transfer';
 import {
   DollarSign, ChevronRight, Edit3, Check,
   Wallet, PieChart, Lock, Key,
@@ -163,6 +164,12 @@ export default function Portfolio() {
             <h1 className="text-2xl font-bold tracking-tight mt-0.5">{t('nav.portfolio')}</h1>
           </div>
           <div className="flex items-center gap-2">
+            <QuickTransferButton
+              label="Transfer"
+              initiatedFrom="portfolio_header"
+              className="h-9 rounded-full border-primary/20 bg-primary/10 text-primary hover:bg-primary/20"
+              onViewHistory={() => setActiveTab('history')}
+            />
             <button
               onClick={() => setShowAddMenu(true)}
               className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"

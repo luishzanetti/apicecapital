@@ -84,6 +84,72 @@ export async function bybitGet(
   return json.result;
 }
 
+// ─── Bybit Inter-Account Transfer ───────────────────────────
+//
+// Executes POST /v5/asset/transfer/inter-transfer.
+//
+// Returns the raw Bybit envelope ({ retCode, retMsg, result, time }) rather
+// than unwrapping + throwing, because the transfer flow needs to inspect
+// retCode to drive DB persistence (pending → success/failed) and decide
+// whether to retry (retryable codes 10006/10016/10017) vs. fail fast.
+//
+// Bybit rejects duplicate calls with the same `transferId`, which gives us
+// idempotency for free — callers SHOULD pass a UUID they persisted first.
+
+export interface BybitInterTransferParams {
+  transferId: string;   // idempotency key (our UUID)
+  coin: string;
+  amount: string;       // string with up to 8 decimals per Bybit spec
+  fromAccountType: 'SPOT' | 'UNIFIED' | 'FUND' | 'CONTRACT';
+  toAccountType: 'SPOT' | 'UNIFIED' | 'FUND' | 'CONTRACT';
+}
+
+export interface BybitEnvelope<T = unknown> {
+  retCode: number;
+  retMsg: string;
+  result: T;
+  time?: number;
+}
+
+export async function bybitInterTransfer(
+  apiKey: string,
+  apiSecret: string,
+  params: BybitInterTransferParams,
+  isTestnet = false,
+): Promise<BybitEnvelope<{ transferId?: string; status?: string }>> {
+  const baseURL = isTestnet ? 'https://api-testnet.bybit.com' : 'https://api.bybit.com';
+  const timestamp = Date.now().toString();
+  const recvWindow = '5000';
+  const bodyStr = JSON.stringify(params);
+  const signature = await hmacSHA256(apiSecret, `${timestamp}${apiKey}${recvWindow}${bodyStr}`);
+
+  const res = await fetch(`${baseURL}/v5/asset/transfer/inter-transfer`, {
+    method: 'POST',
+    headers: {
+      'X-BAPI-API-KEY': apiKey,
+      'X-BAPI-SIGN': signature,
+      'X-BAPI-SIGN-TYPE': '2',
+      'X-BAPI-TIMESTAMP': timestamp,
+      'X-BAPI-RECV-WINDOW': recvWindow,
+      'Content-Type': 'application/json',
+    },
+    body: bodyStr,
+  });
+
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '');
+    // Normalise transport errors into envelope shape so callers only handle one type
+    return {
+      retCode: res.status,
+      retMsg: `HTTP ${res.status} ${res.statusText} — ${errBody}`,
+      result: {},
+    };
+  }
+
+  const json = (await res.json()) as BybitEnvelope<{ transferId?: string; status?: string }>;
+  return json;
+}
+
 // ─── Symbol Mapping ─────────────────────────────────────────
 
 export const ASSET_TO_SYMBOL: Record<string, string> = {

@@ -58,6 +58,8 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { encrypt } from '@/lib/crypto';
 import { invokeEdgeFunction } from '@/lib/supabaseFunction';
+import { AccountTransferModal } from '@/components/transfer';
+import { ArrowLeftRight } from 'lucide-react';
 
 // Bybit API key validation schema
 const bybitCredentialsSchema = z.object({
@@ -97,6 +99,7 @@ export default function Settings() {
     const [showNotifModal, setShowNotifModal] = useState(false);
     const [showAppearanceModal, setShowAppearanceModal] = useState(false);
     const [showLanguageModal, setShowLanguageModal] = useState(false);
+    const [showTransferModal, setShowTransferModal] = useState(false);
     const [emailCopied, setEmailCopied] = useState(false);
     const [notifEnabled, setNotifEnabled] = useState(true);
 
@@ -258,7 +261,20 @@ export default function Settings() {
         }
     };
 
-    const menuSections = [
+    const menuSections: Array<{
+        title: string;
+        items: Array<{
+            icon: typeof User;
+            label: string;
+            sub: string;
+            action: () => void;
+            badge?: string | null;
+            badgeColor?: string;
+            iconOverride?: string;
+            variant?: string;
+            disabled?: boolean;
+        }>;
+    }> = [
         {
             title: t('settings.accountAndSecurity'),
             items: [
@@ -276,6 +292,21 @@ export default function Settings() {
                     badge: isConnected ? t('settings.connected') : null,
                     badgeColor: isConnected ? "bg-green-500/10 text-green-500 border-green-500/20" : "",
                     iconOverride: isConnected ? "bg-green-500/10 text-green-500" : undefined,
+                },
+                {
+                    icon: ArrowLeftRight,
+                    label: 'Transfer Between Accounts',
+                    sub: isConnected
+                        ? 'Move funds between Spot, Unified, Funding, and Contract'
+                        : 'Connect Bybit to enable transfers',
+                    action: () => {
+                        if (!isConnected) {
+                            setShowBybitModal(true);
+                            return;
+                        }
+                        setShowTransferModal(true);
+                    },
+                    disabled: !isConnected,
                 },
                 {
                     icon: CreditCard,
@@ -761,6 +792,13 @@ export default function Settings() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* ─── Transfer Between Accounts Modal ─── */}
+            <AccountTransferModal
+                isOpen={showTransferModal}
+                onClose={() => setShowTransferModal(false)}
+                initiatedFrom="settings"
+            />
 
             {/* ─── Bybit Connection Modal ─── */}
             <Dialog open={showBybitModal} onOpenChange={setShowBybitModal}>
