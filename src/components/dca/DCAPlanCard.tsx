@@ -7,6 +7,7 @@ import { getNextExecutionDate } from '@/lib/dca';
 import { DCAPlan, useAppStore } from '@/store/appStore';
 import { dcaAssets } from '@/data/sampleData';
 import { useDCAExecution, type DCAExecution } from '@/hooks/useDCAExecution';
+import { BalanceHealthBadge } from '@/components/balance/BalanceHealthBadge';
 import {
   Play,
   Pause,
@@ -154,6 +155,10 @@ export function DCAPlanCard({ plan }: DCAPlanCardProps) {
                   <Timer className="w-3 h-3 mr-0.5" />
                   {countdown.label}
                 </Badge>
+              )}
+              {/* Fund health badge — hide when green to reduce visual noise */}
+              {plan.isActive && (
+                <BalanceHealthBadge planId={plan.id} hideWhenGreen />
               )}
             </div>
             <div className="flex gap-1.5 ml-2 shrink-0">

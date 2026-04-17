@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +16,7 @@ import { AiInsightCard } from '@/components/ai/AiInsightCard';
 import { AiAdvisorChat } from '@/components/ai/AiAdvisorChat';
 import { AiPortfolioScore } from '@/components/ai/AiPortfolioScore';
 import { ExplosivePicksWidget } from '@/components/home/ExplosivePicksWidget';
+import { InsufficientFundsAlert } from '@/components/balance/InsufficientFundsAlert';
 // EarnSuggestionCard removed — not relevant for the app
 import {
   TrendingUp, PieChart, BookOpen, Sparkles, Zap, Award, Settings2,
@@ -109,6 +110,14 @@ export default function Home() {
   // Auto-execute due DCA plans on app load + every 5 min
   useAutoDCA();
 
+  // Refresh balances/alerts on Home mount so the InsufficientFundsAlert banner
+  // reflects current Bybit state without waiting on the nightly cron.
+  const refreshBalances = useAppStore((s) => s.refreshBalances);
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    void refreshBalances();
+  }, [refreshBalances]);
+
   // ── Store selectors ────────────────────────────────────────────────────────
   const investorType = useAppStore((s) => s.investorType);
   const currentInsightIndex = useAppStore((s) => s.currentInsightIndex);
@@ -172,6 +181,13 @@ export default function Home() {
             </p>
           </div>
         )}
+
+        {/* ── Insufficient Funds Alert (critical / blocked) ─────────────── */}
+        <div className="px-4 md:px-6 mt-4">
+          <ErrorBoundary fallback={null}>
+            <InsufficientFundsAlert />
+          </ErrorBoundary>
+        </div>
 
         {/* ── Greeting Bar ────────────────────────────────────────────────── */}
         <motion.div
