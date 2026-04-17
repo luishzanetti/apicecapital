@@ -10,6 +10,8 @@ import { AuthProvider, useAuth } from "@/components/AuthProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
+import { LevelUpCelebration } from "@/components/academy/LevelUpCelebration";
+import { BadgeEarnedModal } from "@/components/academy/BadgeEarnedModal";
 
 const Landing = lazy(() => import("./pages/AiTradeLanding"));
 const Splash = lazy(() => import("./pages/Splash"));
@@ -26,6 +28,8 @@ const DCAPlanner = lazy(() => import("./pages/DCAPlanner"));
 const Learn = lazy(() => import("./pages/Learn"));
 const LessonPlayerPage = lazy(() => import("./pages/LessonPlayerPage"));
 const ActivationChallenge = lazy(() => import("./pages/ActivationChallenge"));
+const Badges = lazy(() => import("./pages/Badges"));
+const Challenges = lazy(() => import("./pages/Challenges"));
 const Settings = lazy(() => import("./pages/Settings"));
 const ReferralLinks = lazy(() => import("./pages/ReferralLinks"));
 const Upgrade = lazy(() => import("./pages/Upgrade"));
@@ -124,6 +128,8 @@ function AppContent() {
 
   return (
     <Suspense fallback={<AppLoading />}>
+    <LevelUpCelebration />
+    <BadgeEarnedModal />
     <Routes>
       <Route path="/landing" element={<Landing />} />
       <Route path="/splash" element={<Splash />} />
@@ -144,6 +150,8 @@ function AppContent() {
         <Route path="/learn" element={<Learn />} />
         <Route path="/learn/lesson/:lessonId" element={<LessonPlayerPage />} />
         <Route path="/learn/:trackId/:lessonId" element={<LegacyLessonRedirect />} />
+        <Route path="/badges" element={<Badges />} />
+        <Route path="/challenges" element={<Challenges />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/referrals" element={<ReferralLinks />} />
         <Route path="/upgrade" element={<Upgrade />} />

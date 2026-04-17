@@ -223,7 +223,7 @@ export default function Learn() {
         <div className="grid grid-cols-2 gap-3 pt-2">
           <button
             type="button"
-            onClick={() => navigate('/learn#badges')}
+            onClick={() => navigate('/badges')}
             className="rounded-2xl border border-border/60 bg-card p-4 text-left hover:border-primary/40 transition-all active:scale-[0.98]"
           >
             <div className="flex items-center gap-3 mb-2">
@@ -239,7 +239,7 @@ export default function Learn() {
 
           <button
             type="button"
-            onClick={() => navigate('/activation-challenge')}
+            onClick={() => navigate('/challenges')}
             className="rounded-2xl border border-border/60 bg-card p-4 text-left hover:border-primary/40 transition-all active:scale-[0.98]"
           >
             <div className="flex items-center gap-3 mb-2">

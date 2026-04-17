@@ -530,20 +530,109 @@ serve(async (req) => {
         earnedAt: now,
       }));
 
+      // 11. Challenge engine integration — evaluate active challenges.
+      //     Fires triggers in order: lesson_completed, streak_reached (if streak
+      //     advanced), track_completed (if a new track finished this call).
+      const priorStreak = userXp.current_streak ?? 0;
+      const priorTracksCompleted = userXp.tracks_completed ?? 0;
+      const streakAdvanced = newStreak > priorStreak;
+      const trackJustCompleted = tracksCompleted > priorTracksCompleted;
+
+      // Resolve trackSlug for metadata (helps track-scoped rules)
+      let trackSlug: string | undefined;
+      const { data: trackRow } = await admin
+        .from('learning_tracks')
+        .select('slug')
+        .eq('id', lessonRow.track_id)
+        .maybeSingle();
+      if (trackRow?.slug) trackSlug = trackRow.slug as string;
+
+      const aggregatedChallenges: Array<Record<string, unknown>> = [];
+      let aggregatedChallengeXp = 0;
+      const aggregatedChallengeBadges: Array<Record<string, unknown>> = [];
+
+      async function invokeChallengeEngine(
+        trigger: string,
+        metadata: Record<string, unknown>
+      ): Promise<void> {
+        try {
+          const res = await fetch(`${supabaseUrl}/functions/v1/challenge-engine`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${serviceKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'evaluate',
+              userId: user.id,
+              trigger,
+              metadata,
+            }),
+          });
+          if (!res.ok) {
+            console.error('[education-progress] challenge-engine non-200:', res.status);
+            return;
+          }
+          const json = await res.json().catch(() => ({}));
+          const data = json?.data;
+          if (!data) return;
+          if (Array.isArray(data.completedChallenges)) {
+            aggregatedChallenges.push(...data.completedChallenges);
+          }
+          if (typeof data.xpAwarded === 'number') {
+            aggregatedChallengeXp += data.xpAwarded;
+          }
+          if (Array.isArray(data.badgesUnlocked)) {
+            aggregatedChallengeBadges.push(...data.badgesUnlocked);
+          }
+        } catch (err) {
+          const message = err instanceof Error ? err.message : 'Unknown error';
+          console.error('[education-progress] challenge-engine error:', message);
+        }
+      }
+
+      await invokeChallengeEngine('lesson_completed', {
+        lessonId,
+        trackId: lessonRow.track_id,
+        trackSlug,
+      });
+
+      if (streakAdvanced) {
+        await invokeChallengeEngine('streak_reached', {
+          streakDays: newStreak,
+        });
+      }
+
+      if (trackJustCompleted) {
+        await invokeChallengeEngine('track_completed', {
+          trackId: lessonRow.track_id,
+          trackSlug,
+        });
+      }
+
+      // Merge challenge rewards into response.
+      const mergedXpAwarded = xpAwarded + aggregatedChallengeXp;
+      const mergedBadges = [...badgesUnlocked, ...aggregatedChallengeBadges];
+      // Reflect challenge XP in totalXp snapshot returned to client.
+      const mergedTotalXp = newTotalXp + aggregatedChallengeXp;
+      const mergedLevelInfo = aggregatedChallengeXp > 0 ? calculateLevel(mergedTotalXp) : { level: newLevel, title: newTitle, nextThreshold };
+      const mergedLeveledUp = mergedLevelInfo.level > oldLevel;
+
       return new Response(
         JSON.stringify({
           data: {
-            xpAwarded,
-            totalXp: newTotalXp,
-            level: newLevel,
-            title: newTitle,
-            nextThreshold,
-            leveledUp,
+            xpAwarded: mergedXpAwarded,
+            totalXp: mergedTotalXp,
+            level: mergedLevelInfo.level,
+            title: mergedLevelInfo.title,
+            nextThreshold: mergedLevelInfo.nextThreshold,
+            leveledUp: mergedLeveledUp,
             streak: newStreak,
             longestStreak: newLongest,
             lessonsCompleted: newLessonsCompleted,
             tracksCompleted,
-            badgesUnlocked,
+            badgesUnlocked: mergedBadges,
+            completedChallenges: aggregatedChallenges,
           },
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

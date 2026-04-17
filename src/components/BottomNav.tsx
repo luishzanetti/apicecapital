@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Home, PieChart, Compass, BookOpen, MoreHorizontal, BarChart3, CalendarClock, Crown, Headphones, User, Gift, X, Bot } from 'lucide-react';
+import { Home, PieChart, Compass, BookOpen, MoreHorizontal, BarChart3, CalendarClock, Crown, Headphones, User, Gift, X, Bot, Award, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -23,6 +23,8 @@ export function BottomNav() {
     { to: '/strategies', icon: Compass, label: t('nav.strategies'), desc: 'Explore all investment strategies' },
     { to: '/analytics', icon: BarChart3, label: t('nav.analytics'), desc: t('nav.analyticsDesc') },
     { to: '/learn', icon: BookOpen, label: t('nav.learn'), desc: 'Courses and educational content' },
+    { to: '/challenges', icon: Trophy, label: 'Challenges', desc: 'Daily, weekly & seasonal missions' },
+    { to: '/badges', icon: Award, label: 'Badges', desc: 'Your trophy room of achievements' },
     { to: '/settings', icon: User, label: t('nav.profileSettings'), desc: t('nav.profileSettingsDesc') },
     { to: '/upgrade', icon: Crown, label: t('nav.upgrade'), desc: t('nav.upgradeDesc') },
     { to: '/referrals', icon: Gift, label: t('nav.referrals'), desc: t('nav.referralsDesc') },
