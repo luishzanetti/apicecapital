@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/appStore";
 import { useEffect, lazy, Suspense } from "react";
@@ -24,7 +24,7 @@ const PortfolioDetail = lazy(() => import("./pages/PortfolioDetail"));
 const Strategies = lazy(() => import("./pages/Strategies"));
 const DCAPlanner = lazy(() => import("./pages/DCAPlanner"));
 const Learn = lazy(() => import("./pages/Learn"));
-const LessonDetail = lazy(() => import("./pages/LessonDetail"));
+const LessonPlayerPage = lazy(() => import("./pages/LessonPlayerPage"));
 const ActivationChallenge = lazy(() => import("./pages/ActivationChallenge"));
 const Settings = lazy(() => import("./pages/Settings"));
 const ReferralLinks = lazy(() => import("./pages/ReferralLinks"));
@@ -83,6 +83,12 @@ function AppLoading() {
   );
 }
 
+// Legacy redirect: /learn/:trackId/:lessonId → /learn/lesson/:lessonId
+const LegacyLessonRedirect = () => {
+  const { lessonId } = useParams<{ lessonId: string }>();
+  return <Navigate to={`/learn/lesson/${lessonId ?? ''}`} replace />;
+};
+
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, loading } = useAuth();
@@ -136,7 +142,8 @@ function AppContent() {
         <Route path="/ai-trade" element={<AiTradeDashboard />} />
         <Route path="/ai-trade/setup" element={<AiTradeSetup />} />
         <Route path="/learn" element={<Learn />} />
-        <Route path="/learn/:trackId/:lessonId" element={<LessonDetail />} />
+        <Route path="/learn/lesson/:lessonId" element={<LessonPlayerPage />} />
+        <Route path="/learn/:trackId/:lessonId" element={<LegacyLessonRedirect />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/referrals" element={<ReferralLinks />} />
         <Route path="/upgrade" element={<Upgrade />} />

@@ -88,6 +88,30 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* ─── Academy Tokens ─── */
+    /* World theme gradients — one per track */
+    --world-foundation: 212 100% 62%;   /* Azure */
+    --world-dca: 152 72% 52%;           /* Emerald */
+    --world-portfolio: 265 90% 68%;     /* Violet */
+    --world-market: 190 95% 60%;        /* Cyan */
+    --world-altis: 348 90% 62%;         /* Crimson */
+    --world-mindset: 38 92% 58%;        /* Gold */
+    --world-capital: 280 80% 65%;       /* Purple */
+
+    /* Badge rarities */
+    --rarity-common: 220 8% 60%;
+    --rarity-rare: 212 100% 62%;
+    --rarity-epic: 265 90% 68%;
+    --rarity-legendary: 38 92% 58%;
+    --rarity-mythic: 348 90% 62%;
+
+    /* Flame tiers for streaks */
+    --flame-cold: 210 60% 55%;
+    --flame-warm: 38 92% 58%;
+    --flame-hot: 18 95% 55%;
+    --flame-blue: 212 100% 62%;
+    --flame-purple: 265 90% 68%;
   }
 
   .dark {
@@ -170,6 +194,30 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 228 20% 15%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* ─── Academy Tokens (dark) ─── */
+    /* World theme gradients — one per track */
+    --world-foundation: 212 100% 68%;
+    --world-dca: 152 72% 58%;
+    --world-portfolio: 265 90% 72%;
+    --world-market: 190 95% 65%;
+    --world-altis: 348 90% 65%;
+    --world-mindset: 38 92% 62%;
+    --world-capital: 280 80% 68%;
+
+    /* Badge rarities */
+    --rarity-common: 220 8% 65%;
+    --rarity-rare: 212 100% 68%;
+    --rarity-epic: 265 90% 72%;
+    --rarity-legendary: 38 92% 62%;
+    --rarity-mythic: 348 90% 65%;
+
+    /* Flame tiers for streaks */
+    --flame-cold: 210 60% 60%;
+    --flame-warm: 38 92% 62%;
+    --flame-hot: 18 95% 60%;
+    --flame-blue: 212 100% 68%;
+    --flame-purple: 265 90% 72%;
   }
 }
 
@@ -681,6 +729,25 @@
   50% {
     box-shadow: 0 0 12px hsl(var(--primary) / 0.7);
   }
+}
+
+/* ─── Academy animations ─── */
+@keyframes path-draw {
+  from { stroke-dashoffset: 1000; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes node-pop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes flame-flicker {
+  0%, 100% { transform: scaleY(1) rotate(-1deg); }
+  25% { transform: scaleY(1.08) rotate(1deg); }
+  50% { transform: scaleY(0.95) rotate(-2deg); }
+  75% { transform: scaleY(1.04) rotate(1.5deg); }
 }
 
 /* ══════════════════════════════════════
