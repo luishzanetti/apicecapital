@@ -29,7 +29,6 @@ import {
   Rocket,
   Flame,
   Crown,
-  CircleDot,
 } from 'lucide-react';
 
 interface StrategyCard {
@@ -108,7 +107,7 @@ const ONBOARDING_SLIDES = [
     body: 'Alone, each strategy delivers results. Together, they create a multiplier effect:',
     highlight: null,
     synergy: [
-      { icon: ArrowRightLeft, color: 'text-blue-400', bg: 'bg-blue-500/10', title: 'DCA builds the foundation', desc: 'Consistent weekly contributions accumulate wealth automatically' },
+      { icon: ArrowRightLeft, color: 'text-emerald-300', bg: 'bg-blue-500/10', title: 'DCA builds the foundation', desc: 'Consistent weekly contributions accumulate wealth automatically' },
       { icon: CreditCard, color: 'text-amber-400', bg: 'bg-amber-500/10', title: 'Cashback accelerates', desc: 'Every purchase becomes more BTC with zero extra investment' },
       { icon: PieChart, color: 'text-violet-400', bg: 'bg-violet-500/10', title: 'Portfolios diversify', desc: 'Intelligent allocation reduces risk and maximizes returns' },
       { icon: Bot, color: 'text-emerald-400', bg: 'bg-emerald-500/10', title: 'AI optimizes everything', desc: 'Automated rebalancing and timing 24/7' },
@@ -210,7 +209,7 @@ function StrategyOnboarding({
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.15 + i * 0.08 }}
-                      className="flex items-start gap-3 p-3 rounded-xl bg-card border border-border/30"
+                      className="flex items-start gap-3 p-3 rounded-xl bg-card border border-white/10"
                     >
                       <div className={`w-8 h-8 rounded-lg ${item.bg} flex items-center justify-center shrink-0`}>
                         <SynergyIcon className={`w-4 h-4 ${item.color}`} />
@@ -349,14 +348,32 @@ const COPY_PORTFOLIO_TIERS: CopyPortfolioTier[] = [
 ];
 
 function RiskDots({ level, max = 5 }: { level: number; max?: number }) {
+  const tone =
+    level <= 2
+      ? { fill: '#16A661', glow: 'rgba(56,214,138,0.45)', label: 'Low risk' }
+      : level === 3
+      ? { fill: '#F5B544', glow: 'rgba(245,181,68,0.45)', label: 'Moderate risk' }
+      : { fill: '#F43F5E', glow: 'rgba(251,113,133,0.45)', label: 'High risk' };
+
   return (
-    <div className="flex gap-0.5">
-      {Array.from({ length: max }).map((_, i) => (
-        <CircleDot
-          key={i}
-          className={`w-3 h-3 ${i < level ? 'text-primary' : 'text-muted-foreground/20'}`}
-        />
-      ))}
+    <div
+      className="flex items-center gap-1"
+      role="img"
+      aria-label={`${tone.label} \u2014 ${level} of ${max}`}
+    >
+      {Array.from({ length: max }).map((_, i) => {
+        const active = i < level;
+        return (
+          <span
+            key={i}
+            className="w-2 h-2 rounded-full transition-colors"
+            style={{
+              backgroundColor: active ? tone.fill : 'rgba(255,255,255,0.12)',
+              boxShadow: active ? `0 0 6px ${tone.glow}` : 'none',
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -617,17 +634,17 @@ export default function Strategies() {
 
                     {/* Stats row */}
                     <div className="grid grid-cols-3 gap-3 mb-3">
-                      <div className="p-2.5 rounded-lg bg-secondary/50 text-center">
+                      <div className="p-2.5 rounded-lg bg-white/[0.05] text-center">
                         <p className="text-[11px] text-muted-foreground mb-0.5">Target Annual</p>
                         <p className="text-sm font-bold text-primary">{tier.targetReturn}</p>
                       </div>
-                      <div className="p-2.5 rounded-lg bg-secondary/50 text-center">
+                      <div className="p-2.5 rounded-lg bg-white/[0.05] text-center">
                         <p className="text-[11px] text-muted-foreground mb-0.5">Risk Level</p>
                         <div className="flex justify-center mt-0.5">
                           <RiskDots level={tier.riskLevel} />
                         </div>
                       </div>
-                      <div className="p-2.5 rounded-lg bg-secondary/50 text-center">
+                      <div className="p-2.5 rounded-lg bg-white/[0.05] text-center">
                         <p className="text-[11px] text-muted-foreground mb-0.5">Assets</p>
                         <p className="text-sm font-bold">{tier.assets.length}</p>
                       </div>
@@ -695,26 +712,26 @@ export default function Strategies() {
 
         {/* Strategy Metrics */}
         <motion.div variants={itemVariants}>
-          <Card className="bg-gradient-to-br from-card to-card/80">
+          <Card className="bg-gradient-to-br from-emerald-500/5 to-transparent">
             <CardContent className="pt-5">
               <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-primary" />
                 Strategy Principles
               </h3>
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-xl bg-secondary/50 text-center">
+                <div className="p-3 rounded-xl bg-white/[0.05] text-center">
                   <p className="text-2xl font-bold text-primary">94%</p>
                   <p className="text-[11px] text-muted-foreground">4yr BTC DCA = positive returns</p>
                 </div>
-                <div className="p-3 rounded-xl bg-secondary/50 text-center">
+                <div className="p-3 rounded-xl bg-white/[0.05] text-center">
                   <p className="text-2xl font-bold text-primary">∞</p>
                   <p className="text-[11px] text-muted-foreground">Compounding never stops</p>
                 </div>
-                <div className="p-3 rounded-xl bg-secondary/50 text-center">
+                <div className="p-3 rounded-xl bg-white/[0.05] text-center">
                   <p className="text-2xl font-bold text-primary">5+</p>
                   <p className="text-[11px] text-muted-foreground">Diversification strategies</p>
                 </div>
-                <div className="p-3 rounded-xl bg-secondary/50 text-center">
+                <div className="p-3 rounded-xl bg-white/[0.05] text-center">
                   <p className="text-2xl font-bold text-primary">$5</p>
                   <p className="text-[11px] text-muted-foreground">Minimum to start</p>
                 </div>
@@ -725,7 +742,7 @@ export default function Strategies() {
 
         {/* Trust Message */}
         <motion.div variants={itemVariants}>
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-white/[0.05]">
             <Shield className="w-5 h-5 text-muted-foreground shrink-0" />
             <p className="text-xs text-muted-foreground">
               Your funds remain on your exchange. No withdrawal access.

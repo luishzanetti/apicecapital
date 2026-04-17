@@ -1,0 +1,35 @@
+<!-- Apice Capital · iOS App Icon (wordmark alt) · 2026-04-17 -->
+<!--
+  Same superellipse mask as primary. Wordmark "Apice." centered.
+  Font: Geist 700 (outlined for brand consistency across devices where Geist isn't installed).
+  Wordmark height ≈ 32% of canvas (328px). Optical centering: baseline shifted +24px
+  below geometric center to account for x-height versus cap-height visual mass.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Apice Capital app icon (wordmark)">
+  <defs>
+    <clipPath id="squircle">
+      <path d="M 512,0
+               C 741.12,0 832.00,0 918.00,106.00
+               C 1024.00,192.00 1024.00,282.88 1024.00,512
+               C 1024.00,741.12 1024.00,832.00 918.00,918.00
+               C 832.00,1024.00 741.12,1024.00 512,1024
+               C 282.88,1024.00 192.00,1024.00 106.00,918.00
+               C 0.00,832.00 0.00,741.12 0.00,512
+               C 0.00,282.88 0.00,192.00 106.00,106.00
+               C 192.00,0.00 282.88,0.00 512,0 Z"/>
+    </clipPath>
+    <style><![CDATA[
+      .wm { font-family: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+            font-weight: 700; font-size: 240px; letter-spacing: -7.2px; fill: #F7F3ED; }
+      .dot { fill: #16A661; }
+    ]]></style>
+  </defs>
+
+  <g clip-path="url(#squircle)">
+    <rect width="1024" height="1024" fill="#0E0E12"/>
+    <!-- "Apice" centered, baseline optically adjusted -->
+    <text x="512" y="592" class="wm" text-anchor="middle">Apice</text>
+    <!-- Signature dot, positioned at baseline after "e" -->
+    <circle cx="766" cy="574" r="22" class="dot"/>
+  </g>
+</svg>

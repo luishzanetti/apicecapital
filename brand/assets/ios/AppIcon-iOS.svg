@@ -1,0 +1,40 @@
+<!-- Apice Capital · iOS App Icon (primary) · superellipse mask · v2 · Uma 2026-04-17 -->
+<!--
+  CEO revert (D6.2): wordmark centered, not dot-only.
+  Superellipse formula: (x/a)^n + (y/b)^n = 1, n ≈ 5 (Apple iOS 7+ icon mask).
+  Path from @apple-ux (8 cubic beziers, one per octant, 44.8% shoulder for G2 continuity).
+  Canvas 1024×1024. Margin 0 (full-bleed — iOS applies no additional mask).
+  Wordmark: "Apice" Geist 700, cream #F7F3ED, cap-height ~180px (font-size 254), tracking -30.
+  Dot: Ø22, emerald #16A661 (signature locked — never inverts).
+  Optical balance: baseline y=545, ~16px upward bias from geometric center.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Apice Capital app icon">
+  <title>Apice Capital iOS app icon</title>
+  <defs>
+    <!-- Apple superellipse path, n≈5, scaled to 1024×1024 -->
+    <clipPath id="squircle">
+      <path d="M 512,0
+               C 741.12,0 832.00,0 918.00,106.00
+               C 1024.00,192.00 1024.00,282.88 1024.00,512
+               C 1024.00,741.12 1024.00,832.00 918.00,918.00
+               C 832.00,1024.00 741.12,1024.00 512,1024
+               C 282.88,1024.00 192.00,1024.00 106.00,918.00
+               C 0.00,832.00 0.00,741.12 0.00,512
+               C 0.00,282.88 0.00,192.00 106.00,106.00
+               C 192.00,0.00 282.88,0.00 512,0 Z"/>
+    </clipPath>
+  </defs>
+
+  <style>
+    .wm { font-family: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 700; font-size: 254px; letter-spacing: -7.62px; fill: #F7F3ED; text-anchor: middle; }
+    .dot { fill: #16A661; }
+  </style>
+
+  <!-- Background: near-black superellipse -->
+  <g clip-path="url(#squircle)">
+    <rect width="1024" height="1024" fill="#0E0E12"/>
+    <!-- Wordmark + signature dot, clipped to superellipse for perfect edges -->
+    <text x="485" y="545" class="wm">Apice</text>
+    <circle cx="795" cy="528" r="22" class="dot"/>
+  </g>
+</svg>

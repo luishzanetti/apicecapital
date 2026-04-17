@@ -78,30 +78,27 @@ export default function SetupMissions() {
             {/* Header with overall progress */}
             <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
-                    <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center"
-                        style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7)' }}
-                    >
-                        <Trophy className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[hsl(var(--apice-emerald))]/10">
+                        <Trophy className="w-4 h-4 text-[hsl(var(--apice-emerald))]" />
                     </div>
                     <div>
-                        <p className="text-sm font-bold">Your Apice Journey</p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-[15px] font-semibold text-white">Your Apice Journey</p>
+                        <p className="text-[11px] font-mono tabular-nums text-white/55">
                             {totalXP} / {totalPossibleXP} XP · {overallPercent}% completed
                         </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="text-xs font-bold text-amber-400">{totalXP} XP</span>
+                    <Zap className="w-3.5 h-3.5 text-[hsl(var(--apice-gold))]" />
+                    <span className="text-xs font-mono font-bold tabular-nums text-[hsl(var(--apice-gold))]">{totalXP} XP</span>
                 </div>
             </div>
 
             {/* Overall progress bar */}
-            <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+            <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
                 <motion.div
                     className="h-full rounded-full"
-                    style={{ background: 'linear-gradient(90deg, #6366f1, #a855f7, #ec4899)' }}
+                    style={{ background: 'linear-gradient(90deg, hsl(var(--apice-emerald)) 0%, #38D68A 60%, #6EE7A8 100%)' }}
                     animate={{ width: `${overallPercent}%` }}
                     transition={{ duration: 0.6 }}
                 />
@@ -122,23 +119,15 @@ export default function SetupMissions() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: mission.id * 0.05 }}
                         className={cn(
-                            'rounded-2xl border overflow-hidden transition-all',
+                            'rounded-2xl border overflow-hidden transition-all backdrop-blur',
                             isComplete
-                                ? 'glass-light border-glow-success'
+                                ? 'border-emerald-500/30 bg-emerald-500/[0.04] shadow-[0_0_0_1px_rgba(16,166,97,0.12),0_10px_40px_-10px_rgba(16,166,97,0.25)]'
                                 : isActive && unlocked
-                                    ? 'glass-card border-primary/30'
+                                    ? 'border-[hsl(var(--apice-emerald))]/40 bg-white/[0.03] shadow-[0_0_0_1px_hsl(var(--apice-emerald)/0.2),0_10px_40px_-10px_hsl(var(--apice-emerald)/0.3)]'
                                     : !unlocked
-                                        ? 'border-border/30 opacity-60'
-                                        : 'glass-light'
+                                        ? 'border-white/5 bg-white/[0.01] opacity-55'
+                                        : 'border-white/10 bg-white/[0.02]'
                         )}
-                        style={
-                            isActive && unlocked && !isComplete
-                                ? {
-                                    background:
-                                        'linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.03))',
-                                }
-                                : undefined
-                        }
                     >
                         {/* Mission Header */}
                         <button
@@ -246,17 +235,19 @@ export default function SetupMissions() {
                             </div>
                         </button>
 
-                        {/* Expanded Task List */}
-                        <AnimatePresence>
+                        {/* Expanded Task List — constrained height to prevent layout bleed */}
+                        <AnimatePresence initial={false}>
                             {isExpanded && unlocked && (
                                 <motion.div
+                                    key="tasks"
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
+                                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                                     className="overflow-hidden"
+                                    style={{ maxHeight: 560 }}
                                 >
-                                    <div className="px-4 pb-3 space-y-2 border-t border-border/30 pt-3">
+                                    <div className="max-h-[500px] space-y-2 overflow-y-auto border-t border-white/10 px-4 pb-3 pt-3">
                                         {mission.tasks.map((task, idx) => {
                                             const isDone =
                                                 missionProgress[task.storeKey as keyof MissionProgress];
@@ -268,7 +259,7 @@ export default function SetupMissions() {
                                                         'flex items-start gap-3 p-3 rounded-xl transition-all',
                                                         isDone
                                                             ? 'bg-green-500/5'
-                                                            : 'bg-secondary/30 hover:bg-secondary/50'
+                                                            : 'bg-white/[0.03] hover:bg-white/[0.06] border border-white/5'
                                                     )}
                                                 >
                                                     <div

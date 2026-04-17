@@ -1,0 +1,35 @@
+<!-- Apice Capital · Apex-A stacked lockup · v1.0 · Uma 2026-04-17 -->
+<!-- Spec: brand/01-brand-foundation/logo-spec-apex-a.md · section 4 (Variations matrix) -->
+<!-- Composition: symbol centered above wordmark. Vertical gap = 0.6× symbol height (38u). -->
+<!-- Canvas: 240x160. Symbol at x=88..152 (centered, 64u wide). Wordmark centered horizontally below. -->
+<svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice Capital">
+  <title>Apice Capital</title>
+
+  <!-- ============== SYMBOL (top, centered) ============== -->
+  <!-- translate(88, 8) → symbol occupies x=88..152, y=8..72 on a 240-wide canvas. -->
+  <g id="symbol" fill="var(--apex-a-fill, currentColor)" transform="translate(88 8)">
+    <path id="sym-leg-left"  d="M 4 60 L 24 8 L 32 8 L 32 16 L 28 16 L 16 60 Z"/>
+    <path id="sym-leg-right" d="M 32 8 L 36 8 L 60 60 L 48 60 L 36 16 L 32 16 Z"/>
+    <rect id="sym-shelf" x="14" y="34" width="36" height="2"/>
+    <path id="sym-summit-tick" class="summit-tick" d="M 32 4 L 36 4 L 36 8 L 32 8 Z"/>
+  </g>
+
+  <!-- ============== WORDMARK (bottom, centered) ============== -->
+  <!-- "Apice Capital" with custom Apex-A as first letter, cap-height 28. -->
+  <!-- Symbol ends at y=72 (baseline 8+60=68, tick top at 12). Gap of ~38u before wordmark baseline. -->
+  <!-- Wordmark baseline y=118 (approx center bottom). A-glyph width 28u, translate starts x=66. -->
+  <g id="wordmark-a" fill="var(--apex-a-fill, currentColor)" transform="translate(66 80) scale(0.4375)">
+    <path d="M 4 60 L 24 8 L 32 8 L 32 16 L 28 16 L 16 60 Z"/>
+    <path d="M 32 8 L 36 8 L 60 60 L 48 60 L 36 16 L 32 16 Z"/>
+    <rect x="14" y="34" width="36" height="2"/>
+    <path class="summit-tick" d="M 32 4 L 36 4 L 36 8 L 32 8 Z"/>
+  </g>
+
+  <text x="94" y="118"
+        fill="var(--wordmark-fill, currentColor)"
+        font-family="'Geist','Inter',system-ui,-apple-system,sans-serif"
+        font-weight="600"
+        font-size="28"
+        letter-spacing="-0.28"
+        style="font-variant-ligatures:none">pice Capital</text>
+</svg>

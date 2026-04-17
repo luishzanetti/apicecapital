@@ -1,0 +1,26 @@
+<!-- Apice · og-image-default · v1 FINAL · media-head 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Apice — Build Wealth. One Week at a Time.">
+  <defs>
+    <style>
+      .bg { fill: #F7F3ED; }
+      .wm { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 148px; letter-spacing: -4.4px; fill: #0E0E12; }
+      .dot { fill: #16A661; }
+      .tag { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 28px; letter-spacing: -0.3px; fill: #0E0E12; opacity: 0.72; }
+      .eyebrow { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 16px; letter-spacing: 2.4px; fill: #0E0E12; opacity: 0.55; text-transform: uppercase; }
+      .rule { stroke: #0E0E12; stroke-width: 1; opacity: 0.12; }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="630"/>
+  <!-- eyebrow -->
+  <text class="eyebrow" x="80" y="92">APICE  ·  WEALTH PLATFORM</text>
+  <line class="rule" x1="80" y1="112" x2="1120" y2="112"/>
+  <!-- wordmark + dot -->
+  <text class="wm" x="80" y="370">Apice</text>
+  <circle class="dot" cx="614" cy="358" r="14"/>
+  <!-- tagline -->
+  <text class="tag" x="80" y="430">Build Wealth. One Week at a Time.</text>
+  <!-- bottom rule + domain -->
+  <line class="rule" x1="80" y1="518" x2="1120" y2="518"/>
+  <text class="eyebrow" x="80" y="560">APICE.CAPITAL</text>
+  <text class="eyebrow" x="1120" y="560" text-anchor="end">DCA  ·  AI TRADE  ·  ACADEMY</text>
+</svg>

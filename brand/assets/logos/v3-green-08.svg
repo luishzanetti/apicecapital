@@ -1,0 +1,25 @@
+<!-- Apice Capital · v3-green.08 · Peak Mark + lockup · Uma 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" aria-label="Apice Wealth">
+  <style>
+    .lig { font-family: 'Geist', 'Inter', sans-serif; font-weight: 700; font-size: 54px; letter-spacing: -1.62px; fill: #0E0E12; }
+    .desc { font-family: 'Geist', 'Inter', sans-serif; font-weight: 600; font-size: 9.5px; letter-spacing: 4.5px; fill: #3F3D38; }
+    .sig-bright { fill: #16A661; }
+    .sig-deep { fill: #0F5D3F; }
+    .rule { stroke: #0F5D3F; stroke-width: 1; }
+  </style>
+  <!-- Peak mark: minimal ascending stroke (20% of wordmark height ~ 11px), deep emerald -->
+  <!-- Positioned to the left of the wordmark, baseline-aligned with cap line -->
+  <path d="M 32 76 L 44 56 L 52 62 L 62 44 L 66 48 L 56 66 L 48 60 L 38 80 Z" class="sig-deep"/>
+  <!-- Wordmark with flat-apex A and cut-c -->
+  <path d="M 76 74 L 94.5 32 L 102 32 L 120.5 74 L 110.5 74 L 106 63.5 L 90.5 63.5 L 86 74 Z M 94 56.5 L 103 56.5 L 98.5 44 Z" fill="#0E0E12"/>
+  <text x="121" y="74" class="lig">pi</text>
+  <path d="M 180 45
+           A 13 13 0 1 0 180 71
+           L 187 65.5
+           A 7 7 0 1 1 187 50.5
+           Z" fill="#0E0E12"/>
+  <text x="190" y="74" class="lig">e</text>
+  <circle cx="216" cy="70.5" r="4.75" class="sig-bright"/>
+  <line x1="76" y1="84" x2="104" y2="84" class="rule"/>
+  <text x="112" y="87" class="desc">WEALTH</text>
+</svg>

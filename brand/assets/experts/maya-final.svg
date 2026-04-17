@@ -1,0 +1,47 @@
+<!-- Apice · maya-final · v1 FINAL · media-engineer 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="mayaTitle mayaDesc">
+  <title id="mayaTitle">Maya, the Deep Researcher</title>
+  <desc id="mayaDesc">Portrait of Maya — Apice on-chain researcher expert. Purple accent with subtle constellation graph motif. Brand emerald dot indicates active listening.</desc>
+  <defs>
+    <linearGradient id="bgMaya" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#DAC8EC"/>
+      <stop offset="55%" stop-color="#EAE0F1"/>
+      <stop offset="100%" stop-color="#F7F3ED"/>
+    </linearGradient>
+    <clipPath id="frameMaya"><rect width="256" height="256" rx="61" ry="61"/></clipPath>
+  </defs>
+  <g clip-path="url(#frameMaya)">
+    <rect width="256" height="256" fill="url(#bgMaya)"/>
+    <g opacity="0.6" stroke="#8E4CBF" stroke-width="1.5" fill="none" stroke-linecap="round">
+      <line x1="178" y1="48" x2="214" y2="40"/>
+      <line x1="178" y1="48" x2="200" y2="78"/>
+      <line x1="214" y1="40" x2="234" y2="66"/>
+      <line x1="200" y1="78" x2="234" y2="66"/>
+      <circle cx="178" cy="48" r="3" fill="#8E4CBF"/>
+      <circle cx="214" cy="40" r="3" fill="#8E4CBF"/>
+      <circle cx="200" cy="78" r="3" fill="#8E4CBF"/>
+      <circle cx="234" cy="66" r="3" fill="#8E4CBF"/>
+    </g>
+    <path d="M24 256 C 36 212, 74 196, 102 192 L 102 208 Q 82 216, 64 232 Q 48 246, 42 256 Z" fill="#3A3A3F"/>
+    <path d="M232 256 C 220 212, 182 196, 154 192 L 154 208 Q 174 216, 192 232 Q 208 246, 214 256 Z" fill="#3A3A3F"/>
+    <path d="M102 192 Q 128 204 154 192 L 154 208 Q 128 220 102 208 Z" fill="#494A50"/>
+    <path d="M110 200 L 146 200" stroke="#1A1A1E" stroke-width="1.3" stroke-linecap="round" opacity="0.55"/>
+    <rect x="114" y="162" width="28" height="28" rx="3" fill="#A77956"/>
+    <path d="M76 130 C 76 100, 100 74, 128 74 C 156 74, 180 100, 180 130 L 180 178 Q 168 172, 158 174 L 158 156 Q 158 152, 154 152 L 102 152 Q 98 152, 98 156 L 98 174 Q 88 172, 76 178 Z" fill="#1E1A1E"/>
+    <path d="M164 92 L 172 108 L 164 108 Z" fill="#8E4CBF" opacity="0.8"/>
+    <ellipse cx="128" cy="134" rx="40" ry="44" fill="#A77956"/>
+    <path d="M88 118 Q 104 94, 128 90 Q 154 94, 168 118 Q 150 110, 128 112 Q 106 110, 88 118 Z" fill="#1E1A1E"/>
+    <g fill="none" stroke="#1A1A1E" stroke-width="1.3">
+      <circle cx="114" cy="134" r="7"/>
+      <circle cx="142" cy="134" r="7"/>
+      <line x1="121" y1="134" x2="135" y2="134"/>
+    </g>
+    <ellipse cx="114" cy="134" rx="2.4" ry="2.2" fill="#1A1A1E"/>
+    <ellipse cx="142" cy="134" rx="2.4" ry="2.2" fill="#1A1A1E"/>
+    <path d="M128 144 Q 126 150 130 152" fill="none" stroke="#6A4530" stroke-width="1.1" stroke-linecap="round" opacity="0.7"/>
+    <path d="M120 160 L 136 160" stroke="#5C3E2A" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M76 130 C 76 100, 100 74, 128 74 C 156 74, 180 100, 180 130 C 180 156, 168 176, 156 182 L 156 198 Q 198 208, 232 256 L 24 256 Q 58 208, 100 198 L 100 182 Q 76 176, 76 130 Z" fill="none" stroke="#1A1A1E" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="232" cy="232" r="6" fill="#16A661"/>
+    <circle cx="232" cy="232" r="6" fill="none" stroke="#0F5D3F" stroke-width="0.8" opacity="0.6"/>
+  </g>
+</svg>

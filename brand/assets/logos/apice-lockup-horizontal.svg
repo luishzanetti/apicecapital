@@ -1,0 +1,11 @@
+<!-- Apice · lockup-horizontal · v2 · Uma 2026-04-17 -->
+<!-- Theme-aware: wordmark uses currentColor; signature dot locked to emerald #16A661. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 72" role="img" aria-label="Apice">
+  <title>Apice horizontal lockup</title>
+  <style>
+    .wm { font-family: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 700; font-size: 44px; letter-spacing: -1.32px; fill: currentColor; }
+    .dot { fill: #16A661; }
+  </style>
+  <text x="24" y="48" class="wm">Apice</text>
+  <circle cx="145.2" cy="45.6" r="3.95" class="dot"/>
+</svg>

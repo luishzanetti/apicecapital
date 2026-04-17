@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/appStore';
 import { useDCAExecution, DCAExecution } from '@/hooks/useDCAExecution';
@@ -47,19 +46,23 @@ export function DCATracker() {
   if (dcaPlans.length === 0) {
     return (
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <Card className="border-dashed border-primary/20 glass-light">
-          <CardContent className="pt-5 pb-5">
+        <Card className="border-none glass-card">
+          <CardContent className="p-5">
             <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Zap className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 rounded-2xl bg-[hsl(var(--apice-emerald))]/10 flex items-center justify-center">
+                <Zap className="w-6 h-6 text-[hsl(var(--apice-emerald))]" />
               </div>
               <div>
-                <p className="text-sm font-bold mb-0.5">Auto-Invest with DCA</p>
-                <p className="text-xs text-muted-foreground leading-relaxed max-w-[240px]">
+                <p className="text-[15px] font-semibold mb-0.5 text-white">Auto-Invest with DCA</p>
+                <p className="text-xs text-white/55 leading-relaxed max-w-[260px]">
                   Set up automated buys to build your portfolio consistently without timing the market.
                 </p>
               </div>
-              <Button size="sm" className="text-xs" onClick={() => navigate('/dca-planner')}>
+              <Button
+                size="sm"
+                className="text-xs bg-[hsl(var(--apice-emerald))] hover:bg-[hsl(var(--apice-emerald))]/90 text-[#050816] font-semibold"
+                onClick={() => navigate('/dca-planner')}
+              >
                 <Plus className="w-3 h-3 mr-1" />
                 Create DCA Plan
               </Button>
@@ -72,44 +75,44 @@ export function DCATracker() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-      <Card className="overflow-hidden glass-card">
-        {/* Gradient accent line */}
-        <div className="h-[2px] w-full bg-gradient-to-r from-primary via-violet-500 to-primary/60" />
-        <CardContent className="pt-4 pb-4 space-y-4">
+      <Card className="overflow-hidden border-none bg-transparent shadow-none">
+        <CardContent className="p-5 space-y-3.5">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-primary" />
-              <span className="text-sm font-bold">DCA Automation</span>
-              <Badge variant="secondary" className="text-[11px]">{activePlans.length} active</Badge>
+              <Zap className="w-4 h-4 text-[hsl(var(--apice-emerald))]" />
+              <span className="text-[15px] font-semibold text-white">DCA Automation</span>
+              <span className="inline-flex items-center rounded-full bg-[hsl(var(--apice-emerald))]/10 text-[hsl(var(--apice-emerald))] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] font-mono tabular-nums">
+                {activePlans.length} active
+              </span>
             </div>
-            <Button variant="ghost" size="sm" className="text-xs gap-1 h-7 text-primary" onClick={() => navigate('/dca-planner')}>
+            <Button variant="ghost" size="sm" className="text-[11px] gap-1 h-7 text-[hsl(var(--apice-emerald))] hover:bg-[hsl(var(--apice-emerald))]/10 font-semibold" onClick={() => navigate('/dca-planner')}>
               Manage <ChevronRight className="w-3 h-3" />
             </Button>
           </div>
 
           {/* Stats Row */}
           <div className="grid grid-cols-3 gap-2">
-            <div className="text-center p-2.5 rounded-xl bg-secondary/30">
-              <DollarSign className="w-3.5 h-3.5 text-primary mx-auto mb-1" />
-              <p className="text-lg font-semibold">${totalMonthly}</p>
-              <p className="text-[11px] text-muted-foreground uppercase">Monthly</p>
+            <div className="text-center p-3 rounded-xl bg-white/[0.02]">
+              <DollarSign className="w-3.5 h-3.5 text-[hsl(var(--apice-emerald))] mx-auto mb-1" />
+              <p className="font-mono text-lg font-semibold tabular-nums text-white">${totalMonthly}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">Monthly</p>
             </div>
-            <div className="text-center p-2.5 rounded-xl bg-secondary/30">
-              <TrendingUp className="w-3.5 h-3.5 text-green-400 mx-auto mb-1" />
-              <p className="text-lg font-semibold">${totalInvested.toLocaleString()}</p>
-              <p className="text-[11px] text-muted-foreground uppercase">Total Invested</p>
+            <div className="text-center p-3 rounded-xl bg-white/[0.02]">
+              <TrendingUp className="w-3.5 h-3.5 text-[hsl(var(--apice-emerald))] mx-auto mb-1" />
+              <p className="font-mono text-lg font-semibold tabular-nums text-white">${totalInvested.toLocaleString()}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">Invested</p>
             </div>
-            <div className="text-center p-2.5 rounded-xl bg-secondary/30">
-              <Calendar className="w-3.5 h-3.5 text-amber-400 mx-auto mb-1" />
-              <p className="text-lg font-semibold">{dcaPlans.length}</p>
-              <p className="text-[11px] text-muted-foreground uppercase">Plans</p>
+            <div className="text-center p-3 rounded-xl bg-white/[0.02]">
+              <Calendar className="w-3.5 h-3.5 text-white/55 mx-auto mb-1" />
+              <p className="font-mono text-lg font-semibold tabular-nums text-white">{dcaPlans.length}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">Plans</p>
             </div>
           </div>
 
           {/* Active Plans Mini List */}
           <div className="space-y-2">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Active Plans</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">Active Plans</p>
             {activePlans.slice(0, 3).map((plan) => {
               const assetsLabel = plan.assets.map(a => a.symbol).join(', ');
               const nextExec = plan.nextExecutionDate ? new Date(plan.nextExecutionDate) : null;
@@ -118,26 +121,26 @@ export function DCATracker() {
               return (
                 <div
                   key={plan.id}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
+                  className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors cursor-pointer"
                   onClick={() => navigate('/dca-planner')}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <DollarSign className="w-4 h-4 text-primary" />
+                    <div className="w-8 h-8 rounded-lg bg-[hsl(var(--apice-emerald))]/10 flex items-center justify-center shrink-0">
+                      <DollarSign className="w-4 h-4 text-[hsl(var(--apice-emerald))]" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold">${plan.amountPerInterval}/{plan.frequency}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{assetsLabel}</p>
+                      <p className="text-xs font-mono font-semibold tabular-nums text-white">${plan.amountPerInterval}/{plan.frequency}</p>
+                      <p className="text-[11px] text-white/55 truncate">{assetsLabel}</p>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     {isOverdue ? (
-                      <Badge variant="outline" className="text-[11px] border-amber-500/30 text-amber-400 gap-0.5">
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/10 text-amber-300 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em]">
                         <Clock className="w-2.5 h-2.5" />
                         Due
-                      </Badge>
+                      </span>
                     ) : nextExec ? (
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-[11px] font-mono tabular-nums text-white/55">
                         Next: {nextExec.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
                     ) : null}
@@ -148,7 +151,7 @@ export function DCATracker() {
             {activePlans.length > 3 && (
               <button
                 onClick={() => navigate('/dca-planner')}
-                className="w-full text-center text-xs text-primary py-1"
+                className="w-full text-center text-[11px] text-[hsl(var(--apice-emerald))] font-semibold py-1 hover:text-[hsl(var(--apice-emerald))]/80 transition-colors"
               >
                 +{activePlans.length - 3} more plans
               </button>
@@ -157,34 +160,34 @@ export function DCATracker() {
 
           {/* Recent Executions */}
           {recentExecutions.length > 0 && (
-            <div className="space-y-2 pt-2 border-t border-border/30">
+            <div className="space-y-2 pt-3 border-t border-white/[0.04]">
               <div className="flex items-center gap-2">
-                <History className="w-3.5 h-3.5 text-muted-foreground" />
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Recent Executions</p>
+                <History className="w-3.5 h-3.5 text-white/45" />
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">Recent Executions</p>
               </div>
               {loadingHistory ? (
                 <div className="flex justify-center py-3">
-                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                  <Loader2 className="w-4 h-4 animate-spin text-white/45" />
                 </div>
               ) : (
                 <div className="space-y-1">
                   {recentExecutions.map((exec) => (
                     <div
                       key={exec.id}
-                      className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-secondary/20"
+                      className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/[0.02]"
                     >
                       <div className="flex items-center gap-2">
                         {exec.status === 'success' ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(var(--apice-emerald))]" />
                         ) : (
                           <XCircle className="w-3.5 h-3.5 text-red-400" />
                         )}
-                        <span className="text-xs font-medium">{exec.asset_symbol}</span>
-                        <span className="text-[11px] text-muted-foreground">
+                        <span className="text-xs font-medium text-white/85">{exec.asset_symbol}</span>
+                        <span className="text-[11px] font-mono tabular-nums text-white/55">
                           ${Number(exec.amount_usdt).toFixed(2)}
                         </span>
                       </div>
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-[11px] font-mono tabular-nums text-white/45">
                         {new Date(exec.executed_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
                     </div>

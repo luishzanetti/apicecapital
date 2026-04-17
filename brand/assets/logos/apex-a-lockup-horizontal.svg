@@ -1,0 +1,36 @@
+<!-- Apice Capital · Apex-A horizontal lockup · v1.0 · Uma 2026-04-17 -->
+<!-- Spec: brand/01-brand-foundation/logo-spec-apex-a.md · section 4 (Variations matrix) -->
+<!-- Composition: standalone Apex-A (64u) + gap (32u = 0.5× symbol height) + wordmark ("Apice Capital"). -->
+<!-- Wordmark: custom Apex-A at cap-height 44 replaces the first letter of "Apice"; remaining letters use Geist Semibold fallback. -->
+<!-- Text note: remaining glyphs rendered via <text>. For fully path-outlined release, flatten text in a vector editor. -->
+<svg viewBox="0 0 320 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice Capital">
+  <title>Apice Capital</title>
+
+  <!-- ============== STANDALONE SYMBOL (left, 64x64) ============== -->
+  <g id="symbol" fill="var(--apex-a-fill, currentColor)">
+    <path id="sym-leg-left"  d="M 4 60 L 24 8 L 32 8 L 32 16 L 28 16 L 16 60 Z"/>
+    <path id="sym-leg-right" d="M 32 8 L 36 8 L 60 60 L 48 60 L 36 16 L 32 16 Z"/>
+    <rect id="sym-shelf" x="14" y="34" width="36" height="2"/>
+    <path id="sym-summit-tick" class="summit-tick" d="M 32 4 L 36 4 L 36 8 L 32 8 Z"/>
+  </g>
+
+  <!-- ============== WORDMARK (right, starts x=96 = 64 + 32 gap) ============== -->
+  <!-- Custom Apex-A scaled to cap-height 44 (~11/16 of symbol). Translated to x=96, y-offset so baseline sits at y=54. -->
+  <!-- Transform: translate(96, 10) scale(0.6875) maps 64u symbol to 44u glyph; baseline 60*0.6875+10 = 51.25 ~= 51. -->
+  <g id="wordmark-a" fill="var(--apex-a-fill, currentColor)" transform="translate(96 10) scale(0.6875)">
+    <path d="M 4 60 L 24 8 L 32 8 L 32 16 L 28 16 L 16 60 Z"/>
+    <path d="M 32 8 L 36 8 L 60 60 L 48 60 L 36 16 L 32 16 Z"/>
+    <rect x="14" y="34" width="36" height="2"/>
+    <path class="summit-tick" d="M 32 4 L 36 4 L 36 8 L 32 8 Z"/>
+  </g>
+
+  <!-- Wordmark text: "pice Capital". Geist Semibold 600, -0.01em tracking, baseline y=51. -->
+  <!-- x=140 = 96 (a-start) + 44 (a-width) + 0 (tight kerning, custom-A's right leg provides natural spacing). -->
+  <text x="140" y="51"
+        fill="var(--wordmark-fill, currentColor)"
+        font-family="'Geist','Inter',system-ui,-apple-system,sans-serif"
+        font-weight="600"
+        font-size="44"
+        letter-spacing="-0.44"
+        style="font-variant-ligatures:none">pice Capital</text>
+</svg>

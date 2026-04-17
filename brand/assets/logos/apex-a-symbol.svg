@@ -1,0 +1,18 @@
+<!-- Apice Capital · Apex-A · v1.0 · Uma 2026-04-17 -->
+<!-- Symbol-only primary mark. Spec: brand/01-brand-foundation/logo-spec-apex-a.md -->
+<!-- 64px master grid. Cap-height 56. Leg stroke 8. Summit tick = right leg extends 4u above apex (8% of cap-height). -->
+<!-- Fill inherits from currentColor. Override the summit tick via `.summit-tick{fill:#F59E0B}` for ceremonial use. -->
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice Capital">
+  <title>Apice Capital</title>
+  <g id="apex-a" fill="var(--apex-a-fill, currentColor)">
+    <!-- Left leg: baseline outer x=4, baseline inner x=20, apex outer x=24 y=8, apex inner x=32 y=8 -->
+    <path id="leg-left" d="M 4 60 L 24 8 L 32 8 L 32 16 L 28 16 L 16 60 Z"/>
+    <!-- Right leg (main body, up to the apex at y=8). -->
+    <path id="leg-right" d="M 32 8 L 36 8 L 60 60 L 48 60 L 36 16 L 32 16 Z"/>
+    <!-- Internal shelf replaces the crossbar. 1/4 leg-stroke thickness (2u). -->
+    <!-- Optical correction: centered at y=35 (60% up from baseline = 25.6, shifted +1 for optical balance). -->
+    <rect id="shelf" x="14" y="34" width="36" height="2"/>
+    <!-- Summit tick: right leg extends from y=4 up to the apex at y=8. Amber in ceremonial mode. -->
+    <path id="summit-tick" class="summit-tick" d="M 32 4 L 36 4 L 36 8 L 32 8 Z"/>
+  </g>
+</svg>

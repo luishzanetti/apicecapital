@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Apice Experts · v2 photoreal vs v3 + ENHANCE · A/B</title>
+<style>
+  :root{
+    --dark:#0E0E12; --cream:#F7F3ED; --cream-2:#FBF8F2;
+    --n200:#E4E0D7; --n400:#A8A39A; --n500:#6E6A61; --n700:#3F3D38;
+    --emerald:#16A661; --emerald-deep:#0F5D3F;
+    --font:'Geist','Inter',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--cream);color:var(--dark);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1400px;margin:0 auto;padding:56px 32px 140px}
+  .kicker{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#fff;background:var(--emerald);padding:6px 14px;border-radius:9999px;margin-bottom:16px}
+  h1{font-weight:800;letter-spacing:-0.03em;font-size:46px;margin:0 0 12px;line-height:1.08}
+  h1 small{display:block;font-size:16px;font-weight:400;color:var(--n500);margin-top:14px;line-height:1.55;max-width:740px}
+  h2{font-weight:800;letter-spacing:-0.02em;font-size:28px;margin:56px 0 12px}
+  p{color:var(--n700);font-size:14px;line-height:1.6;max-width:760px}
+  code{background:var(--cream-2);padding:2px 6px;border-radius:4px;font-size:12px}
+
+  .stats{display:flex;gap:32px;margin:24px 0 32px;flex-wrap:wrap}
+  .stat{display:flex;flex-direction:column;gap:2px}
+  .stat .num{font-size:28px;font-weight:800;letter-spacing:-0.02em}
+  .stat .lbl{font-size:11px;color:var(--n500);text-transform:uppercase;letter-spacing:0.08em;font-weight:600}
+
+  /* Side-by-side comparison for each expert */
+  .expert{background:#fff;border:1px solid var(--n200);border-radius:20px;margin-bottom:24px;overflow:hidden}
+  .exp-head{padding:20px 28px;border-bottom:1px solid var(--n200);display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+  .exp-name{font-size:28px;font-weight:800;letter-spacing:-0.02em}
+  .exp-title{font-size:14px;color:var(--n500);font-style:italic}
+  .exp-meta{margin-left:auto;font-size:11px;color:var(--n500);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;display:flex;gap:12px;align-items:center}
+  .exp-meta .dot{width:10px;height:10px;border-radius:50%}
+  .exp-ab{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  @media(max-width:700px){.exp-ab{grid-template-columns:1fr}}
+  .exp-side{padding:20px;position:relative}
+  .exp-side:first-child{border-right:1px solid var(--n200)}
+  .exp-side img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;display:block;background:var(--cream-2)}
+  .side-label{position:absolute;top:28px;left:28px;background:rgba(14,14,18,.88);color:#fff;padding:6px 12px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;backdrop-filter:blur(4px)}
+  .side-label.v3{background:var(--emerald)}
+
+  .decide{background:var(--dark);color:var(--cream);border-radius:20px;padding:40px 32px;margin-top:40px}
+  .decide h2{color:var(--cream);margin:0 0 12px}
+  .decide p{color:rgba(247,243,237,.8);font-size:15px;line-height:1.7;max-width:740px}
+  .decide ul{color:rgba(247,243,237,.85);font-size:14px;line-height:1.8;padding-left:20px;max-width:740px;margin-top:12px}
+  .decide strong{color:var(--emerald)}
+
+  .intro-compare{background:var(--cream-2);border:1px solid var(--n200);border-radius:14px;padding:24px 28px;margin:32px 0;display:grid;grid-template-columns:1fr 1fr;gap:24px;font-size:13px;line-height:1.6;color:var(--n700)}
+  @media(max-width:700px){.intro-compare{grid-template-columns:1fr}}
+  .intro-compare .col strong{color:var(--dark);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;display:block;margin-bottom:6px}
+  .intro-compare .col.v2 strong{color:var(--n500)}
+  .intro-compare .col.v3 strong{color:var(--emerald)}
+
+  .footer{margin-top:48px;padding-top:28px;border-top:1px solid var(--n200);color:var(--n500);font-size:12px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">★ a/b test · v2 vs v3 enhanced · 2026-04-17</div>
+  <h1>6 Experts — v2 photoreal vs v3 + ENHANCE layer.
+    <small>Você pediu uma camada de enhance para deixar os avatares mais reais. Apliquei o bloco <code>ENHANCE</code> do <code>prompts.mjs</code> do creativeos. Aqui lado a lado — mesma seed, mesmo prompt, única diferença é a camada ENHANCE.</small>
+  </h1>
+
+  <div class="stats">
+    <div class="stat"><div class="num">gemini-3-pro-image-preview</div><div class="lbl">Model (both)</div></div>
+    <div class="stat"><div class="num">12</div><div class="lbl">Total generations</div></div>
+    <div class="stat"><div class="num">$0.48</div><div class="lbl">This A/B</div></div>
+    <div class="stat"><div class="num">$0.72</div><div class="lbl">All sessions</div></div>
+  </div>
+
+  <div class="intro-compare">
+    <div class="col v2">
+      <strong>v2 · photoreal base</strong>
+      Hasselblad X2D 90mm f/2.8, ISO 100 · editorial portrait register · natural skin · real lighting · painterly-free. <em>Bom retrato profissional.</em>
+    </div>
+    <div class="col v3">
+      <strong>v3 · + ENHANCE layer</strong>
+      Mesmo prompt + camada explicit: visible pores · flyaway hairs · baby hairs catching light · subsurface scattering · natural moisture shine in eyes · organic micro-imperfections · ultra-realistic finish. <em>Vira pele viva.</em>
+    </div>
+  </div>
+
+  <!-- ================================================================ A/B Comparisons -->
+
+  <div class="expert">
+    <div class="exp-head">
+      <div class="exp-name">Nora</div>
+      <div class="exp-title">the Thesis Builder</div>
+      <div class="exp-meta"><span class="dot" style="background:#8B5CF6"></span>Analyst · Indigo</div>
+    </div>
+    <div class="exp-ab">
+      <div class="exp-side">
+        <span class="side-label">v2 · base</span>
+        <img src="assets/experts/real/criativos/AD-01-nora-photoreal.png" alt="Nora v2"/>
+      </div>
+      <div class="exp-side">
+        <span class="side-label v3">v3 · enhanced</span>
+        <img src="assets/experts/real/criativos/AD-01-nora-enhanced.png" alt="Nora v3"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="expert">
+    <div class="exp-head">
+      <div class="exp-name">Kai</div>
+      <div class="exp-title">the Pattern Reader</div>
+      <div class="exp-meta"><span class="dot" style="background:#0EA5E9"></span>Momentum · Sky</div>
+    </div>
+    <div class="exp-ab">
+      <div class="exp-side">
+        <span class="side-label">v2 · base</span>
+        <img src="assets/experts/real/criativos/AD-02-kai-photoreal.png" alt="Kai v2"/>
+      </div>
+      <div class="exp-side">
+        <span class="side-label v3">v3 · enhanced</span>
+        <img src="assets/experts/real/criativos/AD-02-kai-enhanced.png" alt="Kai v3"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="expert">
+    <div class="exp-head">
+      <div class="exp-name">Elena</div>
+      <div class="exp-title">the Patient Compounder</div>
+      <div class="exp-meta"><span class="dot" style="background:#16A661"></span>DCA Master · Emerald</div>
+    </div>
+    <div class="exp-ab">
+      <div class="exp-side">
+        <span class="side-label">v2 · base</span>
+        <img src="assets/experts/real/criativos/AD-03-elena-photoreal.png" alt="Elena v2"/>
+      </div>
+      <div class="exp-side">
+        <span class="side-label v3">v3 · enhanced</span>
+        <img src="assets/experts/real/criativos/AD-03-elena-enhanced.png" alt="Elena v3"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="expert">
+    <div class="exp-head">
+      <div class="exp-name">Dante</div>
+      <div class="exp-title">the Risk Architect</div>
+      <div class="exp-meta"><span class="dot" style="background:#F43F5E"></span>Risk Manager · Rose</div>
+    </div>
+    <div class="exp-ab">
+      <div class="exp-side">
+        <span class="side-label">v2 · base</span>
+        <img src="assets/experts/real/criativos/AD-04-dante-photoreal.png" alt="Dante v2"/>
+      </div>
+      <div class="exp-side">
+        <span class="side-label v3">v3 · enhanced</span>
+        <img src="assets/experts/real/criativos/AD-04-dante-enhanced.png" alt="Dante v3"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="expert">
+    <div class="exp-head">
+      <div class="exp-name">Maya</div>
+      <div class="exp-title">the Deep Researcher</div>
+      <div class="exp-meta"><span class="dot" style="background:#A855F7"></span>Researcher · Purple</div>
+    </div>
+    <div class="exp-ab">
+      <div class="exp-side">
+        <span class="side-label">v2 · base</span>
+        <img src="assets/experts/real/criativos/AD-05-maya-photoreal.png" alt="Maya v2"/>
+      </div>
+      <div class="exp-side">
+        <span class="side-label v3">v3 · enhanced</span>
+        <img src="assets/experts/real/criativos/AD-05-maya-enhanced.png" alt="Maya v3"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="expert">
+    <div class="exp-head">
+      <div class="exp-name">Omar</div>
+      <div class="exp-title">the Mentor</div>
+      <div class="exp-meta"><span class="dot" style="background:#D9912D"></span>Mentor · Amber</div>
+    </div>
+    <div class="exp-ab">
+      <div class="exp-side">
+        <span class="side-label">v2 · base</span>
+        <img src="assets/experts/real/criativos/AD-06-omar-photoreal.png" alt="Omar v2"/>
+      </div>
+      <div class="exp-side">
+        <span class="side-label v3">v3 · enhanced</span>
+        <img src="assets/experts/real/criativos/AD-06-omar-enhanced.png" alt="Omar v3"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <div class="decide">
+    <h2>Sua decisão, sir</h2>
+    <p>Aumenta seu zoom em cada par. O ENHANCE adiciona detalhes orgânicos — poros visíveis, wispies de cabelo, brilho natural nos olhos, subsurface scattering (luz atravessando orelhas/nariz). Não muda a identidade; só sobe o realism floor.</p>
+
+    <ul>
+      <li><strong>APROVO v3 (enhanced)</strong> → esses viram os finais. Rename para <code>{name}-final.png</code> + dot overlay + integração. Arquivo v2 no <code>raw/</code> histórico.</li>
+      <li><strong>APROVO v2 (base)</strong> → v3 ficou over-enhanced / plastic / fake. Mantenho v2 como final.</li>
+      <li><strong>MIX</strong> → alguns v2 + alguns v3 (me diga quais são quais).</li>
+      <li><strong>OUTRA CAMADA</strong> → quer testar outros blocos disponíveis no prompts.mjs: <code>FACE_ENHANCE</code>, <code>RAW_IPHONE_STYLE</code> (photoreal casual), <code>ENV_ENHANCE</code> (fundo mais rico). Me fala e rodo.</li>
+      <li><strong>REGENERA X</strong> → um específico saiu errado, refaço só ele.</li>
+    </ul>
+
+    <p style="margin-top:24px">⚠️ <strong>Lembrete:</strong> chave <code>AIzaSyA...dwzGs</code> ainda exposta. Rotacione quando puder em <a href="https://aistudio.google.com/apikey" style="color:var(--emerald)">aistudio.google.com/apikey</a>.</p>
+  </div>
+
+  <div class="footer">
+    <strong>Arquivos:</strong><br/>
+    · v2: <code>AD-0N-{name}-photoreal.png</code> (6 files, ~4.1MB total)<br/>
+    · v3: <code>AD-0N-{name}-enhanced.png</code> (6 files, ~4.2MB total)<br/>
+    · config v3: <code>creativeos/engines/image/configs/apice/apice-experts-enhanced.yaml</code><br/>
+    · ENHANCE block source: <code>creativeos/engines/image/lib/prompts.mjs</code> linha 14<br/><br/>
+    <strong>Model:</strong> gemini-3-pro-image-preview (both v2 and v3) · <strong>Session cost:</strong> $0.48 USD · Jarvis · 2026-04-17
+  </div>
+
+</div>
+</body>
+</html>

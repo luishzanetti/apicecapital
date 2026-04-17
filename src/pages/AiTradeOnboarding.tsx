@@ -27,13 +27,13 @@ import {
   Brain,
   ChevronRight,
   Clock3,
-  Compass,
   Layers3,
   ShieldCheck,
   Sparkles,
   Target,
   TrendingUp,
 } from 'lucide-react';
+import { TriangleMark } from '@/components/brand/BrandMark';
 
 const TOTAL_STEPS = 4;
 
@@ -58,12 +58,10 @@ function ProgressHeader({
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl apice-gradient-primary shadow-lg shadow-primary/25">
-            <Compass className="h-5 w-5 text-white" />
-          </div>
+          <TriangleMark variant="circle" size={44} aria-hidden="true" />
           <div>
-            <p className="text-sm font-semibold">Apice</p>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">AI Trade Setup</p>
+            <p className="font-display text-sm font-semibold text-white">Apice</p>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-white/45">Global AI Investing</p>
           </div>
         </div>
 
@@ -77,7 +75,7 @@ function ProgressHeader({
         </div>
       </div>
 
-      <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
+      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
         <motion.div
           className="h-full rounded-full apice-gradient-primary"
           animate={{ width: `${progress}%` }}
@@ -104,14 +102,15 @@ function ChoiceCard({
       type="button"
       onClick={onClick}
       className={cn(
-        'rounded-[1.35rem] border px-4 py-4 text-left transition-all duration-200',
+        'rounded-[1.35rem] border px-4 py-4 text-left backdrop-blur transition-all duration-200',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F1626]',
         active
-          ? 'border-primary bg-primary/10 shadow-lg shadow-primary/10'
-          : 'border-border/60 bg-card hover:border-primary/30 hover:bg-secondary/30'
+          ? 'border-[hsl(var(--apice-gold))]/40 bg-white/[0.04] shadow-[0_0_0_1px_hsl(var(--apice-gold)/0.2),0_20px_60px_-20px_hsl(var(--apice-gold)/0.3)]'
+          : 'border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
       )}
     >
-      <p className="text-sm font-semibold">{label}</p>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+      <p className="text-sm font-semibold text-white">{label}</p>
+      <p className="mt-2 text-sm leading-6 text-white/60">{description}</p>
     </button>
   );
 }
@@ -128,17 +127,24 @@ function ActionCard({
   actionLabel: string;
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-border/60 bg-card px-4 py-5">
+    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] px-4 py-5 backdrop-blur">
       <div className="flex items-start gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
-          <Icon className="h-5 w-5 text-primary" />
+        <div
+          aria-hidden="true"
+          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10"
+          style={{
+            background:
+              "linear-gradient(135deg, hsl(var(--apice-gradient-start) / 0.2), hsl(var(--apice-gradient-end) / 0.1))",
+          }}
+        >
+          <Icon className="h-5 w-5 text-[hsl(var(--apice-gold))]" aria-hidden="true" />
         </div>
         <div className="flex-1">
-          <h3 className="text-sm font-semibold">{title}</h3>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
-          <div className="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+          <h3 className="font-display text-sm font-semibold text-white">{title}</h3>
+          <p className="mt-2 text-sm leading-6 text-white/60">{description}</p>
+          <div className="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[hsl(var(--apice-gold))]">
             {actionLabel}
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
           </div>
         </div>
       </div>
@@ -221,7 +227,7 @@ export default function AiTradeOnboarding() {
             manifestoTitle:
               'Intelligent wealth grows when strategy, AI, and discipline work together.',
             manifestoBody:
-              'Apice AI Trade Setup exists to pull you out of improvisation. First we show how the logic works. Then we translate it into a setup that fits your profile and improves every day with strategic guidance.',
+              'Apice Global AI Investing exists to pull you out of improvisation. First we show how the logic works. Then we translate it into a setup that fits your profile and improves every day with strategic guidance.',
             manifestoCardEyebrow: 'What you are building here',
             manifestoCardTitle: 'A routine that reads, executes, and adjusts.',
             manifestoMiniTitle: 'What changes in practice',
@@ -315,7 +321,7 @@ export default function AiTradeOnboarding() {
             manifestoTitle:
               'Intelligent wealth grows when strategy, AI, and discipline work together.',
             manifestoBody:
-              'Apice AI Trade Setup exists to pull you out of improvisation. First we show how the logic works. Then we translate it into a setup that fits your profile and improves every day with strategic guidance.',
+              'Apice Global AI Investing exists to pull you out of improvisation. First we show how the logic works. Then we translate it into a setup that fits your profile and improves every day with strategic guidance.',
             manifestoCardEyebrow: 'What you are building here',
             manifestoCardTitle: 'A routine that reads, executes, and adjusts.',
             manifestoMiniTitle: 'What changes in practice',
@@ -466,9 +472,13 @@ export default function AiTradeOnboarding() {
     : { duration: 0.28, ease: [0.16, 1, 0.3, 1] };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-background text-foreground">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(var(--primary)/0.16),transparent_36%),radial-gradient(circle_at_80%_0,hsl(var(--apice-gold)/0.08),transparent_22%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--background)))]" />
-      <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-6 md:px-8 lg:px-10">
+    <div className="relative min-h-screen overflow-x-hidden bg-[#0F1626] text-white antialiased dark">
+      {/* Landing-style layered background decor */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(82,143,255,0.18),transparent_32%),radial-gradient(circle_at_85%_20%,rgba(234,179,8,0.1),transparent_22%),radial-gradient(circle_at_15%_80%,rgba(155,135,245,0.16),transparent_28%),linear-gradient(180deg,#0F1626_0%,#152038_50%,#0F1626_100%)]" />
+        <div className="absolute inset-0 opacity-[0.05] [background-image:linear-gradient(rgba(255,255,255,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:96px_96px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,#000_50%,transparent_100%)]" />
+      </div>
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-6 md:px-8 lg:px-10">
         <ProgressHeader
           step={step}
           onSkip={handleSkip}
@@ -505,7 +515,7 @@ export default function AiTradeOnboarding() {
 
                     <div className="grid gap-4 md:grid-cols-3">
                       {copy.manifestoMiniCards.map((item) => (
-                        <Card key={item.title} className="border-border/60 bg-card/90">
+                        <Card key={item.title} className="border-white/10 bg-white/[0.02] backdrop-blur text-white">
                           <CardContent className="space-y-3 pt-5">
                             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
                               <item.icon className="h-5 w-5 text-primary" />
@@ -519,7 +529,7 @@ export default function AiTradeOnboarding() {
                   </div>
 
                   <div className="space-y-4">
-                    <Card className="border-primary/20 bg-[linear-gradient(180deg,hsl(var(--primary)/0.1),transparent)]">
+                    <Card className="border-[hsl(var(--apice-gold))]/30 bg-white/[0.02] backdrop-blur text-white">
                       <CardContent className="space-y-5 pt-5">
                         <div className="flex items-start gap-4">
                           <div className="flex h-12 w-12 items-center justify-center rounded-2xl apice-gradient-primary shadow-lg shadow-primary/20">
@@ -552,7 +562,7 @@ export default function AiTradeOnboarding() {
                       </CardContent>
                     </Card>
 
-                    <Card className="border-border/60">
+                    <Card className="border-white/10 bg-white/[0.02] backdrop-blur text-white">
                       <CardContent className="space-y-4 pt-5">
                         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                           {copy.manifestoMiniTitle}
@@ -655,7 +665,7 @@ export default function AiTradeOnboarding() {
                   </div>
 
                   <div className="space-y-4">
-                    <Card className="border-primary/20 bg-[linear-gradient(180deg,hsl(var(--primary)/0.08),transparent)]">
+                    <Card className="border-[hsl(var(--apice-gold))]/25 bg-white/[0.02] backdrop-blur text-white">
                       <CardContent className="space-y-5 pt-5">
                         <div className="flex items-start gap-4">
                           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
@@ -709,7 +719,7 @@ export default function AiTradeOnboarding() {
                       <p className="max-w-2xl text-base leading-7 text-muted-foreground">{copy.cadenceBody}</p>
                     </div>
 
-                    <Card className="border-border/60">
+                    <Card className="border-white/10 bg-white/[0.02] backdrop-blur text-white">
                       <CardContent className="space-y-6 pt-6">
                         <div>
                           <div className="flex items-center justify-between">
@@ -748,7 +758,7 @@ export default function AiTradeOnboarding() {
                   </div>
 
                   <div className="space-y-4">
-                    <Card className="border-primary/20 bg-[linear-gradient(180deg,hsl(var(--primary)/0.08),transparent)]">
+                    <Card className="border-[hsl(var(--apice-gold))]/25 bg-white/[0.02] backdrop-blur text-white">
                       <CardContent className="space-y-5 pt-5">
                         <div className="flex items-start gap-4">
                           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
@@ -812,7 +822,7 @@ export default function AiTradeOnboarding() {
                   </div>
 
                   <div className="space-y-4">
-                    <Card className="border-primary/20 bg-[linear-gradient(180deg,hsl(var(--primary)/0.08),transparent)]">
+                    <Card className="border-[hsl(var(--apice-gold))]/25 bg-white/[0.02] backdrop-blur text-white">
                       <CardContent className="space-y-5 pt-5">
                         <div>
                           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary/80">

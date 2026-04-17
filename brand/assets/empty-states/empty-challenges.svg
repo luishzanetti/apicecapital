@@ -1,0 +1,11 @@
+<!-- Apice · empty-challenges · v1 FINAL · media-engineer 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-labelledby="empChT"><title id="empChT">No active challenges</title>
+  <g fill="none" stroke="#8A8A93" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 10 L 32 10 L 32 20 Q 32 28, 24 28 Q 16 28, 16 20 Z"/>
+    <path d="M16 13 L 10 13 L 10 18 Q 10 21, 16 21"/>
+    <path d="M32 13 L 38 13 L 38 18 Q 38 21, 32 21"/>
+    <line x1="24" y1="28" x2="24" y2="34"/>
+    <rect x="18" y="34" width="12" height="4" rx="1"/>
+  </g>
+  <circle cx="24" cy="18" r="2.6" fill="#16A661"/>
+</svg>

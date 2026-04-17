@@ -1,0 +1,6 @@
+<!-- Apice · triangle-mark v1 CURRENT (from Landing.tsx) -->
+<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice">
+  <title>Apice triangle mark (current)</title>
+  <path d="M20 4L36 34H4L20 4Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" fill="none"/>
+  <path d="M20 13L30 32H10L20 13Z" fill="currentColor" opacity="0.24"/>
+</svg>

@@ -104,7 +104,7 @@ export default function AiTradeDashboard() {
           <div className="flex gap-1.5">
             {bots.length > 1 && (
               <select value={activeBot?.id || ''} onChange={e => setActiveBotId(e.target.value)}
-                className="bg-secondary/30 border border-border/30 rounded-lg px-2 py-1 text-[10px] text-foreground">
+                className="bg-white/[0.05] border border-white/10 rounded-lg px-2 py-1 text-[10px] text-foreground">
                 {bots.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
             )}
@@ -131,7 +131,7 @@ export default function AiTradeDashboard() {
         {/* Risk — one line, clear */}
         <div className="mt-3 flex items-center gap-2 text-[10px]">
           <span className="text-muted-foreground">Risk used:</span>
-          <div className="flex-1 bg-secondary/30 rounded-full h-1.5">
+          <div className="flex-1 bg-white/[0.05] rounded-full h-1.5">
             <div className={`h-1.5 rounded-full ${risk.totalHeat >= 0.15 ? 'bg-red-500' : 'bg-green-500'}`}
               style={{ width: `${Math.min(100, risk.totalHeat / 0.2 * 100)}%` }} />
           </div>
@@ -207,7 +207,7 @@ export default function AiTradeDashboard() {
       )}
 
       {/* ═══ TABS ═══ */}
-      <div className="flex gap-1 bg-secondary/20 rounded-xl p-1">
+      <div className="flex gap-1 bg-white/[0.04] rounded-xl p-1">
         {([
           { k: 'strategies' as const, l: `Strategies (${activeStrategies.length})` },
           { k: 'trades' as const, l: `Trades (${positions.length})` },

@@ -38,16 +38,21 @@
 
     --radius: 1rem;
 
-    /* Apice custom tokens */
-    --apice-gold: 45 93% 47%;
-    --apice-gold-soft: 45 80% 60%;
-    --apice-success: 152 69% 40%;
+    /* Apice custom tokens — aligned with brand/BRAND-BOOK.md v2.0
+     * Signature color = Emerald #16A661. Gold and violet are expert-only colors.
+     */
+    --apice-gold: 152 78% 37%;
+    --apice-gold-soft: 152 60% 50%;
+    --apice-emerald: 152 78% 37%;
+    --apice-emerald-deep: 155 72% 21%;
+    --apice-blue-glow: 220 100% 60%;
+    --apice-success: 152 78% 40%;
     --apice-warning: 38 92% 50%;
     --apice-surface: 210 20% 98%;
     --apice-surface-elevated: 0 0% 100%;
-    --apice-gradient-start: 222 89% 55%;
-    --apice-gradient-end: 250 84% 54%;
-    --apice-text-primary: 222 47% 11%;
+    --apice-gradient-start: 220 100% 60%;
+    --apice-gradient-end: 152 78% 37%;
+    --apice-text-primary: 240 15% 6%;
     --apice-text-secondary: 215 16% 47%;
     --apice-text-tertiary: 215 16% 67%;
 
@@ -115,14 +120,14 @@
   }
 
   .dark {
-    /* Dark mode - premium fintech v2 */
-    --background: 228 22% 6%;
+    /* Dark mode - premium fintech v2 · Brand Book v2.0 aligned (#0F1626 slate-navy base) */
+    --background: 222 43% 11%;
     --foreground: 210 40% 98%;
 
-    --card: 228 25% 9%;
+    --card: 222 40% 14%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 228 25% 9%;
+    --popover: 222 40% 14%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 222 89% 60%;
@@ -140,8 +145,9 @@
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 228 20% 15%;
-    --input: 228 25% 16%;
+    /* Borders: subtle enough to not compete with content · aligned with #0F1626 base */
+    --border: 222 30% 18%;
+    --input: 222 30% 18%;
     --ring: 222 89% 60%;
 
     /* Chart tokens */
@@ -150,15 +156,26 @@
     --chart-neutral: 217 91% 60%;
     --chart-accent: 38 92% 50%;
 
-    /* Apice custom tokens - dark v2 */
-    --apice-gold: 45 93% 52%;
-    --apice-gold-soft: 45 70% 45%;
-    --apice-success: 152 69% 45%;
+    /* Apice custom tokens - dark v2
+     * Aligned with brand/BRAND-BOOK.md v2.0:
+     * - Signature color: Emerald #16A661 (hsl 152 78% 37%)
+     * - Landing blue glow: #528FFF (hsl 220 100% 66%)
+     * - Deep bg: #050816 (hsl 228 66% 5%)
+     * - Amber/gold and violet are EXPERT colors only (Omar + Maya) — NOT brand signature
+     * --apice-gold is kept as a token name for backward compat but now holds emerald
+     * to cascade the correction across all components that already reference it.
+     */
+    --apice-gold: 152 78% 37%;
+    --apice-gold-soft: 152 60% 50%;
+    --apice-emerald: 152 78% 37%;
+    --apice-emerald-deep: 155 72% 21%;
+    --apice-blue-glow: 220 100% 66%;
+    --apice-success: 152 78% 45%;
     --apice-warning: 38 92% 55%;
-    --apice-surface: 228 22% 6%;
-    --apice-surface-elevated: 228 25% 11%;
-    --apice-gradient-start: 222 89% 60%;
-    --apice-gradient-end: 250 84% 58%;
+    --apice-surface: 228 66% 5%;
+    --apice-surface-elevated: 228 50% 9%;
+    --apice-gradient-start: 220 100% 66%;
+    --apice-gradient-end: 152 78% 37%;
     --apice-text-primary: 210 40% 98%;
     --apice-text-secondary: 215 20% 80%;
     --apice-text-tertiary: 215 20% 60%;
@@ -270,30 +287,30 @@
 
   /* ─── Glassmorphism v2 — 3-tier system ─── */
 
-  /* Level 1: Light — subtle depth for inline elements */
+  /* Level 1: Light — subtle depth for inline elements · borderless, separation via subtle bg */
   .glass-light {
     backdrop-filter: blur(var(--glass-blur-light, 12px)) saturate(var(--glass-saturate, 180%));
     -webkit-backdrop-filter: blur(var(--glass-blur-light, 12px)) saturate(var(--glass-saturate, 180%));
-    background: hsl(var(--card) / var(--glass-bg-light, 0.55));
-    border: 1px solid hsl(var(--border) / var(--glass-border, 0.12));
+    background: hsl(var(--card) / var(--glass-bg-light, 0.45));
+    border: 1px solid hsl(var(--border) / var(--glass-border, 0.06));
   }
 
-  /* Level 2: Medium — cards, panels, popovers */
+  /* Level 2: Medium — cards, panels, popovers · reduced border (was 0.12, now barely visible) */
   .glass-card {
     backdrop-filter: blur(var(--glass-blur-medium, 20px)) saturate(var(--glass-saturate, 180%));
     -webkit-backdrop-filter: blur(var(--glass-blur-medium, 20px)) saturate(var(--glass-saturate, 180%));
-    background: hsl(var(--card) / var(--glass-bg-medium, 0.70));
-    border: 1px solid hsl(var(--border) / var(--glass-border, 0.12));
-    box-shadow: 0 4px 24px -4px hsl(var(--foreground) / 0.08);
+    background: hsl(var(--card) / var(--glass-bg-medium, 0.60));
+    border: 1px solid hsl(var(--border) / var(--glass-border, 0.08));
+    box-shadow: 0 4px 24px -4px hsl(var(--foreground) / 0.05);
   }
 
-  /* Level 3: Heavy — nav bars, modals, overlays */
+  /* Level 3: Heavy — nav bars, modals, overlays · border kept for structural emphasis */
   .glass-heavy {
     backdrop-filter: blur(var(--glass-blur-heavy, 28px)) saturate(var(--glass-saturate, 180%));
     -webkit-backdrop-filter: blur(var(--glass-blur-heavy, 28px)) saturate(var(--glass-saturate, 180%));
     background: hsl(var(--card) / var(--glass-bg-heavy, 0.82));
-    border: 1px solid hsl(var(--border) / 0.18);
-    box-shadow: 0 8px 32px -8px hsl(var(--foreground) / 0.12);
+    border: 1px solid hsl(var(--border) / 0.12);
+    box-shadow: 0 8px 32px -8px hsl(var(--foreground) / 0.10);
   }
 
   /* Legacy aliases */

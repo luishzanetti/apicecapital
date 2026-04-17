@@ -406,7 +406,7 @@ export default function Settings() {
                     sub: t('settings.resetProfile'),
                     action: () => {
                         if (window.confirm(t('settings.resetConfirm'))) {
-                            navigate('/quiz');
+                            navigate('/quiz-v2');
                         }
                     },
                     variant: "destructive"
@@ -425,26 +425,49 @@ export default function Settings() {
                 {/* Header */}
                 <div
                     className="pt-5 pb-2"
-                    style={{ background: 'linear-gradient(180deg, hsl(var(--primary) / 0.05) 0%, transparent 100%)' }}
+                    style={{ background: 'linear-gradient(180deg, hsl(var(--apice-emerald) / 0.05) 0%, transparent 100%)' }}
                 >
                     <p className="text-xs text-muted-foreground font-medium">{t('settings.manageAccount')}</p>
                     <h1 className="text-2xl font-bold tracking-tight mt-0.5">{t('settings.title')}</h1>
                 </div>
 
                 {/* Profile Card */}
-                <div className="relative overflow-hidden p-5 rounded-3xl bg-card border border-border/40 apice-shadow-card" onClick={() => setShowPersonalModal(true)}>
+                <div
+                    className="relative overflow-hidden p-5 rounded-3xl bg-card border border-white/10 apice-shadow-card cursor-pointer transition-[box-shadow,transform] hover:-translate-y-[1px]"
+                    style={{
+                        boxShadow:
+                            'inset 2px 0 0 hsl(var(--apice-emerald)), 0 10px 40px -20px rgba(56,214,138,0.35), 0 1px 0 rgba(255,255,255,0.04)',
+                    }}
+                    onClick={() => setShowPersonalModal(true)}
+                >
                     {/* Orb glow */}
-                    <div className="absolute top-0 right-0 w-40 h-40 bg-primary/6 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-40 h-40 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none bg-[hsl(var(--apice-emerald)/0.08)]" />
                     <div className="flex items-center gap-4 relative z-10">
-                        {/* Avatar with gradient ring */}
+                        {/* Avatar — emerald signature per BRAND-BOOK v2.0 (active/listening indicator) */}
                         <div className="relative">
-                            <div className="w-14 h-14 rounded-[18px] apice-gradient-primary flex items-center justify-center shadow-xl shadow-primary/25">
-                                <span className="text-xl font-bold text-white capitalize">
+                            <div
+                                className="flex h-14 w-14 items-center justify-center rounded-[18px] border border-white/15 shadow-[0_0_30px_-6px_hsl(var(--apice-emerald)/0.5)]"
+                                style={{
+                                    background:
+                                        'linear-gradient(135deg, hsl(var(--apice-emerald)) 0%, hsl(var(--apice-emerald-deep)) 100%)',
+                                }}
+                            >
+                                <span className="font-display text-xl font-semibold capitalize text-white">
                                     {user?.email?.[0] || 'U'}
                                 </span>
                             </div>
-                            {/* Online dot */}
-                            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-background" />
+                            {/* Live signature dot */}
+                            <span
+                                aria-hidden="true"
+                                className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#0F1626]"
+                                style={{
+                                    background:
+                                        'radial-gradient(circle at 40% 30%, #6EE7A8 0%, #16A661 70%)',
+                                    boxShadow: '0 0 8px hsl(var(--apice-emerald) / 0.8)',
+                                }}
+                            >
+                                <span className="h-1 w-1 animate-pulse rounded-full bg-[#DFFCEA]" />
+                            </span>
                         </div>
                         <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-base truncate">
@@ -478,7 +501,7 @@ export default function Settings() {
                         <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70">{t('settings.personalization')}</h2>
                     </div>
 
-                    <Card className="border-border/40 bg-card/50 overflow-hidden rounded-3xl">
+                    <Card className="border-white/10 bg-white/[0.02] backdrop-blur overflow-hidden rounded-3xl">
                         <CardContent className="p-0 divide-y divide-border/40">
                             <div className="p-4 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -494,7 +517,7 @@ export default function Settings() {
                                     value={userProfile.riskTolerance || 'medium'}
                                     onValueChange={(v) => handleUpdatePreference('riskTolerance', v)}
                                 >
-                                    <SelectTrigger className="w-28 h-8 text-xs border-none bg-secondary/50 rounded-lg">
+                                    <SelectTrigger className="w-28 h-8 text-xs border-none bg-white/[0.05] rounded-lg">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-xl">
@@ -508,7 +531,7 @@ export default function Settings() {
                             <div className="p-4 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                                        <Target className="w-4 h-4 text-blue-500" />
+                                        <Target className="w-4 h-4 text-emerald-400" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-semibold">{t('settings.mainGoal')}</p>
@@ -519,7 +542,7 @@ export default function Settings() {
                                     value={userProfile.goal || 'balanced'}
                                     onValueChange={(v) => handleUpdatePreference('goal', v)}
                                 >
-                                    <SelectTrigger className="w-28 h-8 text-xs border-none bg-secondary/50 rounded-lg">
+                                    <SelectTrigger className="w-28 h-8 text-xs border-none bg-white/[0.05] rounded-lg">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-xl">
@@ -546,7 +569,7 @@ export default function Settings() {
                                 <button
                                     key={i}
                                     onClick={item.action}
-                                    className="w-full bg-card border border-border/40 hover:bg-secondary/30 hover:border-border/60 transition-all p-4 rounded-2xl flex items-center justify-between group press-scale"
+                                    className="w-full bg-card border border-white/10 hover:bg-white/[0.05] hover:border-white/10 transition-all p-4 rounded-2xl flex items-center justify-between group press-scale"
                                 >
                                     <div className="flex items-center gap-3.5 text-left">
                                         <div className={cn(
@@ -620,14 +643,14 @@ export default function Settings() {
 
             {/* ─── Personal Details Modal ─── */}
             <Dialog open={showPersonalModal} onOpenChange={setShowPersonalModal}>
-                <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-border/40 rounded-3xl">
+                <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-white/10 rounded-3xl">
                     <DialogHeader>
                         <DialogTitle>{t('settings.personalDetailsModal.title')}</DialogTitle>
                         <DialogDescription className="text-xs">{t('settings.personalDetailsModal.subtitle')}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-2">
                         {/* Avatar */}
-                        <div className="flex items-center gap-4 p-4 rounded-2xl bg-secondary/30">
+                        <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.05]">
                             <div className="w-14 h-14 rounded-2xl apice-gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
                                 <span className="text-xl font-bold text-white capitalize">
                                     {user?.email?.[0] || 'U'}
@@ -643,12 +666,12 @@ export default function Settings() {
                         <div className="space-y-1.5">
                             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('settings.personalDetailsModal.email')}</Label>
                             <div className="flex items-center gap-2">
-                                <div className="flex-1 px-3 py-2.5 rounded-xl bg-secondary/50 text-sm text-muted-foreground">
+                                <div className="flex-1 px-3 py-2.5 rounded-xl bg-white/[0.05] text-sm text-muted-foreground">
                                     {user?.email}
                                 </div>
                                 <button
                                     onClick={handleCopyEmail}
-                                    className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
+                                    className="w-10 h-10 rounded-xl bg-white/[0.05] flex items-center justify-center hover:bg-secondary transition-colors"
                                 >
                                     {emailCopied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
                                 </button>
@@ -657,15 +680,15 @@ export default function Settings() {
 
                         {/* Plan & Stats */}
                         <div className="grid grid-cols-3 gap-3">
-                            <div className="p-3 rounded-xl bg-secondary/30 text-center">
+                            <div className="p-3 rounded-xl bg-white/[0.05] text-center">
                                 <p className="text-xs font-bold capitalize">{subscription.tier}</p>
                                 <p className="text-[11px] text-muted-foreground">{t('common.plan')}</p>
                             </div>
-                            <div className="p-3 rounded-xl bg-secondary/30 text-center">
+                            <div className="p-3 rounded-xl bg-white/[0.05] text-center">
                                 <p className="text-xs font-bold">{daysActive}</p>
                                 <p className="text-[11px] text-muted-foreground">{t('common.daysActive')}</p>
                             </div>
-                            <div className="p-3 rounded-xl bg-secondary/30 text-center">
+                            <div className="p-3 rounded-xl bg-white/[0.05] text-center">
                                 <p className="text-xs font-bold capitalize">{userProfile.riskTolerance || '—'}</p>
                                 <p className="text-[11px] text-muted-foreground">{t('common.risk')}</p>
                             </div>
@@ -685,13 +708,13 @@ export default function Settings() {
 
             {/* ─── Notifications Modal ─── */}
             <Dialog open={showNotifModal} onOpenChange={setShowNotifModal}>
-                <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-border/40 rounded-3xl">
+                <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-white/10 rounded-3xl">
                     <DialogHeader>
                         <DialogTitle>{t('settings.notificationsModal.title')}</DialogTitle>
                         <DialogDescription className="text-xs">{t('settings.notificationsModal.subtitle')}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3 py-2">
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-secondary/30">
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.05]">
                             <div>
                                 <p className="text-sm font-semibold">{t('settings.notificationsModal.weeklyReminders')}</p>
                                 <p className="text-[11px] text-muted-foreground">{t('settings.notificationsModal.weeklyRemindersDesc')}</p>
@@ -704,7 +727,7 @@ export default function Settings() {
                                 }}
                             />
                         </div>
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-secondary/30 opacity-60">
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.05] opacity-60">
                             <div>
                                 <p className="text-sm font-semibold">{t('settings.notificationsModal.marketAlerts')}</p>
                                 <p className="text-[11px] text-muted-foreground">{t('settings.notificationsModal.marketAlertsDesc')}</p>
@@ -787,7 +810,7 @@ export default function Settings() {
 
             {/* ─── Language Modal ─── */}
             <Dialog open={showLanguageModal} onOpenChange={setShowLanguageModal}>
-                <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-border/40 rounded-3xl">
+                <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-white/10 rounded-3xl">
                     <DialogHeader>
                         <DialogTitle>{t('settings.languageModal.title')}</DialogTitle>
                         <DialogDescription className="text-xs">{t('settings.languageModal.subtitle')}</DialogDescription>
@@ -808,7 +831,7 @@ export default function Settings() {
                                     "w-full flex items-center justify-between p-4 rounded-2xl border transition-all",
                                     lang.code === language
                                         ? "border-primary/30 bg-primary/5"
-                                        : "border-border/40 bg-secondary/20 hover:bg-secondary/40"
+                                        : "border-white/10 bg-white/[0.04] hover:bg-white/[0.05]"
                                 )}
                             >
                                 <div className="flex items-center gap-3">
@@ -843,7 +866,7 @@ export default function Settings() {
 
             {/* ─── Bybit Connection Modal ─── */}
             <Dialog open={showBybitModal} onOpenChange={setShowBybitModal}>
-                <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-border/40 rounded-3xl">
+                <DialogContent className="sm:max-w-md bg-card/95 backdrop-blur-xl border-white/10 rounded-3xl">
                     <DialogHeader>
                         <DialogTitle>{t('settings.bybitModal.title')}</DialogTitle>
                         <DialogDescription className="text-xs">
@@ -859,7 +882,7 @@ export default function Settings() {
                                 placeholder={t('settings.bybitModal.enterApiKey')}
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
-                                className="bg-secondary/50 border-none rounded-xl"
+                                className="bg-white/[0.05] border-none rounded-xl"
                             />
                         </div>
 
@@ -871,7 +894,7 @@ export default function Settings() {
                                 placeholder={t('settings.bybitModal.enterApiSecret')}
                                 value={apiSecret}
                                 onChange={(e) => setApiSecret(e.target.value)}
-                                className="bg-secondary/50 border-none rounded-xl"
+                                className="bg-white/[0.05] border-none rounded-xl"
                             />
                         </div>
 
@@ -890,7 +913,7 @@ export default function Settings() {
 
                     {/* Permission Guide */}
                     <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                        <p className="text-[11px] font-bold text-blue-400 mb-1">{t('settings.bybitModal.requiredPermissions')}</p>
+                        <p className="text-[11px] font-bold text-emerald-300 mb-1">{t('settings.bybitModal.requiredPermissions')}</p>
                         <ul className="text-[11px] text-muted-foreground space-y-0.5">
                             <li>{t('settings.bybitModal.readPermission')}</li>
                             <li>{t('settings.bybitModal.tradePermission')}</li>

@@ -1,0 +1,11 @@
+<!-- Apice Capital · App Clip Card · 108×108 (card format, simplified) · 2026-04-17 -->
+<!--
+  App Clip cards display at small sizes in the QR/NFC trigger sheet.
+  Apple HIG: App Clip card icon should be simple, high-contrast, recognizable at 48pt.
+  We use the dot-only variant (no squircle — Apple applies the clip card frame).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" role="img" aria-label="Apice Capital App Clip">
+  <rect width="108" height="108" fill="#0E0E12"/>
+  <!-- Dot at 20% canvas, optical center -->
+  <circle cx="54" cy="52" r="10.5" fill="#16A661"/>
+</svg>

@@ -1,236 +1,221 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import { toast } from "sonner";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+} from "framer-motion";
+import {
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Loader2,
+  Lock,
+  Mail,
+  Shield,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import { Loader2, Lock, Mail, Eye, EyeOff, ArrowRight, Shield } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
 import { useAppStore } from "@/store/appStore";
-import { useTranslation } from "@/hooks/useTranslation";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+import { TriangleMark } from "@/components/brand/BrandMark";
 
-// Auth input validation schema — uses static English strings
-// because Zod schemas are defined outside the component scope.
-// Toast messages from validation are shown via t() at the call site.
+/**
+ * Auth — premium signup/login aligned with AiTradeLanding.
+ * Preserves business logic: Supabase auth, demo mode, Zod validation,
+ * forgot-password, resend confirmation, redirect flows.
+ * Visual upgraded to dark #050816 + gradient tricolor + glass cards + premium motion.
+ */
+
 const authSchema = z.object({
-  email: z.string()
-    .email('Please enter a valid email address')
-    .max(254, 'Email is too long'),
-  password: z.string()
-    .min(6, 'Password must be at least 6 characters')
-    .max(128, 'Password is too long'),
+  email: z
+    .string()
+    .email("Please enter a valid email address")
+    .max(254, "Email is too long"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .max(128, "Password is too long"),
 });
 
-const TRANSITION_SMOOTH = [0.16, 1, 0.3, 1] as const;
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
-  },
-};
-
-const containerVariantsReduced = {
-  hidden: { opacity: 1 },
-  visible: { opacity: 1 },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: TRANSITION_SMOOTH } },
-};
-
-const itemVariantsReduced = {
-  hidden: { opacity: 1 },
-  visible: { opacity: 1 },
-};
-
 export default function Auth() {
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const prefersReducedMotion = useReducedMotion();
+
+  const { session, demoSignIn, isDemoMode } = useAuth();
+  const hasCompletedOnboarding = useAppStore((s) => s.hasCompletedOnboarding);
+  const redirectPath =
+    (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ||
+    "/home";
+
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { session, demoSignIn, isDemoMode } = useAuth();
-  const prefersReducedMotion = useReducedMotion();
-  const { t } = useTranslation();
-  const hasCompletedOnboarding = useAppStore((s) => s.hasCompletedOnboarding);
-  const redirectPath = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname || "/home";
+  const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState<string | null>(null);
 
   useEffect(() => {
+    document.documentElement.classList.add("dark");
     if (session) navigate(redirectPath, { replace: true });
   }, [session, navigate, redirectPath]);
 
   const handleForgotPassword = async () => {
     if (!email) {
-      toast.error('Enter your email address first');
+      toast.error("Enter your email address first");
       return;
     }
     try {
       await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth`,
       });
-      toast.success('Password reset email sent! Check your inbox.');
+      toast.success("Password reset email sent! Check your inbox.");
     } catch {
-      toast.error('Could not send reset email. Try again.');
+      toast.error("Could not send reset email. Try again.");
     }
   };
 
   const handleResendConfirmation = async () => {
     if (!email) {
-      toast.error('Enter your email address first');
+      toast.error("Enter your email address first");
       return;
     }
     try {
-      await supabase.auth.resend({ type: 'signup', email });
-      toast.success('Confirmation email resent! Check your inbox.');
+      await supabase.auth.resend({ type: "signup", email });
+      toast.success("Confirmation email resent! Check your inbox.");
     } catch {
-      toast.error('Could not resend email. Try again.');
+      toast.error("Could not resend email. Try again.");
     }
   };
 
-  const handleAuth = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleAuth = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoading(true);
 
-    try {
-      // Validate inputs with Zod before sending to auth provider
-      const validation = authSchema.safeParse({ email, password });
-      if (!validation.success) {
-        const firstError = validation.error.errors[0]?.message || "Invalid input";
-        toast.error(firstError);
-        return;
-      }
+      try {
+        const validation = authSchema.safeParse({ email, password });
+        if (!validation.success) {
+          toast.error(validation.error.errors[0]?.message || "Invalid input");
+          return;
+        }
 
-      // Demo mode: skip Supabase, use local session
-      if (isDemoMode) {
-        demoSignIn(validation.data.email);
-        toast.success(isSignUp ? t('auth.accountCreatedDemo') : t('auth.welcomeBackDemo'));
-        // After signup, redirect to onboarding if not completed
-        if (isSignUp && !hasCompletedOnboarding) {
-          navigate("/onboarding");
+        if (isDemoMode) {
+          demoSignIn(validation.data.email);
+          toast.success(isSignUp ? "Account created (demo)" : "Welcome back (demo)");
+          if (isSignUp && !hasCompletedOnboarding) {
+            navigate("/onboarding");
+          } else {
+            navigate(redirectPath);
+          }
+          return;
+        }
+
+        if (isSignUp) {
+          const { data, error } = await supabase.auth.signUp({ email, password });
+          if (error) throw error;
+          if (data?.session) {
+            toast.success("Welcome to Apice");
+            navigate(hasCompletedOnboarding ? redirectPath : "/onboarding");
+          } else {
+            toast.success("Account created", {
+              description: "Check your email to confirm your account.",
+            });
+          }
         } else {
+          const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          if (error) {
+            if (error.message.includes("Email not confirmed")) {
+              toast.error("Email not confirmed", {
+                description: "Check your inbox or spam folder.",
+              });
+              return;
+            }
+            if (error.message.includes("Invalid login credentials")) {
+              toast.error("Invalid credentials", {
+                description: "Check your email/password or create an account.",
+              });
+              return;
+            }
+            throw error;
+          }
+          toast.success("Welcome back");
           navigate(redirectPath);
         }
-        return;
+      } catch (error: unknown) {
+        const description =
+          error instanceof Error ? error.message : "Something went wrong.";
+        toast.error("Authentication failed", { description });
+      } finally {
+        setLoading(false);
       }
-
-      if (isSignUp) {
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
-        if (data?.session) {
-          toast.success(t('auth.welcomeToApice'));
-          // Redirect to onboarding if not already completed, otherwise home
-          navigate(hasCompletedOnboarding ? redirectPath : "/onboarding");
-        } else {
-          toast.success(t('auth.accountCreated'), {
-            description: t('auth.checkEmailConfirm'),
-          });
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          if (error.message.includes("Email not confirmed")) {
-            toast.error(t('auth.emailNotConfirmed'), {
-              description: t('auth.checkInboxOrSpam'),
-            });
-            return;
-          }
-          if (error.message.includes("Invalid login credentials")) {
-            toast.error(t('auth.invalidCredentials'), {
-              description: t('auth.checkCredentialsOrSignUp'),
-            });
-            return;
-          }
-          throw error;
-        }
-        toast.success(t('auth.welcomeBack'));
-        navigate(redirectPath);
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : t('auth.genericError');
-      toast.error(t('auth.authFailed'), {
-        description: errorMessage,
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [email, password, isSignUp, navigate, isDemoMode, demoSignIn, hasCompletedOnboarding, redirectPath, t]);
+    },
+    [email, password, isSignUp, isDemoMode, demoSignIn, hasCompletedOnboarding, navigate, redirectPath]
+  );
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative overflow-hidden">
-      {/* Ambient Background — layered orbs (hidden with reduced motion) */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div
-          className="absolute inset-0"
-          style={{
-            background: 'radial-gradient(ellipse 80% 50% at 50% -20%, hsl(var(--primary) / 0.08), transparent 60%)',
-          }}
-        />
-        {!prefersReducedMotion && (
-          <>
-            <motion.div
-              className="absolute w-[60vw] h-[60vw] max-w-[500px] max-h-[500px] rounded-full"
-              style={{
-                top: '-15%', left: '-15%',
-                background: 'radial-gradient(circle, hsl(var(--primary) / 0.07), transparent 65%)',
-                filter: 'blur(80px)',
-              }}
-              animate={{ x: [0, 20, 0], y: [0, -15, 0], scale: [1, 1.05, 1] }}
-              transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            <motion.div
-              className="absolute w-[50vw] h-[50vw] max-w-[400px] max-h-[400px] rounded-full"
-              style={{
-                bottom: '-10%', right: '-10%',
-                background: 'radial-gradient(circle, hsl(var(--apice-gradient-end) / 0.06), transparent 65%)',
-                filter: 'blur(80px)',
-              }}
-              animate={{ x: [0, -15, 0], y: [0, 18, 0], scale: [1, 0.96, 1] }}
-              transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          </>
-        )}
-        {/* Subtle noise texture overlay */}
-        <div className="absolute inset-0 opacity-[0.015]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-        }} />
+    <div className="relative min-h-screen overflow-x-hidden bg-[#0F1626] text-white antialiased">
+      {/* Background decor */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(82,143,255,0.2),transparent_35%),radial-gradient(circle_at_85%_25%,rgba(234,179,8,0.1),transparent_22%),radial-gradient(circle_at_15%_80%,rgba(155,135,245,0.18),transparent_30%),linear-gradient(180deg,#0F1626_0%,#152038_50%,#0F1626_100%)]" />
+        <div className="absolute inset-0 opacity-[0.05] [background-image:linear-gradient(rgba(255,255,255,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:96px_96px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,#000_50%,transparent_100%)]" />
       </div>
 
-      {/* Demo Mode Banner */}
+      {/* Animated orbs */}
+      {!prefersReducedMotion && (
+        <>
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none fixed -left-20 top-[8%] z-0 h-80 w-80 rounded-full blur-3xl"
+            style={{
+              background:
+                "radial-gradient(circle, hsl(var(--apice-gradient-end) / 0.22), transparent 70%)",
+            }}
+            animate={{ x: [0, 20, -6, 0], y: [0, -18, 8, 0], scale: [1, 1.05, 1] }}
+            transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none fixed -right-16 bottom-[10%] z-0 h-72 w-72 rounded-full blur-3xl"
+            style={{
+              background:
+                "radial-gradient(circle, hsl(var(--apice-gold) / 0.2), transparent 70%)",
+            }}
+            animate={{ x: [0, -14, 10, 0], y: [0, 14, -10, 0], scale: [1, 0.95, 1] }}
+            transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </>
+      )}
+
+      {/* Demo mode banner */}
       {isDemoMode && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500/90 text-black text-center py-1.5 text-xs font-semibold">
-          {t('auth.demoModeBanner')}
+        <div className="relative z-20 bg-[hsl(var(--apice-gold))]/95 py-1.5 text-center text-xs font-semibold text-[#050816]">
+          Demo mode — no real authentication required
         </div>
       )}
 
-      {/* Content */}
-      <motion.div
-        variants={prefersReducedMotion ? containerVariantsReduced : containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="w-full max-w-sm relative z-10 flex flex-col items-center"
+      <main
+        id="main"
+        className="relative z-10 flex min-h-screen flex-col items-center justify-center px-5 py-10"
+        aria-labelledby="auth-title"
       >
-        {/* Logo */}
-        <motion.div variants={prefersReducedMotion ? itemVariantsReduced : itemVariants} className="flex flex-col items-center gap-3 mb-10">
-          <motion.div
-            className="w-16 h-16 rounded-[20px] apice-gradient-primary flex items-center justify-center shadow-2xl relative"
-            whileHover={prefersReducedMotion ? {} : { scale: 1.05, rotate: 2 }}
-            transition={prefersReducedMotion ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 15 }}
-          >
-            <div className="absolute inset-0 rounded-[20px] glow-primary opacity-60" />
-            <svg width="30" height="30" viewBox="0 0 40 40" fill="none" className="text-white relative z-10">
-              <path d="M20 4L36 34H4L20 4Z" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" fill="none" />
-              <path d="M20 13L30 32H10L20 13Z" fill="currentColor" opacity="0.3" />
-            </svg>
-          </motion.div>
+        {/* Logo + heading */}
+        <motion.div
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <TriangleMark variant="circle" size={64} aria-hidden="true" />
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -238,163 +223,207 @@ export default function Auth() {
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
-              transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
+              transition={{ duration: 0.3 }}
               className="text-center"
             >
-              <h1 className="font-display text-2xl font-bold tracking-tight">
-                {isSignUp ? t('auth.createYourAccount') : t('auth.welcomeBack')}
+              <h1
+                id="auth-title"
+                className="font-display text-3xl font-semibold tracking-[-0.02em] text-white md:text-[36px]"
+              >
+                {isSignUp ? "Create your account" : "Welcome back"}
               </h1>
-              <p className="text-caption text-muted-foreground mt-1.5">
+              <p className="mt-2 text-sm text-white/55">
                 {isSignUp
-                  ? t('auth.signUpSubtitle')
-                  : t('auth.signInSubtitle')}
+                  ? "Start your AI Trade setup in minutes."
+                  : "Resume your Apice setup where you left off."}
               </p>
             </motion.div>
           </AnimatePresence>
         </motion.div>
 
-        {/* Form Card */}
-        <motion.div variants={prefersReducedMotion ? itemVariantsReduced : itemVariants} className="w-full">
-          <div className="glass-card rounded-3xl p-6 apice-shadow-elevated">
-            <form onSubmit={handleAuth} className="space-y-5">
+        {/* Form card */}
+        <motion.div
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
+          className="mt-10 w-full max-w-sm"
+        >
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.02] p-6 backdrop-blur md:p-7">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 opacity-60"
+              style={{
+                background:
+                  "radial-gradient(500px at 50% 0%, hsl(var(--apice-gradient-end) / 0.08), transparent 60%)",
+              }}
+            />
+
+            <form onSubmit={handleAuth} className="relative space-y-5">
               {/* Email */}
-              <div className="space-y-2">
-                <label className="text-micro font-semibold text-muted-foreground uppercase tracking-widest">
-                  {t('auth.email')}
+              <div>
+                <label
+                  htmlFor="auth-email"
+                  className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/55"
+                >
+                  Email
                 </label>
-                <div className="relative group">
-                  <Mail className={cn(
-                    "absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-200",
-                    focusedField === "email" ? "text-primary" : "text-muted-foreground"
-                  )} />
+                <div className="relative mt-2">
+                  <Mail
+                    className={cn(
+                      "pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors duration-200",
+                      focused === "email"
+                        ? "text-[hsl(var(--apice-gold))]"
+                        : "text-white/40"
+                    )}
+                    aria-hidden="true"
+                  />
                   <Input
+                    id="auth-email"
                     placeholder="you@example.com"
                     type="email"
                     autoCapitalize="none"
                     autoComplete="email"
                     autoCorrect="off"
                     disabled={loading}
+                    required
                     value={email}
-                    onFocus={() => setFocusedField("email")}
-                    onBlur={() => setFocusedField(null)}
+                    onFocus={() => setFocused("email")}
+                    onBlur={() => setFocused(null)}
                     onChange={(e) => setEmail(e.target.value)}
                     className={cn(
-                      "h-12 pl-10 rounded-2xl bg-secondary/40 border-border/40 text-sm transition-all duration-300",
-                      focusedField === "email" && "border-primary/50 ring-2 ring-primary/15 bg-secondary/60"
+                      "h-12 rounded-2xl border-white/10 bg-white/5 pl-10 text-sm text-white placeholder:text-white/35 transition-all",
+                      "focus-visible:border-[hsl(var(--apice-gold))]/40 focus-visible:bg-white/[0.06] focus-visible:ring-2 focus-visible:ring-[hsl(var(--apice-gold))]/15"
                     )}
-                    required
                   />
                 </div>
               </div>
 
               {/* Password */}
-              <div className="space-y-2">
-                <label className="text-micro font-semibold text-muted-foreground uppercase tracking-widest">
-                  {t('auth.password')}
+              <div>
+                <label
+                  htmlFor="auth-password"
+                  className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/55"
+                >
+                  Password
                 </label>
-                <div className="relative group">
-                  <Lock className={cn(
-                    "absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-200",
-                    focusedField === "password" ? "text-primary" : "text-muted-foreground"
-                  )} />
+                <div className="relative mt-2">
+                  <Lock
+                    className={cn(
+                      "pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors duration-200",
+                      focused === "password"
+                        ? "text-[hsl(var(--apice-gold))]"
+                        : "text-white/40"
+                    )}
+                    aria-hidden="true"
+                  />
                   <Input
+                    id="auth-password"
                     type={showPassword ? "text" : "password"}
                     disabled={loading}
-                    value={password}
-                    onFocus={() => setFocusedField("password")}
-                    onBlur={() => setFocusedField(null)}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className={cn(
-                      "h-12 pl-10 pr-10 rounded-2xl bg-secondary/40 border-border/40 text-sm transition-all duration-300",
-                      focusedField === "password" && "border-primary/50 ring-2 ring-primary/15 bg-secondary/60"
-                    )}
                     required
                     minLength={6}
+                    value={password}
+                    onFocus={() => setFocused("password")}
+                    onBlur={() => setFocused(null)}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
+                    className={cn(
+                      "h-12 rounded-2xl border-white/10 bg-white/5 pl-10 pr-10 text-sm text-white placeholder:text-white/35 transition-all",
+                      "focus-visible:border-[hsl(var(--apice-gold))]/40 focus-visible:bg-white/[0.06] focus-visible:ring-2 focus-visible:ring-[hsl(var(--apice-gold))]/15"
+                    )}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-secondary/60"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" aria-hidden="true" />
+                    ) : (
+                      <Eye className="h-4 w-4" aria-hidden="true" />
+                    )}
                   </button>
                 </div>
               </div>
 
-              {/* Forgot Password (login only) */}
+              {/* Forgot password (login only) */}
               {!isSignUp && (
-                <div className="flex justify-end -mt-2">
+                <div className="flex justify-end">
                   <button
                     type="button"
                     onClick={handleForgotPassword}
-                    className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                    className="text-xs font-medium text-[hsl(var(--apice-gold))] transition-colors hover:text-[hsl(var(--apice-gold))]/80 focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4"
                   >
                     Forgot password?
                   </button>
                 </div>
               )}
 
-              {/* Error announcements for screen readers */}
               <div aria-live="polite" className="sr-only" />
 
               {/* Submit */}
-              <motion.div whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}>
-                <Button
-                  disabled={loading}
-                  className="w-full h-12 rounded-2xl apice-gradient-primary text-white font-semibold text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover-lift transition-all duration-300 group"
-                >
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      {isSignUp ? t('auth.createAccount') : t('auth.signIn')}
-                      <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
-                    </>
-                  )}
-                </Button>
-              </motion.div>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="group h-12 w-full rounded-2xl text-sm font-semibold shadow-[0_0_60px_-12px_rgba(82,143,255,0.45)] transition-all hover:shadow-[0_0_80px_-12px_rgba(82,143,255,0.65)]"
+              >
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <>
+                    {isSignUp ? "Create account" : "Sign in"}
+                    <ArrowRight
+                      className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                  </>
+                )}
+              </Button>
             </form>
 
-            {/* Legal agreement for sign-up */}
-            {isSignUp && (
-              <p className="text-[11px] text-muted-foreground/60 text-center mt-4 px-2 leading-relaxed">
-                {t('auth.legalPrefix')}{' '}
-                <Link to="/terms" className="text-primary hover:text-primary/80 transition-colors font-medium">
-                  {t('common.termsOfService')}
-                </Link>{' '}
-                {t('auth.legalAnd')}{' '}
-                <Link to="/privacy" className="text-primary hover:text-primary/80 transition-colors font-medium">
-                  {t('common.privacyPolicy')}
-                </Link>.
-              </p>
-            )}
+            {/* Legal / resend / toggle */}
+            <div className="relative mt-6 space-y-4">
+              {isSignUp && (
+                <>
+                  <p className="text-[11px] leading-relaxed text-white/45">
+                    By creating an account, you agree to our{" "}
+                    <Link
+                      to="/terms"
+                      className="font-medium text-[hsl(var(--apice-gold))] transition-colors hover:text-[hsl(var(--apice-gold))]/80"
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      to="/privacy"
+                      className="font-medium text-[hsl(var(--apice-gold))] transition-colors hover:text-[hsl(var(--apice-gold))]/80"
+                    >
+                      Privacy Policy
+                    </Link>
+                    .
+                  </p>
 
-            {/* Resend confirmation (sign-up mode) */}
-            {isSignUp && (
-              <div className="text-center mt-3">
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={handleResendConfirmation}
+                      className="text-xs font-medium text-[hsl(var(--apice-gold))] transition-colors hover:text-[hsl(var(--apice-gold))]/80"
+                    >
+                      Didn't receive it? Resend
+                    </button>
+                  </div>
+                </>
+              )}
+
+              <div className="border-t border-white/5 pt-4 text-center text-xs text-white/55">
+                {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
                 <button
                   type="button"
-                  onClick={handleResendConfirmation}
-                  className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                  onClick={() => setIsSignUp((v) => !v)}
+                  className="ml-1 font-bold text-white transition-colors hover:text-[hsl(var(--apice-gold))] focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4"
                 >
-                  Didn't receive it? Resend
-                </button>
-              </div>
-            )}
-
-            {/* Toggle */}
-            <div className="mt-6 pt-4 border-t border-border/20">
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-micro text-muted-foreground">
-                  {isSignUp ? t('auth.alreadyHaveAccount') : t('auth.dontHaveAccount')}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className="text-micro font-bold text-primary hover:text-primary/80 transition-colors"
-                >
-                  {isSignUp ? t('auth.signIn') : t('auth.signUp')}
+                  {isSignUp ? "Sign in" : "Sign up"}
                 </button>
               </div>
             </div>
@@ -403,15 +432,23 @@ export default function Auth() {
 
         {/* Trust badge */}
         <motion.div
-          variants={prefersReducedMotion ? itemVariantsReduced : itemVariants}
-          className="flex items-center gap-2 mt-8 text-muted-foreground/40"
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="mt-8 flex items-center gap-2 text-[11px] text-white/40"
         >
-          <Shield className="w-3 h-3" />
-          <span className="text-[11px] tracking-wide">
-            {isDemoMode ? t('auth.demoTrustBadge') : t('auth.trustBadge')}
+          <Shield className="h-3 w-3 text-emerald-400/70" aria-hidden="true" />
+          <span className="tracking-wide">
+            {isDemoMode
+              ? "Demo mode — no real account created"
+              : "Bank-grade encryption · Non-custodial · Your keys, your crypto"}
           </span>
+          <Sparkles
+            className="h-3 w-3 text-[hsl(var(--apice-gold))]/50"
+            aria-hidden="true"
+          />
         </motion.div>
-      </motion.div>
+      </main>
     </div>
   );
 }

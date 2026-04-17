@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Apice Capital · v5 · 5 Variations of Option B</title>
+<style>
+  :root{
+    --dark:#0E0E12; --dark-2:#1A1915; --dark-3:#08080B;
+    --cream:#F7F3ED; --cream-2:#FBF8F2; --cream-3:#EEEAE0;
+    --n0:#FFFFFF; --n100:#F0EDE7; --n200:#E4E0D7; --n400:#A8A39A;
+    --n500:#6E6A61; --n700:#3F3D38; --n900:#1A1915;
+
+    --emerald:#0F5D3F; --emerald-bright:#16A661;
+    --neon:#B9FF3D;
+    --amber:#F59E0B;
+    --crimson:#C41E3A;
+    --ultramarine:#1E3A8A; --ultramarine-bright:#3B82F6;
+
+    --font:'Geist','Inter','SF Pro Display',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--cream);color:var(--dark);font-family:var(--font);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  .wrap{max-width:1360px;margin:0 auto;padding:64px 40px 160px}
+
+  .kicker{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--dark);background:var(--cream-2);padding:6px 14px;border:1px solid var(--n200);border-radius:9999px;margin-bottom:24px}
+  h1{font-weight:800;letter-spacing:-0.03em;font-size:56px;margin:0 0 16px;line-height:1.04}
+  h1 small{display:block;font-size:18px;font-weight:400;color:var(--n500);margin-top:18px;letter-spacing:0;line-height:1.55}
+  .meta{color:var(--n500);font-size:13px;margin-bottom:48px}
+  h2{font-weight:700;letter-spacing:-0.02em;font-size:28px;margin:80px 0 16px}
+  h3{font-weight:700;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--n500);margin:0 0 10px}
+
+  /* Variation cards */
+  .var-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;margin-top:32px}
+  @media(max-width:980px){.var-grid{grid-template-columns:1fr}}
+  .var-grid .full{grid-column:1/-1}
+
+  .var{background:var(--n0);border:1px solid var(--n200);border-radius:20px;padding:36px 32px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+  .var-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+  .var-num{font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--n500)}
+  .var-name{font-size:30px;font-weight:800;letter-spacing:-0.02em;margin:2px 0 4px}
+  .var-tag{font-size:14px;font-style:italic;color:var(--n500);line-height:1.5}
+  .var-peer{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:#fff;padding:5px 10px;border-radius:6px;white-space:nowrap;flex:0 0 auto;height:fit-content}
+
+  /* Hero blocks that show the wordmark */
+  .hero{border-radius:12px;padding:56px 32px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:160px;position:relative;overflow:hidden}
+  .hero.light{background:var(--cream-2)}
+  .hero.dark{background:var(--dark)}
+
+  /* ===== V1: APICE monumental caps · Ultramarine ===== */
+  .wm-v1{font-weight:800;font-size:56px;letter-spacing:0.22em;color:var(--ultramarine)}
+  .wm-v1.on-dark{color:var(--ultramarine-bright)}
+  .sub-v1{font-size:11px;letter-spacing:0.5em;font-weight:600;color:var(--n500);margin-top:8px}
+  .sub-v1.on-dark{color:rgba(247,243,237,.45)}
+
+  /* ===== V2: apice lowercase + flowing mark · Emerald ===== */
+  .v2-lockup{display:flex;align-items:center;gap:16px}
+  .v2-mark{width:44px;height:44px}
+  .v2-mark path{fill:var(--emerald);stroke:var(--emerald);stroke-width:0;transition:all .2s}
+  .hero.dark .v2-mark path{fill:var(--emerald-bright)}
+  .wm-v2{font-weight:800;font-size:52px;letter-spacing:-0.035em;color:var(--emerald)}
+  .wm-v2.on-dark{color:var(--emerald-bright)}
+  .sub-v2{font-size:10px;letter-spacing:0.32em;font-weight:700;color:var(--n500);margin-top:6px;text-transform:uppercase}
+  .sub-v2.on-dark{color:rgba(247,243,237,.5)}
+
+  /* ===== V3: Apice. title case with period · Amber ===== */
+  .wm-v3{font-weight:700;font-size:56px;letter-spacing:-0.03em;color:var(--dark);display:flex;align-items:baseline}
+  .wm-v3 .dot{color:var(--amber);font-weight:800;margin-left:2px}
+  .wm-v3.on-dark{color:var(--cream)}
+  .sub-v3{font-size:11px;letter-spacing:0.4em;font-weight:500;color:var(--n500);margin-top:8px;text-transform:uppercase}
+  .sub-v3.on-dark{color:rgba(247,243,237,.4)}
+
+  /* ===== V4: A|pice split-weight · Crimson ===== */
+  .wm-v4{font-size:56px;letter-spacing:0.04em;color:var(--dark);display:flex;align-items:baseline;gap:0}
+  .wm-v4 .a{font-weight:900;color:var(--crimson);font-size:64px;letter-spacing:-0.02em;margin-right:6px}
+  .wm-v4 .rest{font-weight:500;letter-spacing:0.18em}
+  .wm-v4.on-dark .rest{color:var(--cream)}
+  .sub-v4{font-size:10px;letter-spacing:0.35em;font-weight:700;margin-top:6px;text-transform:uppercase;color:var(--n500);display:flex;gap:10px}
+  .sub-v4 .sep{color:var(--crimson)}
+  .sub-v4.on-dark{color:rgba(247,243,237,.5)}
+
+  /* ===== V5: apice· + integrated neon dot · Robinhood register ===== */
+  .wm-v5{font-weight:700;font-size:56px;letter-spacing:-0.035em;color:var(--dark);position:relative;display:flex;align-items:baseline}
+  .wm-v5 .i-dot{display:inline-block;width:12px;height:12px;border-radius:9999px;background:var(--neon);margin:0 -8px 38px 2px;box-shadow:0 0 0 3px rgba(185,255,61,.0)}
+  .wm-v5.on-dark{color:var(--cream)}
+  .sub-v5{font-size:10px;letter-spacing:0.42em;font-weight:700;color:var(--n500);margin-top:8px;text-transform:uppercase}
+  .sub-v5.on-dark{color:rgba(247,243,237,.5)}
+
+  /* Scale row */
+  .scale-strip{display:flex;gap:28px;align-items:baseline;flex-wrap:wrap;padding:20px 24px;background:var(--cream-2);border-radius:10px;margin-top:8px}
+  .scale-strip .s{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .scale-strip .s small{font-size:9px;color:var(--n500);text-transform:uppercase;letter-spacing:0.1em;font-weight:600}
+
+  /* Details */
+  .var-detail{font-size:13px;line-height:1.6;color:var(--n700)}
+  .var-detail strong{color:var(--dark)}
+  .palette-row{display:flex;gap:6px;margin-top:8px}
+  .palette-row .sw{flex:1;height:36px;border-radius:6px;display:flex;align-items:flex-end;padding:4px 6px;font-size:9px;color:#fff;font-weight:600;letter-spacing:0.06em;text-transform:uppercase}
+
+  .use-case{background:var(--cream-2);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--n700);line-height:1.5;margin-top:8px}
+  .use-case strong{color:var(--dark)}
+
+  /* Comparison */
+  .compare{background:var(--n0);border:1px solid var(--n200);border-radius:16px;margin-top:32px;overflow:hidden}
+  .compare table{width:100%;border-collapse:collapse}
+  .compare th,.compare td{text-align:left;padding:14px 20px;border-bottom:1px solid var(--n200);font-size:13px;vertical-align:top}
+  .compare th{background:var(--dark);color:#fff;font-weight:700;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;position:sticky;top:0}
+  .compare td:first-child{font-weight:700;color:var(--dark);width:180px}
+  .compare tr:last-child td{border-bottom:0}
+
+  /* Peer badges */
+  .peer-nexo{background:#0F5D3F}
+  .peer-robinhood{background:#0E0E12}
+  .peer-stripe{background:#635BFF}
+  .peer-vanguard{background:#C41E3A}
+  .peer-blackrock{background:#0E0E12}
+  .peer-belvo{background:#1E3A8A}
+
+  /* Decide CTA */
+  .decide{background:var(--dark);color:var(--cream);border-radius:24px;padding:48px 40px;margin-top:48px}
+  .decide h2{color:var(--cream);margin:0 0 16px}
+  .decide p{color:rgba(247,243,237,.7);font-size:15px;line-height:1.7;max-width:720px}
+  .decide .pick-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:24px}
+  @media(max-width:820px){.decide .pick-grid{grid-template-columns:repeat(2,1fr)}}
+  .pick{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:16px;text-align:center}
+  .pick .n{font-size:11px;color:rgba(247,243,237,.5);font-weight:700;letter-spacing:0.12em;text-transform:uppercase}
+  .pick .t{font-size:16px;font-weight:800;margin-top:4px}
+  .pick .c{font-size:11px;color:rgba(247,243,237,.5);margin-top:4px;letter-spacing:0.08em}
+
+  .footnote{margin-top:56px;color:var(--n500);font-size:12px;padding-top:32px;border-top:1px solid var(--n200)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">v5 · 5 variations inside Option B</div>
+  <h1>Apice Capital — 5 Directions in the Modern Fintech Professional Register
+    <small>All five live in the Option B quadrant (Nexo 2024 / Robinhood 2024 / Wise register) and follow the category DNA — wordmark-primary, sober base, one signature color, custom letterforms. They differ in <strong>case</strong>, <strong>typography weight</strong>, <strong>symbol presence</strong>, <strong>signature color</strong>, and <strong>craft detail</strong>. Pick one, or combine.</small>
+  </h1>
+  <p class="meta">Jarvis · 2026-04-17 · Each variation maps to a living peer brand — no invention, all grounded.</p>
+
+  <!-- ================================================================ -->
+  <h2>The five variations</h2>
+
+  <div class="var-grid">
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- V1 — APICE Monumental Caps · Ultramarine · Belvo/BlackRock register -->
+    <div class="var">
+      <div class="var-head">
+        <div>
+          <div class="var-num">Variation 01</div>
+          <div class="var-name">Monumental Caps</div>
+          <div class="var-tag">"Institutional weight, modern typography. Wordmark-only like BlackRock."</div>
+        </div>
+        <div class="var-peer peer-belvo">Peer: Belvo 2026 · BlackRock</div>
+      </div>
+
+      <div class="hero light">
+        <div class="wm-v1">APICE</div>
+        <div class="sub-v1">CAPITAL</div>
+      </div>
+      <div class="hero dark">
+        <div class="wm-v1 on-dark">APICE</div>
+        <div class="sub-v1 on-dark">CAPITAL</div>
+      </div>
+
+      <div class="scale-strip">
+        <div class="s"><span class="wm-v1" style="font-size:16px">APICE</span><small>16px</small></div>
+        <div class="s"><span class="wm-v1" style="font-size:22px">APICE</span><small>22px</small></div>
+        <div class="s"><span class="wm-v1" style="font-size:32px">APICE</span><small>32px</small></div>
+        <div class="s"><span class="wm-v1" style="font-size:44px">APICE</span><small>44px</small></div>
+      </div>
+
+      <div class="var-detail">
+        <strong>Wordmark:</strong> APICE all-caps Geist 800 · tracking +220 (wide breathing)<br/>
+        <strong>Symbol:</strong> None — wordmark alone carries the brand (BlackRock/Vanguard 2020 posture)<br/>
+        <strong>Custom details:</strong> A with flat apex, C/E with optical wider apertures, I bare stem
+      </div>
+
+      <div class="palette-row">
+        <div class="sw" style="background:var(--dark)">DARK</div>
+        <div class="sw" style="background:var(--cream);color:var(--dark);border:1px solid var(--n200)">CREAM</div>
+        <div class="sw" style="background:var(--ultramarine)">ULTRAMARINE</div>
+      </div>
+
+      <div class="use-case">
+        <strong>Best for:</strong> institutional register, press / investor deck hero, formal contexts. Monumental, trust-coded. Feels like BlackRock or Vanguard 2020 applied to a modern platform.
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- V2 — apice + flowing mark · Emerald · Nexo 2024 register -->
+    <div class="var">
+      <div class="var-head">
+        <div>
+          <div class="var-num">Variation 02</div>
+          <div class="var-name">Flow Mark</div>
+          <div class="var-tag">"Wordmark + ascending gesture. Nexo 'Wealth Forward' register."</div>
+        </div>
+        <div class="var-peer peer-nexo">Peer: Nexo 2024</div>
+      </div>
+
+      <div class="hero light">
+        <div class="v2-lockup">
+          <svg class="v2-mark" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 6 36 C 12 30, 18 22, 24 14 C 28 10, 32 7, 38 4 L 39 7 C 33 10, 29 13, 25 17 C 19 25, 13 33, 7 39 Z"/>
+          </svg>
+          <div class="wm-v2">apice</div>
+        </div>
+        <div class="sub-v2">Capital</div>
+      </div>
+      <div class="hero dark">
+        <div class="v2-lockup">
+          <svg class="v2-mark" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 6 36 C 12 30, 18 22, 24 14 C 28 10, 32 7, 38 4 L 39 7 C 33 10, 29 13, 25 17 C 19 25, 13 33, 7 39 Z"/>
+          </svg>
+          <div class="wm-v2 on-dark">apice</div>
+        </div>
+        <div class="sub-v2 on-dark">Capital</div>
+      </div>
+
+      <div class="var-detail">
+        <strong>Wordmark:</strong> apice lowercase Geist 800 · tracking -35 (compact)<br/>
+        <strong>Symbol:</strong> Single variable-weight ascending stroke — favicon-ready, semantic (growth/journey)<br/>
+        <strong>Custom details:</strong> subtle "a" with open shoulder, "p" with slight descender lean
+      </div>
+
+      <div class="palette-row">
+        <div class="sw" style="background:var(--dark)">DARK</div>
+        <div class="sw" style="background:var(--cream);color:var(--dark);border:1px solid var(--n200)">CREAM</div>
+        <div class="sw" style="background:var(--emerald)">EMERALD</div>
+      </div>
+
+      <div class="use-case">
+        <strong>Best for:</strong> modern-premium register with warmth. The mark extends to gamification (streak flame, level ups). Growth-coded without crypto-degen associations. Nexo's rebrand proves this works at the wealth-platform tier.
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- V3 — Apice. title case with period dot · Amber (current) · Stripe/Linear register -->
+    <div class="var">
+      <div class="var-head">
+        <div>
+          <div class="var-num">Variation 03</div>
+          <div class="var-name">The Dot</div>
+          <div class="var-tag">"Title case + a signature full-stop in amber. Stripe/Linear minimalism."</div>
+        </div>
+        <div class="var-peer peer-stripe">Peer: Stripe · Linear · Plaid</div>
+      </div>
+
+      <div class="hero light">
+        <div class="wm-v3">Apice<span class="dot">.</span></div>
+        <div class="sub-v3">Capital</div>
+      </div>
+      <div class="hero dark">
+        <div class="wm-v3 on-dark">Apice<span class="dot">.</span></div>
+        <div class="sub-v3 on-dark">Capital</div>
+      </div>
+
+      <div class="scale-strip">
+        <div class="s"><span class="wm-v3" style="font-size:16px">Apice<span class="dot">.</span></span><small>16px</small></div>
+        <div class="s"><span class="wm-v3" style="font-size:24px">Apice<span class="dot">.</span></span><small>24px</small></div>
+        <div class="s"><span class="wm-v3" style="font-size:36px">Apice<span class="dot">.</span></span><small>36px</small></div>
+        <div class="s"><span class="wm-v3" style="font-size:48px">Apice<span class="dot">.</span></span><small>48px</small></div>
+      </div>
+
+      <div class="var-detail">
+        <strong>Wordmark:</strong> Apice title case Geist 700 · tracking -30 · full-stop in signature amber<br/>
+        <strong>Symbol:</strong> The period IS the symbol — can stand alone as a favicon dot<br/>
+        <strong>Custom details:</strong> dot diameter = 0.18 × cap-height, sits on baseline not below
+      </div>
+
+      <div class="palette-row">
+        <div class="sw" style="background:var(--dark)">DARK</div>
+        <div class="sw" style="background:var(--cream);color:var(--dark);border:1px solid var(--n200)">CREAM</div>
+        <div class="sw" style="background:var(--amber)">AMBER</div>
+      </div>
+
+      <div class="use-case">
+        <strong>Best for:</strong> tech-professional, the "Stripe of wealth platforms" register. Keeps the current amber. The dot becomes reusable primitive (favicon, bullet points, section dividers). Clean, contemporary, survivable.
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- V4 — A|PICE split-weight · Crimson · Vanguard register -->
+    <div class="var">
+      <div class="var-head">
+        <div>
+          <div class="var-num">Variation 04</div>
+          <div class="var-name">Split Weight</div>
+          <div class="var-tag">"Bold A as anchor, light PICE as breath. Vanguard crimson leadership."</div>
+        </div>
+        <div class="var-peer peer-vanguard">Peer: Vanguard 2020 · JPM</div>
+      </div>
+
+      <div class="hero light">
+        <div class="wm-v4"><span class="a">A</span><span class="rest">PICE</span></div>
+        <div class="sub-v4"><span>APICE</span><span class="sep">·</span><span>CAPITAL</span></div>
+      </div>
+      <div class="hero dark">
+        <div class="wm-v4 on-dark"><span class="a">A</span><span class="rest">PICE</span></div>
+        <div class="sub-v4 on-dark"><span>APICE</span><span class="sep">·</span><span>CAPITAL</span></div>
+      </div>
+
+      <div class="var-detail">
+        <strong>Wordmark:</strong> A in Geist 900 Black (larger cap-height) + PICE in Geist 500 Medium<br/>
+        <strong>Symbol:</strong> The A itself — extractable as standalone mark for favicon/icon<br/>
+        <strong>Custom details:</strong> A is 12% taller, kerning between A and P is tightened -8%, visual tension creates memorability
+      </div>
+
+      <div class="palette-row">
+        <div class="sw" style="background:var(--dark)">DARK</div>
+        <div class="sw" style="background:var(--cream);color:var(--dark);border:1px solid var(--n200)">CREAM</div>
+        <div class="sw" style="background:var(--crimson)">CRIMSON</div>
+      </div>
+
+      <div class="use-case">
+        <strong>Best for:</strong> bold leadership positioning — Apice as the Vanguard-equivalent of the next generation. The split-weight creates visual signature without adding ornament. The A detaches cleanly for app icon.
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- V5 — apice+ with integrated neon dot on i · Robinhood register -->
+    <div class="var full">
+      <div class="var-head">
+        <div>
+          <div class="var-num">Variation 05</div>
+          <div class="var-name">The Neon Tittle</div>
+          <div class="var-tag">"Lowercase modern sans — the 'i' tittle becomes the signature neon dot. Robinhood 2024 meets Linear."</div>
+        </div>
+        <div class="var-peer peer-robinhood">Peer: Robinhood 2024 · Linear</div>
+      </div>
+
+      <div class="hero light">
+        <div class="wm-v5">ap<span class="i-dot"></span>ce</div>
+        <div class="sub-v5">Capital</div>
+      </div>
+      <div class="hero dark">
+        <div class="wm-v5 on-dark">ap<span class="i-dot"></span>ce</div>
+        <div class="sub-v5 on-dark">Capital</div>
+      </div>
+
+      <div class="var-detail" style="max-width:720px">
+        <strong>Wordmark:</strong> apice lowercase Geist 700 · tracking -40 · the "i" has NO stem — only the signature dot remains, floating in negative space between "ap" and "ce"<br/>
+        <strong>Symbol:</strong> The neon dot — extractable, animatable (pulses on splash, grows on level-ups, fills on streak milestones)<br/>
+        <strong>Custom details:</strong> dot is bright neon `#B9FF3D` (Robinhood Robin Neon register), sits at x-height, becomes the single brand primitive across product UI
+      </div>
+
+      <div class="scale-strip">
+        <div class="s"><span class="wm-v5" style="font-size:18px">ap<span class="i-dot" style="width:4px;height:4px;margin:0 -3px 14px 1px"></span>ce</span><small>18px</small></div>
+        <div class="s"><span class="wm-v5" style="font-size:28px">ap<span class="i-dot" style="width:6px;height:6px;margin:0 -4px 22px 1px"></span>ce</span><small>28px</small></div>
+        <div class="s"><span class="wm-v5" style="font-size:40px">ap<span class="i-dot" style="width:9px;height:9px;margin:0 -6px 30px 2px"></span>ce</span><small>40px</small></div>
+        <div class="s"><span class="wm-v5" style="font-size:64px">ap<span class="i-dot" style="width:14px;height:14px;margin:0 -9px 44px 2px"></span>ce</span><small>64px</small></div>
+      </div>
+
+      <div class="palette-row" style="max-width:420px">
+        <div class="sw" style="background:var(--dark)">DARK</div>
+        <div class="sw" style="background:var(--cream);color:var(--dark);border:1px solid var(--n200)">CREAM</div>
+        <div class="sw" style="background:var(--neon);color:var(--dark)">NEON</div>
+      </div>
+
+      <div class="use-case" style="max-width:720px">
+        <strong>Best for:</strong> the boldest differentiator — the only variation where the mark and the color become inseparable. Robinhood 2024 proved this register works for serious investors. The neon dot becomes a 20-year brand primitive (streak state, notification, level markers). Most ownable of the five.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>Side-by-side comparison</h2>
+  <div class="compare">
+    <table>
+      <thead>
+        <tr><th>Criterion</th><th>01 Monumental</th><th>02 Flow Mark</th><th>03 The Dot</th><th>04 Split Weight</th><th>05 Neon Tittle</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Peer register</td><td>Belvo/BlackRock</td><td>Nexo 2024</td><td>Stripe/Linear</td><td>Vanguard/JPM</td><td>Robinhood 2024</td></tr>
+        <tr><td>Case</td><td>APICE (caps)</td><td>apice (lower)</td><td>Apice (title)</td><td>A+PICE (mixed)</td><td>apice (lower)</td></tr>
+        <tr><td>Signature color</td><td>Ultramarine</td><td>Emerald</td><td>Amber (current)</td><td>Crimson</td><td>Neon green</td></tr>
+        <tr><td>Symbol</td><td>None</td><td>Flow mark</td><td>Dot (period)</td><td>A standalone</td><td>Neon dot (i-tittle)</td></tr>
+        <tr><td>Favicon strategy</td><td>Compressed APICE or A</td><td>Flow mark alone</td><td>Dot alone</td><td>A alone</td><td>Neon dot alone</td></tr>
+        <tr><td>Institutional gravitas</td><td>★★★★★</td><td>★★★☆☆</td><td>★★★★☆</td><td>★★★★☆</td><td>★★★☆☆</td></tr>
+        <tr><td>Modernity / digital-native</td><td>★★★☆☆</td><td>★★★★☆</td><td>★★★★☆</td><td>★★★☆☆</td><td>★★★★★</td></tr>
+        <tr><td>Ownability / distinction</td><td>★★★☆☆</td><td>★★★★☆</td><td>★★★★☆</td><td>★★★★☆</td><td>★★★★★</td></tr>
+        <tr><td>Production time (SVG set)</td><td>5–6 days</td><td>7–8 days</td><td>4–5 days</td><td>6–7 days</td><td>6–7 days</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ================================================================ -->
+  <div class="decide">
+    <h2>Pick one, sir</h2>
+    <p>All five are evidence-based — each has a living peer brand in the global investment platform category. Pick the one that feels most like Apice. You can also tell me to mix (e.g., "V5 letterforms + V4 color").</p>
+    <div class="pick-grid">
+      <div class="pick"><div class="n">01</div><div class="t">Monumental</div><div class="c">APICE · Ultramarine</div></div>
+      <div class="pick"><div class="n">02</div><div class="t">Flow Mark</div><div class="c">apice · Emerald</div></div>
+      <div class="pick"><div class="n">03</div><div class="t">The Dot</div><div class="c">Apice. · Amber</div></div>
+      <div class="pick"><div class="n">04</div><div class="t">Split Weight</div><div class="c">A + PICE · Crimson</div></div>
+      <div class="pick"><div class="n">05</div><div class="t">Neon Tittle</div><div class="c">ap·ce · Neon</div></div>
+    </div>
+  </div>
+
+  <p class="footnote">
+    Concepts rendered via CSS + minimal SVG for quick comparison. Production-grade SVGs, app icon family, favicon, lockups, and motion specs ship within 4–8 days after the chosen direction is called. No more speculative rounds.
+    <br/>
+    · Jarvis · Chief of Staff AI · Evidence over invention
+  </p>
+
+</div>
+</body>
+</html>

@@ -13,6 +13,8 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Button } from '@/components/ui/button';
+import { TriangleMark } from '@/components/brand/BrandMark';
+import { ApiceLogo } from '@/components/brand';
 
 export function AppHeader() {
   const navigate = useNavigate();
@@ -94,23 +96,15 @@ export function AppHeader() {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-center glass-nav px-5 lg:hidden">
+    <header className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-center border-b border-white/5 bg-[#0F1626]/90 px-5 backdrop-blur-xl lg:hidden">
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/home')} className="flex items-center gap-2.5 press-scale">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl apice-gradient-primary shadow-lg shadow-primary/30">
-              <svg width="16" height="16" viewBox="0 0 40 40" fill="none" className="text-white">
-                <path
-                  d="M20 4L36 34H4L20 4Z"
-                  stroke="currentColor"
-                  strokeWidth="3.5"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-                <path d="M20 14L29 32H11L20 14Z" fill="currentColor" opacity="0.3" />
-              </svg>
-            </div>
-
+          <button
+            type="button"
+            aria-label="Go to home"
+            onClick={() => navigate('/home')}
+            className="flex items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F1626]"
+          >
             <AnimatePresence mode="wait">
               {isHome || !pageTitle ? (
                 <motion.div
@@ -120,22 +114,26 @@ export function AppHeader() {
                   exit={{ opacity: 0, x: 6 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <h2 className="text-sm font-bold tracking-tight leading-none">Apice</h2>
-                  <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.18em] leading-none text-muted-foreground">
-                    Capital
-                  </p>
+                  <ApiceLogo
+                    variant="unified-horizontal-dark"
+                    size={52}
+                    aria-label="Apice — Global AI Investing"
+                  />
                 </motion.div>
               ) : (
-                <motion.span
+                <motion.div
                   key={pageTitle}
                   initial={{ opacity: 0, x: -6 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 6 }}
                   transition={{ duration: 0.2 }}
-                  className="text-sm font-bold tracking-tight"
+                  className="flex items-center gap-2.5"
                 >
-                  {pageTitle}
-                </motion.span>
+                  <TriangleMark variant="circle" size={36} aria-hidden="true" />
+                  <span className="font-display text-sm font-semibold tracking-tight text-white">
+                    {pageTitle}
+                  </span>
+                </motion.div>
               )}
             </AnimatePresence>
           </button>
@@ -146,10 +144,10 @@ export function AppHeader() {
             aria-label={copy.searchAria}
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-xl text-muted-foreground transition-all hover:bg-secondary/60 hover:text-foreground press-scale"
+            className="h-9 w-9 rounded-xl text-white/60 transition-all hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/30"
             onClick={() => setOpen(true)}
           >
-            <Search className="h-4 w-4" />
+            <Search className="h-4 w-4" aria-hidden="true" />
           </Button>
 
           <NotificationBell />

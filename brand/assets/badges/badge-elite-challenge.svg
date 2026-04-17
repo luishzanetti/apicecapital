@@ -1,0 +1,20 @@
+<!-- Apice · badge-elite-challenge · v1 FINAL · media-engineer 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-labelledby="eliteT"><title id="eliteT">Elite challenge — mythic badge</title>
+  <defs><linearGradient id="mythGradE" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#16A661"/><stop offset="40%" stop-color="#8E4CBF"/><stop offset="80%" stop-color="#F7C066"/><stop offset="100%" stop-color="#0F5D3F"/></linearGradient></defs>
+  <circle cx="64" cy="64" r="62" fill="url(#mythGradE)"/>
+  <circle cx="64" cy="64" r="54" fill="#0E0E12"/>
+  <g transform="translate(64 64)" stroke="#16A661" stroke-width="1.2" opacity="0.7" stroke-linecap="round">
+    <line x1="0" y1="-46" x2="0" y2="-30"/>
+    <line x1="0" y1="46" x2="0" y2="30"/>
+    <line x1="-46" y1="0" x2="-30" y2="0"/>
+    <line x1="46" y1="0" x2="30" y2="0"/>
+    <line x1="-33" y1="-33" x2="-22" y2="-22"/>
+    <line x1="33" y1="-33" x2="22" y2="-22"/>
+    <line x1="-33" y1="33" x2="-22" y2="22"/>
+    <line x1="33" y1="33" x2="22" y2="22"/>
+  </g>
+  <g transform="translate(64 64)">
+    <polygon points="0,-24 6,-8 22,-8 10,2 14,18 0,9 -14,18 -10,2 -22,-8 -6,-8" fill="#F7F3ED"/>
+    <polygon points="0,-20 5,-6 17,-6 8,2 11,14 0,7 -11,14 -8,2 -17,-6 -5,-6" fill="#F7C066"/>
+  </g>
+</svg>

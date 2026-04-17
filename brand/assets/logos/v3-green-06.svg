@@ -1,0 +1,16 @@
+<!-- Apice Capital · v3-green.06 · Dual-Green Palette · Uma 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" aria-label="Apice Standard">
+  <style>
+    .rest { font-family: 'Geist', 'Inter', sans-serif; font-weight: 700; font-size: 60px; letter-spacing: -1.80px; fill: #0E0E12; }
+    .desc { font-family: 'Geist', 'Inter', sans-serif; font-weight: 600; font-size: 10px; letter-spacing: 4.4px; fill: #0F5D3F; }
+    .sig-bright { fill: #16A661; }
+    .rule { stroke: #0F5D3F; stroke-width: 1; }
+  </style>
+  <path d="M 40 74 L 60.5 28 L 69 28 L 89.5 74 L 78.5 74 L 73.5 62.5 L 56 62.5 L 51 74 Z M 59.5 54.5 L 70 54.5 L 64.5 40 Z" fill="#0E0E12"/>
+  <text x="90" y="74" class="rest">pice</text>
+  <!-- Bright emerald dot (live) -->
+  <circle cx="196" cy="70" r="5.25" class="sig-bright"/>
+  <line x1="40" y1="84" x2="72" y2="84" class="rule"/>
+  <!-- Deep emerald descriptor (institutional) -->
+  <text x="80" y="87" class="desc">STANDARD</text>
+</svg>

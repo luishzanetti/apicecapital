@@ -1,0 +1,13 @@
+<!-- Apice · app-icon-ios-dot-only · v2 · Uma 2026-04-17 -->
+<!--
+  Parked fallback per CEO D6.2. Original dot-only construction preserved for:
+  - Small surface overrides (<29pt) where the wordmark would be illegible
+  - A/B experiments vs. wordmark variant
+  - Future brand audits
+  Ø 328 (32% canvas), emerald #16A661 on near-black #0E0E12 rounded-rect.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Apice app icon (dot-only fallback)">
+  <title>Apice iOS app icon — dot-only fallback</title>
+  <rect width="1024" height="1024" rx="180" ry="180" fill="#0E0E12"/>
+  <circle cx="512" cy="512" r="164" fill="#16A661"/>
+</svg>

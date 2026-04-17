@@ -1,0 +1,11 @@
+<!-- Apice · wordmark-on-dark · v2 · Uma 2026-04-17 -->
+<!-- Hardcoded cream fill for consumers that cannot set `color` (e.g. legacy email, exports). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 80" role="img" aria-label="Apice">
+  <title>Apice (dark-surface variant)</title>
+  <style>
+    .wm { font-family: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 700; font-size: 48px; letter-spacing: -1.44px; fill: #F7F3ED; }
+    .dot { fill: #16A661; }
+  </style>
+  <text x="28" y="54" class="wm">Apice</text>
+  <circle cx="160.5" cy="51.5" r="4.3" class="dot"/>
+</svg>

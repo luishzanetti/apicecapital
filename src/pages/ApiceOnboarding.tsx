@@ -370,9 +370,9 @@ export default function ApiceOnboarding() {
   }
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#050816] text-white">
+    <div className="min-h-screen overflow-hidden bg-[#0F1626] text-white">
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(82,143,255,0.14),transparent_30%),linear-gradient(180deg,#050816_0%,#081120_36%,#050816_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(82,143,255,0.14),transparent_30%),linear-gradient(180deg,#0F1626_0%,#081120_36%,#0F1626_100%)]" />
         <div className="absolute inset-0 opacity-[0.05] [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:80px_80px]" />
       </div>
 

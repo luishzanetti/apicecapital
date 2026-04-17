@@ -1,0 +1,19 @@
+<!-- Apice · app-icon-ios · v2 · Uma 2026-04-17 -->
+<!--
+  CEO revert (D6.2): wordmark centered, not dot-only.
+  Canvas: 1024×1024, near-black rounded-rect background (rx=180 per iOS visual baseline).
+  Wordmark: "Apice" Geist 700, cream #F7F3ED, font-size 254 (cap-height ≈ 180), tracking -30.
+  Dot: r=11 (Ø22), emerald #16A661 (signature stays emerald regardless of surface).
+  Optical balance: text baseline y=545 = center 512 + cap-height/2 (~90) − upward-bias (16).
+  For iOS-18 superellipse mask, use /brand/assets/ios/AppIcon-iOS.svg (same composition).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Apice app icon">
+  <title>Apice iOS app icon</title>
+  <style>
+    .wm { font-family: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 700; font-size: 254px; letter-spacing: -7.62px; fill: #F7F3ED; text-anchor: middle; }
+    .dot { fill: #16A661; }
+  </style>
+  <rect width="1024" height="1024" rx="180" ry="180" fill="#0E0E12"/>
+  <text x="485" y="545" class="wm">Apice</text>
+  <circle cx="795" cy="528" r="22" class="dot"/>
+</svg>

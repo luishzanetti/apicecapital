@@ -1,0 +1,12 @@
+<!-- Apice · triangle-mark v2 · "Dot Summit" · dot emerald no pico · Jarvis 2026-04-17 -->
+<!-- Conecta o triângulo (ícone Landing) com o wordmark "Apice." (dot signature) -->
+<!-- Outer: triangle outline · Inner: filled at 20% · Summit: emerald dot -->
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice">
+  <title>Apice triangle · dot summit</title>
+  <!-- Outer triangle outline -->
+  <path d="M32 10 L56 54 L8 54 Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" fill="none"/>
+  <!-- Inner triangle subtle fill (depth) -->
+  <path d="M32 20 L48 50 L16 50 Z" fill="currentColor" opacity="0.16"/>
+  <!-- Summit dot: emerald signature · radius 3u · positioned at apex tip -->
+  <circle cx="32" cy="10" r="3.2" fill="#16A661"/>
+</svg>

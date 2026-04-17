@@ -1,0 +1,45 @@
+<!-- Apice · Expert · Nora · concept v1 · media-engineer 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Nora, the Thesis Builder — concept avatar">
+  <defs>
+    <linearGradient id="bgNora" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#DDD6FE"/>
+      <stop offset="100%" stop-color="#F8F8FB"/>
+    </linearGradient>
+    <clipPath id="frameNora">
+      <rect x="0" y="0" width="256" height="256" rx="60" ry="60"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#frameNora)">
+    <rect x="0" y="0" width="256" height="256" fill="url(#bgNora)"/>
+    <!-- accent motif: 3-point thesis chart, upper-right -->
+    <g stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.55">
+      <polyline points="178,52 198,68 218,42"/>
+      <circle cx="178" cy="52" r="2.2" fill="#8B5CF6"/>
+      <circle cx="198" cy="68" r="2.2" fill="#8B5CF6"/>
+      <circle cx="218" cy="42" r="2.2" fill="#8B5CF6"/>
+    </g>
+    <!-- shoulders / wardrobe -->
+    <path d="M36 256 C 48 204, 96 188, 128 188 C 160 188, 208 204, 220 256 Z" fill="#3F3F46"/>
+    <!-- neckline hint -->
+    <path d="M108 196 Q128 210 148 196" fill="none" stroke="#27272A" stroke-width="1.5"/>
+    <!-- neck -->
+    <rect x="114" y="170" width="28" height="24" fill="#E8C9A8"/>
+    <!-- hair back -->
+    <path d="M78 128 C 78 96, 100 74, 128 74 C 156 74, 178 96, 178 128 L 178 180 C 170 172, 158 170, 148 172 L 148 150 L 108 150 L 108 172 C 98 170, 86 172, 78 180 Z" fill="#6B4A34"/>
+    <!-- face -->
+    <ellipse cx="128" cy="132" rx="40" ry="46" fill="#EFD4B5"/>
+    <!-- subtle face outline -->
+    <ellipse cx="128" cy="132" rx="40" ry="46" fill="none" stroke="#B28A66" stroke-width="1.5" opacity="0.4"/>
+    <!-- hair front (slight side-part, structured) -->
+    <path d="M88 118 C 96 96, 120 86, 128 86 C 140 86, 162 96, 168 118 C 158 108, 142 106, 132 110 C 122 114, 108 116, 88 118 Z" fill="#6B4A34"/>
+    <!-- eyes -->
+    <ellipse cx="114" cy="134" rx="3.2" ry="2.6" fill="#27272A"/>
+    <ellipse cx="142" cy="134" rx="3.2" ry="2.6" fill="#27272A"/>
+    <!-- nose hint -->
+    <path d="M128 142 Q126 150 130 152" fill="none" stroke="#B28A66" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+    <!-- mouth -->
+    <line x1="120" y1="160" x2="136" y2="160" stroke="#8B5A3F" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- silhouette outline -->
+    <path d="M78 128 C 78 96, 100 74, 128 74 C 156 74, 178 96, 178 128 C 178 156, 166 176, 148 180 L 148 194 C 170 200, 200 220, 220 256 L 36 256 C 56 220, 86 200, 108 194 L 108 180 C 90 176, 78 156, 78 128 Z" fill="none" stroke="#1F1F23" stroke-width="1.5" stroke-linejoin="round"/>
+  </g>
+</svg>

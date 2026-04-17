@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Apice Capital · Brand Preview · Checkpoint 2</title>
+<style>
+  :root{
+    --indigo:#8B5CF6; --indigo-400:#A78BFA; --amber:#F59E0B;
+    --n0:#FFFFFF; --n25:#FDFDFE; --n50:#F8F8FB; --n200:#E4E4EA;
+    --n500:#71717A; --n700:#3F3F46; --n900:#18181B;
+    --surface-base:#0E0E12; --surface-raised:#141418; --surface-overlay:#1C1C22;
+    --emerald:#10B981; --sky:#0EA5E9; --rose:#F43F5E; --purple:#8B5CF6; --amber2:#FBBF24;
+    --font:'Geist','Inter',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--n25);color:var(--n900);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1100px;margin:0 auto;padding:48px 24px 120px}
+  h1{font-weight:700;letter-spacing:-0.02em;font-size:36px;margin:0 0 8px}
+  h2{font-weight:600;letter-spacing:-0.01em;font-size:22px;margin:64px 0 4px;border-top:1px solid var(--n200);padding-top:40px}
+  h3{font-weight:600;font-size:15px;margin:28px 0 10px;color:var(--n700);text-transform:uppercase;letter-spacing:0.06em}
+  p{color:var(--n500);font-size:14px;line-height:1.55;margin:0 0 8px;max-width:620px}
+  small{color:var(--n500);font-size:12px}
+  .meta{color:var(--n500);font-size:13px;margin-bottom:24px}
+  .row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end}
+  .card{background:var(--n0);border:1px solid var(--n200);border-radius:12px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+  .card.dark{background:var(--surface-base);border-color:#262630;color:#f2f2f2}
+  .card.gradient{background:linear-gradient(135deg,#8B5CF6 0%,#7C3AED 50%,#6D28D9 100%);border:0;color:#fff}
+  .lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--n500)}
+  .card.dark .lbl,.card.gradient .lbl{color:rgba(255,255,255,0.7)}
+  .grid{display:grid;gap:20px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g6{grid-template-columns:repeat(6,1fr)}
+  @media(max-width:720px){.g3,.g4,.g6{grid-template-columns:repeat(2,1fr)}}
+  .scales{display:flex;gap:24px;align-items:baseline;padding:24px;background:var(--n0);border:1px solid var(--n200);border-radius:12px;flex-wrap:wrap}
+  .scale-item{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .iphone{width:220px;height:440px;border-radius:44px;background:#000;padding:10px;position:relative;overflow:hidden}
+  .iphone::before{content:"";position:absolute;top:20px;left:50%;transform:translateX(-50%);width:100px;height:28px;background:#000;border-radius:20px;z-index:2}
+  .iphone-inner{width:100%;height:100%;border-radius:34px;background:linear-gradient(180deg,#1a1a2e 0%,#0e0e12 100%);display:flex;align-items:center;justify-content:center}
+  .tagline{font-size:18px;font-weight:600;color:var(--n700);margin-top:8px}
+  .deprecated{text-decoration:line-through;color:var(--n500);font-size:14px}
+  .approved{color:var(--emerald);font-weight:600}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--indigo);color:#fff;border-radius:9999px;font-size:11px;font-weight:600;letter-spacing:0.04em}
+  .og-frame{width:100%;max-width:600px;aspect-ratio:1200/630;border:1px solid var(--n200);border-radius:12px;overflow:hidden}
+  .og-frame img, .og-frame object{width:100%;height:100%;display:block}
+  .expert-card{background:var(--n0);border:1px solid var(--n200);border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px}
+  .expert-card .avatar{width:128px;height:128px;border-radius:24px;overflow:hidden}
+  .expert-card .avatar object{width:100%;height:100%}
+  .expert-card h4{margin:0;font-size:15px;font-weight:600}
+  .expert-card p{font-size:12px;margin:0;color:var(--n500);max-width:none}
+  .decision-table{width:100%;border-collapse:collapse;margin-top:12px}
+  .decision-table th,.decision-table td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--n200);font-size:13px;vertical-align:top}
+  .decision-table th{background:var(--n50);font-weight:600;color:var(--n700)}
+  .pending{color:var(--amber);font-weight:600}
+  .legend{display:flex;gap:24px;flex-wrap:wrap;font-size:12px;color:var(--n500);margin-bottom:16px}
+  .swatch{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:middle;margin-right:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="badge">Checkpoint 2 · 2026-04-17</div>
+  <h1>Apice Capital · Brand Preview</h1>
+  <p class="meta">Visual review of Fases F5 (logo) and F7 (AI Experts concepts). Produced by Uma + media-engineer, orchestrated by Jarvis.</p>
+
+  <!-- ============================================================ -->
+  <h2>1 · Primary Mark (Apex-A)</h2>
+  <p>The letter <em>A</em> is the symbol. Asymmetric summit tick, internal shelf replaces the crossbar. Works in monochrome first; color is applied last.</p>
+
+  <h3>Scale test — 16px to 256px</h3>
+  <div class="scales">
+    <div class="scale-item"><object data="assets/logos/apex-a-symbol.svg" type="image/svg+xml" style="width:16px;height:16px;color:var(--indigo)"></object><small>16px</small></div>
+    <div class="scale-item"><object data="assets/logos/apex-a-symbol.svg" type="image/svg+xml" style="width:24px;height:24px;color:var(--indigo)"></object><small>24px</small></div>
+    <div class="scale-item"><object data="assets/logos/apex-a-symbol.svg" type="image/svg+xml" style="width:32px;height:32px;color:var(--indigo)"></object><small>32px</small></div>
+    <div class="scale-item"><object data="assets/logos/apex-a-symbol.svg" type="image/svg+xml" style="width:48px;height:48px;color:var(--indigo)"></object><small>48px</small></div>
+    <div class="scale-item"><object data="assets/logos/apex-a-symbol.svg" type="image/svg+xml" style="width:64px;height:64px;color:var(--indigo)"></object><small>64px</small></div>
+    <div class="scale-item"><object data="assets/logos/apex-a-symbol.svg" type="image/svg+xml" style="width:128px;height:128px;color:var(--indigo)"></object><small>128px</small></div>
+    <div class="scale-item"><object data="assets/logos/apex-a-symbol.svg" type="image/svg+xml" style="width:200px;height:200px;color:var(--indigo)"></object><small>200px</small></div>
+  </div>
+
+  <h3>Color applications</h3>
+  <div class="grid g4">
+    <div class="card"><object data="assets/logos/apex-a-symbol.svg" type="image/svg+xml" style="width:96px;height:96px;color:var(--indigo)"></object><div class="lbl">Indigo · light bg</div></div>
+    <div class="card dark"><object data="assets/logos/apex-a-symbol.svg" type="image/svg+xml" style="width:96px;height:96px;color:var(--indigo-400)"></object><div class="lbl">Indigo-400 · dark bg</div></div>
+    <div class="card"><object data="assets/logos/apex-a-symbol.svg" type="image/svg+xml" style="width:96px;height:96px;color:var(--n900)"></object><div class="lbl">Mono · black</div></div>
+    <div class="card gradient"><object data="assets/logos/apex-a-symbol.svg" type="image/svg+xml" style="width:96px;height:96px;color:#fff"></object><div class="lbl">Reversed · gradient</div></div>
+  </div>
+
+  <h3>Lockups</h3>
+  <div class="grid g2">
+    <div class="card"><object data="assets/logos/apex-a-lockup-horizontal.svg" type="image/svg+xml" style="width:280px;color:var(--indigo)"></object><div class="lbl">Horizontal lockup</div></div>
+    <div class="card dark"><object data="assets/logos/apex-a-lockup-horizontal.svg" type="image/svg+xml" style="width:280px;color:var(--indigo-400)"></object><div class="lbl">Horizontal · dark</div></div>
+    <div class="card"><object data="assets/logos/apex-a-lockup-stacked.svg" type="image/svg+xml" style="width:160px;color:var(--indigo)"></object><div class="lbl">Stacked lockup</div></div>
+    <div class="card dark"><object data="assets/logos/apex-a-lockup-stacked.svg" type="image/svg+xml" style="width:160px;color:var(--indigo-400)"></object><div class="lbl">Stacked · dark</div></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2>2 · App Icon & Favicon</h2>
+  <div class="grid g3">
+    <div class="card">
+      <object data="assets/logos/apex-a-app-icon.svg" type="image/svg+xml" style="width:180px;height:180px"></object>
+      <div class="lbl">App Icon · iOS home (180px)</div>
+    </div>
+    <div class="card">
+      <object data="assets/logos/apex-a-app-icon.svg" type="image/svg+xml" style="width:120px;height:120px"></object>
+      <div class="lbl">App Icon · 120px</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;gap:16px;align-items:flex-end">
+        <object data="assets/logos/apex-a-favicon.svg" type="image/svg+xml" style="width:16px;height:16px"></object>
+        <object data="assets/logos/apex-a-favicon.svg" type="image/svg+xml" style="width:32px;height:32px"></object>
+        <object data="assets/logos/apex-a-favicon.svg" type="image/svg+xml" style="width:48px;height:48px"></object>
+      </div>
+      <div class="lbl">Favicon · 16 / 32 / 48</div>
+    </div>
+  </div>
+
+  <h3>Home screen simulation</h3>
+  <div class="row">
+    <div class="iphone">
+      <div class="iphone-inner">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:60px 16px 0">
+          <div style="width:48px;height:48px;border-radius:12px;background:#333"></div>
+          <div style="width:48px;height:48px;border-radius:12px;background:#444"></div>
+          <object data="assets/logos/apex-a-app-icon.svg" type="image/svg+xml" style="width:48px;height:48px;border-radius:12px"></object>
+          <div style="width:48px;height:48px;border-radius:12px;background:#333"></div>
+          <div style="width:48px;height:48px;border-radius:12px;background:#444"></div>
+          <div style="width:48px;height:48px;border-radius:12px;background:#333"></div>
+          <div style="width:48px;height:48px;border-radius:12px;background:#444"></div>
+          <div style="width:48px;height:48px;border-radius:12px;background:#333"></div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:260px">
+      <p>The Apex-A is the third icon (row 1). Test: does it hold attention against generic neighbors? Does it read at 48px?</p>
+      <small><strong>Note:</strong> iOS home screen uses superellipse (continuous curves) — our current SVG uses standard <code>rx=180</code>. Exact match requires Xcode asset catalog treatment. Flagged for v2 lapidação.</small>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2>3 · OG Image (social sharing)</h2>
+  <p>Replaces the current placeholder. New tagline (D1 approved): <strong>"Build Wealth. One Week at a Time."</strong></p>
+  <div class="og-frame"><object data="assets/logos/apex-a-og-image.svg" type="image/svg+xml"></object></div>
+  <p><small>Current file: <code>public/og-image.svg</code> (old). New file: <code>brand/assets/logos/apex-a-og-image.svg</code>. Replacement pending CEO visual approval.</small></p>
+
+  <!-- ============================================================ -->
+  <h2>4 · AI Experts — 6 Concept Avatars</h2>
+  <p>Schematic v1 produced by media-engineer. These are <strong>direction concepts</strong>, not final art. Uma will polish to production in next phase.</p>
+  <div class="grid g3">
+    <div class="expert-card"><div class="avatar"><object data="assets/experts/nora-concept.svg" type="image/svg+xml"></object></div><h4>Nora</h4><small>the Thesis Builder</small><p>Analyst · <span style="color:var(--indigo);font-weight:600">Warm Indigo</span></p></div>
+    <div class="expert-card"><div class="avatar"><object data="assets/experts/kai-concept.svg" type="image/svg+xml"></object></div><h4>Kai</h4><small>the Pattern Reader</small><p>Momentum · <span style="color:var(--sky);font-weight:600">Sky</span></p></div>
+    <div class="expert-card"><div class="avatar"><object data="assets/experts/elena-concept.svg" type="image/svg+xml"></object></div><h4>Elena</h4><small>the Patient Compounder</small><p>DCA Master · <span style="color:var(--emerald);font-weight:600">Emerald</span></p></div>
+    <div class="expert-card"><div class="avatar"><object data="assets/experts/dante-concept.svg" type="image/svg+xml"></object></div><h4>Dante</h4><small>the Risk Architect</small><p>Risk Manager · <span style="color:var(--rose);font-weight:600">Rose</span></p></div>
+    <div class="expert-card"><div class="avatar"><object data="assets/experts/maya-concept.svg" type="image/svg+xml"></object></div><h4>Maya</h4><small>the Deep Researcher</small><p>Researcher · <span style="color:var(--purple);font-weight:600">Purple</span></p></div>
+    <div class="expert-card"><div class="avatar"><object data="assets/experts/omar-concept.svg" type="image/svg+xml"></object></div><h4>Omar</h4><small>the Mentor</small><p>Mentor · <span style="color:var(--amber2);font-weight:600">Amber</span></p></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2>5 · Palette reference</h2>
+  <div class="legend">
+    <span><span class="swatch" style="background:#8B5CF6"></span>Primary Indigo #8B5CF6</span>
+    <span><span class="swatch" style="background:#A78BFA"></span>Indigo-400 #A78BFA</span>
+    <span><span class="swatch" style="background:#F59E0B"></span>Accent Amber #F59E0B</span>
+    <span><span class="swatch" style="background:#10B981"></span>Emerald #10B981</span>
+    <span><span class="swatch" style="background:#0EA5E9"></span>Sky #0EA5E9</span>
+    <span><span class="swatch" style="background:#F43F5E"></span>Rose #F43F5E</span>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2>6 · Checkpoint 2 — Pending Decisions</h2>
+  <table class="decision-table">
+    <thead>
+      <tr><th style="width:32px">#</th><th>Decision</th><th>Recommendation</th><th>Who</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Approve Apex-A symbol as v1 (move to production use)</td><td class="approved">SHIP</td><td>Uma</td></tr>
+      <tr><td>2</td><td>Maya glasses · concept has thin glasses + subtle purple streak</td><td>Keep or strip glasses for v2 consistency?</td><td>CEO</td></tr>
+      <tr><td>3</td><td>Dante rose accent · currently a single dot on shield</td><td>Keep "sparingly" level or go zero-rose?</td><td>CEO</td></tr>
+      <tr><td>4</td><td>Experts production path · Option B (AI-assist + Uma polish)</td><td class="approved">Recommended ~7–10 days</td><td>CEO</td></tr>
+      <tr><td>5</td><td>iOS app icon superellipse (true continuous curve)</td><td>v1 uses <code>rx=180</code>. Upgrade to superellipse in v2 or now?</td><td>CEO</td></tr>
+      <tr><td>6</td><td>OG image replacement · swap <code>public/og-image.svg</code></td><td class="approved">APPROVED pending visual confirmation</td><td>CEO</td></tr>
+      <tr><td>7</td><td>Unblock F8 (badges) — requires experts final</td><td class="pending">Waits on D4</td><td>Uma</td></tr>
+      <tr><td>8</td><td>Manifesto — CEO polishes Stefan's draft</td><td>On CEO calendar</td><td>CEO</td></tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:48px;color:var(--n500);font-size:12px">
+    Rendered against <code>brand/assets/</code> — open this file directly in a browser from the repo root.
+    Every asset visible here is committed and ready for reuse in marketing, app store, and in-product contexts.
+    · Jarvis · Chief of Staff AI
+  </p>
+</div>
+</body>
+</html>

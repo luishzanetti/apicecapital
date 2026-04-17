@@ -1,0 +1,21 @@
+<!-- Apice · email-header-hero · v1 FINAL · media-head 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" role="img" aria-label="Apice — The Apice Weekly.">
+  <defs>
+    <style>
+      .bg { fill: #F7F3ED; }
+      .wm { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 44px; letter-spacing: -1.3px; fill: #0E0E12; }
+      .dot { fill: #16A661; }
+      .title { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 22px; letter-spacing: -0.5px; fill: #0E0E12; }
+      .eyebrow { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 10px; letter-spacing: 2px; fill: #16A661; text-transform: uppercase; }
+      .rule { stroke: #0E0E12; stroke-width: 1; opacity: 0.12; }
+    </style>
+  </defs>
+  <rect class="bg" width="600" height="200"/>
+  <!-- lockup -->
+  <text class="wm" x="32" y="72">Apice</text>
+  <circle class="dot" cx="170" cy="66" r="5"/>
+  <text class="eyebrow" x="32" y="98">THE APICE WEEKLY</text>
+  <line class="rule" x1="32" y1="118" x2="568" y2="118"/>
+  <text class="title" x="32" y="156">Issue {NN}  ·  {date}</text>
+  <text class="eyebrow" x="568" y="156" text-anchor="end" style="fill:#0E0E12; opacity:0.5">APICE.CAPITAL</text>
+</svg>

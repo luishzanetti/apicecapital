@@ -1,0 +1,14 @@
+<!-- Apice · badge-architect · v1 FINAL · media-engineer 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-labelledby="archT"><title id="archT">Architect — epic badge</title>
+  <circle cx="64" cy="64" r="62" fill="#F7F3ED"/>
+  <circle cx="64" cy="64" r="60" fill="none" stroke="#0F5D3F" stroke-width="2.5"/>
+  <circle cx="64" cy="64" r="54" fill="none" stroke="#16A661" stroke-width="2"/>
+  <circle cx="64" cy="64" r="48" fill="#EDE6DB"/>
+  <g transform="translate(64 64)">
+    <path d="M0 -30 A 30 30 0 0 1 26 15 L 0 0 Z" fill="#16A661"/>
+    <path d="M26 15 A 30 30 0 0 1 -26 15 L 0 0 Z" fill="#0F5D3F"/>
+    <path d="M-26 15 A 30 30 0 0 1 0 -30 L 0 0 Z" fill="#D9912D"/>
+    <circle r="6" fill="#F7F3ED"/>
+    <circle r="6" fill="none" stroke="#0E0E12" stroke-width="1.2"/>
+  </g>
+</svg>

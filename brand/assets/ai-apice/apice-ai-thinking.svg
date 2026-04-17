@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="apice-ai-thinking-title apice-ai-thinking-desc">
+  <title id="apice-ai-thinking-title">Apice AI — thinking</title>
+  <desc id="apice-ai-thinking-desc">Apice artificial intelligence in its thinking state — emerald orb with a rotating light sweep indicating active processing.</desc>
+
+  <defs>
+    <!-- Outer halo, pulsing -->
+    <radialGradient id="thinkHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#16A661" stop-opacity="0.5"/>
+      <stop offset="65%" stop-color="#16A661" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#16A661" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Base orb -->
+    <radialGradient id="thinkOrb" cx="42%" cy="38%" r="70%">
+      <stop offset="0%"  stop-color="#6EE7A8"/>
+      <stop offset="35%" stop-color="#38D68A"/>
+      <stop offset="75%" stop-color="#16A661"/>
+      <stop offset="100%" stop-color="#0F5D3F"/>
+    </radialGradient>
+
+    <!-- Rotating conic-style sweep (emerald prism tint) -->
+    <linearGradient id="thinkSweep" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#DFFCEA" stop-opacity="0"/>
+      <stop offset="35%"  stop-color="#6EE7A8" stop-opacity="0.75"/>
+      <stop offset="50%"  stop-color="#DFFCEA" stop-opacity="0.95"/>
+      <stop offset="65%"  stop-color="#6EE7A8" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#DFFCEA" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Subtle rainbow refraction overlay (low opacity — only in thinking state) -->
+    <linearGradient id="thinkPrism" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#16A661" stop-opacity="0"/>
+      <stop offset="20%"  stop-color="#38BDF8" stop-opacity="0.25"/>
+      <stop offset="50%"  stop-color="#A78BFA" stop-opacity="0.25"/>
+      <stop offset="80%"  stop-color="#F59E0B" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#16A661" stop-opacity="0"/>
+    </linearGradient>
+
+    <radialGradient id="thinkSpec" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#F7F3ED" stop-opacity="0.7"/>
+      <stop offset="60%" stop-color="#F7F3ED" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#F7F3ED" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="thinkCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#DFFCEA"/>
+      <stop offset="50%" stop-color="#6EE7A8"/>
+      <stop offset="100%" stop-color="#6EE7A8" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Clip the sweep to the orb interior -->
+    <clipPath id="orbClip">
+      <circle cx="64" cy="64" r="48"/>
+    </clipPath>
+  </defs>
+
+  <!-- Halo with breathing opacity -->
+  <circle cx="64" cy="64" r="60" fill="url(#thinkHalo)">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="1.2s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Hairline ring -->
+  <circle cx="64" cy="64" r="52" fill="none" stroke="#0F5D3F" stroke-opacity="0.5" stroke-width="1"/>
+
+  <!-- Main orb -->
+  <circle cx="64" cy="64" r="48" fill="url(#thinkOrb)"/>
+
+  <!-- Rotating sweep (two bands rotating around the orb — clipped to its interior) -->
+  <g clip-path="url(#orbClip)">
+    <!-- Primary emerald sweep -->
+    <g>
+      <rect x="-32" y="56" width="192" height="16" fill="url(#thinkSweep)" opacity="0.9">
+        <animateTransform attributeName="transform" type="rotate" from="0 64 64" to="360 64 64" dur="1.6s" repeatCount="indefinite"/>
+      </rect>
+    </g>
+    <!-- Prism refraction overlay, counter-rotating slower -->
+    <g>
+      <rect x="-32" y="60" width="192" height="8" fill="url(#thinkPrism)" opacity="0.55">
+        <animateTransform attributeName="transform" type="rotate" from="360 64 64" to="0 64 64" dur="3.2s" repeatCount="indefinite"/>
+      </rect>
+    </g>
+  </g>
+
+  <!-- Inner specular -->
+  <ellipse cx="54" cy="50" rx="18" ry="14" fill="url(#thinkSpec)"/>
+
+  <!-- Breathing core -->
+  <circle cx="64" cy="64" r="7" fill="url(#thinkCore)">
+    <animate attributeName="r" values="6.5;8.5;6.5" dur="0.8s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="0.8s" repeatCount="indefinite"/>
+  </circle>
+</svg>

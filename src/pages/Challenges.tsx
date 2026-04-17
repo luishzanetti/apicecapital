@@ -279,7 +279,7 @@ export default function Challenges() {
         <div
           role="tablist"
           aria-label="Challenge period"
-          className="flex items-center gap-1.5 p-1 rounded-xl border border-border/50 bg-card/60 backdrop-blur"
+          className="flex items-center gap-1.5 p-1 rounded-xl border border-white/10 bg-white/[0.02] backdrop-blur backdrop-blur"
         >
           {(
             [
@@ -324,7 +324,7 @@ export default function Challenges() {
           ))}
 
           {filtered.length === 0 && (
-            <div className="col-span-full rounded-3xl p-8 border border-dashed border-border/50 text-center">
+            <div className="col-span-full rounded-3xl p-8 border border-dashed border-white/10 text-center">
               <Flame className="w-6 h-6 text-muted-foreground mx-auto mb-2" aria-hidden="true" />
               <p className="text-sm font-semibold">No challenges here yet</p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -415,7 +415,7 @@ function TodaysFocusCard({ challenge, onShare, onContinue }: TodaysFocusCardProp
 
       {/* Reward + CTAs */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/60 border border-border/50">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/60 border border-white/10">
           <Zap className="w-3 h-3 text-amber-400 fill-amber-400/30" aria-hidden="true" />
           <span className="text-xs font-bold tabular-nums">
             +{challenge.rewardXp} XP
@@ -471,7 +471,7 @@ function ChallengeCard({ challenge, onShare, onContinue }: ChallengeCardProps) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative rounded-2xl p-4 border bg-card/80 backdrop-blur overflow-hidden"
+      className="relative rounded-2xl p-4 border bg-white/[0.02] backdrop-blur backdrop-blur overflow-hidden"
       style={{ borderColor: theme.ring }}
     >
       <div className="flex items-start gap-3 mb-3">
@@ -545,7 +545,7 @@ function ChallengeCard({ challenge, onShare, onContinue }: ChallengeCardProps) {
           <button
             type="button"
             onClick={onShare}
-            className="w-8 h-8 rounded-lg bg-secondary/30 hover:bg-secondary/50 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.05] flex items-center justify-center transition-colors"
             aria-label={`Share ${challenge.title}`}
           >
             <Share2 className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
@@ -557,7 +557,7 @@ function ChallengeCard({ challenge, onShare, onContinue }: ChallengeCardProps) {
             className={cn(
               'h-8 px-3 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1',
               done
-                ? 'bg-secondary/30 text-muted-foreground cursor-default'
+                ? 'bg-white/[0.05] text-muted-foreground cursor-default'
                 : 'bg-primary/90 hover:bg-primary text-primary-foreground'
             )}
           >

@@ -1,0 +1,31 @@
+<!-- Apice Capital · v3 · CIFRA · The Apice Seal · concept · Uma 2026-04-17 -->
+<!-- Horizontal stamp: top rule 0.55u / flat-apex A 9u×10u / bottom rule 0.60u. Weight differential corrects optical gravity. -->
+<svg viewBox="0 0 180 60" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice Seal">
+  <title>CIFRA Seal concept</title>
+  <g fill="var(--apice-fill, currentColor)">
+    <!-- Top rule: 110 wide × 2.5u thin -->
+    <rect x="35" y="8" width="110" height="2.5"/>
+    <!-- Flat-apex A · stems 4u · crossbar at 35% height · subtle forward-lean inner triangle -->
+    <path d="M 78 48
+             L 84 18
+             L 92 18
+             L 92 22.5
+             L 88 22.5
+             L 82 48 Z"/>
+    <path d="M 92 18
+             L 100 18
+             L 106 48
+             L 100 48
+             L 96 33.5
+             L 92 33.5 Z"/>
+    <!-- Flat apex plateau -->
+    <rect x="84" y="16" width="16" height="2.5"/>
+    <!-- Crossbar at 35% height (lowered, editorial) -->
+    <rect x="86" y="31" width="14" height="2.2"/>
+    <!-- Feet stubs (0.4u outward) -->
+    <rect x="77" y="48" width="6" height="2.2"/>
+    <rect x="101" y="48" width="6" height="2.2"/>
+    <!-- Bottom rule: 110 wide × 3u heavier (gravity correction) -->
+    <rect x="35" y="53" width="110" height="3"/>
+  </g>
+</svg>

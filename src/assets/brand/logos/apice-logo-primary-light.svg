@@ -1,0 +1,26 @@
+<!-- Apice · PRIMARY LOGO LIGHT · approved triangle + "Apice" wordmark + emerald dot · Jarvis 2026-04-17 -->
+<!-- Uses approved triangle DNA (outline stroke 2.5 + inner fill opacity 0.20) -->
+<svg viewBox="0 0 380 88" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice">
+  <title>Apice</title>
+  <!-- APPROVED triangle scaled to 64u cap-height -->
+  <g transform="translate(12 12)">
+    <path
+      d="M 32 6 L 58 56 L 6 56 Z"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      fill="none"/>
+    <path
+      d="M 32 20 L 48 52 L 16 52 Z"
+      fill="currentColor"
+      opacity="0.20"/>
+  </g>
+  <!-- Wordmark -->
+  <text x="100" y="60"
+    font-family="'Geist','Inter',system-ui,-apple-system,sans-serif"
+    font-weight="700" font-size="56" letter-spacing="-1.68"
+    fill="currentColor">Apice</text>
+  <!-- Signature dot -->
+  <circle cx="260" cy="55" r="5" fill="#16A661"/>
+</svg>

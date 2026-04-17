@@ -1,0 +1,34 @@
+<!-- Apice · abstract-rings-01 · v2 · Uma 2026-04-17 -->
+<!--
+  Metaphor: Growth as ripple. Three origins (pebbles) each generate expanding concentric rings.
+  Rings overlap to create interference — the emergent pattern is the growth.
+  Construction:
+    - 3 origins: A(320, 640), B(800, 380), C(1080, 780)
+    - Each emits rings at r ∈ {60, 120, 200, 300, 420} — non-linear spacing (ripples slow as they expand)
+    - Stroke 1.5u baseline primitive, currentColor, opacity descends with r: 0.7→0.18
+    - Signature: one emerald ring on origin B at r=240 (3rd-from-center position in the sequence) at 2u stroke
+  Regenerate: origins can be re-seeded; radius set is fixed to match visual rhythm.
+  Wide 16:9 viewBox — suited for banners, marketing hero backdrops.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" role="img" aria-label="Apice motif — rings" preserveAspectRatio="xMidYMid slice">
+  <title>Rings</title>
+  <desc>Abstract motif: growth as ripple — three origins emit concentric rings that interfere.</desc>
+  <g fill="none" stroke="currentColor" stroke-width="1.5">
+    <circle cx="320" cy="640" r="60" opacity="0.70"/>
+    <circle cx="320" cy="640" r="120" opacity="0.55"/>
+    <circle cx="320" cy="640" r="200" opacity="0.40"/>
+    <circle cx="320" cy="640" r="300" opacity="0.28"/>
+    <circle cx="320" cy="640" r="420" opacity="0.18"/>
+    <circle cx="800" cy="380" r="60" opacity="0.70"/>
+    <circle cx="800" cy="380" r="120" opacity="0.55"/>
+    <circle cx="800" cy="380" r="200" opacity="0.40"/>
+    <circle cx="800" cy="380" r="300" opacity="0.28"/>
+    <circle cx="800" cy="380" r="420" opacity="0.18"/>
+    <circle cx="1080" cy="780" r="60" opacity="0.70"/>
+    <circle cx="1080" cy="780" r="120" opacity="0.55"/>
+    <circle cx="1080" cy="780" r="200" opacity="0.40"/>
+    <circle cx="1080" cy="780" r="300" opacity="0.28"/>
+    <circle cx="1080" cy="780" r="420" opacity="0.18"/>
+  </g>
+  <circle cx="800" cy="380" r="240" fill="none" stroke="#16A661" stroke-width="2" opacity="0.9"/>
+</svg>

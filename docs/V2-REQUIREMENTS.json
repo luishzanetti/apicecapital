@@ -1,0 +1,625 @@
+{
+  "project": "Apice V2 Real-Money Launch",
+  "version": "1.0",
+  "status": "DRAFT — Spec Pipeline Phase 1 (Gather) @pm",
+  "author": "@pm (Morgan) — AIOS Spec Pipeline",
+  "date": "2026-04-17",
+  "goal": "Lançar o app Apice Capital operando com dinheiro REAL (DCA real + portfolio sync real + ALTIS config estável + pagamentos reais Stripe), com cap inicial de $500/usuário nos primeiros 30 dias, transição testnet→mainnet gradual via feature flag, em 5-7 semanas (~32 dias úteis).",
+  "deadline": "5-7 semanas (~32 dias úteis) a partir de 2026-04-17",
+  "constitutional": "Article IV — No Invention: toda FR/NFR/CON/Risk rastreia a um P0/P1 identificado no recon ou a um documento fonte (V2-MASTER-PLAN, V2-LAUNCH-CHECKLIST, ELITE-AUDIT-REPORT, V2-ROADMAP, BRAND-BOOK, V1.5-BRIDGE-RELEASE). ZERO invenção.",
+  "source_documents": [
+    "Apps/ApiceCapital/docs/V2-MASTER-PLAN.md",
+    "Apps/ApiceCapital/docs/V2-LAUNCH-CHECKLIST.md",
+    "Apps/ApiceCapital/docs/ELITE-AUDIT-REPORT.md",
+    "Apps/ApiceCapital/docs/V2-ROADMAP.md",
+    "Apps/ApiceCapital/docs/V1.5-BRIDGE-RELEASE.md",
+    "Apps/ApiceCapital/brand/BRAND-BOOK.md",
+    "Apps/ApiceCapital/brand/V2-ACTION-PLAN.md"
+  ],
+
+  "functional_requirements": [
+    {
+      "id": "FR-01",
+      "title": "Persistência confiável de portfólios (Zustand + Supabase sem race)",
+      "traces_to": ["P0-1", "V2-MASTER-PLAN §PILAR 1", "ELITE-AUDIT §1.2 P1"],
+      "description": "Eliminar o bug de portfolio persistence causado pela race condition entre Zustand persist e Supabase hydrate. Toda criação, edição e exclusão de portfolio deve sobreviver a reload, reconexão de rede e logout/login sem perda de dados nem sobrescrita silenciosa com estado stale do servidor.",
+      "acceptance_criteria": [
+        "Given usuário cria um portfolio When recarrega a página Then o portfolio aparece identicamente (nome, allocations, created_at)",
+        "Given Supabase está offline When usuário cria/edita portfolio Then o estado persiste em localStorage e sincroniza automaticamente ao voltar online (sem perda)",
+        "Given usuário logou em outro device When abre o app no device original Then a versão mais recente (server wins) é carregada sem sobrescrever mudanças pendentes locais",
+        "Given migration de storage persist v2 → v3 When usuário abre o app Then dados antigos são migrados idempotentemente (zero duplicação)"
+      ],
+      "business_value": "Base de confiança para dinheiro real — perder um portfolio após conectar exchange = perda de usuário permanente.",
+      "dependencies": [],
+      "priority": "P0"
+    },
+    {
+      "id": "FR-02",
+      "title": "Eliminação da race condition ALTIS config loop",
+      "traces_to": ["P0-2", "V2-MASTER-PLAN §1.1 (Fix ALTIS Config Loop)", "ELITE-AUDIT §1.1 U2"],
+      "description": "Refatorar `useLeveragedTrading.ts` para consumir `altisSlice` (Zustand+persist). Remover useState interno e `setTimeout(navigate, 300)` de `AiTradeSetup.tsx`. Hardening via selector `selectIsAltisSetupComplete` no `AiTradeDashboard`.",
+      "acceptance_criteria": [
+        "Given usuário completou setup do bot ALTIS When abre /ai-trade Then vê o dashboard direto (zero flash para setup-screen)",
+        "Given usuário está em setup When clica 'Continue' Then navega sincronamente sem setTimeout",
+        "Given localStorage legado `altis-bots` existe When app monta Then migration one-time seeda dados no store novo (idempotente, não duplica)",
+        "Given `fetchStrategies` do Supabase retorna When altisSlice tem estado local fresco Then não sobrescreve com stale server data"
+      ],
+      "business_value": "ALTIS é o feature premium principal do Club ($149.90/mo). Bug atual quebra onboarding do bot e impede conversion ao tier mais rentável.",
+      "dependencies": ["FR-01"],
+      "priority": "P0"
+    },
+    {
+      "id": "FR-03",
+      "title": "Encryption de API keys Bybit server-side (Edge Function)",
+      "traces_to": ["P0-3", "ELITE-AUDIT §3.4 S1, §3.2 F6", "V1.5-BRIDGE (VITE_ENCRYPTION_KEY exposto)"],
+      "description": "Mover toda a encryption/decryption das credenciais Bybit para Supabase Edge Function. Client jamais toca a chave de criptografia. API keys armazenadas em Supabase com encryption at-rest via Edge Function dedicada. Rotacionar o `VITE_ENCRYPTION_KEY` exposto e remover do client.",
+      "acceptance_criteria": [
+        "Given source-code do client When inspecionado Then NÃO contém `VITE_ENCRYPTION_KEY` nem chave derivável",
+        "Given usuário salva API key Bybit When submit Then Edge Function `bybit-credentials` criptografa server-side e retorna apenas um credential_id opaco",
+        "Given Edge Function precisa chamar Bybit When executa Then decripta chave in-memory, usa, e descarta (não loga)",
+        "Given credential é deletada pelo usuário When operação completa Then row + key material zerados (cascade)",
+        "Given auditoria de código When buscar por `ENCRYPTION_KEY` no frontend Then zero ocorrências"
+      ],
+      "business_value": "SEM ISSO não é legal/ético operar com dinheiro real. Vazamento de chaves = passivo criminal imediato.",
+      "dependencies": [],
+      "priority": "P0"
+    },
+    {
+      "id": "FR-04",
+      "title": "Validação de API keys Bybit via /v5/user/query-api",
+      "traces_to": ["P0-4", "ELITE-AUDIT §3.2 F7, §3.4 S2"],
+      "description": "Ao salvar credenciais Bybit, validar via `POST /v5/user/query-api` (na realidade GET na API v5 — endpoint retorna permissions). Verificar (a) keys válidas, (b) permissions incluem Spot Trade + Derivatives Trade + Transfer, (c) permissions NÃO incluem Withdraw. Rejeitar e orientar usuário a refazer key no Bybit se scopes incorretos.",
+      "acceptance_criteria": [
+        "Given usuário submete par apiKey/secret When Edge Function chama query-api Then retorna objeto com permissions, readOnly, ips, expiredAt",
+        "Given permissions contêm 'Withdraw' When validação roda Then rejeita com mensagem 'API key tem permissão de Withdraw — por segurança, crie nova key SEM esta permissão'",
+        "Given permissions NÃO contêm 'Transfer' When usuário tenta fazer transfer Spot→Unified Then UI mostra banner 'Re-auth API key com scope Transfer' + deep-link para Bybit",
+        "Given key expirada (expiredAt < now) When validação roda Then bloqueia save + mostra expiração + CTA para renovar",
+        "Given key válida + scopes corretos When save Then feedback success + green check em Settings"
+      ],
+      "business_value": "Impede onboarding de keys inválidas/perigosas. Força best practice (no Withdraw) = reduz risco catastrófico de invasor drenar conta do user.",
+      "dependencies": ["FR-03"],
+      "priority": "P0"
+    },
+    {
+      "id": "FR-05",
+      "title": "Sistema de monitoramento de saldo (balance-monitor Edge Function + cron)",
+      "traces_to": ["P0-5", "V2-MASTER-PLAN §1.2 Sistema de Avisos de Fundos", "V2-LAUNCH-CHECKLIST"],
+      "description": "Deploy de Edge Function `balance-monitor` com cron diário (08:00 UTC). Busca saldo real, computa forecast por plano DCA, escreve `balance_snapshots` + `fund_alerts` com severity (GREEN/YELLOW/RED/BLOCKED). Expõe também `POST { action: 'refresh' }` para refresh on-demand.",
+      "acceptance_criteria": [
+        "Given cron 08:00 UTC When executa Then para cada user com Bybit conectado, insere row em balance_snapshots (account_type, total_usd, available_usd)",
+        "Given DCA plan do user tem monthlyRequired When balance monitor roda Then computa remainingMonths = available/monthlyRequired e cria/updates fund_alert com severity correta",
+        "Given severity = RED há 48h+ When monitor roda Then dispara email (integração Resend)",
+        "Given severity = BLOCKED When monitor roda Then auto-pausa o DCA plan e cria alert high-priority",
+        "Given CRON_SECRET env var ausente When endpoint cron chamado Then retorna 401"
+      ],
+      "business_value": "Dinheiro real exige avisar usuário ANTES de DCA falhar por falta de fundos. Previne churn por frustração e mantém compliance com 'fair warning'.",
+      "dependencies": ["FR-03", "FR-07"],
+      "priority": "P0"
+    },
+    {
+      "id": "FR-06",
+      "title": "Execução REAL de DCA (Edge Function /api/dca-execute)",
+      "traces_to": ["P0-6", "ELITE-AUDIT §3.2 F2, §Action Plan T16", "V2-ROADMAP §Bugs Críticos V1 #10"],
+      "description": "Deploy de Edge Function `dca-execute` com cron (a cada 5min ou hora cheia). Lê planos DCA due, executa ordem de mercado via Bybit `/v5/order/create`, registra em `dca_executions` com bybit order_id, aguarda fill status via polling (substituir `sleep(1s)` hardcoded), trata erros idempotentemente.",
+      "acceptance_criteria": [
+        "Given DCA plan com nextExecutionAt <= now When cron roda Then Edge Function executa ordem market via Bybit na Unified account e grava dca_executions row com status='filled' + bybit_order_id",
+        "Given ordem falha por insufficient balance When Edge Function processa Then status='failed', error_code='170223', fund_alert RED criado, plano NÃO avança (retry amanhã)",
+        "Given ordem rate-limited (10006) When Edge Function processa Then aplica exponential backoff (2s, 4s, 8s) até 3 tentativas antes de falhar",
+        "Given dupla execução do cron (idempotency) When mesmo plano é processado 2x na mesma janela Then apenas 1 ordem é enviada (uso de execution_token único)",
+        "Given primeira execução bem-sucedida de um user When confetti celebration triggers Then evento PostHog `first_dca_real_executed` é emitido"
+      ],
+      "business_value": "Esta é A feature que justifica o app. Sem execução real, V2 é demo. Com ela, DCA Mastery track converte Free→Pro via ativação genuína.",
+      "dependencies": ["FR-03", "FR-04", "FR-07", "FR-11"],
+      "priority": "P0"
+    },
+    {
+      "id": "FR-07",
+      "title": "Real-time balance sync via Bybit /v5/account/wallet-balance",
+      "traces_to": ["P0-7", "ELITE-AUDIT §3.2 F1, §Action Plan T15"],
+      "description": "Edge Function `portfolio-sync` que chama `GET /v5/account/wallet-balance` (accountType=UNIFIED) e upsert em `portfolios.balances`. Trigger: (a) usuário abre /portfolio, (b) após DCA execution, (c) após transfer, (d) cron leve (15min) apenas para users ativos na última hora. Propaga via Supabase Realtime.",
+      "acceptance_criteria": [
+        "Given usuário conecta Bybit pela 1ª vez When dispatches portfolio-sync Then balances reais aparecem em < 3s",
+        "Given usuário está na /portfolio When DCA executa Then balance atualiza em < 5s via Supabase Realtime (sem refresh manual)",
+        "Given Bybit retorna error 10006 (rate limit) When sync roda Then retry com backoff + fallback para último snapshot válido (< 15min)",
+        "Given user com 0 saldo When sync roda Then UI mostra empty state honesto (não banner de erro)",
+        "Given cron 15min roda When processa 1000 users ativos Then completa em < 90s (batched)"
+      ],
+      "business_value": "Substitui dados simulados por dados reais — base para TUDO no app ser verdade (PnL, alertas, advisor).",
+      "dependencies": ["FR-03", "FR-04"],
+      "priority": "P0"
+    },
+    {
+      "id": "FR-08",
+      "title": "Stripe checkout para Pro ($49.90/mo) e Club ($149.90/mo)",
+      "traces_to": ["P0-8", "ELITE-AUDIT §Action Plan T21, T22", "V2-ROADMAP §Pricing V2, §Bugs Críticos V1 #9", "V2-MASTER-PLAN §Decisões CEO #1"],
+      "description": "Implementar Stripe Subscriptions + Customer Portal. Pages: Upgrade → Stripe Checkout (hosted). Webhook handler Edge Function para eventos `customer.subscription.created|updated|deleted|invoice.payment_failed`. Server-side tier enforcement (feature gating real, não local).",
+      "acceptance_criteria": [
+        "Given user Free clica 'Upgrade to Pro' When redirect Then chega em Stripe Checkout com price_id correto ($49.90 recurring monthly)",
+        "Given pagamento aprovado When webhook `customer.subscription.created` chega Then `profiles.tier='pro'` + `profiles.subscription_status='active'` + `profiles.stripe_customer_id` populados",
+        "Given subscription cancelada ou inadimplente (payment_failed 3x) When webhook chega Then tier volta para 'free' e features premium são bloqueadas server-side",
+        "Given user Pro tenta acessar feature Club (ex: ALTIS live) When faz request à Edge Function Then response 403 com mensagem de upgrade (UI também mostra gate, mas gate servidor é autoritativo)",
+        "Given user Pro/Club quer gerenciar billing When clica 'Manage subscription' Then redireciona para Stripe Customer Portal (cancel, update card, invoices)"
+      ],
+      "business_value": "Sem receita = não há V2. Stripe é pré-requisito absoluto para lançamento com dinheiro real.",
+      "dependencies": [],
+      "priority": "P0"
+    },
+    {
+      "id": "FR-09",
+      "title": "Deploy das 4 Edge Functions core em produção",
+      "traces_to": ["P0-9", "V2-LAUNCH-CHECKLIST (Requires Manual Action)"],
+      "description": "Deploy em production Supabase das 4 functions: `bybit-transfer`, `balance-monitor`, `education-progress`, `challenge-engine`. Configurar cron schedule de `balance-monitor` (08:00 UTC daily). Setar `CRON_SECRET` env var. Validar via smoke tests.",
+      "acceptance_criteria": [
+        "Given `supabase functions list` em produção Then retorna as 4 functions com status 'active'",
+        "Given POST manual para cada function com payload válido Then retorna 200 + payload esperado",
+        "Given cron `balance-monitor` configurado Then primeira execução 08:00 UTC ocorre e loga em Supabase Logs",
+        "Given CRON_SECRET ausente When cron endpoint chamado sem header `x-cron-secret` Then 401",
+        "Given migrations 006, 007, 008 aplicadas em produção Then `supabase db remote list` mostra tabelas novas com RLS ON"
+      ],
+      "business_value": "Pipeline serverless inteiro destrancado. Sem deploy, todo o resto é código em prateleira.",
+      "dependencies": ["FR-03", "FR-05", "FR-06", "FR-10"],
+      "priority": "P0"
+    },
+    {
+      "id": "FR-10",
+      "title": "Transfer nativo Spot ↔ Unified (Edge Function bybit-transfer)",
+      "traces_to": ["V2-MASTER-PLAN §1.3 Transfer Spot → Unified Nativa", "V2-LAUNCH-CHECKLIST"],
+      "description": "Edge Function `bybit-transfer` chamando `POST /v5/asset/transfer/inter-transfer` com idempotency key. UI completa: AccountTransferModal + sub-components (selector, amount input, review, success). Error handling para 15+ códigos Bybit (170222, 170223, 10005, 10006 etc).",
+      "acceptance_criteria": [
+        "Given user clica 'Transfer' em Portfolio/Settings/Home When modal abre Then source/dest/coin/amount selecionáveis",
+        "Given usuário confirma transfer de $100 USDT Spot→Unified When submit Then Edge Function retorna 200 com bybit_txn_id e row em account_transfers",
+        "Given permission ausente (10005) When response volta Then UI mostra 'Re-auth API key with Transfer scope' + deep-link Bybit",
+        "Given dupla submissão (double-click) When segunda chega em < 30s Then dedup via idempotency key (mesma transferId uuid) — apenas 1 transfer",
+        "Given history de transfers When user abre Then TransferHistoryList lista paginado com status, coin, amount, timestamp"
+      ],
+      "business_value": "User não precisa sair do app para mover fundos entre contas Bybit — reduz friction na jornada DCA / ALTIS funding.",
+      "dependencies": ["FR-03", "FR-04", "FR-09"],
+      "priority": "P0"
+    },
+    {
+      "id": "FR-11",
+      "title": "Feature flag testnet↔mainnet + cap inicial $500/usuário",
+      "traces_to": ["CEO directive (prompt)", "V2-ROADMAP §Riscos #3"],
+      "description": "Toggle global `BYBIT_ENV=testnet|mainnet` controlado server-side. Primeiros 30 dias pós-launch: cap hard de $500 notional acumulado por usuário nas primeiras execuções DCA + transfers. Dashboard admin para liberar usuários beta em mainnet gradualmente.",
+      "acceptance_criteria": [
+        "Given feature flag `BYBIT_ENV=testnet` When qualquer Edge Function chama Bybit Then usa host testnet (api-testnet.bybit.com)",
+        "Given user em mainnet atinge $500 cumulativo em 30d When tenta nova execução DCA Then bloqueia e mostra 'Beta cap reached — aguardar liberação'",
+        "Given admin no /admin/users promove user 'beta_unlocked=true' When user tenta execução > $500 Then permite",
+        "Given 31º dia após primeiro DCA real When contador reseta Then cap relaxa (ou expira — decisão CEO via flag)",
+        "Given toggle env Then muda sem redeploy (Supabase secrets hot reload)"
+      ],
+      "business_value": "Risk mitigation hard — limite catastrófico de perda por bug em produção nas primeiras semanas.",
+      "dependencies": ["FR-06", "FR-07", "FR-10"],
+      "priority": "P0"
+    },
+    {
+      "id": "FR-12",
+      "title": "Rate limiting em todas Edge Functions",
+      "traces_to": ["P1 (Rate limiting ausente)", "ELITE-AUDIT §3.4 S4, §3.2 F-rate"],
+      "description": "Middleware rate-limit em todas Edge Functions expostas: 60 req/min por user_id, 100 req/min por IP. Uso de Supabase tabela leve `rate_limit_buckets` ou Upstash Redis. Respostas 429 com Retry-After.",
+      "acceptance_criteria": [
+        "Given user dispara 61 req em 60s para mesma Edge Function When chega a 61ª Then 429 com header Retry-After",
+        "Given IP dispara 101 req em 60s When chega a 101ª Then 429 independente de user",
+        "Given response 429 When client recebe Then UI mostra toast 'Too many requests' + auto-retry após Retry-After",
+        "Given logs Then todas as 429 são auditáveis em Supabase logs"
+      ],
+      "business_value": "Previne abuso + esgotamento de limits Bybit (que derrubariam o serviço inteiro para todos users).",
+      "dependencies": ["FR-09"],
+      "priority": "P1"
+    },
+    {
+      "id": "FR-13",
+      "title": "Error boundaries cobrindo 100% das rotas",
+      "traces_to": ["P1 (Error boundaries <50%)", "ELITE-AUDIT §1.1 U2"],
+      "description": "Wrap todas as rotas em `<ErrorBoundary>` com fallback UI consistente + Sentry capture automático. Route-level + section-level (critical widgets).",
+      "acceptance_criteria": [
+        "Given componente qualquer lança exception When user está naquela rota Then fallback UI aparece (não white-screen) + botão 'Reload' + 'Report issue'",
+        "Given erro capturado When ocorre Then evento Sentry tem contexto (user_id, route, store slice state) + breadcrumbs",
+        "Given grep no código `<ErrorBoundary>` When contado por rota em App.tsx Then cobertura = 100%"
+      ],
+      "business_value": "Uma crash = quebra de confiança em app financeiro. Error boundaries = trust insurance.",
+      "dependencies": [],
+      "priority": "P1"
+    },
+    {
+      "id": "FR-14",
+      "title": "Split appStore.ts (900 linhas) em domain slices",
+      "traces_to": ["P1 (appStore.ts 900 linhas)", "ELITE-AUDIT §1.2 P1"],
+      "description": "Refatorar store monolítico em: auth, portfolio, missions, learn, settings, market, altis, balance, transfer. Migration de persist v2 → v3 com helper idempotente. Selectors memoizados para reduzir re-renders.",
+      "acceptance_criteria": [
+        "Given /src/store/slices/ Then contém ≥ 8 files (auth, portfolio, dca, altis, learn, balance, transfer, settings)",
+        "Given `appStore.ts` Then composto via spread de slices — zero lógica local",
+        "Given persist version Then bump para 3 com migrator que preserva dados existentes",
+        "Given React DevTools Profiler no Home com prices updating Then re-renders de Portfolio widget = 0 (estava ~6/s antes)"
+      ],
+      "business_value": "Dev velocity — permite múltiplos devs paralelos sem merge conflicts gigantes. Performance — -40% re-renders.",
+      "dependencies": ["FR-01"],
+      "priority": "P1"
+    },
+    {
+      "id": "FR-15",
+      "title": "Lazy-load de sampleData.ts (1.4K linhas)",
+      "traces_to": ["P1 (sampleData.ts 1.4K lazy import)", "ELITE-AUDIT §1.1 U4, §1.2 P2"],
+      "description": "Dynamic import `const { sampleData } = await import('@/data/sampleData')` apenas nas rotas/componentes que usam demo mode. Remover do bundle inicial.",
+      "acceptance_criteria": [
+        "Given `npm run build && npx source-map-explorer` no bundle principal Then sampleData NÃO está em index-[hash].js",
+        "Given user Free em demo mode When acessa rota que usa fallback Then carrega chunk sampleData sob demanda (< 100ms)",
+        "Given bundle inicial Then reduzido em ≥ 50KB gzipped"
+      ],
+      "business_value": "Primeiro paint mobile < 2.5s (LCP). Retenção aumenta com app que carrega rápido.",
+      "dependencies": [],
+      "priority": "P1"
+    },
+    {
+      "id": "FR-16",
+      "title": "AI Portfolio Advisor (Claude API via Edge Function /api/ai/chat)",
+      "traces_to": ["P1 (AI Portfolio Advisor Claude API)", "ELITE-AUDIT §2.2 AI1, §Action Plan T9, T10", "BRAND-BOOK §7 Apice AI"],
+      "description": "Edge Function proxy `/api/ai/chat` para Anthropic Claude (Sonnet 4.6 default, Haiku 4.5 fallback). Context injection: portfolio snapshot, market data, user tier/risk profile. UI: componente ApiceAI chat na page Portfolio. Rate limited: Pro 10 chats/dia, Club ilimitado.",
+      "acceptance_criteria": [
+        "Given user Pro pergunta 'Should I rebalance?' When envia Then resposta streamed em < 3s com referência concreta ao portfolio (% atual por asset)",
+        "Given user Free tenta chat Then UI mostra gate 'Upgrade to Pro' (sem chamar API)",
+        "Given Pro user atingiu 10 chats no dia When tenta 11ª Then UI mostra 'Daily limit reached — upgrade to Club for unlimited'",
+        "Given response do Claude contém recomendação de trade concreto When renderiza Then inclui disclaimer 'AI suggestion — not financial advice' E botão 'Discuss with human advisor' (Club)",
+        "Given todas as requests When logadas Then armazenadas em ai_conversations (messages, context snapshot, tokens_used) com RLS"
+      ],
+      "business_value": "Diferenciador competitivo principal (ELITE-AUDIT §2.2): core feature que justifica Pro ($49.90) e Club ($149.90). Target LTV Pro +40%.",
+      "dependencies": ["FR-07", "FR-08", "FR-12"],
+      "priority": "P1"
+    },
+    {
+      "id": "FR-17",
+      "title": "Smart Rebalancing Engine (drift detection + one-tap rebalance)",
+      "traces_to": ["P1 (Smart Rebalancing engine)", "ELITE-AUDIT §2.2 AI2, §Action Plan T13, T20"],
+      "description": "Cron diário compara current allocation vs target em `portfolios.target_allocations`. Se drift ≥ 5% em qualquer asset, gera `rebalance_suggestion` + push notification. One-tap aceita: Edge Function executa ordens de market para corrigir drift.",
+      "acceptance_criteria": [
+        "Given portfolio BTC target 40% / current 48% (drift 8%) When cron roda Then cria rebalance_suggestion row + push notification",
+        "Given user clica 'Rebalance now' When confirma Then Edge Function computa orders e executa via /v5/order/create-batch",
+        "Given execução completa When response volta Then UI mostra 'Rebalance complete — new allocation: BTC 40.1%' + history row",
+        "Given drift < 5% When cron roda Then NENHUM suggestion é gerado (evita notification spam)"
+      ],
+      "business_value": "Reduces churn 40% (ELITE-AUDIT) — user percebe app cuidando do portfolio sozinho.",
+      "dependencies": ["FR-07", "FR-11", "FR-16"],
+      "priority": "P1"
+    },
+    {
+      "id": "FR-18",
+      "title": "Push notifications backend (FCM + APNs via Edge Function)",
+      "traces_to": ["P1 (Push notifications backend)", "ELITE-AUDIT §Action Plan T23", "V2-LAUNCH-CHECKLIST"],
+      "description": "Edge Function `notifications-push` integrada com Firebase Cloud Messaging (web + Android) + APNs (iOS). Triggers: DCA due tomorrow, DCA executed, fund alert RED/BLOCKED, rebalance suggestion, streak break warning, achievement unlocked.",
+      "acceptance_criteria": [
+        "Given user opt-in push quando conecta conta When FCM token/APNs token emitidos Then row em user_devices com token + platform",
+        "Given DCA plan executa com sucesso When Edge Function dispara notification Then usuário recebe em < 30s (iOS + Android)",
+        "Given fund_alert severity=RED criado When notification envia Then payload tem deep-link `apice://balance/add-funds`",
+        "Given user revoga permission no OS When próximo send Then token é invalidado e removido"
+      ],
+      "business_value": "Retention — streaks sem push caem 3x. Também é canal crítico para alertar usuário de problemas com dinheiro.",
+      "dependencies": ["FR-05", "FR-09"],
+      "priority": "P1"
+    },
+    {
+      "id": "FR-19",
+      "title": "Video lessons com conteúdo real nas Academy tracks",
+      "traces_to": ["P1 (Video lessons conteúdo real)", "V2-LAUNCH-CHECKLIST (Complete remaining lesson content)"],
+      "description": "Gravar / produzir conteúdo real para as 7 trilhas Academy (Foundation, DCA Mastery, Portfolio Architecture, Market Intelligence, ALTIS Trading, Elite Mindset, Capital Game). Hosting inicial via YouTube unlisted (conforme V2-MASTER-PLAN §Riscos #3), migração para Mux pós-validação de CAC.",
+      "acceptance_criteria": [
+        "Given Foundation + DCA Mastery (18 lessons seed) When lançamento Then 100% têm vídeo (YouTube unlisted) OU texto bem formatado com diagramas (gracefully degrades)",
+        "Given Pro/Club tracks When lançamento Then mínimo 50% das lessons têm vídeo ou entrega clara de 'Coming in N weeks' com badge visível",
+        "Given lesson player When video_provider='youtube' Then embed funciona com privacy mode + captions PT/EN/ES",
+        "Given user completa vídeo + quiz When scored ≥ 80% Then XP awarded corretamente (integra com educationSlice/completeLesson_v2)"
+      ],
+      "business_value": "Apice Academy é o driver principal de conversion (V2-MASTER-PLAN §PILAR 2). Sem conteúdo real, funil quebra.",
+      "dependencies": [],
+      "priority": "P1"
+    },
+    {
+      "id": "FR-20",
+      "title": "Observability stack (Sentry + PostHog)",
+      "traces_to": ["V2-ROADMAP §1.3 Observability", "ELITE-AUDIT §Appendix A"],
+      "description": "Integração Sentry (frontend + Edge Functions) + PostHog (product analytics). Tracking de funnel: signup → quiz → bybit_connected → first_dca_real → upgrade_pro → upgrade_club. Error rate < 0.5% pós-launch.",
+      "acceptance_criteria": [
+        "Given app em produção When erro JS ocorre Then Sentry capture com user_id, route, breadcrumbs",
+        "Given Edge Function lança exception When executa Then Sentry capture com correlation_id",
+        "Given user completa ação de funil When evento dispara Then PostHog recebe com properties tier + tenure_days",
+        "Given dashboard PostHog 'Onboarding Funnel' When acessado Then mostra step conversion rates atualizados"
+      ],
+      "business_value": "Debug em produção sem observability é impossível. Também gera dados para product decisions baseadas em funil real.",
+      "dependencies": [],
+      "priority": "P1"
+    }
+  ],
+
+  "non_functional_requirements": [
+    {
+      "id": "NFR-01",
+      "category": "security",
+      "description": "API keys Bybit jamais em código ou env client-side",
+      "metric": "`grep -r 'bybit.*secret|BYBIT_SECRET|VITE_.*ENCRYPTION' src/` retorna 0 ocorrências; Edge Function `bybit-credentials` é único path para encryption",
+      "traces_to": ["FR-03", "P0-3", "ELITE-AUDIT §3.4"]
+    },
+    {
+      "id": "NFR-02",
+      "category": "security",
+      "description": "API keys Bybit validadas com permissions whitelist (Spot, Derivatives, Transfer) e Withdraw blacklist",
+      "metric": "100% das keys salvas passam por validação; 0 keys com Withdraw scope em users de produção",
+      "traces_to": ["FR-04", "P0-4"]
+    },
+    {
+      "id": "NFR-03",
+      "category": "security",
+      "description": "Dinheiro real movido apenas via Edge Functions com rate limit + audit log",
+      "metric": "Zero chamadas diretas a Bybit a partir do browser (auditado via Grep no código + Network tab QA); 100% das execuções em tabela order_executions / account_transfers",
+      "traces_to": ["FR-06", "FR-07", "FR-10", "FR-12"]
+    },
+    {
+      "id": "NFR-04",
+      "category": "security",
+      "description": "Supabase RLS ON em todas as tabelas com user_id; 0 tabelas financeiras sem policy",
+      "metric": "Teste de integração 'RLS leak test' (2 users criam data, user B não vê de user A) passa em CI antes de cada deploy",
+      "traces_to": ["FR-06", "FR-07", "V2-MASTER-PLAN §Riscos #5"]
+    },
+    {
+      "id": "NFR-05",
+      "category": "performance",
+      "description": "LCP < 2.5s em mobile 4G nas páginas críticas (Home, Portfolio)",
+      "metric": "Lighthouse mobile score ≥ 90 performance; p75 real-user LCP ≤ 2.5s (medido PostHog/web-vitals)",
+      "traces_to": ["FR-13", "FR-14", "FR-15", "ELITE-AUDIT §1.2", "V2-ROADMAP §Métricas"]
+    },
+    {
+      "id": "NFR-06",
+      "category": "performance",
+      "description": "Edge Functions p95 latência < 500ms (exceto DCA/Transfer que dependem de Bybit)",
+      "metric": "Supabase Logs / Sentry performance monitoring — p95 < 500ms para portfolio-sync, balance-monitor, ai/chat",
+      "traces_to": ["V2-ROADMAP §Métricas"]
+    },
+    {
+      "id": "NFR-07",
+      "category": "availability",
+      "description": "Uptime ≥ 99.5% nos primeiros 30 dias (degradado vs 99.95% V2 target, aceitável para beta)",
+      "metric": "Better Stack / Supabase status uptime ≥ 99.5% em 30d",
+      "traces_to": ["V2-ROADMAP §Métricas"]
+    },
+    {
+      "id": "NFR-08",
+      "category": "reliability",
+      "description": "Execução DCA success rate ≥ 98%; Transfer success rate ≥ 99%",
+      "metric": "`SELECT status, COUNT(*) FROM dca_executions WHERE created_at > now()-interval '7 days' GROUP BY status` — failed/(failed+filled) ≤ 2%",
+      "traces_to": ["FR-06", "FR-10", "V2-MASTER-PLAN §Métricas"]
+    },
+    {
+      "id": "NFR-09",
+      "category": "compliance",
+      "description": "Zero auto-execução de Withdraw; todo movimento externo exige confirmação explícita do user",
+      "metric": "Código Edge Functions não contém endpoint /v5/asset/withdraw; auditoria de logs mostra 0 chamadas a withdraw endpoints",
+      "traces_to": ["FR-04", "R-01 (KYC)", "CEO directive cap $500"]
+    },
+    {
+      "id": "NFR-10",
+      "category": "compliance",
+      "description": "Disclaimer 'AI suggestion — not financial advice' visível em 100% das respostas do AI Advisor",
+      "metric": "QA test case: response de Claude rendered na UI SEMPRE contém disclaimer footer",
+      "traces_to": ["FR-16"]
+    },
+    {
+      "id": "NFR-11",
+      "category": "ux",
+      "description": "WCAG 2.2 AA mínimo nas rotas críticas (Home, Portfolio, DCA, Settings, Upgrade)",
+      "metric": "`axe-core` em Playwright e2e — 0 violations severity critical/serious nessas 5 rotas",
+      "traces_to": ["ELITE-AUDIT §1.3 A5", "BRAND-BOOK (accessibility implícito)"]
+    },
+    {
+      "id": "NFR-12",
+      "category": "ux",
+      "description": "Touch targets ≥ 44px em mobile (Apple HIG) — herdado de V1.5",
+      "metric": "Playwright check: todos botões/links principais têm min-w/min-h ≥ 44px",
+      "traces_to": ["V1.5-BRIDGE (Touch targets 44px)", "BRAND-BOOK"]
+    },
+    {
+      "id": "NFR-13",
+      "category": "ux",
+      "description": "Error messages humanizados (zero stack trace / error code cru na UI)",
+      "metric": "QA: 15 códigos Bybit conhecidos (170222, 170223, 10005 etc) têm mensagem friendly + ação sugerida",
+      "traces_to": ["FR-10", "V1.5-BRIDGE (Settings error messages humanizados)"]
+    },
+    {
+      "id": "NFR-14",
+      "category": "observability",
+      "description": "100% dos eventos de funil críticos instrumentados no PostHog",
+      "metric": "Eventos confirmados: signup, quiz_complete, bybit_connected, first_dca_real_executed, upgrade_pro, upgrade_club, ai_chat_sent, rebalance_executed, transfer_completed, lesson_completed",
+      "traces_to": ["FR-20", "V2-ROADMAP §1.3"]
+    },
+    {
+      "id": "NFR-15",
+      "category": "testing",
+      "description": "Cobertura de testes ≥ 80% nos módulos que movem dinheiro",
+      "metric": "`npm test -- --coverage` — lines ≥ 80% em src/lib/dca.ts, src/lib/bybit-errors.ts, src/store/slices/dcaSlice.ts, supabase/functions/dca-execute, supabase/functions/bybit-transfer",
+      "traces_to": ["V2-ROADMAP §1.5 Testing Foundation", ".claude/rules/languages/common-testing.md"]
+    }
+  ],
+
+  "constraints": [
+    {
+      "id": "CON-01",
+      "statement": "Cap inicial $500 notional cumulativo por usuário nos primeiros 30 dias pós-launch",
+      "reason": "Risk mitigation — limita blast radius caso bug grave em produção passe pelo QA. CEO directive explícita.",
+      "traces_to": ["FR-11", "CEO directive"]
+    },
+    {
+      "id": "CON-02",
+      "statement": "Testnet→Mainnet via feature flag `BYBIT_ENV`, rollout gradual (10% → 50% → 100%)",
+      "reason": "Rollout seguro — observabilidade em janela testnet detecta problemas antes de dinheiro real estar exposto.",
+      "traces_to": ["FR-11", "CEO directive", "V2-ACTION-PLAN §Sprint 5"]
+    },
+    {
+      "id": "CON-03",
+      "statement": "Nenhum usuário pode salvar API key Bybit com permissão de Withdraw",
+      "reason": "Defense in depth — mesmo em caso de vazamento do DB, invasor não pode drenar carteira do usuário.",
+      "traces_to": ["FR-04", "NFR-02"]
+    },
+    {
+      "id": "CON-04",
+      "statement": "Timeline hard: 5-7 semanas (~32 dias úteis) a partir de 2026-04-17",
+      "reason": "CEO directive — janela para receita antes de competidor adiantar.",
+      "traces_to": ["CEO directive (prompt)", "V2-MASTER-PLAN §Cronograma 6 semanas"]
+    },
+    {
+      "id": "CON-05",
+      "statement": "Compliance WCAG 2.2 AA nas rotas críticas",
+      "reason": "Legal (ADA / EAA 2025 Europa) + expande TAM 15% (usuários com disabilities). ELITE-AUDIT §1.3 A5 destaca como legal requirement.",
+      "traces_to": ["NFR-11", "ELITE-AUDIT §1.3"]
+    },
+    {
+      "id": "CON-06",
+      "statement": "EN-first, Spanish secondary, Portuguese deprioritized",
+      "reason": "Apice International Pivot — memory user directive confirmada em BRAND-BOOK §1.",
+      "traces_to": ["BRAND-BOOK §1", "MEMORY.md — project_apice_international"]
+    },
+    {
+      "id": "CON-07",
+      "statement": "Budget cap: equivalente a 3-4 engenheiros por 5-7 semanas (~$80-120K estimados)",
+      "reason": "V2-MASTER-PLAN §Conclusão explicita; mantém runway.",
+      "traces_to": ["V2-MASTER-PLAN §Investimento"]
+    },
+    {
+      "id": "CON-08",
+      "statement": "Stack imutável na V2: React 18 + Vite + TypeScript + Zustand + Supabase + Bybit",
+      "reason": "Troca de stack = reset de timeline. Ganhos marginais não justificam risco.",
+      "traces_to": ["V2-ROADMAP §Stack Técnico V2", "V1.5-BRIDGE"]
+    },
+    {
+      "id": "CON-09",
+      "statement": "Zero breaking changes em dados de usuário ao migrar para V2 (persist v2 → v3 idempotente)",
+      "reason": "Usuários ativos do V1.5 devem migrar sem perder portfolio, streaks, XP, badges, conexão Bybit.",
+      "traces_to": ["FR-01", "FR-14", "V2-MASTER-PLAN §Riscos #6"]
+    },
+    {
+      "id": "CON-10",
+      "statement": "Auditoria CodeRabbit obrigatória antes do merge em main (CRITICAL + HIGH self-healing)",
+      "reason": "AIOS constitutional — `.claude/rules/coderabbit-integration.md` exige 2 iterações self-heal + manual escalation.",
+      "traces_to": [".claude/rules/coderabbit-integration.md"]
+    }
+  ],
+
+  "dependencies": [
+    { "from": "FR-04 (Bybit key validation)", "to": "FR-03 (Key encryption server-side)", "reason": "Validação precisa decriptar key no server para chamar query-api" },
+    { "from": "FR-06 (DCA real execution)", "to": "FR-03, FR-04, FR-07, FR-11", "reason": "Execução exige keys seguras + validadas + sync de balance + cap $500" },
+    { "from": "FR-07 (Balance sync)", "to": "FR-03, FR-04", "reason": "Wallet-balance chamada exige keys válidas server-side" },
+    { "from": "FR-05 (Balance monitor)", "to": "FR-07 (Balance sync)", "reason": "Monitor consome snapshots produzidos pelo sync" },
+    { "from": "FR-10 (Transfer)", "to": "FR-03, FR-04, FR-09", "reason": "Transfer exige keys, scope Transfer validado, Edge Function deployed" },
+    { "from": "FR-09 (Edge Functions deploy)", "to": "FR-03, FR-05, FR-06, FR-10", "reason": "Deploy ocorre após cada function estar pronta" },
+    { "from": "FR-11 (Feature flag + cap)", "to": "FR-06, FR-07, FR-10", "reason": "Flag é meta-constraint sobre operações reais" },
+    { "from": "FR-16 (AI Advisor)", "to": "FR-07 (Balance sync), FR-08 (Stripe tier), FR-12 (Rate limit)", "reason": "Advisor precisa portfolio real, tier enforcement e rate limit" },
+    { "from": "FR-17 (Smart Rebalance)", "to": "FR-07, FR-11, FR-16", "reason": "Rebalance consome balance + respeita cap + se integra ao advisor" },
+    { "from": "FR-18 (Push)", "to": "FR-05, FR-09", "reason": "Push depende de fund_alerts e Edge Functions deployed" },
+    { "from": "FR-02 (ALTIS fix)", "to": "FR-01 (Portfolio persistence)", "reason": "Ambos usam o mesmo padrão de slice + persist v3; devem ser migrados juntos" },
+    { "from": "FR-14 (Store split)", "to": "FR-01 (Persistence)", "reason": "Split e migration v3 caminham juntos" }
+  ],
+
+  "risks": [
+    {
+      "id": "R-01",
+      "title": "Compliance/KYC/AML não mapeado para operação com dinheiro real em múltiplas jurisdições",
+      "severity": "HIGH",
+      "probability": "HIGH",
+      "mitigation": "(a) Revisão legal antes do launch (contratar especialista fintech crypto); (b) Ao lançar, exigir que user tenha KYC feito direto no Bybit (delegação); (c) ToS + Privacy Policy publicados com disclaimer claro que Apice é 'non-custodial — keys stay with Bybit'; (d) Geo-block em jurisdições proibidas (US, Cuba, Iran, NK, Syria, Russia) via IP geolocation no auth; (e) Plano para obter licença fintech em Q2-Q3 2026 se escala justifica.",
+      "traces_to": ["CEO directive", "V2-ROADMAP §Riscos", "V2-ACTION-PLAN §Legal"]
+    },
+    {
+      "id": "R-02",
+      "title": "Bybit API rate limits derrubam serviço sob carga",
+      "severity": "MEDIUM",
+      "probability": "HIGH",
+      "mitigation": "(a) Implementar cache Upstash Redis para wallet-balance (TTL 15s); (b) Rate limit por user no nosso lado (FR-12); (c) Batch requests quando possível (/v5/order/create-batch); (d) Exponential backoff + retry em TODAS as chamadas (FR-06 AC); (e) Circuit breaker — se 10% requests Bybit falham, degradar para read-only 5min.",
+      "traces_to": ["P0-6 AC", "FR-12", "V2-ROADMAP §Bugs #6"]
+    },
+    {
+      "id": "R-03",
+      "title": "Dual payment provider complexity (Stripe para subs + Bybit para trading)",
+      "severity": "MEDIUM",
+      "probability": "MEDIUM",
+      "mitigation": "(a) Separação clara: Stripe é APENAS para subscriptions Pro/Club; Bybit é APENAS para trading; (b) Nenhum fluxo cruza Stripe↔Bybit; (c) Webhook Stripe tem idempotency key + retry; (d) Dashboard admin mostra reconcile Stripe active subs vs profiles.tier (alerta se drift).",
+      "traces_to": ["FR-08", "V2-ROADMAP §Bugs #9"]
+    },
+    {
+      "id": "R-04",
+      "title": "Bug em DCA executor causa múltiplas execuções ou perda de fundos",
+      "severity": "CRITICAL",
+      "probability": "MEDIUM",
+      "mitigation": "(a) Idempotency key por execução (execution_token único por plano+data); (b) Cap $500/user primeiros 30d (CON-01); (c) Testnet primeiro por 2 semanas antes de mainnet; (d) Beta com 10 users internos antes de rollout; (e) Kill-switch admin: flag `DCA_EXECUTION_PAUSED=true` desliga cron em 5s; (f) Cobertura de testes 80%+ no executor (NFR-15); (g) Playwright e2e com testnet que valida execução end-to-end em cada PR.",
+      "traces_to": ["FR-06", "FR-11", "NFR-15", "CON-01"]
+    },
+    {
+      "id": "R-05",
+      "title": "Vazamento de API keys Bybit de usuários (supply chain attack, bug em Edge Function, DB leak)",
+      "severity": "CRITICAL",
+      "probability": "LOW",
+      "mitigation": "(a) Encryption at-rest dedicado (FR-03) com key gerenciada fora do DB (Supabase Vault); (b) CON-03: zero keys com Withdraw scope = blast radius limitado; (c) Audit log de toda decryption (Supabase logs); (d) Review CodeRabbit em 100% das Edge Functions (CON-10); (e) Bug bounty em soft-launch (after week 4); (f) SECURITY.md com contact responsible-disclosure.",
+      "traces_to": ["FR-03", "FR-04", "NFR-01", "NFR-02", "NFR-03", "CON-03"]
+    },
+    {
+      "id": "R-06",
+      "title": "Timeline 5-7 semanas apertado para 9 P0s + 8 P1s",
+      "severity": "HIGH",
+      "probability": "HIGH",
+      "mitigation": "(a) Corte agressivo de P1s se semana 4 não tiver P0s complete: push notifications, video lessons e smart rebalancing movem para V2.1; (b) Paralelização via git worktrees (superpowers skill): backend-foundation + frontend-UX + content em 3 tracks paralelas; (c) Beta de 1 semana compressível a 3 dias se telemetria for limpa; (d) MVP sem AI Advisor em semana 5 (V2.1 em semana 7).",
+      "traces_to": ["CON-04", "CEO directive"]
+    },
+    {
+      "id": "R-07",
+      "title": "Content creation bottleneck para 52 lessons Academy",
+      "severity": "MEDIUM",
+      "probability": "HIGH",
+      "mitigation": "(a) 18 seed lessons (Foundation + DCA Mastery) via migration 008 já existem; (b) Lançamento OK com Pro/Club tracks mostrando 'Coming in N weeks' (FR-19 AC 2); (c) CEO escreve Elite Mindset + ALTIS (worldview crítica); (d) Contractor writer para Foundation/DCA vídeos (V2-MASTER-PLAN Decisões CEO #7); (e) YouTube unlisted hosting inicial (zero custo hosting).",
+      "traces_to": ["FR-19", "V2-MASTER-PLAN §Riscos #2, #3"]
+    },
+    {
+      "id": "R-08",
+      "title": "Regressão de V1.5 ao migrar persist v2 → v3 causa perda de dados de early users",
+      "severity": "MEDIUM",
+      "probability": "LOW",
+      "mitigation": "(a) Migrator idempotente testado em staging com dumps reais de early users; (b) Backup localStorage em `__apice_v2_backup_[timestamp]` antes de migration (user pode exportar); (c) Feature flag `ENABLE_STORE_V3_MIGRATION` para rollback rápido; (d) Testes unitários do migrator com 10+ cenários (empty, partial, full, corrupted).",
+      "traces_to": ["FR-01", "FR-14", "CON-09", "V2-MASTER-PLAN §Riscos #6"]
+    },
+    {
+      "id": "R-09",
+      "title": "Custo Claude API escala além do previsto se Club users descobrem prompt injection",
+      "severity": "LOW",
+      "probability": "MEDIUM",
+      "mitigation": "(a) Rate limit per-tier (FR-16 AC 3); (b) Budget cap mensal: se MRR Claude > X% da revenue, auto-throttle para Haiku 4.5; (c) System prompt hardened contra jailbreak (inclui 'Stay on-topic: crypto portfolio advice only'); (d) Token cap per-message (max 4K output); (e) Monitoring PostHog de avg tokens por user, alert em outliers.",
+      "traces_to": ["FR-16", "V2-ROADMAP §Riscos"]
+    },
+    {
+      "id": "R-10",
+      "title": "Apple/Google App Store rejeita build por use-of-crypto ou policies de gambling",
+      "severity": "MEDIUM",
+      "probability": "MEDIUM",
+      "mitigation": "(a) V2 scope é PWA primeiro — não depende de App Store para launch; (b) ToS + Privacy + disclaimers claros; (c) Seguir MoBack/Robinhood playbook (positioning 'investment', NÃO 'trading' nos metadados); (d) Se stores rejeitarem, distribuir como PWA installable + TestFlight/internal-test até resolver.",
+      "traces_to": ["V2-ACTION-PLAN §5.6-5.7"]
+    }
+  ],
+
+  "out_of_scope_v2": [
+    "React Native mobile app nativo (V3 — V2-ROADMAP §Fase 3.1)",
+    "Social layer: leaderboards, public profiles, follow, shared portfolios (V3 — V2-ROADMAP §Fase 3.2)",
+    "Multi-exchange: Binance, Coinbase, Kraken adapters (V3 — V2-ROADMAP §Fase 3.3)",
+    "AI Agent Trading com execução autônoma (V2-ROADMAP §Fase 2.1 — adiada para V2.1 se timeline apertar)",
+    "Copy Trading com execução real entre traders públicos (V3 — V2-ROADMAP §Fase 2.2)",
+    "Cashback engine real com Stripe card integration (V4 — V2-ROADMAP §Fase 4.1)",
+    "Strategy marketplace (traders vendem estratégias, take rate 30%) (V4 — V2-ROADMAP §Fase 4.2)",
+    "B2B API + white-label DCA engine (V4 — V2-ROADMAP §Fase 4.3)",
+    "Voice assistant 'Hey Apice' (ELITE-AUDIT §2.2 AI8 — low priority)",
+    "Multi-timeframe charts + orderbook depth (ELITE-AUDIT §3.2 F5 — não bloqueia MVP real-money)",
+    "Copy certificate PDF generator + brand guidelines PDF (V2-ACTION-PLAN §Post-V2)",
+    "TimescaleDB + performance_daily computed metrics (V2-ROADMAP §1.2 — SQLite de performance suficiente no launch)"
+  ],
+
+  "summary_metrics": {
+    "functional_requirements_count": 20,
+    "p0_count": 11,
+    "p1_count": 9,
+    "non_functional_requirements_count": 15,
+    "constraints_count": 10,
+    "risks_count": 10,
+    "critical_risks": 2,
+    "high_risks": 3
+  }
+}

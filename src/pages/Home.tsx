@@ -11,6 +11,8 @@ import { GamificationWidget } from '@/components/GamificationWidget';
 import { TopCoinsList } from '@/components/TopCoinsList';
 import { ExecutivePortfolioBoard } from '@/components/home/ExecutivePortfolioBoard';
 import { DCATracker } from '@/components/portfolio/DCATracker';
+import { SmartReportWidget } from '@/components/home/SmartReportWidget';
+import { MarketPulseWidget } from '@/components/home/MarketPulseWidget';
 import { useAutoDCA } from '@/hooks/useAutoDCA';
 import { AiInsightCard } from '@/components/ai/AiInsightCard';
 import { AiAdvisorChat } from '@/components/ai/AiAdvisorChat';
@@ -153,29 +155,44 @@ export default function Home() {
 
   const lastUpdated = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  // ── Quick Actions ──────────────────────────────────────────────────────────
+  // ── Quick Actions — emerald signature per brand, mapped by expert accent color ────
   const quickActions = [
-    { icon: BarChart3, label: 'Analysis', color: 'text-emerald-400', bg: 'bg-emerald-500/10', action: () => navigate('/analytics') },
-    { icon: PieChart, label: 'Portfolio', color: 'text-blue-400', bg: 'bg-blue-500/10', action: () => navigate('/portfolio') },
-    { icon: Plus, label: 'DCA', color: 'text-cyan-400', bg: 'bg-cyan-500/10', action: () => navigate('/dca-planner') },
-    { icon: BookOpen, label: 'Learn', color: 'text-purple-400', bg: 'bg-purple-500/10', action: () => navigate('/learn') },
+    { icon: BarChart3, label: 'Analysis', color: 'text-[hsl(var(--apice-emerald))]', bg: 'bg-[hsl(var(--apice-emerald))]/10', action: () => navigate('/analytics') },
+    { icon: PieChart, label: 'Portfolio', color: 'text-sky-400', bg: 'bg-sky-500/10', action: () => navigate('/portfolio') },
+    { icon: Plus, label: 'DCA', color: 'text-[hsl(var(--apice-emerald))]', bg: 'bg-[hsl(var(--apice-emerald))]/10', action: () => navigate('/dca-planner') },
+    { icon: BookOpen, label: 'Learn', color: 'text-amber-400', bg: 'bg-amber-500/10', action: () => navigate('/learn') },
   ];
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-background pb-28 scroll-smooth">
-      {/* Ambient background orbs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-primary/[0.07] blur-[80px] animate-glow-pulse" />
-        <div className="absolute -bottom-10 -left-20 w-48 h-48 rounded-full bg-accent/[0.05] blur-[60px] animate-glow-pulse" style={{ animationDelay: '1.5s' }} />
-        <div className="absolute top-1/2 right-1/4 w-32 h-32 rounded-full bg-purple-500/[0.04] blur-[50px] animate-glow-pulse" style={{ animationDelay: '3s' }} />
+      {/* Ambient background orbs — emerald signature per brand */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
+        <div
+          className="animate-glow-pulse absolute -right-20 -top-20 h-60 w-60 rounded-full blur-[80px]"
+          style={{ background: 'hsl(var(--apice-emerald) / 0.08)' }}
+        />
+        <div
+          className="animate-glow-pulse absolute -bottom-10 -left-20 h-48 w-48 rounded-full blur-[60px]"
+          style={{
+            animationDelay: '1.5s',
+            background: 'hsl(var(--apice-blue-glow) / 0.06)',
+          }}
+        />
+        <div
+          className="animate-glow-pulse absolute right-1/4 top-1/2 h-32 w-32 rounded-full blur-[50px]"
+          style={{
+            animationDelay: '3s',
+            background: 'hsl(var(--apice-gold) / 0.04)',
+          }}
+        />
       </div>
 
       {/* Content wrapper */}
       <div className="relative z-10">
         {/* ── Demo Mode Banner ───────────────────────────────────────────── */}
         {!isSupabaseConfigured && (
-          <div className="mx-4 md:mx-6 mt-4 rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3 flex items-center gap-3">
+          <div className="mx-4 md:mx-6 lg:mx-8 xl:mx-10 mt-2 lg:mt-0 rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3 flex items-center gap-3">
             <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
             <p className="text-xs text-amber-300">
               Running in demo mode — connect Supabase for real data.
@@ -184,61 +201,53 @@ export default function Home() {
         )}
 
         {/* ── Insufficient Funds Alert (critical / blocked) ─────────────── */}
-        <div className="px-4 md:px-6 mt-4">
+        <div className="px-4 md:px-6 lg:px-8 xl:px-10 pt-2 lg:pt-0 empty:hidden">
           <ErrorBoundary fallback={null}>
             <InsufficientFundsAlert />
           </ErrorBoundary>
         </div>
 
-        {/* ── Greeting Bar ────────────────────────────────────────────────── */}
+        {/* ── Greeting Bar — single line, responsive, EN-first ──────────── */}
         <motion.div
-          className="px-5 pt-7 pb-2 flex items-center justify-between"
+          className="px-4 md:px-6 lg:px-8 xl:px-10 pt-3 lg:pt-6 pb-4 flex items-center justify-between gap-4"
           initial="hidden"
           animate="visible"
           custom={0}
           variants={fadeUp}
         >
-          <div className="flex items-baseline gap-2">
-            <h1 className="text-lg font-bold">
-              {t(getTimeGreetingKey())}, {userProfile?.name || investorType || 'Investor'}
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-xl md:text-2xl font-semibold tracking-tight text-white truncate">
+              {t(getTimeGreetingKey())},{' '}
+              <span className="text-white/80">
+                {userProfile?.name || investorType || 'Investor'}
+              </span>
             </h1>
-            <span className="text-[11px] text-muted-foreground/60 capitalize hidden sm:inline">
+            <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-white/40 capitalize">
               {todayDate}
-            </span>
+            </p>
           </div>
           <button
+            type="button"
+            aria-label="Open settings"
             onClick={() => navigate('/settings')}
-            className="w-9 h-9 rounded-xl glass-light flex items-center justify-center hover:bg-secondary/60 transition-all press-scale"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur transition-all hover:border-white/20 hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F1626]"
           >
-            <Settings2 className="w-4 h-4 text-muted-foreground" />
+            <Settings2 className="h-4 w-4 text-white/70" aria-hidden="true" />
           </button>
         </motion.div>
 
-        {/* Mobile date (visible on small screens only) */}
-        <motion.p
-          className="px-5 text-[11px] text-muted-foreground/50 capitalize sm:hidden -mt-1 mb-3"
-          initial="hidden"
-          animate="visible"
-          custom={0}
-          variants={fadeUp}
-        >
-          {todayDate}
-        </motion.p>
+        {/* ── Full-width single-column layout · every widget spans the full available width ── */}
+        <div className="px-4 md:px-6 lg:px-8 xl:px-10 space-y-6 lg:space-y-7">
 
-        {/* ── Full-width Hero: Portfolio Board ──────────────────────────── */}
-        <div className="px-4 md:px-6">
+          {/* Hero: Portfolio Board */}
           <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp}>
             <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Portfolio data unavailable</div>}>
               <ExecutivePortfolioBoard />
             </ErrorBoundary>
           </motion.div>
-        </div>
 
-        {/* ── Desktop 2-Column / Mobile Single Column ─────────────────────── */}
-        <div className="px-4 md:px-6 mt-5 xl:grid xl:grid-cols-3 xl:gap-6">
-
-          {/* ── LEFT COLUMN (main content) ──────────────────────────────── */}
-          <div className="xl:col-span-2 space-y-5">
+          {/* Widgets stack full-width in sequence */}
+          <div className="space-y-5 lg:space-y-6">
 
             {/* Quick Actions — horizontal on desktop, 2x2 on mobile */}
             <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
@@ -248,7 +257,7 @@ export default function Home() {
                   <button
                     key={item.label}
                     onClick={item.action}
-                    className="flex items-center gap-3 p-4 rounded-2xl glass-card border border-border/20 text-left hover:border-primary/20 transition-all press-scale hover-lift group min-h-[56px]"
+                    className="group flex min-h-[56px] items-center gap-3 rounded-2xl bg-white/[0.03] p-4 text-left backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-white/[0.06] hover:shadow-[0_10px_30px_-12px_hsl(var(--apice-emerald)/0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F1626] active:scale-[0.98]"
                   >
                     <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', item.bg)}>
                       <item.icon className={cn('w-5 h-5', item.color)} />
@@ -269,6 +278,13 @@ export default function Home() {
               </ErrorBoundary>
             </motion.div>
 
+            {/* Smart Report v2.0 — strategy breakdown · short/medium/long-term */}
+            <motion.div initial="hidden" animate="visible" custom={3.5} variants={fadeUp}>
+              <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Smart report unavailable</div>}>
+                <SmartReportWidget />
+              </ErrorBoundary>
+            </motion.div>
+
             {/* Explosive Picks AI Widget */}
             <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
               <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Explosive picks unavailable</div>}>
@@ -281,7 +297,7 @@ export default function Home() {
               <SectionHeader icon={Sparkles} label="Today's Context" />
               <button
                 onClick={() => navigate(getInsightRoute(todayInsight.type))}
-                className="relative w-full rounded-2xl glass-card border border-border/20 p-4 text-left hover-lift transition-all group"
+                className="relative w-full rounded-2xl glass-card p-4 text-left hover-lift transition-all group"
               >
                 <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-primary/80">
                   <span className="rounded-full glass-light px-2 py-0.5 tracking-[0.12em] text-primary/90 text-xs font-semibold">
@@ -304,7 +320,7 @@ export default function Home() {
             <motion.div initial="hidden" animate="visible" custom={5} variants={fadeUp}>
               <SectionHeader icon={TrendingUp} label="Market Movers" action={{ label: 'View All', onClick: () => navigate('/explosive-list') }} />
               <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Market data unavailable</div>}>
-                <div className="rounded-2xl glass-card border border-border/20 overflow-hidden">
+                <div className="rounded-2xl glass-card overflow-hidden">
                   <TopCoinsList />
                 </div>
               </ErrorBoundary>
@@ -317,35 +333,39 @@ export default function Home() {
             </motion.div>
           </div>
 
-          {/* ── RIGHT COLUMN (sidebar) ──────────────────────────────────── */}
-          <div className="xl:col-span-1 space-y-5 mt-5 xl:mt-0">
+          {/* DCA Automation · full width */}
+          <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
+            <SectionHeader icon={TrendingUp} label="DCA Automation" />
+            <div className="rounded-2xl glass-card overflow-hidden">
+              <DCATracker />
+            </div>
+          </motion.div>
 
-            {/* DCA Status */}
-            <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
-              <SectionHeader icon={TrendingUp} label="DCA Automation" />
-              <div className="rounded-2xl glass-card border border-border/20 overflow-hidden">
-                <DCATracker />
-              </div>
-            </motion.div>
+          {/* Market Pulse · full width */}
+          <motion.div initial="hidden" animate="visible" custom={5} variants={fadeUp}>
+            <SectionHeader icon={Sparkles} label="Market Pulse" />
+            <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Market pulse unavailable</div>}>
+              <MarketPulseWidget />
+            </ErrorBoundary>
+          </motion.div>
 
-            {/* AI Portfolio Score */}
-            <motion.div initial="hidden" animate="visible" custom={6} variants={fadeUp}>
-              <SectionHeader icon={Sparkles} label="AI Portfolio Score" />
-              <AiPortfolioScore />
-            </motion.div>
-          </div>
+          {/* AI Portfolio Score · full width */}
+          <motion.div initial="hidden" animate="visible" custom={6} variants={fadeUp}>
+            <SectionHeader icon={Sparkles} label="AI Portfolio Score" />
+            <AiPortfolioScore />
+          </motion.div>
         </div>
 
-        {/* ── Full-width: Apice Journey ────────────────────────────────── */}
-        <div className="px-4 md:px-6 mt-5">
+        {/* ── Apice Journey · full width ──────────────────────────────── */}
+        <div className="px-4 md:px-6 lg:px-8 xl:px-10 mt-6 lg:mt-7">
           <motion.div initial="hidden" animate="visible" custom={7} variants={fadeUp}>
             <SectionHeader icon={Target} label={isJourneyCompleted ? 'Your Journey' : 'Apice Journey'} />
             <SetupMissions />
           </motion.div>
         </div>
 
-        {/* ── Full-width: Gamification ─────────────────────────────────── */}
-        <div className="px-4 md:px-6 mt-5">
+        {/* ── Gamification · full width ──────────────────────────────── */}
+        <div className="px-4 md:px-6 lg:px-8 xl:px-10 mt-6 lg:mt-7">
           <motion.div initial="hidden" animate="visible" custom={8} variants={fadeUp}>
             {isGamificationUnlocked ? (
               <>
@@ -353,7 +373,7 @@ export default function Home() {
                 <GamificationWidget />
               </>
             ) : (
-              <div className="p-4 rounded-2xl glass-light border border-border/20 flex items-center gap-3 opacity-60">
+              <div className="p-4 rounded-2xl glass-light flex items-center gap-3 opacity-60">
                 <Lock className="w-5 h-5 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-semibold text-muted-foreground">Levels & Badges</p>

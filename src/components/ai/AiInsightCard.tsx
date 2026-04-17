@@ -12,18 +12,18 @@ import {
 import { cn } from '@/lib/utils';
 
 const TYPE_CONFIG: Record<string, { icon: typeof Sparkles; color: string; label: string }> = {
-  market: { icon: TrendingUp, color: 'text-blue-400', label: 'Market' },
-  portfolio: { icon: Target, color: 'text-purple-400', label: 'Portfolio' },
-  education: { icon: BookOpen, color: 'text-green-400', label: 'Learn' },
-  discipline: { icon: Zap, color: 'text-amber-400', label: 'Discipline' },
-  opportunity: { icon: AlertTriangle, color: 'text-orange-400', label: 'Opportunity' },
+  market: { icon: TrendingUp, color: 'text-sky-300', label: 'Market' },
+  portfolio: { icon: Target, color: 'text-violet-300', label: 'Portfolio' },
+  education: { icon: BookOpen, color: 'text-[hsl(var(--apice-emerald))]', label: 'Learn' },
+  discipline: { icon: Zap, color: 'text-amber-300', label: 'Discipline' },
+  opportunity: { icon: AlertTriangle, color: 'text-orange-300', label: 'Opportunity' },
 };
 
 const SENTIMENT_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  bullish: { bg: 'bg-green-500/10', text: 'text-green-400', label: 'Bullish' },
+  bullish: { bg: 'bg-[hsl(var(--apice-emerald))]/10', text: 'text-[hsl(var(--apice-emerald))]', label: 'Bullish' },
   bearish: { bg: 'bg-red-500/10', text: 'text-red-400', label: 'Bearish' },
-  neutral: { bg: 'bg-gray-500/10', text: 'text-gray-400', label: 'Neutral' },
-  cautious: { bg: 'bg-amber-500/10', text: 'text-amber-400', label: 'Cautious' },
+  neutral: { bg: 'bg-white/[0.05]', text: 'text-white/55', label: 'Neutral' },
+  cautious: { bg: 'bg-amber-500/10', text: 'text-amber-300', label: 'Cautious' },
 };
 
 export function AiInsightCard() {
@@ -44,7 +44,7 @@ export function AiInsightCard() {
   if (!loaded && isLoading) {
     return (
       <Card className="border-none glass-card">
-        <CardContent className="pt-4 pb-4">
+        <CardContent className="p-5">
           <div className="flex items-center gap-3 mb-3">
             <Skeleton className="w-9 h-9 rounded-xl" />
             <div className="flex-1 space-y-2">
@@ -74,54 +74,55 @@ export function AiInsightCard() {
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
       <Card className="border-none overflow-hidden glass-card">
-        <CardContent className="pt-4 pb-4">
+        <CardContent className="p-5">
           {/* Header */}
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Brain className="w-4.5 h-4.5 text-primary" />
+              <div className="w-9 h-9 rounded-xl bg-[hsl(var(--apice-emerald))]/10 flex items-center justify-center">
+                <Brain className="w-4.5 h-4.5 text-[hsl(var(--apice-emerald))]" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">AI Insight</p>
-                  <Badge variant="outline" className="text-[11px] px-1.5 py-0">
+                  <p className="text-[10px] text-white/45 uppercase tracking-[0.12em] font-semibold">AI Insight</p>
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-[hsl(var(--apice-emerald))]/10 text-[hsl(var(--apice-emerald))] text-[10px] px-1.5 py-0.5 font-semibold tracking-[0.08em] uppercase">
                     <Sparkles className="w-2 h-2 mr-0.5" />
                     Live
-                  </Badge>
+                  </span>
                 </div>
-                <h3 className="text-sm font-bold mt-0.5">{insight.title}</h3>
+                <h3 className="text-[15px] font-semibold text-white mt-0.5">{insight.title}</h3>
               </div>
             </div>
             <button
               onClick={() => loadInsight(true)}
               disabled={isLoading}
-              className="w-7 h-7 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
+              className="w-7 h-7 rounded-lg bg-white/[0.04] flex items-center justify-center hover:bg-white/[0.08] transition-colors disabled:opacity-50"
+              aria-label="Refresh insight"
             >
-              <RefreshCw className={cn('w-3 h-3 text-muted-foreground', isLoading && 'animate-spin')} />
+              <RefreshCw className={cn('w-3 h-3 text-white/60', isLoading && 'animate-spin')} />
             </button>
           </div>
 
           {/* Content */}
-          <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+          <p className="text-sm text-white/70 leading-relaxed mb-3">
             {insight.content}
           </p>
 
           {/* Tags Row */}
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <Badge variant="outline" className={cn('text-[11px] gap-1', typeConfig.color)}>
+          <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+            <span className={cn('inline-flex items-center gap-1 rounded-full bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold', typeConfig.color)}>
               <Icon className="w-2.5 h-2.5" />
               {typeConfig.label}
-            </Badge>
-            <Badge variant="outline" className={cn('text-[11px]', sentimentConfig.text)}>
+            </span>
+            <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold', sentimentConfig.bg, sentimentConfig.text)}>
               {sentimentConfig.label}
-            </Badge>
+            </span>
             {insight.urgency === 'high' && (
-              <Badge variant="outline" className="text-[11px] text-red-400 border-red-500/30">
+              <span className="inline-flex items-center rounded-full bg-red-500/10 text-red-400 text-[10px] px-2 py-0.5 font-semibold uppercase tracking-[0.08em]">
                 Urgent
-              </Badge>
+              </span>
             )}
             {insight.relatedAssets.map(asset => (
-              <span key={asset} className="text-[11px] font-medium text-muted-foreground bg-secondary/50 px-1.5 py-0.5 rounded">
+              <span key={asset} className="text-[10px] font-mono font-semibold text-white/70 bg-white/[0.04] px-1.5 py-0.5 rounded">
                 {asset}
               </span>
             ))}
@@ -129,10 +130,10 @@ export function AiInsightCard() {
 
           {/* Action */}
           {insight.action && (
-            <div className="flex items-center gap-2 p-2.5 rounded-xl glass-light border-primary/10">
-              <Zap className="w-3.5 h-3.5 text-primary shrink-0" />
-              <p className="text-[11px] text-primary font-medium flex-1">{insight.action}</p>
-              <ArrowRight className="w-3 h-3 text-primary/60" />
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[hsl(var(--apice-emerald))]/[0.06]">
+              <Zap className="w-3.5 h-3.5 text-[hsl(var(--apice-emerald))] shrink-0" />
+              <p className="text-[11px] text-[hsl(var(--apice-emerald))] font-medium flex-1">{insight.action}</p>
+              <ArrowRight className="w-3 h-3 text-[hsl(var(--apice-emerald))]/60" />
             </div>
           )}
         </CardContent>

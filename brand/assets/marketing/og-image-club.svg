@@ -1,0 +1,43 @@
+<!-- Apice · og-image-club · v1 FINAL · media-head 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Apice Club — For investors who play the long game.">
+  <defs>
+    <style>
+      .bg { fill: #0E0E12; }
+      .wm { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 72px; letter-spacing: -2.16px; fill: #F7F3ED; }
+      .dot { fill: #16A661; }
+      .headline { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 80px; letter-spacing: -2.4px; fill: #F7F3ED; }
+      .tag { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 24px; fill: #F7F3ED; opacity: 0.7; }
+      .eyebrow { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 14px; letter-spacing: 3px; fill: #16A661; text-transform: uppercase; }
+      .price { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 42px; fill: #F7F3ED; letter-spacing: -1.2px; }
+      .price-lbl { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 14px; fill: #F7F3ED; opacity: 0.55; letter-spacing: 1.5px; text-transform: uppercase; }
+      .rule { stroke: #F7F3ED; stroke-width: 1; opacity: 0.12; }
+      .feat { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 18px; fill: #F7F3ED; opacity: 0.72; }
+      .tick { fill: #16A661; }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="630"/>
+  <!-- lockup -->
+  <text class="wm" x="80" y="120">Apice</text>
+  <circle class="dot" cx="332" cy="114" r="7"/>
+  <text class="eyebrow" x="80" y="164">CLUB  ·  INVITATION-ONLY</text>
+  <line class="rule" x1="80" y1="196" x2="1120" y2="196"/>
+  <!-- headline -->
+  <text class="headline" x="80" y="310">For investors who</text>
+  <text class="headline" x="80" y="400">play the long game.</text>
+  <!-- features -->
+  <g transform="translate(80,460)">
+    <circle class="tick" cx="6" cy="-6" r="4"/>
+    <text class="feat" x="24">ALTIS — AI-guided trade with risk discipline</text>
+  </g>
+  <g transform="translate(80,494)">
+    <circle class="tick" cx="6" cy="-6" r="4"/>
+    <text class="feat" x="24">Elite Mindset track + monthly private note</text>
+  </g>
+  <g transform="translate(80,528)">
+    <circle class="tick" cx="6" cy="-6" r="4"/>
+    <text class="feat" x="24">Capital Game — quarterly peer leaderboard</text>
+  </g>
+  <!-- price -->
+  <line class="rule" x1="80" y1="572" x2="1120" y2="572"/>
+  <text class="price" x="80" y="612">$149.90 <tspan class="price-lbl">/ MONTH</tspan></text>
+</svg>

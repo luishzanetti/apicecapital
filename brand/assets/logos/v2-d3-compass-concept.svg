@@ -1,0 +1,17 @@
+<!-- Apice Capital · Logo v2 · Direction 3: Compass (Claude-leaning) · concept · 2026-04-17 -->
+<!-- 4-point star with asymmetric terminals. N+E sharp, S+W rounded. Vertical arms heavier than horizontal. -->
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice · Compass concept">
+  <title>Compass concept</title>
+  <g fill="var(--apice-fill, currentColor)">
+    <!-- North arm (sharp, heavy) -->
+    <path d="M 60 10 L 67 54 L 60 60 L 53 54 Z"/>
+    <!-- East arm (sharp, lighter, offset high) -->
+    <path d="M 110 56 L 66 63 L 60 60 L 66 57 Z"/>
+    <!-- South arm (rounded, heavy) -->
+    <path d="M 53 66 L 60 108 C 60.5 112, 59.5 112, 60 108 L 67 66 L 60 60 Z"/>
+    <!-- West arm (rounded, light) -->
+    <path d="M 10 63 C 6 63.5, 6 62.5, 10 62 L 54 57 L 60 60 L 54 63 Z"/>
+    <!-- Center heartbeat -->
+    <circle cx="60" cy="60" r="5"/>
+  </g>
+</svg>

@@ -1,0 +1,15 @@
+<!-- Apice Capital · Logo v2 · Direction 2: Summit (Apple-leaning) · concept · 2026-04-17 -->
+<!-- Single filled asymmetric peak. Peak offset right (+2u), lower-right raised 1u vs lower-left. Convex edges. -->
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice · Summit concept">
+  <title>Summit concept</title>
+  <path d="
+    M 66 16
+    C 72 18, 78 24, 82 32
+    C 90 48, 96 68, 102 94
+    C 102 98, 98 101, 92 101
+    C 64 103, 32 103, 20 101
+    C 14 101, 10 96, 14 88
+    C 22 70, 34 48, 48 28
+    C 54 20, 60 16, 66 16 Z"
+    fill="var(--apice-fill, currentColor)"/>
+</svg>

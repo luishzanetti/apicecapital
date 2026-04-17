@@ -1,0 +1,25 @@
+<!-- Apice · onboarding-01-welcome · v1 FINAL · media-engineer 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" width="320" height="240" role="img" aria-labelledby="ob1T obs1D"><title id="ob1T">Welcome to Apice</title><desc id="obs1D">Hero illustration — value proposition. Cream canvas, geometric landscape with an emerald summit marker.</desc>
+  <defs><linearGradient id="ob1sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F7F3ED"/><stop offset="100%" stop-color="#EFE9DE"/></linearGradient></defs>
+  <rect width="320" height="240" fill="url(#ob1sky)"/>
+  <g fill="none" stroke="#0E0E12" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M28 190 L 96 126 L 140 160 L 196 96 L 248 140 L 292 110"/>
+    <line x1="28" y1="206" x2="292" y2="206"/>
+  </g>
+  <g fill="none" stroke="#8A8A93" stroke-width="1" stroke-dasharray="3 4">
+    <line x1="28" y1="168" x2="292" y2="168"/>
+    <line x1="28" y1="130" x2="292" y2="130"/>
+  </g>
+  <circle cx="196" cy="96" r="7" fill="#16A661"/>
+  <circle cx="196" cy="96" r="11" fill="none" stroke="#16A661" stroke-width="1.2" opacity="0.5"/>
+  <g fill="#8A8A93">
+    <circle cx="96" cy="126" r="2.2"/>
+    <circle cx="140" cy="160" r="2.2"/>
+    <circle cx="248" cy="140" r="2.2"/>
+  </g>
+  <g font-family="Geist, system-ui, sans-serif" fill="#0E0E12">
+    <text x="28" y="52" font-size="22" font-weight="700" letter-spacing="-0.5">Build Wealth.</text>
+    <text x="28" y="76" font-size="22" font-weight="700" letter-spacing="-0.5">One Week at a Time.</text>
+  </g>
+  <circle cx="296" cy="44" r="3" fill="#16A661"/>
+</svg>

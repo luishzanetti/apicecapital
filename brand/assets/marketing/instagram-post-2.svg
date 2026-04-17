@@ -1,0 +1,31 @@
+<!-- Apice · instagram-post-2 · v1 FINAL · media-head 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" role="img" aria-label="Apice — $50 a week for 10 years.">
+  <defs>
+    <style>
+      .bg { fill: #0E0E12; }
+      .wm { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 56px; letter-spacing: -1.68px; fill: #F7F3ED; }
+      .dot { fill: #16A661; }
+      .big-num { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 220px; letter-spacing: -8px; fill: #F7F3ED; }
+      .accent-num { fill: #16A661; }
+      .num-lbl { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 24px; fill: #F7F3ED; opacity: 0.7; }
+      .eyebrow { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 16px; letter-spacing: 3px; fill: #16A661; text-transform: uppercase; }
+      .caption { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 22px; fill: #F7F3ED; opacity: 0.7; }
+      .rule { stroke: #F7F3ED; stroke-width: 1; opacity: 0.14; }
+    </style>
+  </defs>
+  <rect class="bg" width="1080" height="1080"/>
+  <!-- lockup -->
+  <text class="wm" x="72" y="122">Apice</text>
+  <circle class="dot" cx="270" cy="116" r="6"/>
+  <line class="rule" x1="72" y1="156" x2="1008" y2="156"/>
+  <text class="eyebrow" x="72" y="212">PROOF  ·  STAT</text>
+  <!-- the stat -->
+  <text class="big-num" x="72" y="520">$50</text>
+  <text class="num-lbl" x="72" y="568">a week</text>
+  <text class="caption" x="72" y="642">compounded 10 years at 8% average =</text>
+  <text class="big-num accent-num" x="72" y="830">$41k</text>
+  <text class="num-lbl" x="72" y="878">not magic. math.</text>
+  <!-- footer -->
+  <line class="rule" x1="72" y1="940" x2="1008" y2="940"/>
+  <text class="eyebrow" x="72" y="988" style="fill:#F7F3ED; opacity:0.45">APICE.CAPITAL  ·  DCA MASTERY</text>
+</svg>

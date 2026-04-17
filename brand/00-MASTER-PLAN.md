@@ -80,18 +80,21 @@ Derivado dos docs existentes + memória do CEO:
 
 | Fase | Entrega | Delegado | Duração | Status |
 |---|---|---|---|---|
-| **F0** | Estrutura + Master Plan (este doc) | Jarvis | Hoje | ✅ |
-| **F1** | Brand Positioning consolidado + competitive visual audit | Jarvis + Atlas | 1 dia | 🟡 Em curso |
-| **F2** | Logo concepts (3 direções com rationale) | Uma | 2–3 dias | ⏳ |
-| **F3** | Brand Voice + Apice Code Manifesto + Naming experts | Stefan | 1–2 dias | ⏳ |
-| **F4** | AI Experts — 5–8 personas (conceito + bios + visual brief) | Morgan + Stefan + Uma | 2–3 dias | ⏳ |
-| **F5** | Logo final + variações + guidelines | Uma | 1 dia (após F2) | ⏳ |
-| **F6** | App Icon + Splash + Favicon | Uma | 1 dia (após F5) | ⏳ |
-| **F7** | Illustrations system (onboarding + badges + empty states) | Uma + media-engineer | 3–5 dias | ⏳ |
-| **F8** | Marketing assets (OG, social, ads) | media-head + media-engineer | 2–3 dias | ⏳ |
-| **F9** | App Store assets (screenshots, listing) | apple-ux + Uma | 2 dias | ⏳ |
+| **F0** | Estrutura + Master Plan (este doc) | Jarvis | Hoje | ✅ Concluída |
+| **F1** | Competitive Visual Audit (10 fintechs, quadrantes, white space, 5 recs) | Atlas | 1 dia | ✅ Concluída |
+| **F2** | Logo concepts — 3 direções (A: Summit Mark, B: Wordmark puro, C: Apex-A) | Uma | 3 dias | ✅ Conceito pronto, aguarda aprovação do CEO para vetorizar |
+| **F3** | Brand Voice + Apice Code Manifesto DRAFT + Tagline review | Stefan | 2 dias | ✅ Drafts prontos, aguardam aprovação do CEO |
+| **F4** | AI Experts — 6 personas conceituadas (Nora, Kai, Elena, Dante, Maya, Omar) | Stefan | 2 dias | ✅ Conceito + bios prontos, visual a produzir em F5/F7 |
+| **F5** | Logo Apex-A — spec mestre + 7 SVGs (symbol, lockups, app icon, favicon, OG) | Uma | 1 dia | ✅ v1 entregue, aguarda aprovação visual do CEO |
+| **F6** | App Icon iOS superellipse + Splash screens (light/dark) | Uma | 1–2 dias | 🟡 App icon v1 entregue em F5; splash + superellipse pendentes |
+| **F7** | AI Experts — 6 concepts SVG + visual-system-spec + production handoff | media-engineer | 1 dia | ✅ Concepts v1 entregues. Produção final aguarda aprovação do path (recomendado: Opção B — AI-assist + Uma polish) |
+| **F8** | Illustrations system (onboarding + badges + empty states) | Uma + media-engineer | 3–5 dias | ⏳ |
+| **F9** | Marketing assets (OG, social templates, ads Meta/TikTok) | media-head + media-engineer | 2–3 dias | ⏳ |
+| **F10** | App Store assets (screenshots iOS/Android + listing copy) | apple-ux + Uma | 2 dias | ⏳ |
 
 **Cada fase tem checkpoint de feedback do CEO antes de avançar à próxima.**
+
+**Checkpoint atual:** F0–F5 + F7 concluídas em v1. Preview disponível em `brand/PREVIEW.html`. F6 splash, F8, F9, F10 em fila.
 
 ---
 

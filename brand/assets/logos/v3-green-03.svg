@@ -1,0 +1,11 @@
+<!-- Apice Capital · v3-green.03 · Flat-Apex A · Uma 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" aria-label="Apice">
+  <style>
+    .rest { font-family: 'Geist', 'Inter', sans-serif; font-weight: 700; font-size: 64px; letter-spacing: -1.92px; fill: #0E0E12; }
+    .dot { fill: #0F5D3F; }
+  </style>
+  <!-- Custom A with flat apex (2.2px plateau instead of pointed tip) -->
+  <path d="M 40 74 L 62 26 L 71 26 L 93 74 L 82 74 L 76.5 62 L 56.5 62 L 51 74 Z M 60 54 L 73 54 L 66.5 38 Z" fill="#0E0E12"/>
+  <text x="94" y="74" class="rest">pice</text>
+  <circle cx="204" cy="70" r="5.75" class="dot"/>
+</svg>

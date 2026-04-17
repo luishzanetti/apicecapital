@@ -1,0 +1,30 @@
+<!-- Apice · og-image-homepage · v1 FINAL · media-head 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Apice — The wealth platform that respects your time.">
+  <defs>
+    <style>
+      .bg { fill: #F7F3ED; }
+      .wm { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 96px; letter-spacing: -2.88px; fill: #0E0E12; }
+      .dot { fill: #16A661; }
+      .headline { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 64px; letter-spacing: -2px; fill: #0E0E12; line-height: 1.04; }
+      .tag { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 24px; fill: #0E0E12; opacity: 0.6; }
+      .eyebrow { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 14px; letter-spacing: 2.4px; fill: #16A661; text-transform: uppercase; }
+      .rule { stroke: #0E0E12; stroke-width: 1; opacity: 0.1; }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="630"/>
+  <!-- top lockup -->
+  <text class="wm" x="80" y="160">Apice</text>
+  <circle class="dot" cx="415" cy="152" r="9"/>
+  <!-- eyebrow -->
+  <text class="eyebrow" x="80" y="230">BUILD WEALTH. ONE WEEK AT A TIME.</text>
+  <!-- headline -->
+  <text class="headline" x="80" y="320">The wealth platform</text>
+  <text class="headline" x="80" y="392">that respects your time.</text>
+  <!-- supporting -->
+  <line class="rule" x1="80" y1="448" x2="560" y2="448"/>
+  <text class="tag" x="80" y="492">DCA on autopilot. AI trade inside.</text>
+  <text class="tag" x="80" y="524">Elite investor mindset, weekly.</text>
+  <!-- footer domain -->
+  <line class="rule" x1="80" y1="570" x2="1120" y2="570"/>
+  <text class="eyebrow" x="80" y="602" style="fill:#0E0E12; opacity:0.55">APICE.CAPITAL</text>
+</svg>

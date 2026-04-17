@@ -208,7 +208,7 @@ export default function Badges() {
 
           {/* Filter tabs */}
           <div
-            className="flex items-center gap-1.5 p-1 rounded-xl border border-border/50 bg-card/60 backdrop-blur overflow-x-auto"
+            className="flex items-center gap-1.5 p-1 rounded-xl border border-white/10 bg-white/[0.02] backdrop-blur backdrop-blur overflow-x-auto"
             role="tablist"
             aria-label="Badge filter"
           >
@@ -246,7 +246,7 @@ export default function Badges() {
       {/* Grid */}
       <div className="px-5 space-y-8">
         {filtered.length === 0 && (
-          <div className="rounded-3xl p-8 border border-dashed border-border/50 text-center">
+          <div className="rounded-3xl p-8 border border-dashed border-white/10 text-center">
             <Award className="w-6 h-6 text-muted-foreground mx-auto mb-2" aria-hidden="true" />
             <p className="text-sm font-semibold">Nothing here yet</p>
             <p className="text-xs text-muted-foreground mt-1">
@@ -292,7 +292,7 @@ export default function Badges() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-                    className="text-left rounded-2xl p-2 hover:bg-card/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="text-left rounded-2xl p-2 hover:bg-white/[0.02] backdrop-blur transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
                     aria-label={`${badge.name} — ${badge.unlocked ? 'Unlocked' : 'Locked'}`}
                   >
                     <AcademyBadgeCard
@@ -356,13 +356,13 @@ function BadgeDetailModal({ badge, onClose, onShare }: BadgeDetailModalProps) {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 24, scale: 0.96 }}
         transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-        className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-32px)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-border/60 bg-card p-6 shadow-2xl"
+        className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-32px)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-white/10 bg-card p-6 shadow-2xl"
       >
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-secondary/30 hover:bg-secondary/50 flex items-center justify-center transition-colors"
+          className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.05] flex items-center justify-center transition-colors"
         >
           <X className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
         </button>
@@ -406,7 +406,7 @@ function BadgeDetailModal({ badge, onClose, onShare }: BadgeDetailModalProps) {
             </div>
           ) : (
             <div className="mt-5 w-full space-y-3">
-              <div className="rounded-2xl bg-secondary/30 p-4 text-left">
+              <div className="rounded-2xl bg-white/[0.05] p-4 text-left">
                 <div className="flex items-center gap-2 mb-2">
                   <Lock className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
                   <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">

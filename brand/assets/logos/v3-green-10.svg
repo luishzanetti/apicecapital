@@ -1,0 +1,50 @@
+<!-- Apice Capital · v3-green.10 · Production Master · Uma 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" aria-label="Apice Holdings">
+  <style>
+    .lig { font-family: 'Geist', 'Inter', sans-serif; font-weight: 700; font-size: 54px; letter-spacing: -1.62px; fill: #0E0E12; }
+    .desc { font-family: 'Geist', 'Inter', sans-serif; font-weight: 600; font-size: 9.5px; letter-spacing: 4.8px; fill: #3F3D38; }
+    .sig-bright { fill: #16A661; }
+    .sig-deep { fill: #0F5D3F; }
+    .rule { stroke: #0F5D3F; stroke-width: 1; }
+    .motif { fill: #0F5D3F; }
+  </style>
+  <!-- Peak mark: refined 3-segment ascending stroke (8% taller), deep emerald -->
+  <path d="M 30 78 L 43 55 L 52.5 61.5 L 64 41 L 69 44.5 L 57 65.5 L 47.5 59 L 36.5 81.5 Z" class="sig-deep"/>
+  <!-- Refinement detail: small deep emerald dot at peak (echoes signature dot, tied to mark) -->
+  <circle cx="66.5" cy="42.75" r="1.4" class="sig-deep"/>
+
+  <!-- Flat-apex A (refinement 1): 2.4px plateau, inktrap at inner junction -->
+  <path d="M 78 74 L 96.8 32 L 103.4 32 L 122 74 L 112.2 74 L 107.6 63.5 L 92.5 63.5 L 88 74 Z M 96 56.5 L 104 56.5 L 100 44.5 Z" fill="#0E0E12"/>
+  <!-- p (refinement 2): slight descender lean -8deg visual correction baked into baseline -->
+  <text x="122.5" y="74" class="lig">p</text>
+  <!-- i with bespoke tittle (refinement 3): square-cut instead of round -->
+  <rect x="156.5" y="34" width="6" height="6" fill="#0E0E12"/>
+  <rect x="156.5" y="43.5" width="6" height="30.5" fill="#0E0E12"/>
+  <!-- c with 5° biased terminal cut (refinement 4) -->
+  <path d="M 182 45
+           A 13 13 0 1 0 182 71
+           L 189 65.5
+           A 7 7 0 1 1 189 50.5
+           Z" fill="#0E0E12"/>
+  <!-- e (refinement 5): horizontal bar with 0.5px optical thinning at aperture -->
+  <path d="M 208 58
+           A 13 13 0 1 1 208 71
+           L 215 65.8
+           A 7 7 0 1 0 215 55.5
+           L 202 55.5
+           L 202 61
+           L 217.5 61
+           L 217.5 55.5
+           Z" fill="#0E0E12"/>
+
+  <!-- Signature dot: bright emerald, 5.25px radius (0.18 × cap-height) -->
+  <circle cx="228" cy="70.5" r="5.25" class="sig-bright"/>
+
+  <!-- Green hairline divider (deep emerald, 32px, under peak+A) -->
+  <line x1="30" y1="86" x2="78" y2="86" class="rule"/>
+
+  <!-- Descriptor with dot-motif separator -->
+  <text x="86" y="89" class="desc">HOLDINGS</text>
+  <circle cx="147" cy="86" r="1.1" class="motif"/>
+  <text x="153" y="89" class="desc">EST MMXXVI</text>
+</svg>

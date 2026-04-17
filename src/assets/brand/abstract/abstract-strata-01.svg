@@ -1,0 +1,42 @@
+<!-- Apice · abstract-strata-01 · v2 · Uma 2026-04-17 -->
+<!--
+  Metaphor: Growth as sediment / time. Horizontal bands stack, each layer slightly translated
+  and of varied thickness — geologic time made visible. Wealth as accumulation of weeks.
+  Construction:
+    - 12 bands on a 1280×720 canvas, cumulative heights summing to 720
+    - Thickness pattern (top→bottom, in u): [22, 14, 38, 10, 54, 18, 72, 24, 90, 30, 118, 230]
+      Pattern: older layers (lower) are thicker — the deepest band is the present.
+    - Translation: each band shifted -12u horizontally from the previous (accumulating)
+    - Fill: currentColor with opacity ladder 0.04 → 0.14 (top lightest, bottom heaviest)
+    - Edge: top-most 0.5u hairline at currentColor, opacity 0.25 (tiny "horizon line" per layer)
+    - Signature: one emerald 2u hairline at y=458 (the 9th boundary — a "growth milestone line")
+  Regenerate: thickness pattern is the seed; translation is constant.
+  Wide 16:9 viewBox — suited for marketing footers, editorial page dividers, empty-state backdrops.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-label="Apice motif — strata" preserveAspectRatio="none">
+  <title>Strata</title>
+  <desc>Abstract motif: growth as sediment — horizontal bands accumulate over time, deepest layer is the present.</desc>
+  <g fill="currentColor">
+    <rect x="-12"  y="0"   width="1292" height="22"  opacity="0.04"/>
+    <rect x="-24"  y="22"  width="1292" height="14"  opacity="0.05"/>
+    <rect x="-36"  y="36"  width="1292" height="38"  opacity="0.06"/>
+    <rect x="-48"  y="74"  width="1292" height="10"  opacity="0.07"/>
+    <rect x="-60"  y="84"  width="1292" height="54"  opacity="0.08"/>
+    <rect x="-72"  y="138" width="1292" height="18"  opacity="0.09"/>
+    <rect x="-84"  y="156" width="1292" height="72"  opacity="0.10"/>
+    <rect x="-96"  y="228" width="1292" height="24"  opacity="0.11"/>
+    <rect x="-108" y="252" width="1292" height="90"  opacity="0.12"/>
+    <rect x="-120" y="342" width="1292" height="30"  opacity="0.13"/>
+    <rect x="-132" y="372" width="1292" height="118" opacity="0.14"/>
+    <rect x="-144" y="490" width="1292" height="230" opacity="0.16"/>
+  </g>
+  <g stroke="currentColor" stroke-width="0.5" opacity="0.25">
+    <line x1="0" y1="22"  x2="1280" y2="22"/>
+    <line x1="0" y1="74"  x2="1280" y2="74"/>
+    <line x1="0" y1="138" x2="1280" y2="138"/>
+    <line x1="0" y1="228" x2="1280" y2="228"/>
+    <line x1="0" y1="342" x2="1280" y2="342"/>
+    <line x1="0" y1="490" x2="1280" y2="490"/>
+  </g>
+  <line x1="0" y1="458" x2="1280" y2="458" stroke="#16A661" stroke-width="2" opacity="0.9"/>
+</svg>

@@ -1,0 +1,27 @@
+<!-- Apice · abstract-currents-01 · v2 · Uma 2026-04-17 -->
+<!--
+  Metaphor: Growth as tide. Parallel sine waves whose amplitude builds left-to-right.
+  Construction:
+    - 8 horizontal lines, 80u spacing, baseline y ∈ {80, 160, ..., 640}
+    - Each a sine path: y(x) = baseline + A(x) * sin(k * x)
+    - A(x) = 0.02 * (x + 100) * (1 - 0.18 * band_index) → amplitude grows with x, decays with band
+    - Wavelength 2π/k = 240u (k ≈ 0.0262)
+    - Stroke 1.5u (baseline primitive), cream/ink via currentColor
+    - 6th band highlighted in emerald #16A661 at 1.8u — the "signature current"
+  Regenerate: sample x ∈ [0, 1280] at 16u steps, emit cubic beziers connecting 4 samples each.
+  Scales cleanly 48px→1920px (pure stroked paths, no fills).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-label="Apice motif — currents" preserveAspectRatio="xMidYMid slice">
+  <title>Currents</title>
+  <desc>Abstract motif: growth as tide — parallel waves building amplitude left to right.</desc>
+  <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.55">
+    <path d="M0,80 Q160,76 320,80 T640,80 T960,80 T1280,80"/>
+    <path d="M0,160 Q160,153 320,160 T640,160 T960,160 T1280,160"/>
+    <path d="M0,240 Q160,228 320,240 T640,240 T960,240 T1280,240"/>
+    <path d="M0,320 Q160,302 320,320 T640,320 T960,320 T1280,320"/>
+    <path d="M0,400 Q160,376 320,400 T640,400 T960,400 T1280,400"/>
+    <path d="M0,560 Q160,527 320,560 T640,560 T960,560 T1280,560"/>
+    <path d="M0,640 Q160,602 320,640 T640,640 T960,640 T1280,640"/>
+  </g>
+  <path d="M0,480 Q160,450 320,480 T640,480 T960,480 T1280,480" fill="none" stroke="#16A661" stroke-width="1.8" stroke-linecap="round" opacity="0.95"/>
+</svg>

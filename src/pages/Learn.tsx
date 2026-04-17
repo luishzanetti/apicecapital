@@ -112,7 +112,7 @@ export default function Learn() {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative rounded-3xl border border-border/50 bg-card/80 backdrop-blur p-5"
+            className="relative rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur backdrop-blur p-5"
           >
             <div className="flex items-center gap-4">
               <AcademyProgressRing
@@ -141,7 +141,7 @@ export default function Learn() {
             </div>
 
             {/* Stats row */}
-            <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-border/50">
+            <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/10">
               <div className="text-center">
                 <p className="font-display text-xl font-bold">{completedCount}</p>
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -224,7 +224,7 @@ export default function Learn() {
           <button
             type="button"
             onClick={() => navigate('/badges')}
-            className="rounded-2xl border border-border/60 bg-card p-4 text-left hover:border-primary/40 transition-all active:scale-[0.98]"
+            className="rounded-2xl border border-white/10 bg-card p-4 text-left hover:border-primary/40 transition-all active:scale-[0.98]"
           >
             <div className="flex items-center gap-3 mb-2">
               <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center">
@@ -240,7 +240,7 @@ export default function Learn() {
           <button
             type="button"
             onClick={() => navigate('/challenges')}
-            className="rounded-2xl border border-border/60 bg-card p-4 text-left hover:border-primary/40 transition-all active:scale-[0.98]"
+            className="rounded-2xl border border-white/10 bg-card p-4 text-left hover:border-primary/40 transition-all active:scale-[0.98]"
           >
             <div className="flex items-center gap-3 mb-2">
               <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center">

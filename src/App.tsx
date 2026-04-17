@@ -12,12 +12,14 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { LevelUpCelebration } from "@/components/academy/LevelUpCelebration";
 import { BadgeEarnedModal } from "@/components/academy/BadgeEarnedModal";
+import { ApiceLogo } from "@/components/brand";
 
 const Landing = lazy(() => import("./pages/AiTradeLanding"));
 const Splash = lazy(() => import("./pages/Splash"));
 const Welcome = lazy(() => import("./pages/Welcome"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Quiz = lazy(() => import("./pages/Quiz"));
+const QuizV2 = lazy(() => import("./pages/QuizV2"));
 const ProfileResult = lazy(() => import("./pages/ProfileResult"));
 const ApiceOnboarding = lazy(() => import("./pages/AiTradeOnboarding"));
 const Home = lazy(() => import("./pages/Home"));
@@ -61,26 +63,7 @@ function AppLoading() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-5">
       <div className="w-14 h-14 rounded-2xl apice-gradient-primary flex items-center justify-center shadow-lg shadow-primary/30 animate-pulse">
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 40 40"
-          fill="none"
-          className="text-white"
-        >
-          <path
-            d="M20 4L36 34H4L20 4Z"
-            stroke="currentColor"
-            strokeWidth="3.5"
-            strokeLinejoin="round"
-            fill="none"
-          />
-          <path
-            d="M20 14L29 32H11L20 14Z"
-            fill="currentColor"
-            opacity="0.3"
-          />
-        </svg>
+        <ApiceLogo variant="triangle" size={28} className="text-white" aria-label="Apice" />
       </div>
       <p className="text-sm text-muted-foreground font-medium">{t('common.loading')}</p>
     </div>
@@ -134,7 +117,10 @@ function AppContent() {
       <Route path="/landing" element={<Landing />} />
       <Route path="/splash" element={<Splash />} />
       <Route path="/welcome" element={<Welcome />} />
-      <Route path="/quiz" element={<Quiz />} />
+      {/* /quiz redirects to premium /quiz-v2 — legacy Quiz component kept for internal fallback. */}
+      <Route path="/quiz" element={<Navigate to="/quiz-v2" replace />} />
+      <Route path="/quiz-legacy" element={<Quiz />} />
+      <Route path="/quiz-v2" element={<QuizV2 />} />
       <Route path="/profile-result" element={<ProfileResult />} />
       <Route path="/onboarding" element={<ApiceOnboarding />} />
 

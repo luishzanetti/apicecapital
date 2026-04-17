@@ -16,11 +16,11 @@ const translations: Record<Language, Record<string, unknown>> = { en, pt, es: en
 const LANGUAGE_STORAGE_KEY = 'app_language';
 
 const getInitialLanguage = (): Language => {
+    // Per brand/BRAND-BOOK v2.0: EN-first globally, Spanish secondary, Portuguese
+    // deprioritized. We default EVERY new session to English; users can still
+    // switch manually via Settings and the choice persists in localStorage.
     const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (saved === 'en' || saved === 'pt' || saved === 'es') return saved;
-    const browserLang = navigator.language.slice(0, 2);
-    if (browserLang === 'pt') return 'pt';
-    if (browserLang === 'es') return 'es';
     return 'en';
 };
 

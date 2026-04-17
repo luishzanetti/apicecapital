@@ -1,0 +1,40 @@
+<!-- Apice · Triangle APPROVED (v3-final) in Circle with Glow (ref screenshot) · UNIFIED · Jarvis 2026-04-17 -->
+<!-- Union: triangle aprovado (outline + inner fill 0.20) + circle container + blue ambient glow (screenshot ref) -->
+<!-- Triangle proportions are the approved final ones, not the simplified v6 -->
+<svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice">
+  <title>Apice</title>
+  <defs>
+    <!-- Ambient blue glow (from screenshot reference) -->
+    <radialGradient id="ambientGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#528FFF" stop-opacity="0.35"/>
+      <stop offset="60%" stop-color="#528FFF" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#528FFF" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Inner circle translucent fill -->
+    <radialGradient id="circleFill" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.06"/>
+    </radialGradient>
+  </defs>
+  <!-- Ambient blue glow (from screenshot reference) -->
+  <circle cx="44" cy="44" r="44" fill="url(#ambientGlow)"/>
+  <!-- Circle container translucent white (from screenshot reference) -->
+  <circle cx="44" cy="44" r="30" fill="url(#circleFill)" stroke="#FFFFFF" stroke-opacity="0.1" stroke-width="1"/>
+  <!-- APPROVED TRIANGLE · stroke 2.5u · with inner fill opacity 0.20 · cream color · centered in circle -->
+  <!-- Transform: translate to (26,26) and scale the approved 64u triangle to 36u inside 60px circle -->
+  <g transform="translate(26 26) scale(0.5625)">
+    <!-- Outer outline (approved geometry M 32 6 L 58 56 L 6 56 Z) -->
+    <path
+      d="M 32 6 L 58 56 L 6 56 Z"
+      stroke="#F7F3ED"
+      stroke-width="4.4"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      fill="none"/>
+    <!-- Inner fill 0.20 opacity (approved DNA) -->
+    <path
+      d="M 32 20 L 48 52 L 16 52 Z"
+      fill="#F7F3ED"
+      opacity="0.20"/>
+  </g>
+</svg>

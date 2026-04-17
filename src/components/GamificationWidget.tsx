@@ -1,15 +1,76 @@
-import { useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Trophy, Star, Zap, Shield, Crown, Medal, Lock } from 'lucide-react';
+import { useMemo, useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Trophy, Star, Zap, Shield, Crown, Medal, Lock, Sparkles } from 'lucide-react';
 import { useAppStore, type MissionProgress } from '@/store/appStore';
 import { missionDefinitions } from '@/data/sampleData';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
 
+const PARTICLES = Array.from({ length: 14 }).map((_, i) => {
+  const angle = (i / 14) * Math.PI * 2;
+  return {
+    id: i,
+    x: Math.cos(angle) * (70 + Math.random() * 30),
+    y: Math.sin(angle) * (70 + Math.random() * 30) - 20,
+    color: i % 3 === 0 ? '#F5B544' : i % 3 === 1 ? '#6EE7A8' : '#16A661',
+    size: 6 + Math.random() * 6,
+    delay: Math.random() * 0.15,
+  };
+});
+
+function LevelUpBurst({ level, name }: { level: number; name: string }) {
+  return (
+    <motion.div
+      className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+    >
+      <motion.div
+        className="absolute h-40 w-40 rounded-full"
+        style={{
+          background:
+            'radial-gradient(circle, rgba(56,214,138,0.55) 0%, rgba(56,214,138,0.15) 40%, transparent 70%)',
+        }}
+        initial={{ scale: 0.4, opacity: 0 }}
+        animate={{ scale: [0.4, 1.4, 1.1], opacity: [0, 1, 0] }}
+        transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+      />
+      {PARTICLES.map((p) => (
+        <motion.span
+          key={p.id}
+          className="absolute rounded-full"
+          style={{ width: p.size, height: p.size, backgroundColor: p.color, boxShadow: `0 0 10px ${p.color}` }}
+          initial={{ x: 0, y: 0, opacity: 0, scale: 0.2 }}
+          animate={{ x: p.x, y: p.y, opacity: [0, 1, 0], scale: [0.2, 1, 0.6] }}
+          transition={{ duration: 1.3, delay: p.delay, ease: [0.16, 1, 0.3, 1] }}
+        />
+      ))}
+      <motion.div
+        className="relative flex flex-col items-center gap-1 rounded-2xl border border-[#16A661]/40 bg-[#0F1626]/90 px-4 py-2 backdrop-blur"
+        style={{ boxShadow: '0 0 24px rgba(56,214,138,0.45)' }}
+        initial={{ y: 10, opacity: 0, scale: 0.9 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: -6, opacity: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#6EE7A8]">
+          <Sparkles className="h-3 w-3" />
+          Level up
+        </div>
+        <div className="text-sm font-bold text-white">Level {level} \u00b7 {name}</div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export function GamificationWidget() {
   const missionProgress = useAppStore((state) => state.missionProgress);
   const subscription = useAppStore((state) => state.subscription);
   const { language } = useTranslation();
+  const [celebrateLevel, setCelebrateLevel] = useState<number | null>(null);
+  const prevLevelRef = useRef<number | null>(null);
 
   const { totalXP, earnedBadges, currentLevel, xpForNextLevel, progressToNextLevel, nextBadge, xpToNextLevel } = useMemo(() => {
     let xp = 0;
@@ -109,43 +170,57 @@ export function GamificationWidget() {
   );
 
   const levelInfo = [
-    { name: copy.levelNames[0], icon: Shield, gradient: 'from-slate-500 to-slate-400', ring: 'ring-slate-500/20' },
-    { name: copy.levelNames[1], icon: Star, gradient: 'from-blue-600 to-blue-400', ring: 'ring-blue-500/25' },
-    { name: copy.levelNames[2], icon: Zap, gradient: 'from-indigo-600 to-indigo-400', ring: 'ring-indigo-500/25' },
-    { name: copy.levelNames[3], icon: Medal, gradient: 'from-purple-600 to-purple-400', ring: 'ring-purple-500/25' },
-    { name: copy.levelNames[4], icon: Crown, gradient: 'from-amber-500 to-yellow-400', ring: 'ring-amber-500/30' },
+    { name: copy.levelNames[0], icon: Shield, gradient: 'from-slate-600/80 to-slate-500/80', ring: 'ring-white/10' },
+    { name: copy.levelNames[1], icon: Star, gradient: 'from-sky-600/80 to-sky-400/80', ring: 'ring-white/10' },
+    { name: copy.levelNames[2], icon: Zap, gradient: 'from-[#0F5D3F] to-[hsl(var(--apice-emerald))]', ring: 'ring-[hsl(var(--apice-emerald))]/20' },
+    { name: copy.levelNames[3], icon: Medal, gradient: 'from-[hsl(var(--apice-emerald))] to-[#6EE7A8]', ring: 'ring-[hsl(var(--apice-emerald))]/30' },
+    { name: copy.levelNames[4], icon: Crown, gradient: 'from-[hsl(var(--apice-gold))] to-amber-300', ring: 'ring-[hsl(var(--apice-gold))]/30' },
   ];
 
   const info = levelInfo[currentLevel - 1] || levelInfo[levelInfo.length - 1];
   const LevelIcon = info.icon;
 
+  useEffect(() => {
+    const prev = prevLevelRef.current;
+    if (prev !== null && currentLevel > prev) {
+      setCelebrateLevel(currentLevel);
+      const t = setTimeout(() => setCelebrateLevel(null), 2200);
+      return () => clearTimeout(t);
+    }
+    prevLevelRef.current = currentLevel;
+  }, [currentLevel]);
+
   const tierConfig: Record<string, { label: string; gradient: string; textColor: string; borderColor: string }> = {
     free: {
       label: copy.tierLabels.free,
-      gradient: 'from-slate-700/30 to-slate-600/20',
-      textColor: 'text-slate-300',
-      borderColor: 'border-slate-500/20',
+      gradient: 'from-white/[0.06] to-white/[0.02]',
+      textColor: 'text-white/70',
+      borderColor: '',
     },
     pro: {
       label: copy.tierLabels.pro,
-      gradient: 'from-primary/15 to-primary/5',
-      textColor: 'text-primary',
-      borderColor: 'border-primary/25',
+      gradient: 'from-[hsl(var(--apice-emerald))]/15 to-[hsl(var(--apice-emerald))]/5',
+      textColor: 'text-[hsl(var(--apice-emerald))]',
+      borderColor: '',
     },
     elite: {
       label: copy.tierLabels.elite,
-      gradient: 'from-amber-500/15 to-amber-400/5',
-      textColor: 'text-amber-400',
-      borderColor: 'border-amber-500/25',
+      gradient: 'from-[hsl(var(--apice-gold))]/15 to-[hsl(var(--apice-gold))]/5',
+      textColor: 'text-[hsl(var(--apice-gold))]',
+      borderColor: '',
     },
   };
   const tier = tierConfig[subscription.tier] || tierConfig.free;
 
   return (
     <div className="space-y-3">
-      <div className="relative overflow-hidden rounded-3xl glass-card p-5 apice-shadow-card">
-        <div className="pointer-events-none absolute top-0 right-0 -mr-10 -mt-10 h-36 w-36 rounded-full bg-primary/5 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 left-0 -ml-10 -mb-10 h-28 w-28 rounded-full bg-purple-500/5 blur-3xl" />
+      <div className="relative overflow-hidden rounded-3xl glass-card p-5">
+        <AnimatePresence>
+          {celebrateLevel !== null && (
+            <LevelUpBurst key={celebrateLevel} level={celebrateLevel} name={info.name} />
+          )}
+        </AnimatePresence>
+        <div className="pointer-events-none absolute top-0 right-0 -mr-10 -mt-10 h-36 w-36 rounded-full bg-[hsl(var(--apice-emerald)/0.08)] blur-3xl" />
 
         <div className="relative z-10">
           <div className="mb-4 flex items-center justify-between">
@@ -160,10 +235,10 @@ export function GamificationWidget() {
                 <LevelIcon className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="text-base font-bold leading-none">
+                <h3 className="text-[15px] font-semibold leading-none text-white">
                   {copy.level} {currentLevel}
                 </h3>
-                <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">
                   {info.name}
                 </p>
               </div>
@@ -171,32 +246,35 @@ export function GamificationWidget() {
 
             <div className="text-right">
               <div className="flex items-center justify-end gap-1">
-                <Zap className="h-3.5 w-3.5 fill-primary text-primary" />
-                <span className="text-sm font-bold text-primary">{totalXP.toLocaleString()} XP</span>
+                <Zap className="h-3.5 w-3.5 fill-[hsl(var(--apice-gold))] text-[hsl(var(--apice-gold))]" />
+                <span className="text-sm font-mono font-semibold tabular-nums text-[hsl(var(--apice-gold))]">{totalXP.toLocaleString()} XP</span>
               </div>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
+              <p className="mt-0.5 text-[11px] font-mono tabular-nums text-white/55">
                 {(xpForNextLevel - totalXP).toLocaleString()} {copy.nextLevel} {currentLevel + 1}
               </p>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <div className="h-2 overflow-hidden rounded-full bg-secondary">
+            <div className="h-2 overflow-hidden rounded-full bg-white/[0.05]">
               <motion.div
                 className="h-full rounded-full"
-                style={{ background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(250 84% 60%))' }}
+                style={{
+                  background:
+                    'linear-gradient(90deg, hsl(var(--apice-emerald)) 0%, #38D68A 60%, #6EE7A8 100%)',
+                }}
                 initial={{ width: 0 }}
                 animate={{ width: `${progressToNextLevel}%` }}
                 transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
               />
             </div>
-            <div className="flex justify-between text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="flex justify-between text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">
               <span>{copy.progress}</span>
-              <span>{progressToNextLevel}%</span>
+              <span className="font-mono tabular-nums">{progressToNextLevel}%</span>
             </div>
             {currentLevel < 5 && (
-              <p className="text-[11px] text-muted-foreground">
-                {xpToNextLevel.toLocaleString()} {copy.pathToNext} {currentLevel + 1}
+              <p className="text-[11px] text-white/55">
+                <span className="font-mono tabular-nums">{xpToNextLevel.toLocaleString()}</span> {copy.pathToNext} {currentLevel + 1}
                 {' — '}
                 {copy.keepInvesting} {levelInfo[currentLevel]?.name || ''}.
               </p>
@@ -207,7 +285,7 @@ export function GamificationWidget() {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-3xl glass-card p-4">
-          <h4 className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          <h4 className="mb-3 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">
             <Trophy className="h-3 w-3" />
             {copy.achievements}
           </h4>
@@ -217,49 +295,47 @@ export function GamificationWidget() {
                 <div
                   key={index}
                   title={badge.title}
-                  className="flex h-12 w-12 cursor-default items-center justify-center rounded-xl glass-light text-2xl shadow-md transition-transform hover:scale-110"
-                  style={{ boxShadow: '0 0 12px hsl(var(--primary) / 0.3)' }}
+                  className="flex h-12 w-12 cursor-default items-center justify-center rounded-xl bg-[hsl(var(--apice-emerald))]/10 text-2xl transition-transform hover:scale-110"
                 >
                   {badge.icon}
                 </div>
               ))
             ) : (
-              <p className="text-[11px] italic leading-relaxed text-muted-foreground/60">{copy.lockedBadges}</p>
+              <p className="text-[11px] italic leading-relaxed text-white/45">{copy.lockedBadges}</p>
             )}
             {Array.from({ length: Math.max(0, 4 - earnedBadges.length) }).map((_, index) => (
               <div
                 key={`locked-${index}`}
-                className="flex h-12 w-12 items-center justify-center rounded-xl border border-dashed border-border/30 bg-secondary/20 opacity-30"
+                className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.02] opacity-40"
               >
-                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                <Lock className="h-3.5 w-3.5 text-white/35" />
               </div>
             ))}
           </div>
           {earnedBadges.length > 0 && earnedBadges.length >= missionDefinitions.length ? (
-            <p className="mt-2 text-[11px] font-semibold text-primary">{copy.allBadgesEarned}</p>
+            <p className="mt-2 text-[11px] font-semibold text-[hsl(var(--apice-emerald))]">{copy.allBadgesEarned}</p>
           ) : nextBadge ? (
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              {copy.nextBadgeLabel} {nextBadge.icon} {nextBadge.title} — {nextBadge.xpNeeded.toLocaleString()} {copy.xpToGo}
+            <p className="mt-2 text-[11px] text-white/55">
+              {copy.nextBadgeLabel} {nextBadge.icon} {nextBadge.title} — <span className="font-mono tabular-nums">{nextBadge.xpNeeded.toLocaleString()}</span> {copy.xpToGo}
             </p>
           ) : null}
         </div>
 
         <div className="rounded-3xl glass-card p-4">
-          <h4 className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          <h4 className="mb-3 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">
             <Crown className="h-3 w-3" />
             {copy.plan}
           </h4>
           <div className="space-y-2">
             <div
               className={cn(
-                'flex items-center gap-2 rounded-xl border bg-gradient-to-r px-3 py-2.5',
-                tier.gradient,
-                tier.borderColor
+                'flex items-center gap-2 rounded-xl bg-gradient-to-r px-3 py-2.5',
+                tier.gradient
               )}
             >
-              <span className={cn('text-sm font-bold', tier.textColor)}>{tier.label}</span>
+              <span className={cn('text-sm font-semibold', tier.textColor)}>{tier.label}</span>
             </div>
-            <p className="text-[11px] leading-snug text-muted-foreground">
+            <p className="text-[11px] leading-snug text-white/55">
               {subscription.tier === 'free' ? copy.premiumUpsell : copy.premiumActive}
             </p>
           </div>

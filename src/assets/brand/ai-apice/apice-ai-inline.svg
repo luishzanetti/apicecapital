@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-labelledby="apice-ai-inline-title">
+  <title id="apice-ai-inline-title">Apice AI</title>
+
+  <defs>
+    <radialGradient id="inlineOrb" cx="42%" cy="38%" r="70%">
+      <stop offset="0%"  stop-color="#6EE7A8"/>
+      <stop offset="40%" stop-color="#38D68A"/>
+      <stop offset="80%" stop-color="#16A661"/>
+      <stop offset="100%" stop-color="#0F5D3F"/>
+    </radialGradient>
+    <radialGradient id="inlineCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#DFFCEA"/>
+      <stop offset="100%" stop-color="#6EE7A8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Orb -->
+  <circle cx="12" cy="12" r="9" fill="url(#inlineOrb)"/>
+  <!-- Hairline edge for legibility at small sizes -->
+  <circle cx="12" cy="12" r="9" fill="none" stroke="#0F5D3F" stroke-opacity="0.35" stroke-width="0.5"/>
+  <!-- Tiny breathing core (animates inline too) -->
+  <circle cx="12" cy="12" r="1.6" fill="url(#inlineCore)">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+</svg>

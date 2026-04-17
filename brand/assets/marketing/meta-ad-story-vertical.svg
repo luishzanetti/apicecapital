@@ -1,0 +1,50 @@
+<!-- Apice · meta-ad-story-vertical · v1 FINAL · media-head 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" role="img" aria-label="Apice Ad — The quiet way to build wealth.">
+  <defs>
+    <style>
+      .bg { fill: #F7F3ED; }
+      .wm { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 60px; letter-spacing: -1.8px; fill: #0E0E12; }
+      .dot { fill: #16A661; }
+      .hook { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 104px; letter-spacing: -3.2px; fill: #0E0E12; }
+      .tag { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 28px; fill: #0E0E12; opacity: 0.6; }
+      .eyebrow { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 18px; letter-spacing: 3px; fill: #16A661; text-transform: uppercase; }
+      .rule { stroke: #0E0E12; stroke-width: 1; opacity: 0.12; }
+      .cta { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 22px; letter-spacing: 2px; fill: #F7F3ED; text-transform: uppercase; }
+      .cta-bg { fill: #0E0E12; }
+      .big-num { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 240px; letter-spacing: -9px; fill: #16A661; }
+      .num-lbl { font-family: 'Geist', 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 24px; fill: #0E0E12; opacity: 0.55; letter-spacing: 1.5px; text-transform: uppercase; }
+    </style>
+  </defs>
+  <rect class="bg" width="1080" height="1920"/>
+  <!-- top lockup -->
+  <text class="wm" x="72" y="196">Apice</text>
+  <circle class="dot" cx="290" cy="188" r="7"/>
+  <text class="eyebrow" x="72" y="254">PAID  ·  STORY</text>
+  <line class="rule" x1="72" y1="286" x2="1008" y2="286"/>
+  <!-- big number anchor -->
+  <text class="big-num" x="540" y="720" text-anchor="middle">$50</text>
+  <text class="num-lbl" x="540" y="776" text-anchor="middle">A WEEK</text>
+  <!-- headline -->
+  <text class="hook" x="72" y="960">The quiet way</text>
+  <text class="hook" x="72" y="1068">to build wealth.</text>
+  <text class="tag" x="72" y="1152">No charts. No stress.</text>
+  <text class="tag" x="72" y="1194">Just compounding, on schedule.</text>
+  <!-- bullets -->
+  <line class="rule" x1="72" y1="1280" x2="1008" y2="1280"/>
+  <g transform="translate(72,1360)">
+    <circle cx="10" cy="-10" r="6" fill="#16A661"/>
+    <text class="tag" x="36">DCA weekly, automatic</text>
+  </g>
+  <g transform="translate(72,1420)">
+    <circle cx="10" cy="-10" r="6" fill="#16A661"/>
+    <text class="tag" x="36">Educate while you invest</text>
+  </g>
+  <g transform="translate(72,1480)">
+    <circle cx="10" cy="-10" r="6" fill="#16A661"/>
+    <text class="tag" x="36">Track streaks, earn rewards</text>
+  </g>
+  <!-- CTA -->
+  <rect class="cta-bg" x="72" y="1640" width="936" height="104" rx="52"/>
+  <text class="cta" x="540" y="1702" text-anchor="middle">START YOUR WEEK → SWIPE UP</text>
+  <text class="eyebrow" x="540" y="1860" text-anchor="middle" style="fill:#0E0E12; opacity:0.5">APICE.CAPITAL</text>
+</svg>

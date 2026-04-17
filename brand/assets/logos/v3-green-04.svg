@@ -1,0 +1,14 @@
+<!-- Apice Capital · v3-green.04 · The Signature — diagonal terminal · Uma 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" aria-label="Apice Reserve">
+  <style>
+    .rest { font-family: 'Geist', 'Inter', sans-serif; font-weight: 700; font-size: 64px; letter-spacing: -1.92px; fill: #0E0E12; }
+    .desc { font-family: 'Geist', 'Inter', sans-serif; font-weight: 600; font-size: 10.5px; letter-spacing: 4.2px; fill: #6E6A61; }
+    .sig { fill: #0F5D3F; }
+  </style>
+  <!-- Flat-apex A -->
+  <path d="M 40 74 L 62 26 L 71 26 L 93 74 L 82 74 L 76.5 62 L 56.5 62 L 51 74 Z M 60 54 L 73 54 L 66.5 38 Z" fill="#0E0E12"/>
+  <text x="94" y="74" class="rest">pice</text>
+  <!-- Signature: not a dot — a 14° diagonal stroke (sans-serif "cut") -->
+  <path d="M 200 62 L 216 74 L 212 78 L 196 66 Z" class="sig"/>
+  <text x="40" y="98" class="desc">RESERVE</text>
+</svg>

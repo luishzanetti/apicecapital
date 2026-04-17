@@ -1,0 +1,36 @@
+<!-- Apice · elena-final · v1 FINAL · media-engineer 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="elenaTitle elenaDesc">
+  <title id="elenaTitle">Elena, the Patient Compounder</title>
+  <desc id="elenaDesc">Portrait of Elena — Apice DCA master expert. Emerald accent naturally aligned with brand signature. Gentle rising curve motif.</desc>
+  <defs>
+    <linearGradient id="bgElena" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#C9EBDA"/>
+      <stop offset="55%" stop-color="#E4F1E8"/>
+      <stop offset="100%" stop-color="#F7F3ED"/>
+    </linearGradient>
+    <clipPath id="frameElena"><rect width="256" height="256" rx="61" ry="61"/></clipPath>
+  </defs>
+  <g clip-path="url(#frameElena)">
+    <rect width="256" height="256" fill="url(#bgElena)"/>
+    <g opacity="0.55" fill="none" stroke="#16A661" stroke-width="1.9" stroke-linecap="round">
+      <path d="M20 224 Q 64 216, 108 202 Q 150 188, 180 168"/>
+      <circle cx="180" cy="168" r="2.4" fill="#16A661"/>
+    </g>
+    <path d="M24 256 C 36 214, 74 196, 104 192 L 104 206 Q 82 214, 62 232 Q 46 246, 40 256 Z" fill="#B09A7E"/>
+    <path d="M232 256 C 220 214, 182 196, 152 192 L 152 206 Q 174 214, 194 232 Q 210 246, 216 256 Z" fill="#B09A7E"/>
+    <path d="M104 192 Q 128 208 152 192 L 152 208 Q 128 220 104 208 Z" fill="#A0886A"/>
+    <path d="M110 200 Q 128 212 146 200" fill="none" stroke="#5C4A38" stroke-width="1.3" stroke-linecap="round" opacity="0.6"/>
+    <rect x="114" y="162" width="28" height="32" rx="4" fill="#E3B68B"/>
+    <path d="M70 136 C 70 100, 98 72, 128 72 C 160 72, 186 100, 186 136 L 186 192 Q 172 188, 158 188 L 158 158 Q 158 154, 154 154 L 102 154 Q 98 154, 98 158 L 98 188 Q 84 188, 70 192 Z" fill="#5A3E28"/>
+    <path d="M168 92 Q 176 102, 178 118" fill="none" stroke="#BFAE9A" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
+    <ellipse cx="128" cy="134" rx="41" ry="46" fill="#E3B68B"/>
+    <path d="M86 122 Q 104 98, 128 92 Q 156 96, 170 122 Q 152 112, 132 114 Q 114 118, 96 122 Q 90 122, 86 122 Z" fill="#5A3E28"/>
+    <ellipse cx="114" cy="136" rx="3" ry="2.6" fill="#1F1A14"/>
+    <ellipse cx="142" cy="136" rx="3" ry="2.6" fill="#1F1A14"/>
+    <path d="M128 146 Q 125 154 130 157" fill="none" stroke="#9A7555" stroke-width="1.1" stroke-linecap="round" opacity="0.75"/>
+    <path d="M118 164 Q 128 168 138 164" fill="none" stroke="#7A4F38" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M70 136 C 70 100, 98 72, 128 72 C 160 72, 186 100, 186 136 C 186 162, 170 182, 156 188 L 156 204 Q 200 214, 232 256 L 24 256 Q 56 214, 100 204 L 100 188 Q 70 180, 70 136 Z" fill="none" stroke="#1F1A14" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="232" cy="232" r="6" fill="#16A661"/>
+    <circle cx="232" cy="232" r="6" fill="none" stroke="#0F5D3F" stroke-width="0.8" opacity="0.6"/>
+  </g>
+</svg>

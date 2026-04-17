@@ -1,0 +1,9 @@
+<!-- Apice · triangle-mark v3 · "Refined Peak" · golden ratio proportions, no inner layer, dot above apex -->
+<!-- Cleaner geometry · apex-tick (emerald dot) separated for breathing room · Apple-grade restraint -->
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice">
+  <title>Apice triangle · refined peak</title>
+  <!-- Pure triangle outline · golden ratio base:height ratio -->
+  <path d="M32 18 L54 52 L10 52 Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+  <!-- Dot floats above apex · breathing space · emerald signature -->
+  <circle cx="32" cy="10" r="3.2" fill="#16A661"/>
+</svg>

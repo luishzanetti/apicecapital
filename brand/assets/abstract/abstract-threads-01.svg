@@ -1,0 +1,58 @@
+<!-- Apice · abstract-threads-01 · v2 · Uma 2026-04-17 -->
+<!--
+  Metaphor: Growth as fabric. Two directional thread families weave across the canvas at 60°,
+  with density increasing left-to-right (sparse start, dense weave at right — the fabric forms).
+  Construction:
+    - Family +60°: parallel lines with slope tan(60°) ≈ 1.732 (dx=1, dy=1.732)
+    - Family -60°: parallel lines with slope tan(-60°) ≈ -1.732
+    - Spacing function: s(x) = 120 - 0.07x  → spacing tightens as x grows (120u at x=0 → ~30u at x=1280)
+    - Stroke 1.5u baseline primitive, currentColor, opacity 0.4
+    - Signature: one diagonal in emerald #16A661 at 2u, running through the densest zone (x≈1080)
+  Regenerate: given spacing function, emit lines at intercepts where each family crosses y=0/canvas.
+  Tall aspect (1280×1600) — ideal for side panels, full-page marketing, splash/loading screens.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1600" role="img" aria-label="Apice motif — threads" preserveAspectRatio="xMidYMid slice">
+  <title>Threads</title>
+  <desc>Abstract motif: growth as fabric — two families of 60° lines weave, density rising left to right.</desc>
+  <g stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round">
+    <line x1="-800" y1="0" x2="124" y2="1600"/>
+    <line x1="-680" y1="0" x2="244" y2="1600"/>
+    <line x1="-560" y1="0" x2="364" y2="1600"/>
+    <line x1="-440" y1="0" x2="484" y2="1600"/>
+    <line x1="-320" y1="0" x2="604" y2="1600"/>
+    <line x1="-200" y1="0" x2="724" y2="1600"/>
+    <line x1="-80" y1="0" x2="844" y2="1600"/>
+    <line x1="40" y1="0" x2="964" y2="1600"/>
+    <line x1="140" y1="0" x2="1064" y2="1600"/>
+    <line x1="220" y1="0" x2="1144" y2="1600"/>
+    <line x1="290" y1="0" x2="1214" y2="1600"/>
+    <line x1="350" y1="0" x2="1274" y2="1600"/>
+    <line x1="400" y1="0" x2="1324" y2="1600"/>
+    <line x1="440" y1="0" x2="1364" y2="1600"/>
+    <line x1="472" y1="0" x2="1396" y2="1600"/>
+    <line x1="500" y1="0" x2="1424" y2="1600"/>
+    <line x1="524" y1="0" x2="1448" y2="1600"/>
+    <line x1="546" y1="0" x2="1470" y2="1600"/>
+  </g>
+  <g stroke="currentColor" stroke-width="1.5" opacity="0.4" stroke-linecap="round">
+    <line x1="120" y1="0" x2="-804" y2="1600"/>
+    <line x1="240" y1="0" x2="-684" y2="1600"/>
+    <line x1="360" y1="0" x2="-564" y2="1600"/>
+    <line x1="480" y1="0" x2="-444" y2="1600"/>
+    <line x1="600" y1="0" x2="-324" y2="1600"/>
+    <line x1="720" y1="0" x2="-204" y2="1600"/>
+    <line x1="840" y1="0" x2="-84" y2="1600"/>
+    <line x1="960" y1="0" x2="36" y2="1600"/>
+    <line x1="1080" y1="0" x2="156" y2="1600"/>
+    <line x1="1200" y1="0" x2="276" y2="1600"/>
+    <line x1="1280" y1="0" x2="356" y2="1600"/>
+    <line x1="1340" y1="0" x2="416" y2="1600"/>
+    <line x1="1390" y1="0" x2="466" y2="1600"/>
+    <line x1="1432" y1="0" x2="508" y2="1600"/>
+    <line x1="1466" y1="0" x2="542" y2="1600"/>
+    <line x1="1494" y1="0" x2="570" y2="1600"/>
+    <line x1="1518" y1="0" x2="594" y2="1600"/>
+    <line x1="1540" y1="0" x2="616" y2="1600"/>
+  </g>
+  <line x1="1080" y1="0" x2="156" y2="1600" stroke="#16A661" stroke-width="2" opacity="0.95" stroke-linecap="round"/>
+</svg>

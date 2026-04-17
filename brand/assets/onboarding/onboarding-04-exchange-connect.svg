@@ -1,0 +1,24 @@
+<!-- Apice · onboarding-04-exchange-connect · v1 FINAL · media-engineer 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" width="320" height="240" role="img" aria-labelledby="ob4T ob4D"><title id="ob4T">Secure exchange connection</title><desc id="ob4D">Hero illustration — secure Bybit connection. Two logos linked by encrypted channel with padlock.</desc>
+  <rect width="320" height="240" fill="#F7F3ED"/>
+  <g fill="none" stroke="#0E0E12" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="40" y="88" width="88" height="88" rx="14" fill="#FFFFFF"/>
+    <rect x="192" y="88" width="88" height="88" rx="14" fill="#FFFFFF"/>
+    <line x1="128" y1="132" x2="192" y2="132" stroke-dasharray="4 4"/>
+    <rect x="144" y="114" width="32" height="36" rx="4" fill="#F7F3ED"/>
+    <path d="M152 114 L 152 104 Q 152 96, 160 96 Q 168 96, 168 104 L 168 114"/>
+    <circle cx="160" cy="132" r="3"/>
+    <line x1="160" y1="135" x2="160" y2="142"/>
+  </g>
+  <g font-family="Geist, system-ui, sans-serif" font-weight="800" text-anchor="middle" fill="#0E0E12">
+    <text x="84" y="140" font-size="14" letter-spacing="-0.5">Apice</text>
+    <text x="236" y="140" font-size="14" letter-spacing="-0.5">Bybit</text>
+  </g>
+  <circle cx="94" cy="140" r="2.6" fill="#16A661"/>
+  <g font-family="Geist, system-ui, sans-serif" font-size="9" fill="#4A4A54" text-anchor="middle" letter-spacing="1">
+    <text x="160" y="200">READ-ONLY · ENCRYPTED</text>
+  </g>
+  <g font-family="Geist, system-ui, sans-serif" fill="#0E0E12" text-anchor="middle">
+    <text x="160" y="44" font-size="18" font-weight="700" letter-spacing="-0.5">Connect securely</text>
+  </g>
+</svg>

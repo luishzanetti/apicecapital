@@ -1,0 +1,43 @@
+<!-- Apice · Expert · Omar · concept v1 · media-engineer 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Omar, the Guide — concept avatar">
+  <defs>
+    <linearGradient id="bgOmar" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FCE4B3"/>
+      <stop offset="100%" stop-color="#F8F8FB"/>
+    </linearGradient>
+    <clipPath id="frameOmar">
+      <rect x="0" y="0" width="256" height="256" rx="60" ry="60"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#frameOmar)">
+    <rect x="0" y="0" width="256" height="256" fill="url(#bgOmar)"/>
+    <!-- accent motif: open-book silhouette, lower-right -->
+    <g stroke="#B45309" stroke-width="1.8" fill="none" opacity="0.55">
+      <path d="M176 218 L 200 214 L 200 232 L 176 236 Z"/>
+      <path d="M200 214 L 224 218 L 224 236 L 200 232 Z"/>
+      <line x1="200" y1="214" x2="200" y2="232"/>
+    </g>
+    <!-- shoulders (open collar, engaged posture, slight lean) -->
+    <path d="M34 256 C 50 200, 96 184, 128 186 C 162 188, 206 204, 222 256 Z" fill="#D9C5A0"/>
+    <!-- open collar V -->
+    <path d="M108 196 L 128 216 L 148 196" fill="none" stroke="#8E7246" stroke-width="1.8" stroke-linejoin="round"/>
+    <!-- neck -->
+    <rect x="116" y="170" width="24" height="22" fill="#A37549"/>
+    <!-- hair (short-to-medium with slight wave) -->
+    <path d="M84 120 C 86 94, 108 76, 128 76 C 148 76, 170 94, 172 120 L 172 128 C 160 116, 142 108, 128 108 C 114 108, 96 116, 84 128 Z" fill="#3D2D1F"/>
+    <!-- slight wave at top -->
+    <path d="M100 88 Q114 80 128 84 Q142 80 156 88" stroke="#2B1F14" stroke-width="1.4" fill="none" opacity="0.6"/>
+    <!-- face -->
+    <ellipse cx="128" cy="134" rx="38" ry="45" fill="#B5855B"/>
+    <ellipse cx="128" cy="134" rx="38" ry="45" fill="none" stroke="#6E4E2F" stroke-width="1.5" opacity="0.45"/>
+    <!-- eyes (warm, welcoming — slightly softer than others) -->
+    <ellipse cx="114" cy="136" rx="3.2" ry="2.6" fill="#1F1F23"/>
+    <ellipse cx="142" cy="136" rx="3.2" ry="2.6" fill="#1F1F23"/>
+    <!-- nose hint -->
+    <path d="M128 146 Q126 154 130 156" fill="none" stroke="#6E4E2F" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+    <!-- mouth — softest kind smile (3% upward) -->
+    <path d="M117 163 Q128 169 139 163" fill="none" stroke="#5C3319" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- silhouette outline -->
+    <path d="M84 120 C 86 94, 108 76, 128 76 C 148 76, 170 94, 172 120 C 172 154, 160 176, 142 182 L 142 196 C 180 202, 210 220, 222 256 L 34 256 C 48 220, 80 202, 114 196 L 114 182 C 96 176, 84 154, 84 120 Z" fill="none" stroke="#1F1F23" stroke-width="1.5" stroke-linejoin="round"/>
+  </g>
+</svg>

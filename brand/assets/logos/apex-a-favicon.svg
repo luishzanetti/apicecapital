@@ -1,0 +1,13 @@
+<!-- Apice Capital · Apex-A favicon · v1.0 · Uma 2026-04-17 -->
+<!-- Spec: brand/01-brand-foundation/logo-spec-apex-a.md · section 4 · Favicon variant -->
+<!-- 32×32. Simplified silhouette: summit tick + internal shelf removed (unreadable below 20px). -->
+<!-- Transparent background: tab chrome varies by browser/theme. Indigo fill, overridable via currentColor. -->
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice Capital">
+  <title>Apice Capital</title>
+  <g id="apex-a-simplified" fill="var(--apex-a-fill, #8B5CF6)">
+    <!-- Left leg: simplified, no internal cutouts. Baseline 2..10, apex 14..16 y=4. -->
+    <path id="leg-left"  d="M 2 30 L 12 4 L 16 4 L 16 8 L 14 8 L 8 30 Z"/>
+    <!-- Right leg: simplified, no summit tick. Apex 16..18 y=4, baseline 22..30. -->
+    <path id="leg-right" d="M 16 4 L 18 4 L 30 30 L 24 30 L 18 8 L 16 8 Z"/>
+  </g>
+</svg>

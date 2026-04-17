@@ -1,0 +1,28 @@
+<!-- Apice · APP ICON 1024² · approved triangle (outline + inner fill) on near-black squircle + ambient glow · Jarvis 2026-04-17 -->
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice app icon">
+  <title>Apice app icon</title>
+  <defs>
+    <radialGradient id="iconGlow" cx="50%" cy="55%" r="50%">
+      <stop offset="0%"  stop-color="#528FFF" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#528FFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Background: near-black with rounded corners (iOS Xcode applies superellipse mask) -->
+  <rect width="1024" height="1024" rx="180" ry="180" fill="#0E0E12"/>
+  <!-- Ambient blue glow -->
+  <circle cx="512" cy="560" r="340" fill="url(#iconGlow)"/>
+  <!-- APPROVED TRIANGLE scaled to ~50% canvas (512u triangle in 1024 canvas, centered) -->
+  <g transform="translate(256 256) scale(8)">
+    <path
+      d="M 32 6 L 58 56 L 6 56 Z"
+      stroke="#F7F3ED"
+      stroke-width="3.5"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      fill="none"/>
+    <path
+      d="M 32 20 L 48 52 L 16 52 Z"
+      fill="#F7F3ED"
+      opacity="0.20"/>
+  </g>
+</svg>

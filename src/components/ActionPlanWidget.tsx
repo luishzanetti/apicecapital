@@ -38,7 +38,7 @@ export default function ActionPlanWidget() {
     const getStepAction = (status: string): (() => void) | null => {
         switch (status) {
             case 'profileSet':
-                return !userProfile.goal ? () => navigate('/quiz') : null;
+                return !userProfile.goal ? () => navigate('/quiz-v2') : null;
             case 'strategySet':
                 return !portfolioAccepted ? () => navigate('/portfolio') : null;
             case 'weeklySet':

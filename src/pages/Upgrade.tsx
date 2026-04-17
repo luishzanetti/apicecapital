@@ -135,7 +135,7 @@ export default function Upgrade() {
         {/* Feature Comparison Table */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <div className="rounded-2xl glass-card overflow-hidden">
-            <div className="px-4 py-3 border-b border-border/30">
+            <div className="px-4 py-3 border-b border-white/10">
               <h3 className="text-sm font-bold">Feature Comparison</h3>
             </div>
             <div className="divide-y divide-border/20">
@@ -160,7 +160,7 @@ export default function Upgrade() {
                   ))}
                 </div>
               ))}
-              <div className="grid grid-cols-4 px-4 py-2 items-center bg-secondary/20">
+              <div className="grid grid-cols-4 px-4 py-2 items-center bg-white/[0.04]">
                 <span className="text-[10px] text-muted-foreground font-semibold">PLAN</span>
                 {['Free', 'Pro', 'Club'].map((name) => (
                   <span key={name} className="text-[10px] text-muted-foreground font-semibold text-center">{name}</span>

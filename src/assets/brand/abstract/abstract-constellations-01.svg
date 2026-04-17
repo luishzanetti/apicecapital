@@ -1,0 +1,17 @@
+<!-- Apice · abstract-constellations-01 · v2 · Uma 2026-04-17 -->
+<!--
+  Metaphor: Growth as network formation. 36 nodes on a jittered 6×6 grid (cell 213u, canvas 1280²);
+  jitter offset ±40u via seeded xorshift PRNG (seed=0x16A661). Edges: connect if dist < 280u.
+  Primitives: node r=2.5u; edge stroke 0.75u at opacity 0.35. currentColor for theme switch.
+  Signature: one emerald node at (760,520), r=4, with 4 emerald threads (1u, opacity 0.85) to nearest neighbors.
+  Regenerate: change seed → new jitter → re-resolve edge list. Nodes and edges are deterministic per seed.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1280" role="img" aria-label="Apice motif — constellations">
+<title>Constellations</title><desc>Growth as network — scattered points with emergent thread connections.</desc>
+<g stroke="currentColor" stroke-width=".75" opacity=".35">
+<path d="M118 142L324 168L548 134L758 182L978 156L1172 192M324 168L352 374M548 134L576 362M758 182L742 398M978 156L984 376M138 358L352 374L576 362L742 398L984 376L1168 402M138 358L162 586M352 374L378 592M576 362L558 596M984 376L986 598M1168 402L1186 612M162 586L378 592L558 596M986 598L1186 612M162 586L148 802M378 592L362 814M558 596L584 818M986 598L998 822M1186 612L1192 832M148 802L362 814L584 818L778 836L998 822L1192 832M148 802L172 1028M362 814L358 1042M584 818L562 1056M778 836L756 1062M998 822L1012 1048M1192 832L1178 1036M172 1028L358 1042L562 1056L756 1062L1012 1048L1178 1036"/>
+</g>
+<g fill="currentColor"><circle cx="118" cy="142" r="2.5"/><circle cx="324" cy="168" r="2.5"/><circle cx="548" cy="134" r="2.5"/><circle cx="978" cy="156" r="2.5"/><circle cx="1172" cy="192" r="2.5"/><circle cx="138" cy="358" r="2.5"/><circle cx="352" cy="374" r="2.5"/><circle cx="576" cy="362" r="2.5"/><circle cx="742" cy="398" r="2.5"/><circle cx="984" cy="376" r="2.5"/><circle cx="1168" cy="402" r="2.5"/><circle cx="162" cy="586" r="2.5"/><circle cx="378" cy="592" r="2.5"/><circle cx="558" cy="596" r="2.5"/><circle cx="986" cy="598" r="2.5"/><circle cx="1186" cy="612" r="2.5"/><circle cx="148" cy="802" r="2.5"/><circle cx="362" cy="814" r="2.5"/><circle cx="584" cy="818" r="2.5"/><circle cx="778" cy="836" r="2.5"/><circle cx="998" cy="822" r="2.5"/><circle cx="1192" cy="832" r="2.5"/><circle cx="172" cy="1028" r="2.5"/><circle cx="358" cy="1042" r="2.5"/><circle cx="562" cy="1056" r="2.5"/><circle cx="756" cy="1062" r="2.5"/><circle cx="1012" cy="1048" r="2.5"/><circle cx="1178" cy="1036" r="2.5"/></g>
+<g stroke="#16A661" stroke-width="1" opacity=".85"><path d="M758 182L760 520M576 362L760 520M984 376L760 520M742 398L760 520"/></g>
+<circle cx="760" cy="520" r="4" fill="#16A661"/>
+</svg>

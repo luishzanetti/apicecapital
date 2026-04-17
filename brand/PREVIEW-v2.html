@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Apice Capital · Logo v2 · Apple / Claude / Nike</title>
+<style>
+  :root{
+    --indigo:#8B5CF6; --indigo-400:#A78BFA; --indigo-deep:#4C1D95; --amber:#F59E0B;
+    --cream:#F5F1E8; --n0:#FFFFFF; --n25:#FDFDFE; --n200:#E4E4EA;
+    --n500:#71717A; --n700:#3F3F46; --n900:#18181B;
+    --font:'Geist','Inter',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--cream);color:var(--n900);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1200px;margin:0 auto;padding:56px 32px 140px}
+  h1{font-weight:700;letter-spacing:-0.025em;font-size:42px;margin:0 0 8px}
+  h1 small{font-weight:500;font-size:16px;color:var(--n500);display:block;margin-top:8px;letter-spacing:0}
+  h2{font-weight:600;letter-spacing:-0.01em;font-size:24px;margin:72px 0 8px}
+  h3{font-weight:600;font-size:12px;margin:20px 0 8px;color:var(--n500);text-transform:uppercase;letter-spacing:0.1em}
+  p{color:var(--n700);font-size:15px;line-height:1.6;margin:0 0 12px;max-width:680px}
+  .meta{color:var(--n500);font-size:13px;margin-bottom:32px}
+  .badge{display:inline-flex;padding:4px 12px;background:var(--indigo);color:#fff;border-radius:9999px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase}
+  .hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:24px}
+  @media(max-width:900px){.hero-grid{grid-template-columns:1fr}}
+  .direction{background:var(--n0);border:1px solid var(--n200);border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:16px;position:relative}
+  .direction.recommended{border:2px solid var(--indigo);background:linear-gradient(180deg,#fff 0%,#fff 80%,#f8f5ff 100%)}
+  .recommend-tag{position:absolute;top:-12px;right:24px;background:var(--indigo);color:#fff;padding:4px 12px;border-radius:9999px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}
+  .dir-num{font-size:13px;color:var(--n500);font-weight:600;letter-spacing:0.08em;text-transform:uppercase}
+  .dir-name{font-size:28px;font-weight:700;letter-spacing:-0.02em;margin:0}
+  .dir-bench{font-size:13px;color:var(--indigo);font-weight:600}
+  .dir-logo-box{aspect-ratio:1;background:var(--cream);border-radius:16px;display:flex;align-items:center;justify-content:center;color:var(--indigo)}
+  .dir-logo-box object{width:60%;height:60%}
+  .dir-logo-box.dark{background:var(--indigo-deep);color:var(--cream)}
+  .dir-tagline{font-size:15px;font-style:italic;color:var(--n700);line-height:1.5}
+  .dir-rationale{font-size:14px;line-height:1.6;color:var(--n700)}
+  .pc-row{display:flex;gap:12px;margin-top:8px}
+  .pc-row .col{flex:1;font-size:12px;line-height:1.45}
+  .pc-row .col h3{margin:0 0 4px;color:var(--n500)}
+  .pc-row .col ul{margin:0;padding-left:14px;color:var(--n700)}
+  .meta-row{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--n500);margin-top:8px;padding-top:16px;border-top:1px solid var(--n200)}
+  .meta-row strong{color:var(--n900);font-weight:600}
+  .scale-row{display:flex;gap:20px;align-items:baseline;padding:32px;background:var(--n0);border:1px solid var(--n200);border-radius:16px;flex-wrap:wrap;margin-top:16px}
+  .scale-row .s{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--indigo)}
+  .scale-row small{font-size:11px;color:var(--n500)}
+  .comparison{width:100%;border-collapse:collapse;margin-top:20px;background:var(--n0);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .comparison th,.comparison td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--n200);font-size:13px;vertical-align:top}
+  .comparison th{background:var(--indigo);color:#fff;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.06em}
+  .comparison td:first-child{font-weight:600;color:var(--n900);width:240px}
+  .good{color:#10B981;font-weight:600}
+  .weak{color:#F43F5E;font-weight:600}
+  .ok{color:#F59E0B;font-weight:600}
+  .decide{margin-top:56px;background:var(--n900);color:#fff;border-radius:20px;padding:40px 32px}
+  .decide h2{margin:0 0 16px;color:#fff;border:0;padding:0}
+  .decide p{color:rgba(255,255,255,0.75);max-width:none;font-size:15px}
+  .decide-options{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}
+  @media(max-width:900px){.decide-options{grid-template-columns:1fr}}
+  .opt{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px}
+  .opt h3{color:rgba(255,255,255,0.5);margin:0 0 8px}
+  .opt-name{font-size:20px;font-weight:700;margin:0 0 4px}
+  .opt-days{font-size:13px;color:rgba(255,255,255,0.6)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="badge">Logo v2 · pivot after CEO review</div>
+  <h1>Apice Capital — One Shape. One Gesture. One Mark.
+    <small>Apple · Claude · Nike — benchmarks applied, Apex-A deprecated, three new directions ready for your call.</small>
+  </h1>
+  <p class="meta">Uma · 2026-04-17 · Recommendation: <strong style="color:var(--indigo)">Direction 1 — Ascent</strong></p>
+
+  <!-- ================================================================ -->
+  <h2>The restart in one line</h2>
+  <p>Apex-A stacked three ideas into one glyph (letter + summit tick + shelf). The benchmarks you chose all do the opposite — <strong>one move, nothing else</strong>. Three new directions below, each committing to exactly one move. Palette (Warm Indigo + Warm Amber) and wordmark (Geist) stay. Only the mark changes.</p>
+
+  <!-- ================================================================ -->
+  <h2>The three directions</h2>
+
+  <div class="hero-grid">
+
+    <!-- D1 ASCENT -->
+    <div class="direction recommended">
+      <span class="recommend-tag">★ Uma's pick</span>
+      <div class="dir-num">Direction 1</div>
+      <h3 class="dir-name" style="margin:0;font-weight:700;font-size:28px;color:var(--n900);text-transform:none;letter-spacing:-0.02em">Ascent</h3>
+      <div class="dir-bench">Benchmark: Nike</div>
+      <div class="dir-logo-box"><object data="assets/logos/v2-d1-ascent-concept.svg" type="image/svg+xml"></object></div>
+      <div class="dir-logo-box dark"><object data="assets/logos/v2-d1-ascent-concept.svg" type="image/svg+xml"></object></div>
+      <p class="dir-tagline">"The gesture of going up, in a single unbroken stroke."</p>
+      <p class="dir-rationale">A variable-weight stroke rising from lower-left to upper-right. Heavy at the start, thins as it climbs. The mark doesn't point at a summit — it <em>is</em> the climb. One bezier, no metaphor, no letter.</p>
+      <div class="pc-row">
+        <div class="col"><h3>Pros</h3><ul><li>Purest "one gesture"</li><li>Journey-line thesis built-in</li><li>Rarest in category</li><li>Animates in 900ms</li></ul></div>
+        <div class="col"><h3>Cons</h3><ul><li>Needs uniform-weight variant at 16px</li><li>May read as graphic before brand (Nike decade-one)</li></ul></div>
+      </div>
+      <div class="meta-row"><span><strong>Risk:</strong> LOW</span><span><strong>Prod:</strong> 5–7 days</span><span><strong>Favicon:</strong> good (variant)</span></div>
+    </div>
+
+    <!-- D2 SUMMIT -->
+    <div class="direction">
+      <div class="dir-num">Direction 2</div>
+      <h3 class="dir-name" style="margin:0;font-weight:700;font-size:28px;color:var(--n900);text-transform:none;letter-spacing:-0.02em">Summit</h3>
+      <div class="dir-bench">Benchmark: Apple</div>
+      <div class="dir-logo-box"><object data="assets/logos/v2-d2-summit-concept.svg" type="image/svg+xml"></object></div>
+      <div class="dir-logo-box dark"><object data="assets/logos/v2-d2-summit-concept.svg" type="image/svg+xml"></object></div>
+      <p class="dir-tagline">"One filled shape. A peak, asymmetric by one degree."</p>
+      <p class="dir-rationale">A convex rounded triangle with peak offset right (+2u) and baseline tilt (lower-right 1u above lower-left). One filled form. No stroke. Survives embroidery, engraving, newspaper ink.</p>
+      <div class="pc-row">
+        <div class="col"><h3>Pros</h3><ul><li>Best favicon of the 3 (no variant)</li><li>Lowest cognitive cost</li><li>Physical-medium ready</li><li>Most "wealth-coded"</li></ul></div>
+        <div class="col"><h3>Cons</h3><ul><li>Peak-as-logo is crowded — execution has to be flawless</li><li>Implies destination, not motion</li></ul></div>
+      </div>
+      <div class="meta-row"><span><strong>Risk:</strong> MEDIUM</span><span><strong>Prod:</strong> 4–6 days</span><span><strong>Favicon:</strong> excellent</span></div>
+    </div>
+
+    <!-- D3 COMPASS -->
+    <div class="direction">
+      <div class="dir-num">Direction 3</div>
+      <h3 class="dir-name" style="margin:0;font-weight:700;font-size:28px;color:var(--n900);text-transform:none;letter-spacing:-0.02em">Compass</h3>
+      <div class="dir-bench">Benchmark: Claude</div>
+      <div class="dir-logo-box"><object data="assets/logos/v2-d3-compass-concept.svg" type="image/svg+xml"></object></div>
+      <div class="dir-logo-box dark"><object data="assets/logos/v2-d3-compass-concept.svg" type="image/svg+xml"></object></div>
+      <p class="dir-tagline">"A 4-point star, hand-drawn rather than compass-drawn."</p>
+      <p class="dir-rationale">Four arms with mixed terminals (N+E sharp, S+W rounded). Vertical pair heavier than horizontal. The asymmetry IS the warmth signal. Extends natively to the 6 AI Experts system.</p>
+      <div class="pc-row">
+        <div class="col"><h3>Pros</h3><ul><li>Richest semantic surface</li><li>Native AI Experts extensibility</li><li>Hand-drawn warmth</li></ul></div>
+        <div class="col"><h3>Cons</h3><ul><li>Worst favicon (needs separate variant)</li><li>Risk of "AI sparkle" misread</li><li>Tightest execution tolerance</li></ul></div>
+      </div>
+      <div class="meta-row"><span><strong>Risk:</strong> HIGH</span><span><strong>Prod:</strong> 10–14 days</span><span><strong>Favicon:</strong> poor</span></div>
+    </div>
+
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>Scale test (Uma's recommended: Ascent)</h2>
+  <p>How Ascent holds up from 24px to 240px. Uniform-weight variant kicks in below 32px (hinted).</p>
+  <div class="scale-row">
+    <div class="s"><object data="assets/logos/v2-d1-ascent-concept.svg" type="image/svg+xml" style="width:24px;height:24px"></object><small>24px</small></div>
+    <div class="s"><object data="assets/logos/v2-d1-ascent-concept.svg" type="image/svg+xml" style="width:40px;height:40px"></object><small>40px</small></div>
+    <div class="s"><object data="assets/logos/v2-d1-ascent-concept.svg" type="image/svg+xml" style="width:64px;height:64px"></object><small>64px</small></div>
+    <div class="s"><object data="assets/logos/v2-d1-ascent-concept.svg" type="image/svg+xml" style="width:96px;height:96px"></object><small>96px</small></div>
+    <div class="s"><object data="assets/logos/v2-d1-ascent-concept.svg" type="image/svg+xml" style="width:140px;height:140px"></object><small>140px</small></div>
+    <div class="s"><object data="assets/logos/v2-d1-ascent-concept.svg" type="image/svg+xml" style="width:200px;height:200px"></object><small>200px</small></div>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>Head-to-head</h2>
+  <table class="comparison">
+    <thead>
+      <tr><th>Criterion</th><th>D1 Ascent</th><th>D2 Summit</th><th>D3 Compass</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Apple-test — stands alone without wordmark</td><td class="ok">In 12 months</td><td class="good">Day one</td><td class="weak">24+ months</td></tr>
+      <tr><td>Claude-test — feels hand-made, not compass-drawn</td><td class="ok">Partial</td><td class="ok">Partial</td><td class="good">Yes (built on this)</td></tr>
+      <tr><td>Nike-test — one gesture, no wordmark needed</td><td class="good">Strongest</td><td class="good">Strong</td><td class="weak">Weaker (radial needs decoding)</td></tr>
+      <tr><td>Favicon at 16px</td><td class="ok">Good (variant)</td><td class="good">Excellent</td><td class="weak">Poor (needs variant)</td></tr>
+      <tr><td>Ownability in the category</td><td class="good">Highest</td><td class="ok">Medium — execution-dependent</td><td class="good">High</td></tr>
+      <tr><td>Production time</td><td>5–7 days</td><td class="good">4–6 days</td><td class="weak">10–14 days</td></tr>
+      <tr><td>Execution risk</td><td class="good">LOW</td><td class="ok">MEDIUM</td><td class="weak">HIGH</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ================================================================ -->
+  <h2>Uma's recommendation — D1 Ascent</h2>
+  <p>"Ascent is the only one of the three that carries the product's thesis inside its geometry. Apice is not a peak to reach (Summit) and not a star to follow (Compass) — Apice is the rise itself, week by week, one DCA deposit at a time. The mark and the tagline tell the same story in two languages."</p>
+  <p>"What do the others do better? <strong>Summit</strong> wins on favicon and physical reproduction. <strong>Compass</strong> wins on AI Experts extensibility. But the brief said 'inevitable, effortless, 5-year survivable' — that is Ascent."</p>
+
+  <!-- ================================================================ -->
+  <div class="decide">
+    <h2>Your call, sir</h2>
+    <p>Pick one. Uma starts production immediately. Or tell me what to adjust before picking.</p>
+    <div class="decide-options">
+      <div class="opt">
+        <h3>Option 1 (recommended)</h3>
+        <p class="opt-name">Ascent</p>
+        <p class="opt-days">Nike-leaning · 5–7 days to SVG set</p>
+      </div>
+      <div class="opt">
+        <h3>Option 2</h3>
+        <p class="opt-name">Summit</p>
+        <p class="opt-days">Apple-leaning · 4–6 days · best favicon</p>
+      </div>
+      <div class="opt">
+        <h3>Option 3</h3>
+        <p class="opt-name">Compass</p>
+        <p class="opt-days">Claude-leaning · 10–14 days · AI Experts-native</p>
+      </div>
+    </div>
+  </div>
+
+  <p style="margin-top:48px;color:var(--n500);font-size:12px">
+    Concepts above are <strong>schematic SVGs</strong> — intentionally rough to communicate posture. Production SVGs (hero, favicon, app icon, lockup, dark-mode, amber ceremonial) ship in the days stated above once you call it.
+    <br/>
+    · Jarvis · Chief of Staff AI
+  </p>
+
+</div>
+</body>
+</html>

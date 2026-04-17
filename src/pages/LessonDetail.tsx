@@ -41,7 +41,7 @@ function ContentBlockView({ block }: { block: ContentBlock }) {
   }
   if (block.type === 'stat') {
     return (
-      <div className="flex items-center gap-4 p-4 rounded-xl bg-secondary/50 border border-border/50">
+      <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.05] border border-white/10">
         <div className="text-center min-w-[80px]">
           <p className="text-2xl font-bold text-primary">{block.value}</p>
           <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide leading-tight mt-0.5">{block.label}</p>
@@ -152,7 +152,7 @@ function QuizSection({
         {q.options.map((opt, i) => {
           const isChosen = selected === i;
           const isRight = i === q.correctIndex;
-          let style = 'bg-secondary/50 border-border/50 text-foreground';
+          let style = 'bg-white/[0.05] border-white/10 text-foreground';
           if (showResult && isChosen && isCorrect) style = 'bg-green-500/10 border-green-500/40 text-green-400';
           else if (showResult && isChosen && !isCorrect) style = 'bg-red-500/10 border-red-500/40 text-red-400';
           else if (showResult && isRight) style = 'bg-green-500/10 border-green-500/40 text-green-400';
@@ -376,7 +376,7 @@ export default function LessonDetail() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="px-5 py-5 safe-top border-b border-border/50">
+      <div className="px-5 py-5 safe-top border-b border-white/10">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/learn')}
@@ -412,7 +412,7 @@ export default function LessonDetail() {
       </div>
 
       {/* Meta row */}
-      <div className="flex items-center gap-4 px-5 py-3 border-b border-border/30">
+      <div className="flex items-center gap-4 px-5 py-3 border-b border-white/10">
         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clock className="w-3.5 h-3.5" /> {lesson.readingTime} min
         </span>
@@ -437,7 +437,7 @@ export default function LessonDetail() {
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all',
                 activeTab === tab.id
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary/50 text-muted-foreground hover:bg-secondary'
+                  : 'bg-white/[0.05] text-muted-foreground hover:bg-secondary'
               )}
             >
               <tab.icon className="w-3 h-3" />
@@ -592,7 +592,7 @@ export default function LessonDetail() {
       </motion.div>
 
       {/* Fixed CTA — respects sidebar on desktop, above BottomNav on mobile */}
-      <div className="fixed bottom-[88px] lg:bottom-0 left-0 lg:left-[240px] right-0 z-30 p-4 bg-background/95 backdrop-blur-md border-t border-border/50 safe-bottom">
+      <div className="fixed bottom-[88px] lg:bottom-0 left-0 lg:left-[240px] right-0 z-30 p-4 bg-background/95 backdrop-blur-md border-t border-white/10 safe-bottom">
         <div className="max-w-2xl lg:max-w-3xl mx-auto">
           <Button
             variant={isCompleted ? 'secondary' : 'premium'}

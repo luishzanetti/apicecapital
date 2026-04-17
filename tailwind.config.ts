@@ -14,8 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        display: ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
+        // Geist is the brand primary per BRAND-BOOK v2.0; Inter kept as fallback.
+        sans: ['Geist', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        display: ['Geist', 'Inter', 'system-ui', 'sans-serif'],
+        mono: ['"Geist Mono"', '"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       fontSize: {
         'display': ['2.5rem', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-0.02em' }],
@@ -70,8 +72,13 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         apice: {
+          /* --apice-gold is kept as a legacy token name but now holds emerald
+           * per BRAND-BOOK v2.0. Gold/violet are expert-only accent colors. */
           gold: "hsl(var(--apice-gold))",
           "gold-soft": "hsl(var(--apice-gold-soft))",
+          emerald: "hsl(var(--apice-emerald, 152 78% 37%))",
+          "emerald-deep": "hsl(var(--apice-emerald-deep, 155 72% 21%))",
+          "blue-glow": "hsl(var(--apice-blue-glow, 220 100% 60%))",
           success: "hsl(var(--apice-success))",
           warning: "hsl(var(--apice-warning))",
           surface: "hsl(var(--apice-surface))",

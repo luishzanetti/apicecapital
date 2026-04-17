@@ -1,189 +1,242 @@
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, BarChart3, Brain, Shield, Users } from 'lucide-react';
-import { useTranslation } from '@/hooks/useTranslation';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  ArrowRight,
+  BarChart3,
+  Brain,
+  Shield,
+  Sparkles,
+  Users,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TriangleMark } from "@/components/brand/BrandMark";
 
+/**
+ * Welcome — first-impression screen post-Splash.
+ * Dark premium aesthetic matching AiTradeLanding. EN hardcoded (conversion surface).
+ * Preserves navigation: "/quiz" (start flow) + "/auth" (existing users).
+ */
 export default function Welcome() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
+  const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    document.documentElement.classList.add("dark");
+  }, []);
 
   const features = [
     {
-      icon: BarChart3,
-      title: t('welcome.feature1Title'),
-      description: t('welcome.feature1Desc'),
+      icon: Brain,
+      title: "Strategic AI",
+      description:
+        "Market reads reduce noise, adjust context, and support decisions with method — not impulse.",
     },
     {
-      icon: Brain,
-      title: t('welcome.feature2Title'),
-      description: t('welcome.feature2Desc'),
+      icon: BarChart3,
+      title: "Smart diversification",
+      description:
+        "Capital spread across complementary structures — no dependence on a single narrative.",
     },
     {
       icon: Shield,
-      title: t('welcome.feature3Title'),
-      description: t('welcome.feature3Desc'),
+      title: "Non-custodial by design",
+      description:
+        "Your funds stay on your exchange. Apice only executes within your risk rules.",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col px-6 py-12 safe-top relative overflow-hidden">
-      {/* Background gradient orb */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse 80% 50% at 50% -5%, hsl(var(--primary) / 0.10), transparent 70%)',
-        }}
-      />
+    <div className="relative min-h-screen overflow-x-hidden bg-[#0F1626] text-white antialiased">
+      {/* Background decor */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(82,143,255,0.2),transparent_35%),radial-gradient(circle_at_85%_25%,rgba(234,179,8,0.1),transparent_22%),radial-gradient(circle_at_15%_80%,rgba(155,135,245,0.16),transparent_30%),linear-gradient(180deg,#0F1626_0%,#152038_50%,#0F1626_100%)]" />
+        <div className="absolute inset-0 opacity-[0.05] [background-image:linear-gradient(rgba(255,255,255,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:96px_96px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,#000_50%,transparent_100%)]" />
+      </div>
 
-      {/* Subtle animated orb */}
-      <motion.div
-        className="absolute w-64 h-64 rounded-full pointer-events-none"
-        style={{
-          top: '8%',
-          right: '-10%',
-          background:
-            'radial-gradient(circle, hsl(var(--primary) / 0.08), transparent 70%)',
-          filter: 'blur(50px)',
-        }}
-        animate={{ x: [0, -12, 6, 0], y: [0, 10, -6, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-      />
+      {/* Animated ambient orbs */}
+      {!prefersReducedMotion && (
+        <>
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none fixed -right-16 top-[12%] z-0 h-72 w-72 rounded-full blur-3xl"
+            style={{
+              background:
+                "radial-gradient(circle, hsl(var(--apice-gradient-end) / 0.25), transparent 70%)",
+            }}
+            animate={{ x: [0, -14, 6, 0], y: [0, 12, -8, 0] }}
+            transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none fixed -left-20 bottom-[15%] z-0 h-80 w-80 rounded-full blur-3xl"
+            style={{
+              background:
+                "radial-gradient(circle, hsl(var(--apice-gold) / 0.18), transparent 70%)",
+            }}
+            animate={{ x: [0, 18, -6, 0], y: [0, -10, 12, 0] }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </>
+      )}
 
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="flex-1 flex flex-col relative z-10"
-      >
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-lg flex-col px-6 pt-10 pb-10 md:max-w-xl md:px-8 md:pt-14">
         {/* Logo */}
-        <div className="flex items-center gap-3 mb-12">
-          <div className="w-10 h-10 rounded-xl apice-gradient-primary flex items-center justify-center">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 40 40"
-              fill="none"
-              className="text-white"
-            >
-              <path
-                d="M20 4L36 34H4L20 4Z"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinejoin="round"
-                fill="none"
-              />
-            </svg>
-          </div>
-          <span className="font-semibold text-lg">Apice</span>
-        </div>
-
-        {/* Hero text */}
-        <h1 className="text-display mb-4">
-          {t('welcome.heroLine1')}
-          <br />
-          <span className="text-gradient-primary">
-            {t('welcome.heroLine2')}
-          </span>
-        </h1>
-
-        <p className="text-muted-foreground text-body mb-8 max-w-sm">
-          {t('welcome.heroSubtitle')}
-        </p>
-
-        {/* Social proof */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-          className="flex items-center gap-2.5 mb-10"
+          transition={{ duration: 0.5 }}
+          className="flex items-center gap-3"
         >
-          <div className="flex -space-x-2">
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="w-7 h-7 rounded-full border-2 border-background flex items-center justify-center text-[10px] font-medium"
-                style={{
-                  background: [
-                    'hsl(var(--primary) / 0.25)',
-                    'hsl(250 84% 60% / 0.25)',
-                    'hsl(160 84% 40% / 0.25)',
-                    'hsl(var(--primary) / 0.15)',
-                  ][i],
-                  color: [
-                    'hsl(var(--primary))',
-                    'hsl(250 84% 70%)',
-                    'hsl(160 84% 55%)',
-                    'hsl(var(--primary) / 0.8)',
-                  ][i],
-                }}
-              >
-                {['A', 'K', 'M', '+'][i]}
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5 text-primary/60" />
-            <span className="text-xs text-muted-foreground">
-              {t('welcome.socialProof')}
-            </span>
+          <TriangleMark variant="circle" size={44} aria-hidden="true" />
+          <div>
+            <p className="font-display text-xl font-semibold tracking-tight">Apice</p>
+            <p className="text-[10px] uppercase tracking-[0.28em] text-white/45">
+              Global AI Investing
+            </p>
           </div>
         </motion.div>
 
-        {/* Features */}
-        <div className="space-y-4 mb-12">
-          {features.map((feature, i) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 + i * 0.12, duration: 0.4 }}
-              className="flex items-start gap-4"
+        {/* Hero */}
+        <div className="mt-14 flex-1">
+          <motion.div
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05, duration: 0.5 }}
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-white/70 backdrop-blur"
+          >
+            <Sparkles
+              className="h-3 w-3 text-[hsl(var(--apice-gold))]"
+              aria-hidden="true"
+            />
+            Apice Methodology
+          </motion.div>
+
+          <motion.h1
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.55 }}
+            className="font-display mt-5 text-balance text-[44px] font-semibold leading-[1.02] tracking-[-0.02em] md:text-[56px]"
+          >
+            Strategic wealth,
+            <br />
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(135deg, hsl(var(--apice-gradient-start)) 0%, hsl(var(--apice-gradient-end)) 55%, hsl(var(--apice-gold)) 100%)",
+              }}
             >
-              <div className="w-10 h-10 rounded-xl glass-light flex items-center justify-center shrink-0">
-                <feature.icon className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-medium text-sm mb-0.5">{feature.title}</h3>
-                <p className="text-muted-foreground text-caption">
-                  {feature.description}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+              engineered by AI.
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25, duration: 0.55 }}
+            className="mt-5 max-w-md text-base leading-relaxed text-white/65 md:text-lg"
+          >
+            AI-driven trading and automated DCA savings — so you build wealth with
+            method instead of impulse. 24/7 execution. Non-custodial. Yours.
+          </motion.p>
+
+          {/* Social proof */}
+          <motion.div
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.5 }}
+            className="mt-8 flex items-center gap-3"
+          >
+            <div className="flex -space-x-2">
+              {[
+                { label: "A", color: "bg-[hsl(var(--apice-gradient-start))]/30 text-white" },
+                { label: "K", color: "bg-[hsl(var(--apice-gradient-end))]/30 text-white" },
+                { label: "M", color: "bg-[hsl(var(--apice-gold))]/25 text-white" },
+                { label: "+", color: "bg-white/10 text-white/80" },
+              ].map((avatar, i) => (
+                <div
+                  key={i}
+                  aria-hidden="true"
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#0F1626] text-[10px] font-semibold backdrop-blur ${avatar.color}`}
+                >
+                  {avatar.label}
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-white/45" aria-hidden="true" />
+              <span className="text-xs text-white/55">
+                Joined by 12,500+ early users
+              </span>
+            </div>
+          </motion.div>
+
+          {/* Features */}
+          <div className="mt-10 space-y-3">
+            {features.map((feature, i) => (
+              <motion.div
+                key={feature.title}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.45 + i * 0.12, duration: 0.5 }}
+                className="group flex items-start gap-4 rounded-2xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur transition-colors hover:border-white/10 hover:bg-white/[0.04]"
+              >
+                <div
+                  aria-hidden="true"
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/10"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, hsl(var(--apice-gradient-start) / 0.2), hsl(var(--apice-gradient-end) / 0.1))",
+                  }}
+                >
+                  <feature.icon
+                    className="h-5 w-5 text-[hsl(var(--apice-gold))]"
+                    aria-hidden="true"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-display text-base font-semibold tracking-tight text-white">
+                    {feature.title}
+                  </h3>
+                  <p className="mt-1 text-sm leading-relaxed text-white/55">
+                    {feature.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </motion.div>
 
-      {/* CTA */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7, duration: 0.4 }}
-        className="space-y-3 relative z-10"
-      >
-        <Button
-          variant="premium"
-          size="lg"
-          className="w-full"
-          onClick={() => navigate('/quiz')}
+        {/* CTA */}
+        <motion.div
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.85, duration: 0.5 }}
+          className="mt-10 space-y-3"
         >
-          {t('welcome.cta')}
-          <ArrowRight className="w-4 h-4" />
-        </Button>
+          <Button
+            size="lg"
+            onClick={() => navigate("/quiz-v2")}
+            className="h-14 w-full rounded-2xl text-base font-semibold shadow-[0_0_60px_-10px_rgba(82,143,255,0.45)] transition-all hover:shadow-[0_0_80px_-10px_rgba(82,143,255,0.65)]"
+          >
+            Build my setup
+            <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+          </Button>
 
-        <button
-          onClick={() => navigate('/auth')}
-          className="w-full py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {t('welcome.signIn')}
-        </button>
+          <button
+            type="button"
+            onClick={() => navigate("/auth")}
+            className="w-full rounded-xl py-3 text-sm font-medium text-white/55 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0F1626]"
+          >
+            I already have an account
+          </button>
 
-        <p className="text-center text-micro text-muted-foreground/60">
-          {t('welcome.ctaDisclaimer')}
-        </p>
-      </motion.div>
+          <p className="text-center text-[11px] text-white/35">
+            Free tier · No credit card · Cancel anytime
+          </p>
+        </motion.div>
+      </div>
     </div>
   );
 }

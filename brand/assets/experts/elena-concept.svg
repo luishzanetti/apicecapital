@@ -1,0 +1,43 @@
+<!-- Apice · Expert · Elena · concept v1 · media-engineer 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Elena, the Patient Compounder — concept avatar">
+  <defs>
+    <linearGradient id="bgElena" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#BBF0D8"/>
+      <stop offset="100%" stop-color="#F8F8FB"/>
+    </linearGradient>
+    <clipPath id="frameElena">
+      <rect x="0" y="0" width="256" height="256" rx="60" ry="60"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#frameElena)">
+    <rect x="0" y="0" width="256" height="256" fill="url(#bgElena)"/>
+    <!-- accent motif: gentle rising curve, lower-right -->
+    <g stroke="#10B981" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.6">
+      <path d="M172 218 Q196 212 210 198 Q222 186 228 174"/>
+    </g>
+    <!-- shoulders (soft, higher neckline) -->
+    <path d="M34 256 C 48 202, 92 184, 128 184 C 164 184, 208 202, 222 256 Z" fill="#EFE6D4"/>
+    <!-- knit neckline hint -->
+    <path d="M104 194 Q128 204 152 194" fill="none" stroke="#C9B992" stroke-width="1.5"/>
+    <!-- neck -->
+    <rect x="114" y="168" width="28" height="22" fill="#E8C397"/>
+    <!-- hair back -->
+    <path d="M76 130 C 76 96, 100 74, 128 74 C 156 74, 180 96, 180 130 L 180 182 C 170 172, 156 170, 146 172 L 146 150 L 110 150 L 110 172 C 100 170, 86 172, 76 182 Z" fill="#7A5536"/>
+    <!-- subtle silver strand near temple -->
+    <path d="M84 124 Q90 116 98 118" stroke="#C6B29C" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <!-- face -->
+    <ellipse cx="128" cy="132" rx="40" ry="46" fill="#EDC9A3"/>
+    <ellipse cx="128" cy="132" rx="40" ry="46" fill="none" stroke="#A97B55" stroke-width="1.5" opacity="0.4"/>
+    <!-- hair front -->
+    <path d="M88 116 C 96 94, 120 84, 128 84 C 140 84, 164 94, 170 118 C 156 110, 138 108, 128 112 C 118 116, 106 116, 88 116 Z" fill="#7A5536"/>
+    <!-- eyes (calm, warm) -->
+    <ellipse cx="114" cy="134" rx="3.2" ry="2.6" fill="#27272A"/>
+    <ellipse cx="142" cy="134" rx="3.2" ry="2.6" fill="#27272A"/>
+    <!-- nose hint -->
+    <path d="M128 144 Q126 152 130 154" fill="none" stroke="#A97B55" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+    <!-- mouth — smallest kind smile (2% upward) -->
+    <path d="M118 161 Q128 165 138 161" fill="none" stroke="#8B5A3F" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- silhouette outline -->
+    <path d="M76 130 C 76 96, 100 74, 128 74 C 156 74, 180 96, 180 130 C 180 158, 166 176, 148 182 L 148 192 C 180 198, 210 220, 222 256 L 34 256 C 46 220, 76 198, 108 192 L 108 182 C 90 176, 76 158, 76 130 Z" fill="none" stroke="#1F1F23" stroke-width="1.5" stroke-linejoin="round"/>
+  </g>
+</svg>

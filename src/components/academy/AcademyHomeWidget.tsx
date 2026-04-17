@@ -79,7 +79,7 @@ export function AcademyHomeWidget() {
       }
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative w-full overflow-hidden rounded-3xl border border-border/30 bg-card/80 backdrop-blur p-4 text-left hover:border-primary/30 transition-all press-scale group"
+      className="relative w-full overflow-hidden rounded-3xl glass-card p-5 text-left hover:bg-white/[0.04] transition-all press-scale group"
       aria-label={
         continueTarget
           ? `Continue lesson: ${continueTarget.lessonTitle}`
@@ -101,36 +101,36 @@ export function AcademyHomeWidget() {
           size={64}
           stroke={6}
           progress={progress}
-          color="hsl(var(--primary))"
+          color="hsl(var(--apice-emerald))"
         >
           <div className="text-center leading-none">
-            <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
               LVL
             </p>
-            <p className="font-display text-lg font-bold">{level}</p>
+            <p className="font-display font-mono text-lg font-semibold tabular-nums text-white">{level}</p>
           </div>
         </AcademyProgressRing>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <GraduationCap className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary/90">
+            <GraduationCap className="w-3.5 h-3.5 text-[hsl(var(--apice-emerald))]" aria-hidden="true" />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[hsl(var(--apice-emerald))]">
               Apice Academy
             </p>
           </div>
 
           {continueTarget ? (
             <>
-              <p className="text-sm font-bold leading-tight truncate">
+              <p className="text-[15px] font-semibold text-white leading-tight truncate">
                 Continue: {continueTarget.lessonTitle}
               </p>
-              <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-amber-400" aria-hidden="true" />
+              <div className="flex items-center gap-2 mt-1 text-[11px] text-white/55">
+                <span className="inline-flex items-center gap-1 font-mono tabular-nums">
+                  <Zap className="w-3 h-3 text-[hsl(var(--apice-gold))]" aria-hidden="true" />
                   {totalXP} XP
                 </span>
                 <span aria-hidden="true">·</span>
-                <span className="tabular-nums">
+                <span className="font-mono tabular-nums">
                   {xpToNext > 0
                     ? `${xpToNext} XP to level ${level + 1}`
                     : 'Max level'}
@@ -139,12 +139,12 @@ export function AcademyHomeWidget() {
             </>
           ) : (
             <>
-              <p className="text-sm font-bold leading-tight">
+              <p className="text-[15px] font-semibold text-white leading-tight">
                 All caught up — keep the streak alive
               </p>
-              <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-2 mt-1 text-[11px] text-white/55">
                 <BookOpen className="w-3 h-3" aria-hidden="true" />
-                <span>{completedCount} lessons complete</span>
+                <span className="font-mono tabular-nums">{completedCount} lessons complete</span>
               </div>
             </>
           )}
@@ -153,7 +153,7 @@ export function AcademyHomeWidget() {
         <div className="flex flex-col items-end gap-1.5 shrink-0">
           <StreakFlame streak={learnProgress.currentStreak} size={30} />
           <ChevronRight
-            className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary/70 transition-colors"
+            className="w-4 h-4 text-white/35 group-hover:text-[hsl(var(--apice-emerald))] transition-colors"
             aria-hidden="true"
           />
         </div>

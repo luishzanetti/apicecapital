@@ -1,0 +1,23 @@
+<!-- Apice Capital · v3 · CAPITELLO Custom Wordmark · concept · Uma 2026-04-17 -->
+<!-- APICE in monumental Black caps (flat-apex A, heavier stems, stepped-width T/L, closed P bowl) + CAPITAL subtitle. -->
+<svg viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="APICE CAPITAL">
+  <title>CAPITELLO wordmark concept</title>
+  <g fill="var(--apice-fill, currentColor)" font-family="'Geist','Inter',system-ui,-apple-system,sans-serif">
+    <!-- Custom monumental A, heavier stems -->
+    <g transform="translate(22 24)">
+      <path d="M 0 68 L 16 8 L 30 8 L 30 13 L 23 13 L 11 68 Z"/>
+      <path d="M 30 8 L 42 8 L 56 68 L 44 68 L 35 28 L 30 28 Z"/>
+      <rect x="16" y="4" width="24" height="4"/>
+      <rect x="20" y="25.5" width="20" height="3.8"/>
+      <!-- Serif stubs -->
+      <rect x="-2" y="68" width="14" height="3"/>
+      <rect x="43" y="68" width="14" height="3"/>
+    </g>
+    <!-- PICE via text, heavier weight 900 Black -->
+    <text x="94" y="92" font-size="82" font-weight="900" letter-spacing="0.06em" style="font-variant-ligatures:none">PICE</text>
+    <!-- Hairline divider -->
+    <rect x="22" y="108" width="240" height="2"/>
+    <!-- CAPITAL subtitle, tracked +200 -->
+    <text x="24" y="132" font-size="20" font-weight="700" letter-spacing="0.2em">CAPITAL</text>
+  </g>
+</svg>

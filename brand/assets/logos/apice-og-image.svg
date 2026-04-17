@@ -1,0 +1,13 @@
+<!-- Apice · og-image · v1.0 FINAL · Uma 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Apice — Build Wealth. One Week at a Time.">
+  <title>Apice — Build Wealth. One Week at a Time.</title>
+  <style>
+    .wm { font-family: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 700; font-size: 160px; letter-spacing: -4.8px; fill: #F7F3ED; text-anchor: middle; }
+    .tag { font-family: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 500; font-size: 32px; letter-spacing: 0.4px; fill: #A8A49A; text-anchor: middle; }
+    .dot { fill: #16A661; }
+  </style>
+  <rect width="1200" height="630" fill="#0E0E12"/>
+  <text x="600" y="330" class="wm">Apice</text>
+  <circle cx="812" cy="322" r="14.4" class="dot"/>
+  <text x="600" y="400" class="tag">Build Wealth. One Week at a Time.</text>
+</svg>

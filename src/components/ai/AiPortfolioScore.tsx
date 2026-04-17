@@ -22,10 +22,10 @@ export function AiPortfolioScore() {
       language === 'pt'
         ? {
             grades: {
-              A: { color: 'text-green-400', bg: 'bg-green-500/10', label: 'Excelente' },
-              B: { color: 'text-blue-400', bg: 'bg-blue-500/10', label: 'Bom' },
-              C: { color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'Regular' },
-              D: { color: 'text-orange-400', bg: 'bg-orange-500/10', label: 'Precisa melhorar' },
+              A: { color: 'text-[hsl(var(--apice-emerald))]', bg: 'bg-[hsl(var(--apice-emerald))]/10', label: 'Excelente' },
+              B: { color: 'text-sky-300', bg: 'bg-sky-500/10', label: 'Bom' },
+              C: { color: 'text-amber-300', bg: 'bg-amber-500/10', label: 'Regular' },
+              D: { color: 'text-orange-300', bg: 'bg-orange-500/10', label: 'Precisa melhorar' },
               F: { color: 'text-red-400', bg: 'bg-red-500/10', label: 'Crítico' },
             },
             title: 'Análise de Portfólio por IA',
@@ -46,10 +46,10 @@ export function AiPortfolioScore() {
           }
         : {
             grades: {
-              A: { color: 'text-green-400', bg: 'bg-green-500/10', label: 'Excellent' },
-              B: { color: 'text-blue-400', bg: 'bg-blue-500/10', label: 'Good' },
-              C: { color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'Fair' },
-              D: { color: 'text-orange-400', bg: 'bg-orange-500/10', label: 'Needs improvement' },
+              A: { color: 'text-[hsl(var(--apice-emerald))]', bg: 'bg-[hsl(var(--apice-emerald))]/10', label: 'Excellent' },
+              B: { color: 'text-sky-300', bg: 'bg-sky-500/10', label: 'Good' },
+              C: { color: 'text-amber-300', bg: 'bg-amber-500/10', label: 'Fair' },
+              D: { color: 'text-orange-300', bg: 'bg-orange-500/10', label: 'Needs improvement' },
               F: { color: 'text-red-400', bg: 'bg-red-500/10', label: 'Critical' },
             },
             title: 'AI Portfolio Analysis',
@@ -80,18 +80,24 @@ export function AiPortfolioScore() {
 
   if (!hasAnalyzed) {
     return (
-      <Card className="border-primary/10">
-        <CardContent className="pt-4 pb-4">
+      <Card className="border-none glass-card">
+        <CardContent className="p-5">
           <div className="mb-3 flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-              <Brain className="h-4.5 w-4.5 text-primary" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[hsl(var(--apice-emerald))]/10">
+              <Brain className="h-4.5 w-4.5 text-[hsl(var(--apice-emerald))]" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold">{copy.title}</p>
-              <p className="text-[11px] text-muted-foreground">{copy.subtitle}</p>
+              <p className="text-[15px] font-semibold text-white">{copy.title}</p>
+              <p className="text-[11px] text-white/55">{copy.subtitle}</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="w-full text-xs" onClick={handleAnalyze} disabled={isLoading}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-xs border-0 bg-white/[0.04] hover:bg-white/[0.08] text-white font-semibold"
+            onClick={handleAnalyze}
+            disabled={isLoading}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
@@ -111,10 +117,10 @@ export function AiPortfolioScore() {
 
   if (!analysis) {
     return (
-      <Card className="border-primary/10">
-        <CardContent className="pt-4 pb-4 text-center">
-          <p className="text-xs text-muted-foreground">{copy.empty}</p>
-          <Button variant="ghost" size="sm" className="mt-2 text-xs" onClick={() => setHasAnalyzed(false)}>
+      <Card className="border-none glass-card">
+        <CardContent className="p-5 text-center">
+          <p className="text-xs text-white/60">{copy.empty}</p>
+          <Button variant="ghost" size="sm" className="mt-2 text-xs text-[hsl(var(--apice-emerald))] hover:text-[hsl(var(--apice-emerald))]/80 hover:bg-white/[0.04]" onClick={() => setHasAnalyzed(false)}>
             {copy.retry}
           </Button>
         </CardContent>
@@ -126,57 +132,57 @@ export function AiPortfolioScore() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-      <Card className="overflow-hidden border-primary/10">
-        <CardContent className="pt-4 pb-4">
-          <div className="mb-3 flex items-center justify-between">
+      <Card className="overflow-hidden border-none glass-card">
+        <CardContent className="p-5">
+          <div className="mb-3.5 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className={cn('flex h-14 w-14 items-center justify-center rounded-2xl', gradeConfig.bg)}>
-                  <span className={cn('text-2xl font-black', gradeConfig.color)}>{analysis.grade}</span>
+                  <span className={cn('font-display text-2xl font-bold', gradeConfig.color)}>{analysis.grade}</span>
                 </div>
-                <div className="absolute -right-1 -bottom-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-border bg-card">
-                  <span className="text-[11px] font-bold">{analysis.score}</span>
+                <div className="absolute -right-1 -bottom-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#0F1626] ring-2 ring-[#0F1626]">
+                  <span className="text-[10px] font-mono font-bold tabular-nums text-white/85">{analysis.score}</span>
                 </div>
               </div>
               <div>
-                <p className="text-sm font-bold">{copy.score}</p>
-                <p className={cn('text-[11px] font-semibold', gradeConfig.color)}>{gradeConfig.label}</p>
+                <p className="text-[15px] font-semibold text-white">{copy.score}</p>
+                <p className={cn('text-[11px] font-semibold uppercase tracking-[0.08em]', gradeConfig.color)}>{gradeConfig.label}</p>
               </div>
             </div>
-            <Button variant="ghost" size="sm" className="h-7 text-[11px]" onClick={handleAnalyze} disabled={isLoading}>
+            <Button variant="ghost" size="sm" className="h-7 text-[11px] text-white/55 hover:text-white hover:bg-white/[0.04] font-semibold" onClick={handleAnalyze} disabled={isLoading}>
               {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : copy.refresh}
             </Button>
           </div>
 
           <div className="mb-3 grid grid-cols-2 gap-2">
-            <div className="rounded-xl glass-light border-green-500/10 p-2.5">
-              <div className="mb-1 flex items-center gap-1.5">
-                <CheckCircle2 className="h-3 w-3 text-green-400" />
-                <span className="text-[11px] font-bold uppercase text-green-400">{copy.strengths}</span>
+            <div className="rounded-xl bg-[hsl(var(--apice-emerald))]/[0.06] p-3">
+              <div className="mb-1.5 flex items-center gap-1.5">
+                <CheckCircle2 className="h-3 w-3 text-[hsl(var(--apice-emerald))]" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[hsl(var(--apice-emerald))]">{copy.strengths}</span>
               </div>
               {analysis.strengths.slice(0, 2).map((item, index) => (
-                <p key={index} className="text-[11px] leading-tight text-muted-foreground">{item}</p>
+                <p key={index} className="text-[11px] leading-tight text-white/70">{item}</p>
               ))}
             </div>
-            <div className="rounded-xl glass-light border-amber-500/10 p-2.5">
-              <div className="mb-1 flex items-center gap-1.5">
-                <AlertTriangle className="h-3 w-3 text-amber-400" />
-                <span className="text-[11px] font-bold uppercase text-amber-400">{copy.improve}</span>
+            <div className="rounded-xl bg-amber-500/[0.06] p-3">
+              <div className="mb-1.5 flex items-center gap-1.5">
+                <AlertTriangle className="h-3 w-3 text-amber-300" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-300">{copy.improve}</span>
               </div>
               {analysis.improvements.slice(0, 2).map((item, index) => (
-                <p key={index} className="text-[11px] leading-tight text-muted-foreground">{item}</p>
+                <p key={index} className="text-[11px] leading-tight text-white/70">{item}</p>
               ))}
             </div>
           </div>
 
-          <div className="mb-3 flex items-center gap-2 rounded-xl glass-light border-primary/10 p-2.5">
-            <Zap className="h-3.5 w-3.5 shrink-0 text-primary" />
-            <p className="text-[11px] font-medium text-primary">{analysis.nextAction}</p>
+          <div className="mb-3 flex items-center gap-2 rounded-xl bg-[hsl(var(--apice-emerald))]/[0.06] p-3">
+            <Zap className="h-3.5 w-3.5 shrink-0 text-[hsl(var(--apice-emerald))]" />
+            <p className="text-[11px] font-medium text-[hsl(var(--apice-emerald))]">{analysis.nextAction}</p>
           </div>
 
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex w-full items-center justify-center gap-1 text-xs font-medium text-muted-foreground"
+            className="flex w-full items-center justify-center gap-1 text-[11px] font-semibold text-white/55 hover:text-white transition-colors"
           >
             {expanded ? copy.detailsOpen : copy.detailsClosed}
             {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
@@ -192,22 +198,22 @@ export function AiPortfolioScore() {
               >
                 <div className="space-y-3 pt-3">
                   <div>
-                    <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{copy.risk}</p>
-                    <p className="text-xs leading-relaxed text-muted-foreground">{analysis.riskAssessment}</p>
+                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">{copy.risk}</p>
+                    <p className="text-xs leading-relaxed text-white/70">{analysis.riskAssessment}</p>
                   </div>
 
                   <div>
-                    <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{copy.outlook}</p>
-                    <p className="text-xs leading-relaxed text-muted-foreground">{analysis.outlook}</p>
+                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">{copy.outlook}</p>
+                    <p className="text-xs leading-relaxed text-white/70">{analysis.outlook}</p>
                   </div>
 
                   {analysis.rebalanceNeeded && analysis.rebalanceSuggestion && (
-                    <div className="rounded-xl glass-light border-orange-500/10 p-2.5">
-                      <div className="mb-1 flex items-center gap-1.5">
-                        <TrendingUp className="h-3 w-3 text-orange-400" />
-                        <span className="text-[11px] font-bold uppercase text-orange-400">{copy.rebalance}</span>
+                    <div className="rounded-xl bg-orange-500/[0.06] p-3">
+                      <div className="mb-1.5 flex items-center gap-1.5">
+                        <TrendingUp className="h-3 w-3 text-orange-300" />
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-orange-300">{copy.rebalance}</span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground">{analysis.rebalanceSuggestion}</p>
+                      <p className="text-[11px] text-white/70">{analysis.rebalanceSuggestion}</p>
                     </div>
                   )}
                 </div>

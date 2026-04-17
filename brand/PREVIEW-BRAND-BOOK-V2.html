@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Apice Brand Book v2.0 · Final + V2 Action Plan</title>
+<style>
+  :root{
+    --dark:#0E0E12; --dark-2:#050816; --dark-3:#0E1220;
+    --cream:#F7F3ED; --cream-2:#FBF8F2;
+    --n200:#E4E0D7; --n400:#A8A39A; --n500:#6E6A61; --n700:#3F3D38;
+    --emerald:#16A661; --emerald-deep:#0F5D3F;
+    --blue-glow:#528FFF;
+    --indigo:#8B5CF6; --sky:#0EA5E9; --rose:#F43F5E; --purple:#A855F7; --amber:#D9912D;
+    --font:'Geist','Inter',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--cream);color:var(--dark);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1440px;margin:0 auto;padding:56px 32px 140px}
+  .kicker{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#fff;background:var(--emerald);padding:6px 14px;border-radius:9999px;margin-bottom:20px}
+  h1{font-weight:800;letter-spacing:-0.03em;font-size:52px;margin:0 0 14px;line-height:1.05}
+  h1 small{display:block;font-size:16px;font-weight:400;color:var(--n500);margin-top:14px;line-height:1.55;max-width:760px}
+  h2{font-weight:800;letter-spacing:-0.025em;font-size:32px;margin:80px 0 8px;display:flex;align-items:center;gap:14px}
+  h2 .sec-num{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:var(--emerald);color:#fff;font-size:15px}
+  h2 + .sub{color:var(--n500);font-size:14px;margin:0 0 24px;max-width:780px;line-height:1.55}
+  h3{font-weight:700;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--n500);margin:0 0 12px}
+  p{font-size:14px;line-height:1.65;color:var(--n700);margin:0 0 10px}
+  code{background:var(--cream-2);padding:2px 6px;border-radius:4px;font-size:12px;font-family:'Geist Mono',monospace}
+
+  /* Landing hero preview (matches CEO screenshot) */
+  .landing-hero{background:linear-gradient(135deg,#050816 0%,#0E1220 50%,#161c2e 100%);border-radius:20px;padding:56px 48px;margin-top:24px;position:relative;overflow:hidden}
+  .landing-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 25% 50%,rgba(82,143,255,0.12) 0%,transparent 50%);pointer-events:none}
+  .landing-logo-row{display:flex;align-items:center;gap:20px;position:relative;z-index:1}
+  .landing-logo-container{width:88px;height:88px;position:relative;display:flex;align-items:center;justify-content:center}
+  .landing-logo-container object{width:100%;height:100%}
+  .landing-text{color:#fff}
+  .landing-text h3{color:rgba(255,255,255,0.7);margin:0}
+  .landing-name{font-size:44px;font-weight:700;letter-spacing:-0.03em;margin:2px 0 4px}
+  .landing-sub{font-size:12px;letter-spacing:0.32em;color:rgba(255,255,255,0.45);text-transform:uppercase;font-weight:500}
+  .landing-label{position:absolute;top:16px;right:20px;background:var(--emerald);color:#fff;padding:4px 10px;border-radius:9999px;font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;z-index:2}
+
+  /* Scale demo */
+  .scale-row{display:flex;gap:28px;align-items:baseline;padding:28px 32px;background:#fff;border:1px solid var(--n200);border-radius:14px;flex-wrap:wrap;margin-top:20px}
+  .scale-row .s{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--dark)}
+  .scale-row .s small{font-size:10px;color:var(--n500);text-transform:uppercase;letter-spacing:0.1em;font-weight:600}
+
+  /* Logo variants grid */
+  .logo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+  @media(max-width:900px){.logo-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.logo-grid{grid-template-columns:1fr}}
+  .logo-cell{background:#fff;border:1px solid var(--n200);border-radius:14px;padding:32px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;min-height:180px;justify-content:center}
+  .logo-cell.dark{background:var(--dark)}
+  .logo-cell.gradient-dark{background:linear-gradient(135deg,#050816 0%,#0E1220 100%)}
+  .logo-cell object{max-width:100%;max-height:100px}
+  .cell-label{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--n500)}
+  .logo-cell.dark .cell-label,.logo-cell.gradient-dark .cell-label{color:rgba(247,243,237,.5)}
+
+  /* Palette */
+  .palette{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+  @media(max-width:700px){.palette{grid-template-columns:repeat(2,1fr)}}
+  .swatch{border-radius:12px;padding:20px 18px;min-height:110px;color:#fff;font-weight:700;display:flex;flex-direction:column;justify-content:space-between}
+  .swatch .label{font-size:13px;letter-spacing:0.08em;text-transform:uppercase}
+  .swatch .hex{font-size:11px;font-weight:500;opacity:.8;font-family:'Geist Mono',monospace}
+  .swatch .role{font-size:10px;opacity:.7;margin-top:4px;font-weight:600}
+
+  /* Typography */
+  .type-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--n200);border-radius:14px;overflow:hidden;margin-top:16px}
+  .type-table th,.type-table td{text-align:left;padding:14px 18px;border-bottom:1px solid var(--n200);font-size:13px;vertical-align:middle}
+  .type-table th{background:var(--cream-2);font-weight:700;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--n500)}
+  .type-sample{color:var(--dark)}
+
+  /* Expert cards */
+  .experts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:20px}
+  @media(max-width:900px){.experts-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.experts-grid{grid-template-columns:1fr}}
+  .exp-card{background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--n200)}
+  .exp-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+  .exp-info{padding:16px 18px}
+  .exp-name{font-size:18px;font-weight:800;letter-spacing:-0.01em}
+  .exp-title{font-size:12px;color:var(--n500);font-style:italic;margin:2px 0 8px}
+  .exp-archetype{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}
+
+  /* Clients grid */
+  .clients-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:16px}
+  @media(max-width:1000px){.clients-grid{grid-template-columns:repeat(4,1fr)}}
+  @media(max-width:700px){.clients-grid{grid-template-columns:repeat(3,1fr)}}
+  .client{background:#fff;border:1px solid var(--n200);border-radius:12px;overflow:hidden}
+  .client img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+  .client .c-name{padding:8px 12px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+  .client .c-name small{color:var(--n500);font-weight:500}
+
+  /* V2 Plan sprints */
+  .sprints{display:grid;grid-template-columns:1fr;gap:14px;margin-top:20px}
+  .sprint{background:#fff;border:1px solid var(--n200);border-radius:14px;padding:22px 26px;position:relative}
+  .sprint .sprint-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .sprint-num{font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--emerald)}
+  .sprint-title{font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:2px 0 0}
+  .sprint-dur{font-size:11px;color:var(--n500);background:var(--cream-2);padding:4px 10px;border-radius:9999px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap}
+  .sprint-desc{margin-top:10px;font-size:13px;color:var(--n700);line-height:1.55}
+  .sprint-deliverables{list-style:none;padding:0;margin:12px 0 0}
+  .sprint-deliverables li{font-size:12px;color:var(--n700);padding:4px 0;display:flex;gap:10px;line-height:1.5}
+  .sprint-deliverables li::before{content:"▸";color:var(--emerald);font-weight:700;flex:0 0 12px}
+
+  /* Stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:20px}
+  @media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat-card{background:#fff;border:1px solid var(--n200);border-radius:14px;padding:20px 24px}
+  .stat-card .num{font-size:28px;font-weight:800;letter-spacing:-0.02em}
+  .stat-card .lbl{font-size:11px;color:var(--n500);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-top:2px}
+
+  .docs-links{background:#fff;border:1px solid var(--n200);border-radius:14px;padding:24px 28px;margin-top:24px}
+  .docs-links ul{list-style:none;padding:0;margin:0;columns:2;column-gap:32px}
+  @media(max-width:700px){.docs-links ul{columns:1}}
+  .docs-links li{font-size:13px;color:var(--n700);padding:6px 0;break-inside:avoid}
+  .docs-links li code{font-size:11px}
+
+  .decide{background:var(--dark);color:var(--cream);border-radius:20px;padding:40px 32px;margin-top:48px}
+  .decide h2{color:var(--cream);margin:0 0 12px}
+  .decide h2 .sec-num{background:var(--emerald)}
+  .decide p{color:rgba(247,243,237,.8);font-size:15px;line-height:1.7;max-width:740px}
+  .decide ol{color:rgba(247,243,237,.85);font-size:14px;line-height:1.8;padding-left:20px;max-width:740px;margin-top:12px}
+  .decide strong{color:var(--emerald)}
+
+  .footer{margin-top:56px;padding-top:32px;border-top:1px solid var(--n200);color:var(--n500);font-size:12px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">★ brand book v2.0 final · v2 action plan · 2026-04-17</div>
+  <h1>Apice · Brand Book v2.0
+    <small>Triângulo refinado (match screenshot), sistema completo de logo, Brand Book consolidado e plano de ação V2 sprint-based para migrar o app sem breaking changes. Tudo lapidado desde o v1 Apex-A até aqui.</small>
+  </h1>
+
+  <!-- ================================================================ LANDING HERO MATCH -->
+  <h2><span class="sec-num">1</span>Landing Hero · Match Screenshot</h2>
+  <p class="sub">Primeira validação — a nova versão recria EXATAMENTE o visual que você mostrou no screenshot: circle container translúcido, glow azul sutil, triângulo cream outline dentro, "Apice" + "AI TRADE SETUP" à direita.</p>
+
+  <div class="landing-hero">
+    <span class="landing-label">Match preview</span>
+    <div class="landing-logo-row">
+      <div class="landing-logo-container">
+        <object data="assets/logos/apice-triangle-in-circle-dark.svg" type="image/svg+xml"></object>
+      </div>
+      <div class="landing-text">
+        <div class="landing-name">Apice</div>
+        <div class="landing-sub">AI TRADE SETUP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================ LOGO SYSTEM -->
+  <h2><span class="sec-num">2</span>Logo System · All Final Versions</h2>
+  <p class="sub">Todas as versões aprovadas do logo. Triangle mark como ícone · wordmark "Apice" + emerald dot como voz · circle container + glow azul para dark hero.</p>
+
+  <h3>Triangle Standalone (light bg)</h3>
+  <div class="scale-row">
+    <div class="s"><object data="assets/logos/apice-triangle-v6-final.svg" type="image/svg+xml" style="width:16px;height:16px"></object><small>16px</small></div>
+    <div class="s"><object data="assets/logos/apice-triangle-v6-final.svg" type="image/svg+xml" style="width:24px;height:24px"></object><small>24px</small></div>
+    <div class="s"><object data="assets/logos/apice-triangle-v6-final.svg" type="image/svg+xml" style="width:32px;height:32px"></object><small>32px</small></div>
+    <div class="s"><object data="assets/logos/apice-triangle-v6-final.svg" type="image/svg+xml" style="width:48px;height:48px"></object><small>48px</small></div>
+    <div class="s"><object data="assets/logos/apice-triangle-v6-final.svg" type="image/svg+xml" style="width:72px;height:72px"></object><small>72px</small></div>
+    <div class="s"><object data="assets/logos/apice-triangle-v6-final.svg" type="image/svg+xml" style="width:96px;height:96px"></object><small>96px</small></div>
+    <div class="s"><object data="assets/logos/apice-triangle-v6-final.svg" type="image/svg+xml" style="width:128px;height:128px"></object><small>128px</small></div>
+  </div>
+
+  <h3 style="margin-top:28px">All variants</h3>
+  <div class="logo-grid">
+    <div class="logo-cell">
+      <object data="assets/logos/apice-triangle-v6-final.svg" type="image/svg+xml" style="width:64px"></object>
+      <div class="cell-label">Triangle · light</div>
+    </div>
+    <div class="logo-cell gradient-dark">
+      <object data="assets/logos/apice-triangle-in-circle-dark.svg" type="image/svg+xml" style="width:96px"></object>
+      <div class="cell-label">Triangle in circle · dark hero</div>
+    </div>
+    <div class="logo-cell dark">
+      <object data="assets/logos/apice-triangle-v6-final.svg" type="image/svg+xml" style="width:64px;color:#F7F3ED"></object>
+      <div class="cell-label">Triangle · dark bg (no circle)</div>
+    </div>
+    <div class="logo-cell" style="min-height:140px">
+      <object data="assets/logos/apice-logo-primary-light.svg" type="image/svg+xml" style="max-height:60px"></object>
+      <div class="cell-label">Primary lockup · light</div>
+    </div>
+    <div class="logo-cell gradient-dark" style="min-height:140px">
+      <object data="assets/logos/apice-logo-primary-dark.svg" type="image/svg+xml" style="max-height:80px"></object>
+      <div class="cell-label">Primary lockup · dark (with "AI TRADE SETUP")</div>
+    </div>
+    <div class="logo-cell" style="padding:20px">
+      <object data="assets/logos/apice-app-icon-final.svg" type="image/svg+xml" style="width:100px;border-radius:22px"></object>
+      <div class="cell-label">App icon · 1024²</div>
+    </div>
+    <div class="logo-cell">
+      <object data="assets/logos/apice-favicon-final.svg" type="image/svg+xml" style="width:32px;height:32px"></object>
+      <object data="assets/logos/apice-favicon-final.svg" type="image/svg+xml" style="width:48px;height:48px"></object>
+      <div class="cell-label">Favicon · 16 / 24 / 32 / 48</div>
+    </div>
+    <div class="logo-cell" style="padding:20px">
+      <div style="font-family:var(--font);font-weight:700;font-size:40px;letter-spacing:-1.2px">Apice<span style="color:var(--emerald)">.</span></div>
+      <div class="cell-label">Wordmark only · with dot</div>
+    </div>
+    <div class="logo-cell dark">
+      <div style="font-family:var(--font);font-weight:700;font-size:40px;letter-spacing:-1.2px;color:var(--cream)">Apice<span style="color:var(--emerald)">.</span></div>
+      <div class="cell-label">Wordmark · dark</div>
+    </div>
+  </div>
+
+  <!-- ================================================================ PALETTE -->
+  <h2><span class="sec-num">3</span>Color Palette</h2>
+  <p class="sub">Core: ink + cream + emerald. Accent experts 1x por avatar. Blue glow só no Landing hero.</p>
+
+  <h3>Core Palette</h3>
+  <div class="palette">
+    <div class="swatch" style="background:#0E0E12">
+      <div class="label">INK</div>
+      <div>
+        <div class="hex">#0E0E12</div>
+        <div class="role">Text, dark bg</div>
+      </div>
+    </div>
+    <div class="swatch" style="background:#F7F3ED;color:var(--dark)">
+      <div class="label" style="color:var(--dark)">CREAM</div>
+      <div>
+        <div class="hex" style="color:var(--n500)">#F7F3ED</div>
+        <div class="role" style="color:var(--n500)">Light bg, text on dark</div>
+      </div>
+    </div>
+    <div class="swatch" style="background:#16A661">
+      <div class="label">EMERALD</div>
+      <div>
+        <div class="hex">#16A661</div>
+        <div class="role">Signature, live states</div>
+      </div>
+    </div>
+    <div class="swatch" style="background:#0F5D3F">
+      <div class="label">EMERALD DEEP</div>
+      <div>
+        <div class="hex">#0F5D3F</div>
+        <div class="role">Hairlines, structural</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">Landing Accent (dark hero only)</h3>
+  <div class="palette">
+    <div class="swatch" style="background:#528FFF">
+      <div class="label">BLUE GLOW</div>
+      <div>
+        <div class="hex">#528FFF</div>
+        <div class="role">Soft glow no container</div>
+      </div>
+    </div>
+    <div class="swatch" style="background:#050816">
+      <div class="label">DEEP NAVY</div>
+      <div>
+        <div class="hex">#050816</div>
+        <div class="role">Landing deep bg</div>
+      </div>
+    </div>
+    <div class="swatch" style="background:linear-gradient(135deg,#050816 0%,#0E1220 100%)">
+      <div class="label">GRADIENT MID</div>
+      <div>
+        <div class="hex">#0E1220</div>
+        <div class="role">Mid-tone Landing</div>
+      </div>
+    </div>
+    <div class="swatch" style="background:rgba(82,143,255,0.12);color:var(--dark);border:1px solid var(--n200)">
+      <div class="label" style="color:var(--dark)">GLOW 12%</div>
+      <div>
+        <div class="hex" style="color:var(--n500)">rgba(82,143,255,.12)</div>
+        <div class="role" style="color:var(--n500)">Ambient</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================ TYPOGRAPHY -->
+  <h2><span class="sec-num">4</span>Typography</h2>
+  <p class="sub">Geist para tudo. Weights 400/500/700. Tabular numerics obrigatório em valores financeiros.</p>
+
+  <table class="type-table">
+    <thead><tr><th>Token</th><th>Sample</th><th>Size / Weight</th></tr></thead>
+    <tbody>
+      <tr><td><code>display-lg</code></td><td><span class="type-sample" style="font-size:48px;font-weight:700;letter-spacing:-0.03em">Build Wealth.</span></td><td>88px / 700</td></tr>
+      <tr><td><code>h1</code></td><td><span class="type-sample" style="font-size:28px;font-weight:800;letter-spacing:-0.02em">Modern Fintech Professional</span></td><td>36px / 800</td></tr>
+      <tr><td><code>h2</code></td><td><span class="type-sample" style="font-size:22px;font-weight:800;letter-spacing:-0.015em">AI Experts</span></td><td>28px / 800</td></tr>
+      <tr><td><code>body</code></td><td><span class="type-sample" style="font-size:15px;font-weight:400">Elite investors show up every Monday for a decade.</span></td><td>15px / 400</td></tr>
+      <tr><td><code>caption</code></td><td><span class="type-sample" style="font-size:12px;font-weight:500;color:var(--n500)">Since 2026 · Apice Capital</span></td><td>12px / 500</td></tr>
+      <tr><td><code>overline</code></td><td><span class="type-sample" style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--n500)">CLUB MEMBER</span></td><td>11px / 700 · tracked</td></tr>
+      <tr><td><code>mono-num</code></td><td><span class="type-sample" style="font-family:'Geist Mono',monospace;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums">$12,847.32</span></td><td>Geist Mono · tabular</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ================================================================ EXPERTS -->
+  <h2><span class="sec-num">5</span>6 AI Experts · Photoreal + ENHANCE</h2>
+  <p class="sub">Portraits finais gerados via Gemini 3 Pro Image + ENHANCE layer. Semi-photorealistic editorial — parecem reais sem parecer stock photos.</p>
+
+  <div class="experts-grid">
+    <div class="exp-card">
+      <img src="assets/experts/real/criativos/AD-01-nora-enhanced.png" alt="Nora"/>
+      <div class="exp-info"><div class="exp-name">Nora</div><div class="exp-title">the Thesis Builder</div><div class="exp-archetype" style="color:var(--indigo)">Analyst · Indigo</div></div>
+    </div>
+    <div class="exp-card">
+      <img src="assets/experts/real/criativos/AD-02-kai-enhanced.png" alt="Kai"/>
+      <div class="exp-info"><div class="exp-name">Kai</div><div class="exp-title">the Pattern Reader</div><div class="exp-archetype" style="color:var(--sky)">Momentum · Sky</div></div>
+    </div>
+    <div class="exp-card">
+      <img src="assets/experts/real/criativos/AD-03-elena-enhanced.png" alt="Elena"/>
+      <div class="exp-info"><div class="exp-name">Elena</div><div class="exp-title">the Patient Compounder</div><div class="exp-archetype" style="color:var(--emerald)">DCA Master · Emerald</div></div>
+    </div>
+    <div class="exp-card">
+      <img src="assets/experts/real/criativos/AD-04-dante-enhanced.png" alt="Dante"/>
+      <div class="exp-info"><div class="exp-name">Dante</div><div class="exp-title">the Risk Architect</div><div class="exp-archetype" style="color:var(--rose)">Risk Manager · Rose</div></div>
+    </div>
+    <div class="exp-card">
+      <img src="assets/experts/real/criativos/AD-05-maya-enhanced.png" alt="Maya"/>
+      <div class="exp-info"><div class="exp-name">Maya</div><div class="exp-title">the Deep Researcher</div><div class="exp-archetype" style="color:var(--purple)">Researcher · Purple</div></div>
+    </div>
+    <div class="exp-card">
+      <img src="assets/experts/real/criativos/AD-06-omar-enhanced.png" alt="Omar"/>
+      <div class="exp-info"><div class="exp-name">Omar</div><div class="exp-title">the Mentor</div><div class="exp-archetype" style="color:var(--amber)">Mentor · Amber</div></div>
+    </div>
+  </div>
+
+  <!-- ================================================================ CLIENTS -->
+  <h2><span class="sec-num">6</span>20 Clients · Social Proof Library</h2>
+  <p class="sub">10 mulheres + 10 homens · 14 países · estilos candid reais (não editorial, não stock photo). Para testimonials, landing social proof, ad creatives, review cards.</p>
+
+  <div class="clients-grid">
+    <div class="client"><img src="assets/clients/criativos/AD-01-w01-sarah-us.png" alt="Sarah"/><div class="c-name">Sarah<small>🇺🇸 32</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-02-w02-emma-uk.png" alt="Emma"/><div class="c-name">Emma<small>🇬🇧 28</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-03-w03-yuki-jp.png" alt="Yuki"/><div class="c-name">Yuki<small>🇯🇵 35</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-04-w04-maria-es.png" alt="Maria"/><div class="c-name">Maria<small>🇪🇸 45</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-05-w05-amara-ng.png" alt="Amara"/><div class="c-name">Amara<small>🇳🇬 30</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-06-w06-isabella-br.png" alt="Isabella"/><div class="c-name">Isabella<small>🇧🇷 26</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-07-w07-priya-in.png" alt="Priya"/><div class="c-name">Priya<small>🇮🇳 38</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-08-w08-anna-de.png" alt="Anna"/><div class="c-name">Anna<small>🇩🇪 42</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-09-w09-mei-cn.png" alt="Mei"/><div class="c-name">Mei<small>🇨🇳 29</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-10-w10-sofia-it.png" alt="Sofia"/><div class="c-name">Sofia<small>🇮🇹 50</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-11-m01-james-us.png" alt="James"/><div class="c-name">James<small>🇺🇸 34</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-12-m02-oliver-uk.png" alt="Oliver"/><div class="c-name">Oliver<small>🇬🇧 40</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-13-m03-carlos-mx.png" alt="Carlos"/><div class="c-name">Carlos<small>🇲🇽 38</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-14-m04-kenji-jp.png" alt="Kenji"/><div class="c-name">Kenji<small>🇯🇵 45</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-15-m05-marcus-de.png" alt="Marcus"/><div class="c-name">Marcus<small>🇩🇪 33</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-16-m06-rafael-br.png" alt="Rafael"/><div class="c-name">Rafael<small>🇧🇷 29</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-17-m07-samir-in.png" alt="Samir"/><div class="c-name">Samir<small>🇮🇳 36</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-18-m08-hugo-fr.png" alt="Hugo"/><div class="c-name">Hugo<small>🇫🇷 47</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-19-m09-daniel-za.png" alt="Daniel"/><div class="c-name">Daniel<small>🇿🇦 31</small></div></div>
+    <div class="client"><img src="assets/clients/criativos/AD-20-m10-alex-au.png" alt="Alex"/><div class="c-name">Alex<small>🇦🇺 52</small></div></div>
+  </div>
+
+  <!-- ================================================================ V2 ACTION PLAN -->
+  <h2><span class="sec-num">7</span>V2 Action Plan · 5 Sprints · ~4 Semanas</h2>
+  <p class="sub">Migração sprint-based sem breaking changes. Cada sprint entrega valor reversível. Feature flag + rollout gradual.</p>
+
+  <div class="stats">
+    <div class="stat-card"><div class="num">5</div><div class="lbl">Sprints</div></div>
+    <div class="stat-card"><div class="num">~4</div><div class="lbl">Semanas</div></div>
+    <div class="stat-card"><div class="num">22</div><div class="lbl">Dias úteis</div></div>
+    <div class="stat-card"><div class="num">30+</div><div class="lbl">Tarefas</div></div>
+  </div>
+
+  <div class="sprints">
+    <div class="sprint">
+      <div class="sprint-head">
+        <div>
+          <div class="sprint-num">Sprint 0 · PREP</div>
+          <div class="sprint-title">Pré-requisitos</div>
+        </div>
+        <span class="sprint-dur">3 dias</span>
+      </div>
+      <div class="sprint-desc">Copiar assets · branch · feature flag · Storybook · rotate API key · post-process portraits.</div>
+      <ul class="sprint-deliverables">
+        <li>Assets em <code>src/assets/brand/</code></li>
+        <li>Branch <code>feature/brand-v2</code></li>
+        <li>Flag <code>ENABLE_BRAND_V2</code></li>
+        <li>6 experts post-processed (dot overlay)</li>
+        <li>20 clients post-processed</li>
+      </ul>
+    </div>
+
+    <div class="sprint">
+      <div class="sprint-head">
+        <div>
+          <div class="sprint-num">Sprint 1 · LOGO SWAP</div>
+          <div class="sprint-title">Triangle + Wordmark em toda tela</div>
+        </div>
+        <span class="sprint-dur">5 dias</span>
+      </div>
+      <div class="sprint-desc">Criar <code>&lt;ApiceLogo/&gt;</code>. Substituir triangle em Landing, Splash, Welcome, BottomNav. Favicon + OG + App icon iOS/Android.</div>
+      <ul class="sprint-deliverables">
+        <li>Component <code>&lt;ApiceLogo/&gt;</code> com 4 variants</li>
+        <li>Landing.tsx linha 110-116 atualizada</li>
+        <li>Favicon + OG image swapped</li>
+        <li>iOS/Android icons via xcassetgen</li>
+        <li>QA em 5 browsers + 2 mobile OS</li>
+      </ul>
+    </div>
+
+    <div class="sprint">
+      <div class="sprint-head">
+        <div>
+          <div class="sprint-num">Sprint 2 · TOKENS</div>
+          <div class="sprint-title">Color + Typography System</div>
+        </div>
+        <span class="sprint-dur">3 dias</span>
+      </div>
+      <div class="sprint-desc">Tailwind config + CSS custom props + fonte Geist via fontsource + tabular numerics em valores financeiros.</div>
+      <ul class="sprint-deliverables">
+        <li><code>tailwind.config.ts</code> com tokens Apice</li>
+        <li>Geist via <code>@fontsource</code></li>
+        <li>Type scale definido</li>
+        <li>Numerics mono em Portfolio/Home/DCA</li>
+      </ul>
+    </div>
+
+    <div class="sprint">
+      <div class="sprint-head">
+        <div>
+          <div class="sprint-num">Sprint 3 · EXPERTS</div>
+          <div class="sprint-title">AI Experts Integration</div>
+        </div>
+        <span class="sprint-dur">5 dias</span>
+      </div>
+      <div class="sprint-desc"><code>experts.ts</code> data + <code>&lt;ExpertAvatar/&gt;</code> + <code>&lt;ExpertCard/&gt;</code> + <code>&lt;ExpertQuote/&gt;</code>. Integrar em Academy, Home daily insight, <code>/experts</code> page.</div>
+      <ul class="sprint-deliverables">
+        <li>6 experts data module</li>
+        <li>3 componentes React</li>
+        <li>Página <code>/experts</code> nova</li>
+        <li>Daily insight rotaciona por dia</li>
+        <li><code>&lt;ApiceAI/&gt;</code> com 5 states</li>
+      </ul>
+    </div>
+
+    <div class="sprint">
+      <div class="sprint-head">
+        <div>
+          <div class="sprint-num">Sprint 4 · SOCIAL PROOF</div>
+          <div class="sprint-title">Testimonials</div>
+        </div>
+        <span class="sprint-dur">3 dias</span>
+      </div>
+      <div class="sprint-desc">Stefan escreve 20 quotes. <code>&lt;Testimonial/&gt;</code> + <code>&lt;TestimonialMarquee/&gt;</code>. Integrar em Landing + Upgrade + Quiz.</div>
+      <ul class="sprint-deliverables">
+        <li>20 quotes escritas</li>
+        <li>2 componentes novos</li>
+        <li>Marquee scroll auto</li>
+        <li>3 placements no app</li>
+      </ul>
+    </div>
+
+    <div class="sprint">
+      <div class="sprint-head">
+        <div>
+          <div class="sprint-num">Sprint 5 · LAUNCH</div>
+          <div class="sprint-title">Deploy + Polish</div>
+        </div>
+        <span class="sprint-dur">3 dias</span>
+      </div>
+      <div class="sprint-desc">Merge PR · staging QA · rollout 10% → 100% · App Store + Play Store update · post-mortem.</div>
+      <ul class="sprint-deliverables">
+        <li>PR aprovado + merged</li>
+        <li>Deploy gradual feature-flagged</li>
+        <li>Stores atualizadas</li>
+        <li>Post-mortem + learnings</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ================================================================ DOCS LINKS -->
+  <h2><span class="sec-num">8</span>Documentação Completa</h2>
+  <div class="docs-links">
+    <ul>
+      <li>📘 <code>brand/BRAND-BOOK.md</code> — este doc completo</li>
+      <li>🗺️ <code>brand/V2-ACTION-PLAN.md</code> — action plan detalhado</li>
+      <li>📖 <code>brand/DECISIONS-LOG.md</code> — histórico de todas as decisões (v1→v6)</li>
+      <li>🎨 <code>brand/01-brand-foundation/brand-system-FINAL.md</code> — tokens visuais</li>
+      <li>✍️ <code>brand/01-brand-foundation/brand-voice-FINAL.md</code> — voice guide</li>
+      <li>📜 <code>brand/01-brand-foundation/apice-code-manifesto-FINAL.md</code> — 7 tenets</li>
+      <li>💬 <code>brand/01-brand-foundation/taglines-library.md</code> — 12 taglines por contexto</li>
+      <li>🏷️ <code>brand/01-brand-foundation/feature-naming-guide.md</code></li>
+      <li>🎭 <code>brand/01-brand-foundation/abstract-visual-system.md</code> — 5 motifs</li>
+      <li>🎬 <code>brand/01-brand-foundation/motion-spec-FINAL.md</code></li>
+      <li>🤖 <code>brand/03-ai-experts/apice-ai-identity.md</code> — Apice AI</li>
+      <li>👥 <code>brand/03-ai-experts/visual-system-FINAL.md</code> — experts system</li>
+      <li>📸 <code>brand/03-ai-experts/creativeos-execution-guide.md</code> — como gerar mais</li>
+      <li>📣 <code>brand/05-marketing/campaign-playbook.md</code> — 3 archetypes</li>
+      <li>📆 <code>brand/05-marketing/weekly-content-system.md</code> — 7 dias × 7 experts</li>
+      <li>🏪 <code>brand/06-app-store/*.md</code> — 6 docs launch-ready</li>
+    </ul>
+  </div>
+
+  <!-- ================================================================ -->
+  <div class="decide">
+    <h2><span class="sec-num">9</span>Entrega final, sir</h2>
+    <p>Brand Book v2.0 consolidado. V2 Action Plan com 5 sprints. Todas as versões aprovadas do logo. Tudo pronto para começar implementação.</p>
+    <ol>
+      <li><strong>Aprova Brand Book v2.0</strong> → entra como source of truth. Qualquer ajuste futuro vira v2.1.</li>
+      <li><strong>Aprova V2 Action Plan</strong> → @dev pode começar Sprint 0 imediatamente.</li>
+      <li><strong>Rotaciona a API key exposta</strong> antes do Sprint 0 (bloqueador de segurança).</li>
+      <li><strong>Decide 4 pendentes herdadas:</strong> pricing App Store (Path B mobile split?) · manifesto sign-off · paid vs orgânico mês 1-3 · se app icon mantém wordmark ou volta para triangle-only a 29pt.</li>
+      <li><strong>Kickoff meeting</strong> com @dev para passar Action Plan e ajustar escopo.</li>
+    </ol>
+
+    <p style="margin-top:20px">Session total cost: <strong>$1.28 USD</strong> (12 expert gens + 20 client gens via Gemini 3 Pro Image).</p>
+  </div>
+
+  <div class="footer">
+    <strong>Delivered by:</strong> Jarvis (orchestrator) · Uma (design) · Stefan (voice) · Media-engineer (production) · Apple-UX (iOS) · Media-head (marketing) · Atlas (App Store research)<br/>
+    <strong>Session:</strong> 2026-04-17 · from v1 Apex-A to v6 final · 8 preview HTMLs · 128+ assets produced · 84 arquivos novos nesta sessão<br/>
+    <strong>Model usado:</strong> Gemini 3 Pro Image Preview (via CreativeOS) + ENHANCE layer<br/>
+    <strong>Brand Book:</strong> v2.0 FINAL · Apice Capital · Jarvis, Chief of Staff AI
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!-- Apice · triangle lockup STACKED · triangle v3 centered above "Apice" wordmark -->
+<!-- Used for square social avatars, app store hero, certificate seal -->
+<svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice">
+  <title>Apice triangle lockup stacked</title>
+  <style>
+    .wm { font-family: 'Geist','Inter',system-ui,-apple-system,sans-serif; font-weight: 700; font-size: 40px; letter-spacing: -1.2px; fill: currentColor; text-anchor: middle; }
+  </style>
+  <!-- Refined triangle centered at top -->
+  <g transform="translate(80 20)">
+    <path d="M 30 10 L 54 48 L 6 48 Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+    <circle cx="30" cy="5" r="3.2" fill="#16A661"/>
+  </g>
+  <!-- Wordmark "Apice" centered below -->
+  <text x="100" y="148" class="wm">Apice</text>
+  <!-- Trailing dot -->
+  <circle cx="155" cy="143" r="4" fill="#16A661"/>
+</svg>

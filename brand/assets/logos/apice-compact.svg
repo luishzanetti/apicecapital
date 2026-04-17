@@ -1,0 +1,11 @@
+<!-- Apice · compact · v2 · Uma 2026-04-17 -->
+<!-- Theme-aware: wordmark uses currentColor; signature dot locked to emerald #16A661. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 32" role="img" aria-label="Apice">
+  <title>Apice compact</title>
+  <style>
+    .wm { font-family: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.66px; fill: currentColor; }
+    .dot { fill: #16A661; }
+  </style>
+  <text x="10" y="23" class="wm">Apice</text>
+  <circle cx="72.5" cy="22" r="1.98" class="dot"/>
+</svg>

@@ -1,0 +1,9 @@
+<!-- Apice · triangle-mark v4 · "Solid Peak" · full fill + emerald dot summit -->
+<!-- Most confident variant · solid filled triangle (cream on dark, ink on light) · emerald dot anchor at apex -->
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice">
+  <title>Apice triangle · solid peak</title>
+  <!-- Full filled triangle -->
+  <path d="M32 14 L54 52 L10 52 Z" fill="currentColor"/>
+  <!-- Summit dot: emerald signature anchored at apex tip -->
+  <circle cx="32" cy="14" r="3.6" fill="#16A661"/>
+</svg>

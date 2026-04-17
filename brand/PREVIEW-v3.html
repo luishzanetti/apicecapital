@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Apice Capital · Logo v3 · Two Complete Brand Systems</title>
+<style>
+  :root{
+    --indigo:#8B5CF6; --indigo-400:#A78BFA; --indigo-deep:#4C1D95; --indigo-900:#2E1065;
+    --amber:#F59E0B; --amber-300:#FCD34D;
+    --cream:#F7F3ED; --cream-light:#FBF8F2; --n0:#FFFFFF;
+    --n100:#F0EDE7; --n200:#E4E0D7; --n400:#A8A39A;
+    --n500:#6E6A61; --n700:#3F3D38; --n900:#1A1915;
+    --font:'Geist','Inter',system-ui,-apple-system,sans-serif;
+    --mono:'Geist Mono','JetBrains Mono','SF Mono',monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--cream);color:var(--n900);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1280px;margin:0 auto;padding:64px 40px 160px}
+  .kicker{display:inline-block;font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--indigo);margin-bottom:16px}
+  h1{font-weight:800;letter-spacing:-0.03em;font-size:56px;margin:0 0 16px;line-height:1.05}
+  h1 small{display:block;font-size:19px;font-weight:500;color:var(--n500);margin-top:16px;letter-spacing:-0.005em;line-height:1.5}
+  h2{font-weight:700;letter-spacing:-0.02em;font-size:32px;margin:96px 0 24px}
+  h3{font-weight:700;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--n500);margin:0 0 12px}
+  p{color:var(--n700);font-size:16px;line-height:1.65;margin:0 0 14px;max-width:720px}
+  .meta{color:var(--n500);font-size:13px;margin-bottom:48px}
+  .system-hero{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin:48px 0}
+  @media(max-width:980px){.system-hero{grid-template-columns:1fr}}
+  .system{background:var(--n0);border-radius:24px;padding:48px 40px;position:relative;overflow:hidden;min-height:500px}
+  .system.capitello{background:var(--cream-light);border:2px solid var(--indigo)}
+  .system .rec{position:absolute;top:24px;right:24px;background:var(--indigo);color:#fff;padding:6px 14px;border-radius:9999px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase}
+  .sys-name{font-size:48px;font-weight:800;letter-spacing:-0.02em;margin:8px 0}
+  .sys-tagline{font-size:17px;font-style:italic;color:var(--n500);line-height:1.5;margin-bottom:24px}
+  .sys-heritage{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px}
+  .sys-heritage span{background:var(--n100);padding:6px 12px;border-radius:9999px;font-size:11px;font-weight:600;color:var(--n700);letter-spacing:0.04em}
+  .sys-showcase{background:var(--cream);border-radius:16px;padding:40px 32px;display:flex;align-items:center;justify-content:center;min-height:180px;color:var(--indigo);margin-bottom:24px}
+  .sys-showcase.dark{background:var(--indigo-deep);color:var(--cream)}
+  .sys-showcase object{max-width:80%;max-height:120px}
+  .lockup-showcase{background:var(--cream);border-radius:16px;padding:48px 32px;color:var(--indigo);margin-bottom:24px;display:flex;flex-direction:column;align-items:center;gap:16px}
+  .lockup-showcase .seal{display:flex;justify-content:center}
+  .lockup-showcase .seal object{width:200px}
+  .lockup-showcase .wordmark{display:flex;justify-content:center}
+  .lockup-showcase .wordmark object{width:280px}
+  .sys-description{font-size:15px;line-height:1.65;color:var(--n700);margin-bottom:24px}
+  .craft-list{list-style:none;padding:0;margin:0 0 24px}
+  .craft-list li{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--n200);font-size:13px;line-height:1.5;color:var(--n700)}
+  .craft-list li:first-child{border-top:0;padding-top:4px}
+  .craft-list li::before{content:"";flex:0 0 4px;height:14px;background:var(--indigo);margin-top:4px;border-radius:2px}
+  .meta-row{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--n500);padding-top:16px;border-top:1px solid var(--n200);margin-top:auto}
+  .meta-row strong{color:var(--n900);font-weight:700}
+  .meta-row span{background:var(--n100);padding:4px 10px;border-radius:6px}
+
+  /* Side-by-side scale showcase */
+  .scale-compare{background:var(--n0);border-radius:20px;padding:40px;margin-top:24px}
+  .scale-row{display:grid;grid-template-columns:repeat(6,1fr);gap:24px;align-items:end;padding:16px 0}
+  .scale-row:first-of-type{border-bottom:1px solid var(--n200);padding-bottom:32px;margin-bottom:32px}
+  .scale-cell{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--indigo)}
+  .scale-cell small{font-size:10px;color:var(--n500);text-transform:uppercase;letter-spacing:0.08em}
+  .scale-label{font-weight:700;font-size:13px;color:var(--n900);margin-bottom:8px}
+
+  /* Product context simulations */
+  .context-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:32px}
+  @media(max-width:980px){.context-grid{grid-template-columns:1fr}}
+  .ctx{background:var(--n0);border-radius:16px;overflow:hidden;border:1px solid var(--n200)}
+  .ctx-header{padding:14px 20px;background:var(--n100);font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--n500)}
+  .ctx-body{padding:40px 32px;background:var(--cream);color:var(--indigo);min-height:200px;display:flex;align-items:center;justify-content:center}
+  .ctx-body.dark{background:var(--indigo-deep);color:var(--cream)}
+
+  /* Certificate */
+  .cert{width:100%;aspect-ratio:1.4;background:var(--cream-light);border:1px solid var(--n200);border-radius:12px;padding:40px 48px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;color:var(--indigo);position:relative}
+  .cert-rules{position:absolute;left:40px;right:40px;height:2px;background:var(--indigo)}
+  .cert-rules.top{top:24px}
+  .cert-rules.bottom{bottom:24px;height:3px}
+  .cert-seal{margin-top:24px}
+  .cert-seal object{width:140px}
+  .cert-title{font-size:24px;font-weight:800;letter-spacing:-0.01em;color:var(--n900);margin:16px 0 4px;text-align:center}
+  .cert-sub{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--n500);text-align:center}
+  .cert-name{font-family:serif;font-style:italic;font-size:22px;color:var(--n900);margin:16px 0;font-weight:500}
+  .cert-body{text-align:center;font-size:13px;color:var(--n700);line-height:1.6;max-width:360px}
+  .cert-footer{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber);margin-bottom:16px}
+
+  /* Nav sim */
+  .nav-sim{background:var(--cream);padding:20px 24px;border-radius:12px}
+  .nav-brand{display:flex;align-items:center;gap:14px;padding-bottom:20px;border-bottom:1px solid var(--n200);margin-bottom:16px;color:var(--indigo)}
+  .nav-brand .logo-sm object{width:28px;height:28px}
+  .nav-brand .brand-text{font-size:14px;font-weight:700;letter-spacing:0.12em;color:var(--n900)}
+  .nav-item{padding:8px 12px;font-size:14px;color:var(--n500);display:flex;align-items:center;gap:12px;border-left:2px solid transparent}
+  .nav-item.active{color:var(--n900);font-weight:600;border-left-color:var(--indigo)}
+
+  /* Comparison table */
+  .comparison{width:100%;border-collapse:collapse;margin-top:32px;background:var(--n0);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+  .comparison th,.comparison td{text-align:left;padding:18px 24px;border-bottom:1px solid var(--n200);font-size:14px;vertical-align:top}
+  .comparison th{background:var(--n900);color:#fff;font-weight:700;font-size:11px;letter-spacing:0.12em;text-transform:uppercase}
+  .comparison td:first-child{font-weight:600;width:280px;color:var(--n900)}
+
+  /* Uma's recommendation box */
+  .recommendation{background:var(--n900);color:#fff;border-radius:24px;padding:56px 48px;margin-top:56px}
+  .recommendation h2{color:#fff;margin:0 0 24px}
+  .recommendation p{color:rgba(255,255,255,0.82);max-width:none;font-size:17px;line-height:1.7}
+  .recommendation blockquote{border-left:3px solid var(--amber);padding:4px 0 4px 20px;margin:32px 0;color:#fff;font-size:17px;line-height:1.65;font-style:normal}
+
+  /* Decide */
+  .decide{margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:720px){.decide{grid-template-columns:1fr}}
+  .opt{background:var(--n0);border:2px solid var(--n200);border-radius:16px;padding:32px;transition:border-color 0.2s}
+  .opt.recommended{border-color:var(--indigo);background:linear-gradient(180deg,#fff 0%,#fff 70%,#f7f2ff 100%)}
+  .opt h3{margin:0 0 8px;color:var(--indigo);font-size:11px}
+  .opt-name{font-size:36px;font-weight:800;letter-spacing:-0.02em;margin:0 0 8px}
+  .opt-tagline{font-size:14px;font-style:italic;color:var(--n500);margin-bottom:16px;line-height:1.5}
+  .opt-days{font-size:13px;color:var(--n700);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">Logo v3 · Two complete brand systems</div>
+  <h1>Apice Capital — House Style, Not Logo.
+    <small>Uma's third round. This time the brief was right: ship a <strong>system</strong> that sits on a moodboard next to Hermès, Cartier, Rolex, Stripe, and Linear — not just a mark.</small>
+  </h1>
+  <p class="meta">Uma · 2026-04-17 · <strong style="color:var(--indigo)">Recommendation: CAPITELLO</strong> — monumental wordmark with size-responsive craft, 1.2u rule as system primitive, 14 working days to production.</p>
+
+  <!-- ================================================================ -->
+  <h2>The two systems</h2>
+  <p>Both are complete brand systems (mark + custom wordmark + typography + motion + color + product extension). Neither is a minimalist single-shape. Both redraw 7 or 8 letters of the custom wordmark. Palette stays Warm Indigo + Warm Amber + Warm Cream.</p>
+
+  <div class="system-hero">
+
+    <!-- CIFRA -->
+    <div class="system cifra">
+      <h3>Direction One · Heritage triangle</h3>
+      <div class="sys-heritage">
+        <span>Hermès</span><span>Cartier</span><span>Stripe</span>
+      </div>
+      <div class="sys-name">CIFRA</div>
+      <div class="sys-tagline">"The Medici ledger reborn as software. The wordmark is the logo; the seal is the stamp."</div>
+
+      <h3>The Apice Seal</h3>
+      <div class="sys-showcase"><object data="assets/logos/v3-cifra-seal.svg" type="image/svg+xml"></object></div>
+
+      <h3>Custom wordmark</h3>
+      <div class="lockup-showcase">
+        <div class="wordmark"><object data="assets/logos/v3-cifra-wordmark.svg" type="image/svg+xml"></object></div>
+      </div>
+
+      <div class="sys-description">
+        7 custom letters over the Geist skeleton. Flat-apex <strong>A</strong>, open-bowl <strong>P</strong> (Cartier aperture), 5°-biased <strong>C</strong> and <strong>T</strong> terminals. Signature <strong>AP ligature</strong> only in the primary stacked wordmark. Horizontal seal is 3:1 stamp format — used as favicon, app icon, certificate stamp, AI Expert avatar frame.
+      </div>
+
+      <h3>Five craft details</h3>
+      <ul class="craft-list">
+        <li>Flat-apex A with 35% crossbar, 0.15u forward-leaning inner triangle</li>
+        <li>Mismatched top/bottom rules (0.55u vs 0.60u) correct optical gravity</li>
+        <li>AP ligature appears only in stacked lockup — one home, one moment</li>
+        <li>5°-biased C/T terminals channel pen-stroke inside geometric caps</li>
+        <li>Reversed bottom-rule motion: ledger-closing signature animation</li>
+      </ul>
+
+      <div class="meta-row">
+        <span><strong>Risk</strong> LOW</span>
+        <span><strong>Prod</strong> 12 days</span>
+        <span><strong>Favicon</strong> excellent (square variant)</span>
+      </div>
+    </div>
+
+    <!-- CAPITELLO -->
+    <div class="system capitello">
+      <span class="rec">★ Uma's pick</span>
+      <h3>Direction Two · Heritage triangle</h3>
+      <div class="sys-heritage">
+        <span>Rolex</span><span>Linear</span><span>Apple</span>
+      </div>
+      <div class="sys-name">CAPITELLO</div>
+      <div class="sys-tagline">"The Roman Senate. Letters carved like Trajan's column. Monumental lettering, civic authority."</div>
+
+      <h3>The Capitello Glyph</h3>
+      <div class="sys-showcase"><object data="assets/logos/v3-capitello-glyph.svg" type="image/svg+xml"></object></div>
+
+      <h3>Custom wordmark</h3>
+      <div class="lockup-showcase">
+        <div class="wordmark"><object data="assets/logos/v3-capitello-wordmark.svg" type="image/svg+xml"></object></div>
+      </div>
+
+      <div class="sys-description">
+        8 custom letters over Geist Black (900). Heavy stems (1.2u), 35% crossbar, flat apex plateau 2.2u. <strong>Stepped-width rhythm</strong> in CAPITAL (T-crossbar 1.8u extension, L-foot 2.0u). <strong>Size-responsive serif stubs</strong> appear above 96px, dissolve below. Glyph is 1:1 square — favicon-native.
+      </div>
+
+      <h3>Five craft details</h3>
+      <ul class="craft-list">
+        <li>Size-responsive serif stubs: appear above 96px, dissolve below</li>
+        <li>P bowl offset 0.1u above geometric center (optical gravity)</li>
+        <li>Stepped-width L > T > E in CAPITAL — rhythm inside one word</li>
+        <li>Letter-sequence fade motion: APICE arrives one letter at a time, 60ms offset</li>
+        <li>1.2u rule as system primitive: lockup, nav active-state, certificate frame, Manifesto</li>
+      </ul>
+
+      <div class="meta-row">
+        <span><strong>Risk</strong> MEDIUM</span>
+        <span><strong>Prod</strong> 14 days</span>
+        <span><strong>Favicon</strong> native (1:1 glyph)</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>Scale behaviour — CAPITELLO vs CIFRA</h2>
+  <p>How both systems hold up from 24px to 160px. Same content, different weight registers.</p>
+
+  <div class="scale-compare">
+    <div class="scale-label">CIFRA Seal</div>
+    <div class="scale-row">
+      <div class="scale-cell"><object data="assets/logos/v3-cifra-seal.svg" type="image/svg+xml" style="width:48px"></object><small>48px</small></div>
+      <div class="scale-cell"><object data="assets/logos/v3-cifra-seal.svg" type="image/svg+xml" style="width:72px"></object><small>72px</small></div>
+      <div class="scale-cell"><object data="assets/logos/v3-cifra-seal.svg" type="image/svg+xml" style="width:100px"></object><small>100px</small></div>
+      <div class="scale-cell"><object data="assets/logos/v3-cifra-seal.svg" type="image/svg+xml" style="width:140px"></object><small>140px</small></div>
+      <div class="scale-cell"><object data="assets/logos/v3-cifra-seal.svg" type="image/svg+xml" style="width:180px"></object><small>180px</small></div>
+      <div class="scale-cell"><object data="assets/logos/v3-cifra-seal.svg" type="image/svg+xml" style="width:220px"></object><small>220px</small></div>
+    </div>
+
+    <div class="scale-label">CAPITELLO Glyph</div>
+    <div class="scale-row">
+      <div class="scale-cell"><object data="assets/logos/v3-capitello-glyph.svg" type="image/svg+xml" style="width:32px;height:32px"></object><small>32px</small></div>
+      <div class="scale-cell"><object data="assets/logos/v3-capitello-glyph.svg" type="image/svg+xml" style="width:48px;height:48px"></object><small>48px</small></div>
+      <div class="scale-cell"><object data="assets/logos/v3-capitello-glyph.svg" type="image/svg+xml" style="width:72px;height:72px"></object><small>72px</small></div>
+      <div class="scale-cell"><object data="assets/logos/v3-capitello-glyph.svg" type="image/svg+xml" style="width:100px;height:100px"></object><small>100px</small></div>
+      <div class="scale-cell"><object data="assets/logos/v3-capitello-glyph.svg" type="image/svg+xml" style="width:130px;height:130px"></object><small>130px</small></div>
+      <div class="scale-cell"><object data="assets/logos/v3-capitello-glyph.svg" type="image/svg+xml" style="width:160px;height:160px"></object><small>160px</small></div>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>Product context — CAPITELLO in situ</h2>
+  <p>How CAPITELLO extends beyond the logo into the product: certificate, navigation, dark hero.</p>
+
+  <div class="context-grid">
+
+    <!-- Certificate -->
+    <div class="ctx">
+      <div class="ctx-header">Founding Member Certificate</div>
+      <div class="ctx-body" style="padding:32px">
+        <div class="cert">
+          <div class="cert-rules top"></div>
+          <div class="cert-seal"><object data="assets/logos/v3-capitello-glyph.svg" type="image/svg+xml"></object></div>
+          <div>
+            <div class="cert-sub">Certificate of Founding</div>
+            <div class="cert-title">APICE CAPITAL</div>
+          </div>
+          <div class="cert-name">Luis H. Zanetti</div>
+          <div class="cert-body">Certified as a Founding Member of the Apice Capital Club. This membership shall remain active in perpetuity, granted in recognition of early conviction.</div>
+          <div class="cert-footer">★ No. 0001 · 2026</div>
+          <div class="cert-rules bottom"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav simulation -->
+    <div class="ctx">
+      <div class="ctx-header">Product Navigation · 1.2u rule active-state</div>
+      <div class="ctx-body" style="padding:32px;align-items:flex-start;justify-content:stretch">
+        <div class="nav-sim" style="width:100%">
+          <div class="nav-brand">
+            <div class="logo-sm"><object data="assets/logos/v3-capitello-glyph.svg" type="image/svg+xml"></object></div>
+            <div class="brand-text">APICE</div>
+          </div>
+          <div class="nav-item">Dashboard</div>
+          <div class="nav-item">DCA</div>
+          <div class="nav-item active">Altis</div>
+          <div class="nav-item">Academy</div>
+          <div class="nav-item">Apice Code</div>
+          <div class="nav-item">Club</div>
+          <div class="nav-item">Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dark hero -->
+    <div class="ctx">
+      <div class="ctx-header">Club Hero · Dark</div>
+      <div class="ctx-body dark" style="flex-direction:column;gap:20px;padding:60px 40px">
+        <object data="assets/logos/v3-capitello-glyph.svg" type="image/svg+xml" style="width:80px"></object>
+        <div style="font-size:32px;font-weight:800;letter-spacing:-0.01em;text-align:center">APICE CAPITAL</div>
+        <div style="font-size:13px;color:var(--amber);letter-spacing:0.2em;text-transform:uppercase">★ Club Member</div>
+        <div style="font-size:14px;color:rgba(247,243,237,0.6);text-align:center;max-width:320px;line-height:1.6">"Build Wealth. One Week at a Time."</div>
+      </div>
+    </div>
+
+    <!-- Manifesto extension -->
+    <div class="ctx">
+      <div class="ctx-header">Apice Code Manifesto · Ledger rule extension</div>
+      <div class="ctx-body" style="flex-direction:column;align-items:flex-start;padding:40px;gap:24px;text-align:left">
+        <div style="font-size:20px;font-weight:800;letter-spacing:-0.01em;color:var(--n900)">THE APICE CODE</div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:baseline">
+          <div style="width:28px;height:2px;background:var(--indigo);margin-top:10px"></div>
+          <div style="color:var(--n900);font-size:14px;line-height:1.5"><strong>Wealth is a practice, not an event.</strong><br/><span style="color:var(--n500);font-size:13px">Consistency compounds. Discipline is the ledger.</span></div>
+          <div style="width:28px;height:2px;background:var(--indigo);margin-top:10px"></div>
+          <div style="color:var(--n900);font-size:14px;line-height:1.5"><strong>Risk is a feature, not a flaw.</strong><br/><span style="color:var(--n500);font-size:13px">We name what we cannot control.</span></div>
+          <div style="width:28px;height:2px;background:var(--indigo);margin-top:10px"></div>
+          <div style="color:var(--n900);font-size:14px;line-height:1.5"><strong>Time is the only fair exchange.</strong><br/><span style="color:var(--n500);font-size:13px">We trade patience for returns.</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>The four tests</h2>
+  <table class="comparison">
+    <thead>
+      <tr><th>Test</th><th>CIFRA (Hermès/Cartier/Stripe)</th><th>CAPITELLO (Rolex/Linear/Apple)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>System integrity — does it cohere as a system?</td><td>Strong · ledger rule self-references throughout</td><td>Strong · 1.2u rule primitive + weight tonal unity</td></tr>
+      <tr><td>Heritage test — moodboard with Hermès / Cartier / Rolex</td><td>Cartier and Hermès natively · private-bank register</td><td>Rolex natively · civic-institutional register</td></tr>
+      <tr><td>Contemporary test — moodboard with Stripe / Linear</td><td>Wordmark-primacy in Stripe register</td><td>System rigor in Linear register · stronger</td></tr>
+      <tr><td>Apice test — which one IS Apice?</td><td>"Disciplined private practice"</td><td>"Elite civic presence" — matches CEO's vocabulary</td></tr>
+      <tr><td>Production honesty</td><td>12 working days</td><td>14 working days</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ================================================================ -->
+  <div class="recommendation">
+    <h2>Uma's recommendation — CAPITELLO</h2>
+    <blockquote>
+      "Apice is not a place you visit. It is a monument you stand next to every week. A stamp is transactional; a monument is structural. At $149.90/month, the Club tier is not selling a better trading interface — it is selling membership in an institution, and institutions communicate through monumental lettering."
+    </blockquote>
+    <p>The weight (1.2u stems where competitors run 0.6u hairlines), the size-responsive craft (serif stubs above 96px), the single-primitive system (the 1.2u rule appearing in lockup, nav, certificate, Manifesto) compose a house style that is both <strong>contemporary</strong> (Linear-grade rigor) and <strong>ancient</strong> (Trajan-column lineage). It accrues equity rather than decays.</p>
+    <p><strong>CIFRA is beautiful, and a weaker competitor would ship it and win. CAPITELLO is inevitable, and that is why it is the direction Apice ships.</strong></p>
+  </div>
+
+  <!-- ================================================================ -->
+  <div class="decide">
+    <div class="opt recommended">
+      <h3>Ship (recommended)</h3>
+      <div class="opt-name">CAPITELLO</div>
+      <div class="opt-tagline">Monumental wordmark · Rolex × Linear × Apple</div>
+      <div class="opt-days">14 working days to complete system</div>
+    </div>
+    <div class="opt">
+      <h3>Fallback</h3>
+      <div class="opt-name">CIFRA</div>
+      <div class="opt-tagline">Ledger seal · Hermès × Cartier × Stripe</div>
+      <div class="opt-days">12 working days to complete system</div>
+    </div>
+  </div>
+
+  <p style="margin-top:48px;color:var(--n500);font-size:12px">
+    Concepts above are <strong>schematic SVGs</strong> — the custom letterforms will be drawn letter-by-letter during production. What you see above is directional, not final. Uma commits: no v4 round. CAPITELLO ships, or CIFRA ships. Third loop ends here.
+    <br/>
+    · Jarvis · Chief of Staff AI
+  </p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Apice Capital · Evidence-Based Brand Direction · v4</title>
+<style>
+  :root{
+    --dark:#0E0E12; --dark-2:#1A1915;
+    --cream:#F7F3ED; --cream-2:#FBF8F2;
+    --n0:#FFFFFF; --n100:#F0EDE7; --n200:#E4E0D7; --n400:#A8A39A;
+    --n500:#6E6A61; --n700:#3F3D38; --n900:#1A1915;
+    --bronze:#936845; --emerald:#0F5D3F; --neon:#B9FF3D;
+    --crimson:#C41E3A; --ultramarine:#1E3A8A; --amber:#F59E0B;
+    --font:'Geist','Inter',system-ui,-apple-system,sans-serif;
+    --serif:'Geist','IvyMode','Söhne','Times New Roman',serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--cream);color:var(--dark);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1320px;margin:0 auto;padding:64px 40px 160px}
+  .kicker{display:inline-block;font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--dark);background:var(--cream-2);padding:6px 14px;border:1px solid var(--n200);border-radius:9999px;margin-bottom:24px}
+  h1{font-weight:800;letter-spacing:-0.03em;font-size:60px;margin:0 0 16px;line-height:1.04}
+  h1 small{display:block;font-size:18px;font-weight:400;color:var(--n500);margin-top:20px;letter-spacing:0;line-height:1.55}
+  h2{font-weight:700;letter-spacing:-0.02em;font-size:32px;margin:96px 0 8px}
+  h2 + .sub{color:var(--n500);font-size:15px;margin:0 0 32px;max-width:720px;line-height:1.6}
+  h3{font-weight:700;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--n500);margin:0 0 14px}
+  p{color:var(--n700);font-size:15px;line-height:1.65;margin:0 0 14px;max-width:760px}
+
+  /* Evidence grid — 10 competitors */
+  .comp-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:24px}
+  @media(max-width:1100px){.comp-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:720px){.comp-grid{grid-template-columns:repeat(2,1fr)}}
+  .comp{background:var(--n0);border:1px solid var(--n200);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:10px}
+  .comp .name{font-size:20px;font-weight:800;letter-spacing:-0.01em}
+  .comp .cat{font-size:10px;color:var(--n500);text-transform:uppercase;letter-spacing:0.08em;font-weight:600}
+  .comp .swatch-row{display:flex;gap:4px;margin-top:8px}
+  .comp .sw{width:24px;height:24px;border-radius:4px;border:1px solid rgba(0,0,0,.06)}
+  .comp .desc{font-size:12px;color:var(--n700);line-height:1.45}
+  .comp .type{font-size:11px;color:var(--n500);font-style:italic}
+
+  /* Mock wordmark displays */
+  .wm-display{background:var(--cream-2);padding:14px 16px;border-radius:6px;text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;letter-spacing:-0.01em}
+
+  /* Quadrant map */
+  .quadrant{background:var(--n0);border-radius:16px;padding:48px 40px;margin-top:32px;position:relative;min-height:540px;border:1px solid var(--n200)}
+  .quad-axes-v{position:absolute;top:40px;bottom:40px;left:50%;width:1px;background:var(--n200)}
+  .quad-axes-h{position:absolute;left:40px;right:40px;top:50%;height:1px;background:var(--n200)}
+  .quad-label{position:absolute;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--n500)}
+  .ql-top{top:16px;left:50%;transform:translateX(-50%)}
+  .ql-bottom{bottom:16px;left:50%;transform:translateX(-50%)}
+  .ql-left{left:16px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:center}
+  .ql-right{right:16px;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:center}
+  .dot{position:absolute;padding:8px 14px;background:var(--n0);border:1px solid var(--n200);border-radius:8px;font-size:13px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.04);white-space:nowrap}
+  .dot.star{background:var(--dark);color:var(--cream);border-color:var(--dark);box-shadow:0 6px 20px rgba(0,0,0,.15);z-index:10}
+
+  /* Direction cards */
+  .dir-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:24px}
+  @media(max-width:980px){.dir-grid{grid-template-columns:1fr}}
+  .dir{background:var(--n0);border-radius:20px;padding:40px 32px;border:1px solid var(--n200)}
+  .dir-label{font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--n500);margin-bottom:8px}
+  .dir-name{font-size:36px;font-weight:800;letter-spacing:-0.02em;margin:0 0 8px}
+  .dir-tag{font-size:15px;color:var(--n500);font-style:italic;line-height:1.5;margin-bottom:24px}
+  .dir-peer{font-size:11px;color:var(--n500);margin-bottom:24px}
+  .dir-peer strong{color:var(--dark)}
+
+  /* Wordmark mock */
+  .wm-hero{background:var(--cream-2);padding:56px 32px;border-radius:12px;text-align:center;margin-bottom:20px;min-height:140px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+  .wm-serif{font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:44px;letter-spacing:-0.02em;color:var(--dark)}
+  .wm-sans{font-family:var(--font);font-weight:800;font-size:44px;letter-spacing:-0.025em;color:var(--dark)}
+  .wm-subtitle{font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--n500);font-weight:600;margin-top:6px}
+  .wm-hero.dark{background:var(--dark)}
+  .wm-hero.dark .wm-serif,.wm-hero.dark .wm-sans{color:var(--cream)}
+  .wm-hero.dark .wm-subtitle{color:rgba(247,243,237,0.5)}
+  .accent-bronze{color:var(--bronze) !important}
+  .accent-emerald{color:var(--emerald) !important}
+  .accent-neon{color:var(--neon) !important}
+  .accent-amber{color:var(--amber) !important}
+  .accent-ultramarine{color:var(--ultramarine) !important}
+
+  .palette-strip{display:flex;gap:8px;margin:16px 0 8px}
+  .palette-strip .sw{flex:1;height:48px;border-radius:6px;display:flex;align-items:flex-end;padding:6px 8px;font-size:9px;color:#fff;font-weight:600;letter-spacing:0.06em;text-transform:uppercase}
+
+  .sig-options{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .sig{padding:6px 12px;border-radius:9999px;font-size:11px;font-weight:600;border:1px solid transparent;cursor:default}
+
+  .dir-detail{font-size:13px;line-height:1.6;color:var(--n700);margin:16px 0}
+
+  .decide{background:var(--dark);color:var(--cream);border-radius:24px;padding:48px 40px;margin-top:48px}
+  .decide h2{color:var(--cream);margin:0 0 16px}
+  .decide .sub{color:rgba(247,243,237,0.7)}
+  .decide p{color:rgba(247,243,237,0.7)}
+
+  .patterns{background:var(--cream-2);border-radius:16px;padding:40px;margin-top:32px}
+  .pattern-row{display:grid;grid-template-columns:200px 1fr;gap:20px;padding:14px 0;border-top:1px solid var(--n200);font-size:14px}
+  .pattern-row:first-of-type{border-top:0;padding-top:0}
+  .pattern-row .k{font-weight:700;color:var(--dark)}
+  .pattern-row .v{color:var(--n700);line-height:1.6}
+
+  .rejects{background:var(--n0);border:1px solid var(--n200);border-radius:12px;padding:24px 28px;margin-top:24px}
+  .rejects .r{display:flex;gap:12px;align-items:flex-start;padding:8px 0;font-size:13px;color:var(--n700)}
+  .rejects .r::before{content:"✕";color:#C41E3A;font-weight:700;flex:0 0 20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">v4 · evidence-based · replaces v1/v2/v3</div>
+  <h1>Apice Capital — Reset. This Time With Real Data.
+    <small>3 rounds failed because the brief was invented. This document is the brief — built from 10 real competitors in the <strong>global investment platform</strong> category, the one the CEO actually named.</small>
+  </h1>
+  <p class="kicker" style="background:var(--dark);color:var(--cream);border-color:var(--dark)">Source: EXA research · 10 brands · BlackRock · JPMorgan · Schwab · Fidelity · Vanguard · Wise · Plaid · Robinhood · Nexo · Belvo</p>
+
+  <!-- ================================================================ -->
+  <h2>1 · The 10 brands Apice actually competes with</h2>
+  <p class="sub">These are the brands users unconsciously compare Apice against. Their logos set the category convention — not Hermès, not Rolex, not Cartier.</p>
+
+  <div class="comp-grid">
+    <div class="comp">
+      <div class="name">BlackRock</div>
+      <div class="cat">Institutional · $11.5T AUM</div>
+      <div class="wm-display" style="color:#000">BlackRock</div>
+      <div class="swatch-row"><div class="sw" style="background:#000"></div><div class="sw" style="background:#fff;border:1px solid #ccc"></div></div>
+      <div class="desc">Typography-only wordmark. Rotis Semi Serif Bold. Zero symbol, zero color. "The logo is a contract."</div>
+      <div class="type">Wordmark-only · Serif</div>
+    </div>
+    <div class="comp">
+      <div class="name">JPMorgan</div>
+      <div class="cat">Institutional · $4T · Rebrand 2024</div>
+      <div class="wm-display" style="color:#936845;font-family:Georgia,serif">JPMorgan</div>
+      <div class="swatch-row"><div class="sw" style="background:#936845"></div><div class="sw" style="background:#31373D"></div><div class="sw" style="background:#fff;border:1px solid #ccc"></div></div>
+      <div class="desc">Bold refined serif (Bronze #936845) + Chase octagon (1961) for consumer tier. 2024 = return to serifs.</div>
+      <div class="type">Serif + geometric symbol</div>
+    </div>
+    <div class="comp">
+      <div class="name">Charles Schwab</div>
+      <div class="cat">Retail + advisor · $8T</div>
+      <div class="wm-display" style="color:#019CDC;font-family:Georgia,serif;font-style:italic">Charles Schwab</div>
+      <div class="swatch-row"><div class="sw" style="background:#019CDC"></div><div class="sw" style="background:#fff;border:1px solid #ccc"></div></div>
+      <div class="desc">Dual-voice: Garamond italic + Minion uppercase. Italics = approachable, caps = serious.</div>
+      <div class="type">Dual wordmark · Serif+Sans</div>
+    </div>
+    <div class="comp">
+      <div class="name">Fidelity</div>
+      <div class="cat">Retail + institutional · $4T</div>
+      <div class="wm-display" style="color:#000">Fidelity ▲</div>
+      <div class="swatch-row"><div class="sw" style="background:#000"></div><div class="sw" style="background:#0F5D3F"></div></div>
+      <div class="desc">Custom sans + green pyramid. Pyramid = stability, long-term, asset hierarchy. Geometric precision.</div>
+      <div class="type">Wordmark + geometric symbol</div>
+    </div>
+    <div class="comp">
+      <div class="name">Vanguard</div>
+      <div class="cat">Index/ETF · $7T · Rebrand 2020</div>
+      <div class="wm-display" style="color:#C41E3A">VANGUARD</div>
+      <div class="swatch-row"><div class="sw" style="background:#C41E3A"></div><div class="sw" style="background:#fff;border:1px solid #ccc"></div></div>
+      <div class="desc">Removed 45-year sailing ship in 2020. Crimson wordmark alone. "Modern abstract leadership."</div>
+      <div class="type">Wordmark-only · Sans</div>
+    </div>
+    <div class="comp">
+      <div class="name">Wise</div>
+      <div class="cat">Global fintech · 13M users</div>
+      <div class="wm-display" style="color:#163300">wise 🏴</div>
+      <div class="swatch-row"><div class="sw" style="background:#163300"></div><div class="sw" style="background:#9FE870"></div><div class="sw" style="background:#fff;border:1px solid #ccc"></div></div>
+      <div class="desc">Fast Flag symbol + wordmark. "Mark of constant progress." Green = money without borders.</div>
+      <div class="type">Wordmark + directional symbol</div>
+    </div>
+    <div class="comp">
+      <div class="name">Plaid</div>
+      <div class="cat">Infrastructure · 7K companies · Rebrand 2025</div>
+      <div class="wm-display" style="color:#000">Plaid ✧</div>
+      <div class="swatch-row"><div class="sw" style="background:#000"></div><div class="sw" style="background:linear-gradient(45deg,#FFD700,#FF6B9D,#4AA8FF)"></div><div class="sw" style="background:#fff;border:1px solid #ccc"></div></div>
+      <div class="desc">Kept logo unchanged. NEW system = paper currency heritage (guilloche) + holographic palette.</div>
+      <div class="type">Wordmark + cross-hatch mark</div>
+    </div>
+    <div class="comp">
+      <div class="name">Robinhood</div>
+      <div class="cat">Retail · 23M users · Rebrand 2024</div>
+      <div class="wm-display" style="color:#000">Robinhood 🪶</div>
+      <div class="swatch-row"><div class="sw" style="background:#000"></div><div class="sw" style="background:#B9FF3D"></div><div class="sw" style="background:#fff;border:1px solid #ccc"></div></div>
+      <div class="desc">"Less is more." Simplified iconic logo + wordmark. Robin Neon pop. "Home for serious investors."</div>
+      <div class="type">Wordmark + icon</div>
+    </div>
+    <div class="comp">
+      <div class="name">Nexo</div>
+      <div class="cat">Digital wealth · 6M users · Rebrand 2024</div>
+      <div class="wm-display" style="color:#333">nexo ⌒</div>
+      <div class="swatch-row"><div class="sw" style="background:#0F5D3F"></div><div class="sw" style="background:#F5F1E8"></div><div class="sw" style="background:#A8A39A"></div></div>
+      <div class="desc">Wordmark + flowing pattern (spiral = resilience, diagonals = growth). "Wealth Forward."</div>
+      <div class="type">Wordmark + flowing mark</div>
+    </div>
+    <div class="comp">
+      <div class="name">Belvo</div>
+      <div class="cat">LATAM fintech · 80M accounts · Rebrand 2026</div>
+      <div class="wm-display" style="color:#1E3A8A">BELVO</div>
+      <div class="swatch-row"><div class="sw" style="background:#1E3A8A"></div><div class="sw" style="background:#000"></div><div class="sw" style="background:#fff;border:1px solid #ccc"></div></div>
+      <div class="desc">Figtree bold ALL CAPS + <strong>Geist as secondary</strong>. Sober palette, blue CTAs only. 2026 = Geist standard.</div>
+      <div class="type">Wordmark · Bold sans-caps</div>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>2 · The patterns — what the category actually does</h2>
+  <div class="patterns">
+    <div class="pattern-row">
+      <div class="k">Logo architecture</div>
+      <div class="v"><strong>50% wordmark-primary + simple symbol</strong> (JPMorgan, Fidelity, Wise, Nexo, Robinhood). 20% wordmark-only (BlackRock, Vanguard). Almost no symbol-primary.</div>
+    </div>
+    <div class="pattern-row">
+      <div class="k">Typography 2024–2026</div>
+      <div class="v">Serifs returning for institutional (JPMorgan 2024). <strong>Geist is the new standard</strong> for contemporary fintech (Belvo 2026 adopted it, Plaid uses it). Custom-drawn wordmarks universal.</div>
+    </div>
+    <div class="pattern-row">
+      <div class="k">Palette formula</div>
+      <div class="v"><strong>Sober base (2 neutrals) + ONE signature color.</strong> Zero brand uses 3+ colors as equals. Signatures range: bronze, emerald, crimson, neon green, electric blue.</div>
+    </div>
+    <div class="pattern-row">
+      <div class="k">Symbols (when present)</div>
+      <div class="v">Single geometric form · Semantic meaning · Favicon-friendly. Pyramid, octagon, flag, cross-hatch, spiral. Never literal metaphors.</div>
+    </div>
+    <div class="pattern-row">
+      <div class="k">Tone 2024–2026 direction</div>
+      <div class="v">Professional-sophisticated with one "pop" element (Robinhood neon, JPMorgan bronze, Nexo flow). Maturity over playfulness. Heritage-craft (Plaid guilloche) bridged with digital modernity.</div>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>3 · What the category NEVER does</h2>
+  <p class="sub">This is where rounds v1–v3 went wrong.</p>
+  <div class="rejects">
+    <div class="r">Gradient-filled logos (Web3/crypto-degen pattern)</div>
+    <div class="r">Laser eyes, neon glows, 3D-rendered marks</div>
+    <div class="r">Heritage-luxury ornament à la Hermès/Cartier/Rolex — <strong>v3 CIFRA/CAPITELLO mistake</strong></div>
+    <div class="r">Monumental Trajan-column inscription — <strong>v3 CAPITELLO mistake</strong></div>
+    <div class="r">Conceptual design-school letter constructions — <strong>v1 Apex-A mistake</strong></div>
+    <div class="r">Single minimalist abstract shapes with no system — <strong>v2 Ascent/Summit/Compass mistake</strong></div>
+    <div class="r">Script/cursive wordmarks (luxury-only category)</div>
+    <div class="r">Italic-heavy wordmarks for the full brand (European private bank 1980s look)</div>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>4 · Where Apice actually sits</h2>
+  <p class="sub">Quadrant map — Apice's neighbors are Nexo 2024, Wise, Robinhood 2024, Plaid. Not Hermès, not Rolex.</p>
+
+  <div class="quadrant">
+    <div class="quad-label ql-top">Institutional Giant ($1T+ · B2B)</div>
+    <div class="quad-label ql-bottom">Retail-Consumer ($50B- · B2C)</div>
+    <div class="quad-label ql-left">Modern Fintech</div>
+    <div class="quad-label ql-right">Heritage (100+ years)</div>
+    <div class="quad-axes-v"></div>
+    <div class="quad-axes-h"></div>
+
+    <div class="dot" style="top:12%;left:58%">BlackRock</div>
+    <div class="dot" style="top:16%;left:70%">JPMorgan</div>
+    <div class="dot" style="top:30%;left:75%">Fidelity</div>
+    <div class="dot" style="top:34%;left:80%">Schwab</div>
+    <div class="dot" style="top:40%;left:68%">Vanguard</div>
+
+    <div class="dot" style="top:34%;left:22%">Plaid</div>
+    <div class="dot" style="top:44%;left:26%">Wise</div>
+    <div class="dot" style="top:54%;left:20%">Belvo</div>
+
+    <div class="dot" style="top:60%;left:30%">Nexo 2024</div>
+    <div class="dot star" style="top:64%;left:36%">★ APICE CAPITAL</div>
+    <div class="dot" style="top:72%;left:40%">Robinhood 2024</div>
+    <div class="dot" style="top:82%;left:42%">Public</div>
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>5 · Two evidence-based directions (finally grounded)</h2>
+  <p class="sub">Each direction uses only patterns proven in the category. No invention. No Trajan columns. No Medici ledgers. Pick the register, brief the designer.</p>
+
+  <div class="dir-grid">
+
+    <!-- Option A: Refined Serif -->
+    <div class="dir">
+      <div class="dir-label">Option A · Refined Serif</div>
+      <div class="dir-name">Institutional-Modern</div>
+      <div class="dir-tag">"The JPMorgan 2024 register — modern serif, bronze signature, heritage-credible."</div>
+      <div class="dir-peer">Peers: <strong>JPMorgan 2024 · BlackRock · Schwab</strong></div>
+
+      <div class="wm-hero">
+        <div class="wm-serif accent-bronze">Apice</div>
+        <div class="wm-subtitle">CAPITAL</div>
+      </div>
+      <div class="wm-hero dark">
+        <div class="wm-serif" style="color:var(--bronze)">Apice</div>
+        <div class="wm-subtitle">CAPITAL</div>
+      </div>
+
+      <div class="dir-detail">
+        <strong>Wordmark:</strong> Custom refined serif drawn on a Söhne/IvyMode skeleton — contemporary serif, not antique.<br/>
+        <strong>Symbol:</strong> Optional small geometric glyph (triangle/square/octad) — auxiliary, not dominant.<br/>
+        <strong>Typography system:</strong> Serif display + Geist Sans for UI.<br/>
+        <strong>Register:</strong> institutional-aspirational. Serious money, modern face.
+      </div>
+
+      <div class="palette-strip">
+        <div class="sw" style="background:var(--dark)">DARK</div>
+        <div class="sw" style="background:var(--bronze)">BRONZE</div>
+        <div class="sw" style="background:var(--cream);color:var(--dark);border:1px solid var(--n200)">CREAM</div>
+      </div>
+      <div style="font-size:11px;color:var(--n500);margin-top:8px">Base: Near-black + Cream · Signature: Bronze #936845 (JPMorgan 2024)</div>
+    </div>
+
+    <!-- Option B: Modern Sans + Pop -->
+    <div class="dir">
+      <div class="dir-label">Option B · Modern Sans + Pop</div>
+      <div class="dir-name">Contemporary-Professional</div>
+      <div class="dir-tag">"The Nexo 2024 / Robinhood 2024 register — Geist custom, one energetic signature color."</div>
+      <div class="dir-peer">Peers: <strong>Nexo 2024 · Robinhood 2024 · Wise · Plaid</strong></div>
+
+      <div class="wm-hero">
+        <div class="wm-sans">apice<span class="accent-emerald" style="font-weight:900">.</span></div>
+        <div class="wm-subtitle">CAPITAL</div>
+      </div>
+      <div class="wm-hero dark">
+        <div class="wm-sans" style="color:var(--cream)">apice<span style="color:var(--neon)">.</span></div>
+        <div class="wm-subtitle">CAPITAL</div>
+      </div>
+
+      <div class="dir-detail">
+        <strong>Wordmark:</strong> Custom Geist Display with 6–8 letter refinements — lowercase for modernity, subtle custom terminals.<br/>
+        <strong>Symbol:</strong> A single flowing upward gesture (Nexo-style) OR signature dot/diagonal.<br/>
+        <strong>Typography system:</strong> Geist Display + Geist Sans + Geist Mono (one family for entire brand).<br/>
+        <strong>Register:</strong> modern-professional. Digital-native wealth platform.
+      </div>
+
+      <div class="palette-strip">
+        <div class="sw" style="background:var(--dark)">DARK</div>
+        <div class="sw" style="background:var(--cream);color:var(--dark);border:1px solid var(--n200)">CREAM</div>
+        <div class="sw" style="background:var(--emerald)">EMERALD</div>
+      </div>
+      <div style="font-size:11px;color:var(--n500);margin-top:8px">Base: Near-black + Cream · Signature: ONE of the options below</div>
+
+      <h3 style="margin-top:24px">Signature color — pick one</h3>
+      <div class="sig-options">
+        <span class="sig" style="background:var(--emerald);color:#fff">Emerald · Wise-register</span>
+        <span class="sig" style="background:var(--neon);color:var(--dark)">Neon · Robinhood-register</span>
+        <span class="sig" style="background:var(--amber);color:#fff">Amber · current</span>
+        <span class="sig" style="background:var(--crimson);color:#fff">Crimson · Vanguard-register</span>
+        <span class="sig" style="background:var(--ultramarine);color:#fff">Ultramarine · Plaid/Stripe-register</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================================================================ -->
+  <h2>6 · Decision framework</h2>
+  <div class="patterns">
+    <div class="pattern-row">
+      <div class="k">Option A · Refined Serif</div>
+      <div class="v"><strong>Pick if:</strong> Apice's audience is closer to serious-professional ($1M+ portfolio target), if "institutional gravitas" matters more than "digital-native cool," if CEO likes the JPMorgan 2024 direction.</div>
+    </div>
+    <div class="pattern-row">
+      <div class="k">Option B · Modern Sans + Pop</div>
+      <div class="v"><strong>Pick if:</strong> Apice's primary audience is digital-native investors 28–45, if "modernity and accessibility" matter more than "heritage," if CEO admires the Nexo 2024 or Robinhood 2024 rebrand.</div>
+    </div>
+    <div class="pattern-row">
+      <div class="k">Production time</div>
+      <div class="v">Option A: 10–14 days (custom serif is more craft-intensive) · Option B: 7–10 days (Geist already in stack)</div>
+    </div>
+    <div class="pattern-row">
+      <div class="k">Both options share</div>
+      <div class="v">Sober base palette · ONE signature color · Wordmark-primary + optional simple symbol · Geist at minimum for product UI · Custom-drawn wordmark with 6–8 letter refinements</div>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <div class="decide">
+    <h2>Your call, sir</h2>
+    <p>For the first time this brand project, the proposal is <strong>grounded in evidence</strong> — 10 living competitors, documented patterns, correct category. No v5. No more speculation. Pick a register, pick a signature color, and we ship.</p>
+    <p><strong>Decisions needed:</strong></p>
+    <ol style="color:rgba(247,243,237,0.85);font-size:15px;line-height:1.7;max-width:720px">
+      <li>Register: <strong>Option A (Refined Serif)</strong> or <strong>Option B (Modern Sans + Pop)</strong>?</li>
+      <li>If B: signature color — Emerald / Neon / Amber (current) / Crimson / Ultramarine?</li>
+      <li>Wordmark case: <em>Apice</em> (title) or <em>APICE</em> (caps) or <em>apice</em> (lowercase)?</li>
+      <li>Include a symbol or go wordmark-only like BlackRock / Vanguard 2020?</li>
+      <li>(Optional) one specific brand on the screen above you admire most — name it for extra calibration.</li>
+    </ol>
+  </div>
+
+  <p style="margin-top:56px;color:var(--n500);font-size:12px">
+    Research sources: EXA web search · 10 brands · 2024–2026 rebrands documented · Full notes in <code>brand/01-brand-foundation/visual-research-category-DNA.md</code>
+    <br/>
+    · Jarvis · Chief of Staff AI · Evidence over invention
+  </p>
+
+</div>
+</body>
+</html>

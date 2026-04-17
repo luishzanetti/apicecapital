@@ -430,7 +430,7 @@ export default function DCAPlanner() {
 
             {/* Inline recommended plan for empty state */}
             {investorType && (
-              <div className="mb-4 p-4 rounded-xl bg-secondary/50 text-left">
+              <div className="mb-4 p-4 rounded-xl bg-white/[0.05] text-left">
                 <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
                   Recommended for {investorType}
                 </p>
@@ -597,7 +597,7 @@ export default function DCAPlanner() {
                 </div>
 
                 {/* Forever toggle */}
-                <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.05]">
                   <div className="flex items-center gap-3">
                     <InfinityIcon className="w-5 h-5 text-primary" />
                     <div>

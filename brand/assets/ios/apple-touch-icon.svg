@@ -1,0 +1,6 @@
+<!-- Apice Capital · apple-touch-icon · 180×180 · no outer rounding (iOS applies mask) · 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Apice Capital">
+  <rect width="180" height="180" fill="#0E0E12"/>
+  <!-- Dot scaled proportionally: r=17 (same 18.75% ratio as 1024 master) -->
+  <circle cx="90" cy="86.5" r="17" fill="#16A661"/>
+</svg>

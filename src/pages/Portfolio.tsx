@@ -155,7 +155,7 @@ export default function Portfolio() {
       {/* Header — ambient glow */}
       <div
         className="relative px-5 pt-6 pb-4 overflow-hidden"
-        style={{ background: 'linear-gradient(180deg, hsl(var(--primary) / 0.07) 0%, transparent 100%)' }}
+        style={{ background: 'linear-gradient(180deg, hsl(var(--apice-emerald) / 0.06) 0%, transparent 100%)' }}
       >
         <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-primary/[0.06] blur-[60px] animate-glow-pulse pointer-events-none" aria-hidden="true" />
         <div className="flex items-center justify-between mb-4">
@@ -243,7 +243,7 @@ export default function Portfolio() {
         {!analytics?.isConnected && (
           <div className="mb-4 rounded-xl bg-blue-500/10 border border-blue-500/20 px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Info className="w-4 h-4 text-blue-400 shrink-0" />
+              <Info className="w-4 h-4 text-emerald-300 shrink-0" />
               <p className="text-xs text-blue-300">
                 Showing simulated data. Connect Bybit to see your real portfolio.
               </p>
@@ -286,7 +286,7 @@ export default function Portfolio() {
                     </button>
                     <button
                       onClick={() => navigate('/home')}
-                      className="w-full py-3 rounded-xl text-sm font-semibold border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all active:scale-[0.98]"
+                      className="w-full py-3 rounded-xl text-sm font-semibold border border-white/10 text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all active:scale-[0.98]"
                     >
                       {t('portfolio.emptyState.goToDashboard')}
                     </button>
@@ -321,7 +321,7 @@ export default function Portfolio() {
                     marketSentiment.borderColor
                   )}>
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center text-lg shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-white/[0.05] flex items-center justify-center text-lg shrink-0">
                         <Brain className="w-5 h-5 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -368,7 +368,7 @@ export default function Portfolio() {
                     {editingWeekly ? (
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-2xl font-bold text-primary">${editAmount}</span>
+                          <span className="text-2xl font-bold tabular-nums text-[hsl(var(--apice-emerald))]">${editAmount}</span>
                           <span className="text-xs text-muted-foreground">/{t('portfolio.week')}</span>
                         </div>
                         <Slider
@@ -377,10 +377,11 @@ export default function Portfolio() {
                           min={10}
                           max={2000}
                           step={5}
+                          className="[&_[data-orientation=horizontal]]:bg-white/5 [&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:border-[hsl(var(--apice-emerald))] [&_[role=slider]]:bg-[#0F1626] [&_[role=slider]]:shadow-[0_0_0_4px_rgba(56,214,138,0.15),0_0_18px_rgba(56,214,138,0.55)] [&_[role=slider]]:transition-[box-shadow] hover:[&_[role=slider]]:shadow-[0_0_0_6px_rgba(56,214,138,0.2),0_0_22px_rgba(56,214,138,0.7)] [&>span>span]:bg-gradient-to-r [&>span>span]:from-[hsl(var(--apice-emerald))] [&>span>span]:to-[#6EE7A8]"
                         />
                         <div className="flex justify-between text-[11px] text-muted-foreground">
                           <span>$10</span>
-                          <span>${(editAmount * 4).toLocaleString()}/{t('portfolio.month')}</span>
+                          <span className="tabular-nums">${(editAmount * 4).toLocaleString()}/{t('portfolio.month')}</span>
                           <span>$2,000</span>
                         </div>
                       </div>
@@ -630,7 +631,7 @@ export default function Portfolio() {
                 </h3>
                 <div className="space-y-3">
                   {proPortfolios.map((portfolio) => (
-                    <Card key={portfolio.id} className="overflow-hidden border-border/50 opacity-75">
+                    <Card key={portfolio.id} className="overflow-hidden border-white/10 opacity-75">
                       <CardContent className="pt-4 pb-4">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -694,10 +695,10 @@ export default function Portfolio() {
           <div className="space-y-2 pt-2">
             <button
               onClick={() => { setShowAddMenu(false); setShowCustomDialog(true); }}
-              className="w-full flex items-center gap-3 p-3.5 rounded-xl border border-border/40 bg-card hover:border-primary/30 hover:bg-primary/5 transition-all text-left"
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl border border-white/10 bg-card hover:border-primary/30 hover:bg-primary/5 transition-all text-left"
             >
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
-                <PieChart className="w-5 h-5 text-blue-400" />
+                <PieChart className="w-5 h-5 text-emerald-300" />
               </div>
               <div>
                 <p className="text-sm font-semibold">{t('portfolio.newPortfolio')}</p>
@@ -707,7 +708,7 @@ export default function Portfolio() {
             </button>
             <button
               onClick={() => { setShowAddMenu(false); navigate('/mission2/api-setup'); }}
-              className="w-full flex items-center gap-3 p-3.5 rounded-xl border border-border/40 bg-card hover:border-primary/30 hover:bg-primary/5 transition-all text-left"
+              className="w-full flex items-center gap-3 p-3.5 rounded-xl border border-white/10 bg-card hover:border-primary/30 hover:bg-primary/5 transition-all text-left"
             >
               <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
                 <Key className="w-5 h-5 text-cyan-400" />

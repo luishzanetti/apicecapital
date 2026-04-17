@@ -1,0 +1,19 @@
+<!-- Apice Capital · Apex-A app icon · v1.0 · Uma 2026-04-17 -->
+<!-- Spec: brand/01-brand-foundation/logo-spec-apex-a.md · section 4 (Variations matrix) · App icon -->
+<!-- 1024×1024 master (iOS/Android). Indigo bg #8B5CF6, white Apex-A centered at 60% canvas (614u). -->
+<!-- Corner radius 180 (standard rx) — when exporting to iOS, swap for superellipse mask in Xcode asset catalog. -->
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice Capital">
+  <title>Apice Capital</title>
+
+  <!-- Background: rounded-square in brand indigo -->
+  <rect id="icon-bg" x="0" y="0" width="1024" height="1024" rx="180" ry="180" fill="#8B5CF6"/>
+
+  <!-- Apex-A in white, scaled 9.6× (64 master → 614 glyph), centered. -->
+  <!-- Translate to (205, 205) so 64*9.6=614 fits centered in 1024 canvas with 205u margin on each side. -->
+  <g id="apex-a" fill="#FFFFFF" transform="translate(205 205) scale(9.6)">
+    <path id="leg-left"   d="M 4 60 L 24 8 L 32 8 L 32 16 L 28 16 L 16 60 Z"/>
+    <path id="leg-right"  d="M 32 8 L 36 8 L 60 60 L 48 60 L 36 16 L 32 16 Z"/>
+    <rect id="shelf" x="14" y="34" width="36" height="2"/>
+    <path id="summit-tick" class="summit-tick" d="M 32 4 L 36 4 L 36 8 L 32 8 Z"/>
+  </g>
+</svg>

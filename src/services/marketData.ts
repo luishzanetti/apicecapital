@@ -277,6 +277,62 @@ export const getTopMarketCoins = async (limit = 10): Promise<CoinData[]> => {
     return coins.slice(0, limit);
 };
 
+// ─── Kline / historical series (public, no auth) ──────────────────
+
+export type KlineInterval = '1' | '5' | '15' | '30' | '60' | '120' | '240' | '360' | '720' | 'D' | 'W' | 'M';
+
+export interface KlinePoint {
+    openTime: number;   // ms epoch
+    close: number;
+}
+
+const klineCache: Record<string, { data: KlinePoint[]; timestamp: number }> = {};
+const KLINE_CACHE_DURATION = 5 * 60_000; // 5 min
+
+async function fetchKlineDirect(
+    symbol: string,
+    interval: KlineInterval,
+    limit: number,
+): Promise<KlinePoint[]> {
+    try {
+        const url = `https://api.bybit.com/v5/market/kline?category=spot&symbol=${symbol}&interval=${interval}&limit=${limit}`;
+        const res = await fetch(url);
+        if (!res.ok) return [];
+        const json = await res.json();
+        const list: string[][] = json?.result?.list || [];
+        // Bybit returns newest first → reverse to chronological
+        return list
+            .map((row) => ({ openTime: Number(row[0]), close: Number(row[4]) }))
+            .filter((p) => Number.isFinite(p.close))
+            .reverse();
+    } catch {
+        return [];
+    }
+}
+
+/**
+ * Fetch historical close prices for a Bybit spot symbol.
+ * Public endpoint — no authentication required.
+ * Cached for 5 min per (symbol, interval, limit) key.
+ */
+export const getKline = async (
+    symbol: string,
+    interval: KlineInterval,
+    limit = 200,
+): Promise<KlinePoint[]> => {
+    const key = `${symbol}:${interval}:${limit}`;
+    const cached = klineCache[key];
+    const now = Date.now();
+    if (cached && now - cached.timestamp < KLINE_CACHE_DURATION) {
+        return cached.data;
+    }
+    const data = await fetchKlineDirect(symbol, interval, limit);
+    if (data.length > 0) {
+        klineCache[key] = { data, timestamp: now };
+    }
+    return data;
+};
+
 export const getMarketData = async (coinIds: string[]): Promise<CoinData[]> => {
     const now = Date.now();
     const needsFetch: string[] = [];

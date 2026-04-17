@@ -1,0 +1,7 @@
+<!-- Apice · badge-frame-epic · v1 FINAL · media-engineer 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-labelledby="frEpicT"><title id="frEpicT">Epic rarity badge frame</title>
+  <circle cx="64" cy="64" r="62" fill="#F7F3ED"/>
+  <circle cx="64" cy="64" r="60" fill="none" stroke="#0F5D3F" stroke-width="2.5"/>
+  <circle cx="64" cy="64" r="54" fill="none" stroke="#16A661" stroke-width="2"/>
+  <circle cx="64" cy="64" r="48" fill="#EDE6DB"/>
+</svg>

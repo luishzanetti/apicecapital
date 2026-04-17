@@ -1,0 +1,44 @@
+<!-- Apice · PRIMARY LOGO DARK · approved triangle in circle + wordmark "Apice" + "AI TRADE SETUP" · Jarvis 2026-04-17 -->
+<!-- Matches screenshot reference exactly + uses approved triangle DNA (outline + inner fill 0.20) -->
+<svg viewBox="0 0 420 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice">
+  <title>Apice</title>
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#528FFF" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#528FFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="fillG" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.06"/>
+    </radialGradient>
+  </defs>
+  <!-- Ambient blue glow -->
+  <circle cx="50" cy="50" r="48" fill="url(#glow)"/>
+  <!-- Circle container -->
+  <circle cx="50" cy="50" r="32" fill="url(#fillG)" stroke="#FFFFFF" stroke-opacity="0.1" stroke-width="1"/>
+  <!-- APPROVED TRIANGLE · outline + inner fill · centered in circle -->
+  <g transform="translate(32 32) scale(0.5625)">
+    <path
+      d="M 32 6 L 58 56 L 6 56 Z"
+      stroke="#F7F3ED"
+      stroke-width="4.4"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      fill="none"/>
+    <path
+      d="M 32 20 L 48 52 L 16 52 Z"
+      fill="#F7F3ED"
+      opacity="0.20"/>
+  </g>
+  <!-- Wordmark + subtitle stacked on right -->
+  <text x="110" y="48"
+    font-family="'Geist','Inter',system-ui,-apple-system,sans-serif"
+    font-weight="700" font-size="42" letter-spacing="-1.26"
+    fill="#FFFFFF">Apice</text>
+  <text x="110" y="72"
+    font-family="'Geist','Inter',system-ui,-apple-system,sans-serif"
+    font-weight="500" font-size="11" letter-spacing="3.5"
+    fill="rgba(255,255,255,0.5)">AI TRADE SETUP</text>
+  <!-- Emerald signature dot -->
+  <circle cx="202" cy="44" r="4" fill="#16A661"/>
+</svg>

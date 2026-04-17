@@ -1,0 +1,13 @@
+<!-- Apice Capital · watchOS Complication (circular) · 40×40 · monochrome tint-ready · 2026-04-17 -->
+<!--
+  watchOS renders complications via Apple's tint system. Icons should be authored
+  as single-color (white on transparent) so the system can apply tint per watch face.
+  Ref: Apple HIG > watchOS > Complications (2024).
+  For Apice: circular frame (subtle outline) + dot glyph, both in white.
+  The emerald fill variant is provided via brand-specific complication family if needed.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-label="Apice Capital complication">
+  <!-- Background circle: transparent (system draws bezel) -->
+  <!-- Glyph: dot — single shape, system applies tint -->
+  <circle cx="20" cy="20" r="7.5" fill="#FFFFFF"/>
+</svg>

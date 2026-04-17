@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/appStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { ApiceLogo } from '@/components/brand';
 
 export default function Splash() {
   const { t } = useTranslation();
@@ -83,20 +84,7 @@ export default function Splash() {
           animate={{ rotate: 0, scale: 1 }}
           transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
         >
-          <svg width="42" height="42" viewBox="0 0 40 40" fill="none" className="text-white">
-            <path
-              d="M20 4L36 34H4L20 4Z"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinejoin="round"
-              fill="none"
-            />
-            <path
-              d="M20 13L30 32H10L20 13Z"
-              fill="currentColor"
-              opacity="0.28"
-            />
-          </svg>
+          <ApiceLogo variant="triangle" size={42} className="text-white" aria-label="Apice" />
         </motion.div>
 
         {/* Brand */}

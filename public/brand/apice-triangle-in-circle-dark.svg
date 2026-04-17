@@ -1,0 +1,31 @@
+<!-- Apice · Triangle in Circle (DARK MODE) · matches Landing screenshot exactly · Jarvis 2026-04-17 -->
+<!-- Circular container with translucent white fill + soft blue glow · triangle cream outline inside -->
+<!-- Use in dark hero surfaces: Landing nav, splash, Club hero, App Clip card -->
+<svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice">
+  <title>Apice</title>
+  <defs>
+    <!-- Ambient blue glow behind the circle -->
+    <radialGradient id="ambientGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#528FFF" stop-opacity="0.35"/>
+      <stop offset="60%" stop-color="#528FFF" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#528FFF" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Inner circle fill: translucent white with subtle depth -->
+    <radialGradient id="circleFill" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.06"/>
+    </radialGradient>
+  </defs>
+  <!-- Ambient blue glow (subtle, diffused) -->
+  <circle cx="44" cy="44" r="44" fill="url(#ambientGlow)"/>
+  <!-- Main circle container: translucent white with soft backdrop feel -->
+  <circle cx="44" cy="44" r="30" fill="url(#circleFill)" stroke="#FFFFFF" stroke-opacity="0.1" stroke-width="1"/>
+  <!-- Triangle inside · stroke 3u · cream/white, matches Landing reference -->
+  <path
+    d="M 44 30 L 60 58 L 28 58 Z"
+    stroke="#F7F3ED"
+    stroke-width="3"
+    stroke-linejoin="round"
+    stroke-linecap="round"
+    fill="none"/>
+</svg>

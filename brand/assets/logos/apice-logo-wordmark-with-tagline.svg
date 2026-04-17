@@ -1,0 +1,19 @@
+<!-- Apice · WORDMARK + TAGLINE only (no triangle) · Jarvis 2026-04-17 -->
+<!-- For tight contexts where triangle is omitted · editorial body copy · press headers -->
+<svg viewBox="0 0 360 108" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice — Global AI Investing">
+  <title>Apice · Global AI Investing</title>
+  <!-- Wordmark "Apice" -->
+  <text x="16" y="62"
+    font-family="'Geist','Inter',system-ui,-apple-system,sans-serif"
+    font-weight="700" font-size="54" letter-spacing="-1.62"
+    fill="currentColor">Apice</text>
+  <!-- Signature emerald dot -->
+  <circle cx="163" cy="58" r="5.5" fill="#16A661"/>
+  <!-- Hairline separator -->
+  <line x1="16" y1="76" x2="244" y2="76" stroke="currentColor" stroke-width="0.6" opacity="0.30"/>
+  <!-- Tagline tracked caps -->
+  <text x="16" y="96"
+    font-family="'Geist','Inter',system-ui,-apple-system,sans-serif"
+    font-weight="600" font-size="11" letter-spacing="3.4"
+    fill="currentColor" opacity="0.60">GLOBAL AI INVESTING</text>
+</svg>

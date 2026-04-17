@@ -1,0 +1,10 @@
+<!-- Apice · badge-100-percent-quiz · v1 FINAL · media-engineer 2026-04-17 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-labelledby="quizT"><title id="quizT">100 percent quiz — rare badge</title>
+  <circle cx="64" cy="64" r="60" fill="#F7F3ED"/>
+  <circle cx="64" cy="64" r="58" fill="none" stroke="#16A661" stroke-width="2.5"/>
+  <circle cx="64" cy="64" r="50" fill="#ECECEE"/>
+  <path d="M32 58 L 64 44 L 96 58 L 64 72 Z" fill="#0E0E12"/>
+  <path d="M48 66 L 48 82 Q 64 92, 80 82 L 80 66" fill="none" stroke="#0E0E12" stroke-width="3" stroke-linecap="round"/>
+  <line x1="94" y1="58" x2="94" y2="78" stroke="#0E0E12" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="94" cy="82" r="2.2" fill="#16A661"/>
+</svg>

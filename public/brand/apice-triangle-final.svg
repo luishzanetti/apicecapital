@@ -1,0 +1,24 @@
+<!-- Apice · triangle-mark FINAL · refined from Landing.tsx baseline · Jarvis 2026-04-17 -->
+<!-- Kept original DNA (outer outline + inner fill) · refined for premium craft:
+     • Stroke 2.5u (was 3u) — lighter, more premium at scale
+     • Proportions: golden-ratio base:height · cleaner apex angle
+     • Inner triangle proportionally harmonious to outer (1.6:1 ratio)
+     • Inner fill opacity 0.20 (was 0.24) — more restraint, more air
+     • Rounded line joins at apex and base corners — softer geometry
+     • viewBox 64 for future-scale · matches master lockup system -->
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice">
+  <title>Apice</title>
+  <!-- Outer outline · 2.5u stroke · rounded joins/caps -->
+  <path
+    d="M 32 6 L 58 56 L 6 56 Z"
+    stroke="currentColor"
+    stroke-width="2.5"
+    stroke-linejoin="round"
+    stroke-linecap="round"
+    fill="none"/>
+  <!-- Inner fill · harmonious 1.6:1 ratio · opacity 0.20 -->
+  <path
+    d="M 32 20 L 48 52 L 16 52 Z"
+    fill="currentColor"
+    opacity="0.20"/>
+</svg>

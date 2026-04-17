@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Home, PieChart, Compass, BookOpen, MoreHorizontal, BarChart3, CalendarClock, Crown, Headphones, User, Gift, X, Bot, Award, Trophy } from 'lucide-react';
+import { Home, PieChart, Compass, BookOpen, MoreHorizontal, BarChart3, CalendarClock, Crown, Headphones, User, Gift, X, Award, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
+import { AltisIcon } from '@/components/brand/AltisIcon';
 
 export function BottomNav() {
   const location = useLocation();
@@ -14,7 +15,7 @@ export function BottomNav() {
   const navItems = [
     { to: '/home', icon: Home, label: t('nav.home') },
     { to: '/portfolio', icon: PieChart, label: t('nav.portfolio') },
-    { to: '/ai-trade', icon: Bot, label: 'ALTIS' },
+    { to: '/ai-trade', icon: AltisIcon, label: 'ALTIS' },
     { to: '/dca-planner', icon: CalendarClock, label: 'DCA' },
     { to: '__more__', icon: MoreHorizontal, label: t('nav.more') },
   ];

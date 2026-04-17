@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="apice-ai-title apice-ai-desc">
+  <title id="apice-ai-title">Apice AI</title>
+  <desc id="apice-ai-desc">The Apice artificial intelligence assistant — an emerald orb representing the AI's presence and state.</desc>
+
+  <defs>
+    <!-- Outer ambient halo -->
+    <radialGradient id="aiHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#16A661" stop-opacity="0.3"/>
+      <stop offset="70%" stop-color="#16A661" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#16A661" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Orb body -->
+    <radialGradient id="aiOrb" cx="42%" cy="38%" r="70%">
+      <stop offset="0%"  stop-color="#6EE7A8"/>
+      <stop offset="35%" stop-color="#38D68A"/>
+      <stop offset="75%" stop-color="#16A661"/>
+      <stop offset="100%" stop-color="#0F5D3F"/>
+    </radialGradient>
+
+    <!-- Inner specular highlight -->
+    <radialGradient id="aiSpecular" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#F7F3ED" stop-opacity="0.7"/>
+      <stop offset="60%" stop-color="#F7F3ED" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#F7F3ED" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Core energy point -->
+    <radialGradient id="aiCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#DFFCEA"/>
+      <stop offset="50%" stop-color="#6EE7A8"/>
+      <stop offset="100%" stop-color="#6EE7A8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Outer ambient halo (visible only in active states via CSS/container control) -->
+  <circle cx="64" cy="64" r="60" fill="url(#aiHalo)" class="ai-halo"/>
+
+  <!-- Hairline ring (deep emerald) -->
+  <circle cx="64" cy="64" r="52" fill="none" stroke="#0F5D3F" stroke-opacity="0.4" stroke-width="1"/>
+
+  <!-- Main orb body -->
+  <circle cx="64" cy="64" r="48" fill="url(#aiOrb)"/>
+
+  <!-- Inner specular (top-left "life") -->
+  <ellipse cx="54" cy="50" rx="18" ry="14" fill="url(#aiSpecular)"/>
+
+  <!-- Core highlight (energy source) -->
+  <circle cx="64" cy="64" r="7" fill="url(#aiCore)" class="ai-core"/>
+</svg>

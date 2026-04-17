@@ -1,0 +1,15 @@
+<!-- Apice Capital · Logo v2 · Direction 1: Ascent (Nike-leaning) · concept · 2026-04-17 -->
+<!-- Single variable-weight stroke. Heavy at lower-left, thins to upper-right. Inflection at ~40% of length. -->
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Apice · Ascent concept">
+  <title>Ascent concept</title>
+  <path d="
+    M 10 96
+    C 24 86, 38 74, 54 60
+    C 70 46, 84 34, 96 24
+    C 102 19, 107 15, 112 12
+    L 113 17
+    C 108 20, 103 24, 98 28
+    C 86 38, 72 50, 56 64
+    C 40 78, 26 90, 14 102 Z"
+    fill="var(--apice-fill, currentColor)"/>
+</svg>

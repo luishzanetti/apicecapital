@@ -1,0 +1,566 @@
+{
+  "version": "1.0",
+  "created": "2026-04-17",
+  "author": "@analyst (Atlas) — Synkra AIOS",
+  "consumers": ["@architect (Aria)", "@dev (Dex)"],
+  "sources_primary": [
+    "https://bybit-exchange.github.io/docs/v5/intro",
+    "https://bybit-exchange.github.io/docs/v5/rate-limit",
+    "https://bybit-exchange.github.io/docs/v5/error",
+    "https://docs.stripe.com/billing/subscriptions/overview",
+    "https://docs.stripe.com/billing/subscriptions/webhooks",
+    "https://docs.stripe.com/billing/subscriptions/build-subscriptions",
+    "https://supabase.com/docs/guides/functions/limits",
+    "https://supabase.com/docs/guides/functions/schedule-functions",
+    "https://supabase.com/docs/guides/database/vault"
+  ],
+  "pillars": {
+    "bybit_v5": {
+      "base_urls": {
+        "mainnet_rest": "https://api.bybit.com",
+        "mainnet_rest_backup": "https://api.bytick.com",
+        "testnet_rest": "https://api-testnet.bybit.com",
+        "mainnet_ws_public_spot": "wss://stream.bybit.com/v5/public/spot",
+        "mainnet_ws_public_linear": "wss://stream.bybit.com/v5/public/linear",
+        "mainnet_ws_private": "wss://stream.bybit.com/v5/private",
+        "testnet_ws_private": "wss://stream-testnet.bybit.com/v5/private",
+        "demo_rest": "https://api-demo.bybit.com",
+        "notes": "Switch env via single ENV var BYBIT_BASE_URL. Never use api.bytick.com unless api.bybit.com down; DNS differs per region. US IP blocked (HTTP 403)."
+      },
+      "authentication": {
+        "scheme": "HMAC-SHA256 over concatenated payload",
+        "required_headers": [
+          "X-BAPI-API-KEY",
+          "X-BAPI-TIMESTAMP (ms since epoch)",
+          "X-BAPI-SIGN",
+          "X-BAPI-RECV-WINDOW (default 5000)",
+          "X-BAPI-SIGN-TYPE: 2 (optional; default HMAC)",
+          "Content-Type: application/json (POST)",
+          "X-Referer / Referer (optional broker ID, e.g. Apice-xxxx for rev-share)"
+        ],
+        "signature_formula_get": "HMAC_SHA256(secret, timestamp + apiKey + recvWindow + queryString)",
+        "signature_formula_post": "HMAC_SHA256(secret, timestamp + apiKey + recvWindow + jsonBodyRaw)",
+        "critical_notes": [
+          "jsonBodyRaw MUST be the exact serialized body sent — stringify then sign; do NOT re-stringify on send.",
+          "queryString uses alphabetically sorted keys without leading '?' e.g. 'accountType=UNIFIED&coin=BTC'.",
+          "timestamp check: server_time - recvWindow <= ts < server_time + 1000 (ms).",
+          "recvWindow 5000 is safe default; increase to 10000 for VPN/cold starts; never > 60000."
+        ],
+        "example_nodejs_fetch": "import crypto from 'node:crypto';\nconst API_KEY = Deno.env.get('BYBIT_API_KEY')!;\nconst API_SECRET = Deno.env.get('BYBIT_API_SECRET')!;\nconst BASE = Deno.env.get('BYBIT_BASE_URL')!;\nconst RECV = '5000';\nexport async function bybitSignedPost(path: string, body: object) {\n  const ts = Date.now().toString();\n  const raw = JSON.stringify(body);\n  const payload = ts + API_KEY + RECV + raw;\n  const sign = crypto.createHmac('sha256', API_SECRET).update(payload).digest('hex');\n  const res = await fetch(BASE + path, {\n    method: 'POST',\n    headers: {\n      'X-BAPI-API-KEY': API_KEY,\n      'X-BAPI-TIMESTAMP': ts,\n      'X-BAPI-RECV-WINDOW': RECV,\n      'X-BAPI-SIGN': sign,\n      'Content-Type': 'application/json',\n    },\n    body: raw,\n  });\n  return res.json();\n}",
+        "recommended_sdk": {
+          "package": "bybit-api",
+          "version": "^4.x",
+          "github": "https://github.com/tiagosiebler/bybit-api",
+          "rationale": "TS-native, mantido ativamente, suporta Deno via esm.sh, implementa HMAC + recvWindow automaticamente; RestClientV5 cobre todos endpoints V5."
+        }
+      },
+      "endpoints": [
+        {
+          "id": "order_create",
+          "method": "POST",
+          "path": "/v5/order/create",
+          "doc": "https://bybit-exchange.github.io/docs/v5/order/create-order",
+          "params_required": {
+            "category": "spot | linear | inverse | option",
+            "symbol": "ex: BTCUSDT",
+            "side": "Buy | Sell",
+            "orderType": "Limit | Market",
+            "qty": "string (decimal); para spot MARKET BUY o qty é em quoteCoin USDT quando marketUnit='quoteCoin'",
+            "timeInForce": "GTC | IOC | FOK | PostOnly"
+          },
+          "params_optional": {
+            "price": "obrigatório se Limit",
+            "orderLinkId": "id idempotente custom (<=36 chars) — OBRIGATÓRIO em produção p/ evitar doubles",
+            "marketUnit": "baseCoin | quoteCoin (spot only)",
+            "reduceOnly": "bool",
+            "takeProfit": "preço TP",
+            "stopLoss": "preço SL",
+            "triggerPrice": "conditional order",
+            "isLeverage": "0 | 1 (spot margin)",
+            "positionIdx": "0 one-way | 1 long hedge | 2 short hedge"
+          },
+          "response_success": {
+            "retCode": 0,
+            "retMsg": "OK",
+            "result": {
+              "orderId": "string",
+              "orderLinkId": "string"
+            },
+            "time": "ms"
+          },
+          "rate_limit": "10 req/s por UID (spot & derivatives). Headers de resposta: X-Bapi-Limit, X-Bapi-Limit-Status, X-Bapi-Limit-Reset-Timestamp.",
+          "common_errors": [
+            {"code": 10001, "meaning": "request parameter error — validar qty decimal precision"},
+            {"code": 10002, "meaning": "timestamp fora da janela — recalibrar clock drift, aumentar recvWindow"},
+            {"code": 10003, "meaning": "API key inválida — checar env (mainnet vs testnet)"},
+            {"code": 10004, "meaning": "signature error — sempre re-checar string assinada = string enviada"},
+            {"code": 10005, "meaning": "permission denied — API key sem scope de trading"},
+            {"code": 10006, "meaning": "rate limit — retry com exponential backoff"},
+            {"code": 10010, "meaning": "IP não autorizado na whitelist da key"},
+            {"code": 110004, "meaning": "wallet balance insufficient — disparar InsufficientFundsAlert"},
+            {"code": 110007, "meaning": "available balance insufficient (locked em ordens)"},
+            {"code": 110012, "meaning": "available balance insufficient"},
+            {"code": 110020, "meaning": "mais de 500 ordens ativas — limpar antes"},
+            {"code": 170341, "meaning": "qty acima do máximo por símbolo"},
+            {"code": 170131, "meaning": "(spot) balance insufficient"}
+          ],
+          "example_nodejs_sdk": "import { RestClientV5 } from 'bybit-api';\nconst c = new RestClientV5({ key, secret, testnet: false });\nawait c.submitOrder({\n  category: 'spot', symbol: 'BTCUSDT', side: 'Buy',\n  orderType: 'Market', qty: '10', marketUnit: 'quoteCoin',\n  orderLinkId: `apice-dca-${planId}-${Date.now()}`\n});"
+        },
+        {
+          "id": "order_create_batch",
+          "method": "POST",
+          "path": "/v5/order/create-batch",
+          "doc": "https://bybit-exchange.github.io/docs/v5/order/batch-place",
+          "description": "Até 10 (spot/linear) ou 20 (option) orders em 1 request. Recomendado para DCA plans multi-asset.",
+          "rate_limit": "1 batch call = conta como 1 request para rate limit, MAS cada ordem individual conta contra risk controls diários.",
+          "when_to_use": "Quando DCA plan tem 3+ assets simultâneos (ex: user compra BTC+ETH+SOL no mesmo ciclo)."
+        },
+        {
+          "id": "wallet_balance",
+          "method": "GET",
+          "path": "/v5/account/wallet-balance",
+          "doc": "https://bybit-exchange.github.io/docs/v5/account/wallet-balance",
+          "params_required": {"accountType": "UNIFIED (recomendado p/ UTA users) | CONTRACT (legacy)"},
+          "params_optional": {"coin": "BTC,ETH,USDT — multi-coin separado por vírgula"},
+          "response_success": {
+            "list": [{
+              "accountType": "UNIFIED",
+              "totalEquity": "string USD",
+              "totalWalletBalance": "string USD",
+              "totalAvailableBalance": "string USD",
+              "totalMarginBalance": "string USD",
+              "accountIMRate": "string",
+              "accountMMRate": "string",
+              "totalPerpUPL": "string",
+              "coin": [{
+                "coin": "USDT",
+                "equity": "string",
+                "walletBalance": "string",
+                "usdValue": "string",
+                "locked": "string",
+                "unrealisedPnl": "string",
+                "cumRealisedPnl": "string",
+                "marginCollateral": "bool",
+                "collateralSwitch": "bool"
+              }]
+            }]
+          },
+          "polling_vs_ws": "Polling: 10s-30s interval OK para UX. WebSocket: canal 'wallet' em wss://stream.bybit.com/v5/private push instantâneo (0 rate limit cost). Usar WS em dashboards abertos; polling em Edge Function cron (balance-monitor).",
+          "rate_limit": "50 req/s por UID",
+          "common_errors": [
+            {"code": 10005, "meaning": "API key sem scope 'Wallet/Read'"},
+            {"code": 10028, "meaning": "endpoint só para UTA users — user precisa upgrade"}
+          ]
+        },
+        {
+          "id": "query_api",
+          "method": "GET",
+          "path": "/v5/user/query-api",
+          "doc": "https://bybit-exchange.github.io/docs/v5/user/apikey-info",
+          "description": "Valida se API key está ativa + retorna lista de permissões. CRÍTICO: chamar imediatamente após user conectar key pra mostrar 'capability check'.",
+          "no_params": true,
+          "response_fields_key": {
+            "id": "api key id",
+            "note": "string",
+            "apiKey": "masked",
+            "readOnly": "0 = read+write, 1 = read-only",
+            "expiredAt": "ISO timestamp",
+            "permissions": {
+              "ContractTrade": ["Order", "Position"],
+              "Spot": ["SpotTrade"],
+              "Wallet": ["AccountTransfer", "SubMemberTransfer"],
+              "Options": [],
+              "Derivatives": [],
+              "Exchange": [],
+              "NFT": [],
+              "CopyTrading": [],
+              "BlockTrade": []
+            },
+            "ips": ["whitelist or ['*']"],
+            "type": 1,
+            "deadlineDay": 30,
+            "vipLevel": "No VIP | VIP-1 | ..."
+          },
+          "apice_capability_gates": {
+            "required_for_dca_spot": ["Spot.SpotTrade", "Wallet.AccountTransfer"],
+            "required_for_altis_futures": ["ContractTrade.Order", "ContractTrade.Position", "Wallet.AccountTransfer"],
+            "blocking_if_missing": "Deep-link para bybit.com/app/user/api-management com highlight da permissão faltando."
+          }
+        },
+        {
+          "id": "asset_transfer_inter",
+          "method": "POST",
+          "path": "/v5/asset/transfer/inter-transfer",
+          "doc": "https://bybit-exchange.github.io/docs/v5/asset/transfer/create-inter-transfer",
+          "description": "Transfer entre sub-contas do MESMO UID (SPOT/FUND/UNIFIED/CONTRACT). Zero fee, ~instant.",
+          "params_required": {
+            "transferId": "UUID v4 gerado pelo cliente — idempotency key",
+            "coin": "USDT / BTC (uppercase)",
+            "amount": "string decimal",
+            "fromAccountType": "FUND | SPOT | UNIFIED | CONTRACT",
+            "toAccountType": "FUND | SPOT | UNIFIED | CONTRACT"
+          },
+          "response_success": {
+            "transferId": "echo do input",
+            "status": "SUCCESS | PENDING | FAILED | STATUS_UNKNOWN"
+          },
+          "uta_routing_rules": [
+            "SPOT → UNIFIED: ok para UTA users",
+            "FUND → UNIFIED: ok — fluxo recomendado quando user deposita na Funding wallet",
+            "UNIFIED → SPOT: ok (withdraw pós-trade)",
+            "CONTRACT → UNIFIED: merge após upgrade UTA"
+          ],
+          "rate_limit": "1 req/s por UID — BAIXO. Usar com parcimônia, batch mental-model: só transfere quando necessário pra executar ordem.",
+          "common_errors": [
+            {"code": 10005, "meaning": "API key sem 'Wallet.AccountTransfer' — bloquear + deep-link"},
+            {"code": 10014, "meaning": "duplicate transferId — regenerar UUID (NUNCA reusar)"},
+            {"code": 131001, "meaning": "amount excede saldo disponível"},
+            {"code": 131002, "meaning": "sub-account inválida"},
+            {"code": 131003, "meaning": "coin inválido para essa conta"},
+            {"code": 131004, "meaning": "account type inválido"}
+          ],
+          "design_recommendation": "Armazenar (transferId, status) em account_transfers; se PENDING > 60s, fazer GET /v5/asset/transfer/query-inter-transfer-list?transferId=xxx pra reconciliar."
+        },
+        {
+          "id": "server_time",
+          "method": "GET",
+          "path": "/v5/market/time",
+          "description": "Unauthenticated. Chame na inicialização da app pra calibrar clock drift.",
+          "rate_limit": "IP-based (600/5s)"
+        }
+      ],
+      "rate_limits_global": {
+        "ip_http": "600 requests / 5-second window. Erro: HTTP 403. Ação: aguardar 10min.",
+        "ip_websocket_connections": "500 conexões por 5min",
+        "ip_websocket_market_data": "1.000 conexões",
+        "uid_rest_default": "10 req/s para endpoints de trading (order create/cancel/amend). 50 req/s para read (wallet, positions).",
+        "uid_daily_order_cap": "Bybit reserva direito de throttle se order count > threshold diário (não documentado exato; consensus 100k/day mainstream, 500k+ VIP).",
+        "headers_returned": ["X-Bapi-Limit", "X-Bapi-Limit-Status", "X-Bapi-Limit-Reset-Timestamp"],
+        "retry_strategy": "Em 10006 ou HTTP 429: exponential backoff (baseDelay=500ms, factor=2, maxDelay=30s, maxRetries=5). Em HTTP 403 IP ban: circuit breaker 10min."
+      },
+      "testnet_mainnet_switching": {
+        "env_var": "BYBIT_BASE_URL",
+        "testnet_base": "https://api-testnet.bybit.com",
+        "mainnet_base": "https://api.bybit.com",
+        "demo_base": "https://api-demo.bybit.com (testnet-demo)",
+        "api_keys": "Testnet e mainnet têm API keys DIFERENTES. Criar key em testnet.bybit.com/app/user/api-management vs bybit.com/app/user/api-management.",
+        "fund_testnet": "https://testnet.bybit.com/app/user/asset-request (faucet 1 BTC, 10k USDT) — útil para QA E2E sem real money.",
+        "apice_launch_strategy": "Bridge V1.5 (já deployed) deve usar testnet p/ onboarding confirmado antes de mainnet switch por user (feature flag por-user)."
+      },
+      "websocket_private_subscriptions_recommended": [
+        "order (status changes ordem real-time)",
+        "execution (fills executados)",
+        "position (updates posições futures)",
+        "wallet (balance changes UTA)"
+      ],
+      "broker_rev_share": {
+        "header": "X-Referer ou Referer: Apice-XXXXX",
+        "doc": "https://www.bybit.com/en-US/partners/api-broker/",
+        "impact": "Comissão adicional em cada ordem (15-30% fee rebate) — ESSENCIAL pra unit economics do Apice. CEO precisa ter broker ID ativo antes do launch."
+      }
+    },
+    "stripe": {
+      "base_api": "https://api.stripe.com",
+      "node_sdk": {"package": "stripe", "version": "^19.1.0", "api_version": "2026-03-25.preview"},
+      "react_sdk": {"package": "@stripe/react-stripe-js + @stripe/stripe-js", "version_react": "^4.0.0", "version_js": "^8.5.0"},
+      "products_apice": [
+        {"plan": "Pro", "price_usd": 49.90, "interval": "month", "stripe_price_id_env": "STRIPE_PRICE_PRO_MONTHLY"},
+        {"plan": "Club", "price_usd": 149.90, "interval": "month", "stripe_price_id_env": "STRIPE_PRICE_CLUB_MONTHLY"}
+      ],
+      "checkout_decision": {
+        "recommendation": "EMBEDDED Checkout (ui_mode: 'embedded') via @stripe/react-stripe-js — mantém user no domínio Apice, PCI-compliance offloaded, conversão +3-8% vs hosted redirect (Stripe 2025 data).",
+        "rationale": "Embedded é o padrão 2026. Apenas se RN/iOS nativo surgir usar hosted. Para web v2 (React/TS), embedded = default.",
+        "fallback": "Hosted redirect (ui_mode: 'hosted' default) se A/B test mostrar menor conversion OU se tax collection exigir. Documentado em Stripe docs (link abaixo)."
+      },
+      "checkout_session_create": {
+        "endpoint": "POST /v1/checkout/sessions",
+        "params_required_subscription": {
+          "mode": "subscription",
+          "line_items[0][price]": "price_xxx (Pro OR Club)",
+          "line_items[0][quantity]": 1,
+          "ui_mode": "embedded (recomendado) | hosted",
+          "return_url": "https://apice.capital/checkout/return?session_id={CHECKOUT_SESSION_ID}",
+          "customer": "cus_xxx (criar Customer antes se user já logou)",
+          "customer_email": "fallback se não tem customer",
+          "allow_promotion_codes": true,
+          "subscription_data[trial_period_days]": "7 (opcional — para Pro trial)",
+          "automatic_tax[enabled]": "true (ver Tax section)"
+        },
+        "example_nodejs": "const session = await stripe.checkout.sessions.create({\n  mode: 'subscription',\n  ui_mode: 'embedded',\n  line_items: [{ price: process.env.STRIPE_PRICE_PRO_MONTHLY, quantity: 1 }],\n  customer: user.stripeCustomerId,\n  return_url: 'https://apice.capital/checkout/return?session_id={CHECKOUT_SESSION_ID}',\n  automatic_tax: { enabled: true },\n  subscription_data: { metadata: { apice_user_id: user.id, plan: 'pro' } },\n});\nreturn { clientSecret: session.client_secret };"
+      },
+      "react_embedded_component": "import { loadStripe } from '@stripe/stripe-js';\nimport { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';\nconst stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);\nfunction CheckoutForm({ clientSecret }) {\n  return (\n    <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>\n      <EmbeddedCheckout />\n    </EmbeddedCheckoutProvider>\n  );\n}",
+      "webhooks_critical": [
+        {
+          "event": "checkout.session.completed",
+          "when": "Imediatamente após user completar payment",
+          "action": "Buscar session, ler session.subscription + session.customer, inserir/upsert em subscriptions table (apice_user_id, stripe_sub_id, plan, status='active'). Enviar email boas-vindas.",
+          "idempotency": "Chave em event.id — verificar já processado"
+        },
+        {
+          "event": "customer.subscription.created",
+          "when": "Após checkout + depois de trial conversion",
+          "action": "Redundante com checkout.session.completed — usar para canonizar estado (current_period_end, trial_end, items.data[0].price.id)."
+        },
+        {
+          "event": "customer.subscription.updated",
+          "when": "Upgrade/downgrade, pause, resume, trial → paid",
+          "action": "Atualizar plan + status + current_period_end. Checar proration_behavior."
+        },
+        {
+          "event": "customer.subscription.deleted",
+          "when": "Cancel imediato OU expire após period_end (cancel_at_period_end=true)",
+          "action": "Status → 'canceled', revogar acesso Pro/Club no fim do período (não imediato se cancel_at_period_end)."
+        },
+        {
+          "event": "invoice.paid",
+          "when": "PRIMEIRO pagamento E todos renewals subsequentes",
+          "action": "Event PRIMARY para unlock de access. Reset billing flags. Log invoice_pdf_url pra user history."
+        },
+        {
+          "event": "invoice.payment_failed",
+          "when": "Falha no primeiro retry ou subsequentes",
+          "action": "Flag user.billing_status='past_due'. Email warning. Depois de 3 falhas (Stripe Smart Retries default), subscription move pra 'unpaid' e access é cortado."
+        },
+        {
+          "event": "customer.subscription.trial_will_end",
+          "when": "3 dias antes do trial acabar",
+          "action": "Email + in-app banner 'Seu trial acaba em 3 dias'."
+        }
+      ],
+      "webhook_signature_verification": {
+        "header": "stripe-signature",
+        "method": "stripe.webhooks.constructEvent(rawBody, sig, STRIPE_WEBHOOK_SECRET)",
+        "critical": "Use raw body (NÃO parsed JSON) — Next.js/Express exigem body raw. Em Supabase Edge Function, usar req.text() e construir manualmente.",
+        "example_deno": "import Stripe from 'npm:stripe';\nconst stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2026-03-25.preview' });\nconst sig = req.headers.get('stripe-signature')!;\nconst raw = await req.text();\ntry {\n  const event = await stripe.webhooks.constructEventAsync(raw, sig, Deno.env.get('STRIPE_WEBHOOK_SECRET')!);\n  // handle event ...\n} catch (err) {\n  return new Response('invalid signature', { status: 400 });\n}"
+      },
+      "billing_portal": {
+        "purpose": "Auto-service: user troca payment method, cancela, upgrade/downgrade, ve invoices.",
+        "endpoint": "POST /v1/billing_portal/sessions (retorna url)",
+        "ui": "Hosted Stripe OR embedded component (2025+): stripe.billingPortal.sessions.create({ customer, return_url })",
+        "configure": "https://dashboard.stripe.com/settings/billing/portal — habilitar 'Subscriptions', 'Payment methods', 'Invoices history'."
+      },
+      "proration_upgrade_downgrade": {
+        "upgrade_pro_to_club": "proration_behavior: 'create_prorations' (default). Stripe cobra prorated diff imediato. Access Club imediato.",
+        "downgrade_club_to_pro": "proration_behavior: 'none' (recomendado) — user mantém Club até end_of_period e depois transita. Evita credit back edge cases."
+      },
+      "dunning": {
+        "feature": "Stripe Smart Retries (automatic)",
+        "config": "dashboard.stripe.com/settings/billing/subscriptions → enable 'Smart Retries'",
+        "default_schedule": "4 retries over 3 semanas. Email automation via Stripe templates.",
+        "custom": "Para emails branded, usar invoice.payment_failed webhook + SendGrid/Postmark custom."
+      },
+      "tax_handling": {
+        "product": "Stripe Tax",
+        "recommendation": "ATIVAR antes do launch público. Pricing: 0.5% do GMV (capped).",
+        "coverage": {
+          "us": "Full (sales tax nexus automation em 50 states). Requer registrar nexus quando thresholds (ex: $100k/year CA).",
+          "eu": "Full (VAT auto-calc pós-MiCA). MiCA entra em full enforcement 2026-07-01.",
+          "br": "LIMITADO — Stripe não é merchant of record no BR. Se CEO quer faturamento BR-legal, recomendar Pagar.me ou Hotmart intermediando, OU usar Stripe Atlas (US Delaware C-Corp → vende globally com compliance US-side apenas).",
+          "note_br_2026": "Brasil Resoluções BCB 519/520/521 entram em vigor 2026-02-02 com 270d grandfather até 2026-10-30. SPSAV registration obrigatório se app opera custody de crypto BR. Apice NÃO custodia (user conecta Bybit próprio), mas CONVERSÃO de BRL para USDT pode cair em 'foreign exchange operation' per nova regra de stablecoin."
+        },
+        "automatic_tax_enabled": "Setar em checkout.sessions.create: automatic_tax: { enabled: true }. Requer address coleta (billing_address_collection: 'required')."
+      },
+      "customer_object_strategy": {
+        "creation_timing": "No momento que user cria conta no Apice (antes do checkout). Armazenar user.stripe_customer_id em profiles table.",
+        "why": "Evita race: user completa checkout primeiro, mas webhook chega antes de query — Customer já existe com user_id metadata."
+      },
+      "pricing_model_decisions_open": [
+        "Annual plans com desconto (Pro $499/year = -17%, Club $1499/year = -17%)?",
+        "Promotional codes ativos (Challenge 6 25% lifetime, Challenge 9 1 month free, Challenge 10 lifetime Club)?",
+        "Trial 7 dias default OU só via ad CTA?"
+      ]
+    },
+    "supabase_edge": {
+      "runtime": "Deno (latest stable via Supabase platform, ~v1.42 em 2026)",
+      "cli_version_min": "^2.x",
+      "deploy_function": "supabase functions deploy <name> [--no-verify-jwt] [--project-ref xxx]",
+      "secrets_set": "supabase secrets set KEY=value [--project-ref xxx]",
+      "secrets_list": "supabase secrets list --project-ref xxx",
+      "secrets_location": "Gerenciados via dashboard ou CLI; NÃO expor em client bundle NUNCA. Acessar via Deno.env.get('KEY').",
+      "invocation_from_client": "supabase.functions.invoke('function-name', { body: {...}, headers: { Authorization: `Bearer ${session.access_token}` } })",
+      "limits_critical": {
+        "wall_clock_timeout_free": "150 seconds",
+        "wall_clock_timeout_paid": "400 seconds (6.6 min)",
+        "cpu_time_active": "200ms por request (CPU bound)",
+        "memory": "256 MB",
+        "payload_request": "200 MB",
+        "payload_response": "200 MB",
+        "concurrent_invocations": "Unlimited conceptualmente; billed per-invocation",
+        "cron_invocation_timeout_via_pg_net": "Configurável via net.http_post(..., timeout_milliseconds=N); default 5000ms — AUMENTAR PARA 60000+ para Edge Functions que fazem multiple Bybit calls"
+      },
+      "cold_start": "~50-200ms com ESZip bundle. Isolate reuse até ~10 min idle.",
+      "logging": "console.log / console.error → Supabase Dashboard > Edge Functions > Logs. Structured: logar JSON.stringify({ level, event, context, requestId }).",
+      "error_handling_pattern": "try { ... } catch (err) { console.error(JSON.stringify({ err: err.message, stack: err.stack, fn: 'bybit-transfer', user_id })); return new Response(JSON.stringify({ error: err.message }), { status: 500 }); }",
+      "cron_scheduling_options": [
+        {
+          "option": "pg_cron + pg_net (RECOMENDADO)",
+          "how": "CREATE EXTENSION pg_cron; CREATE EXTENSION pg_net; SELECT cron.schedule('balance-monitor', '0 8 * * *', $$ SELECT net.http_post(url := current_setting('app.functions_url')||'/balance-monitor', headers := jsonb_build_object('Authorization', 'Bearer '||current_setting('app.service_key')), body := '{}'::jsonb, timeout_milliseconds := 60000) $$);",
+          "pros": "Gerenciado pelo Postgres; sobrevive a redeploys; metadata queryable.",
+          "cons": "Timeout do pg_net é separado do Edge Function timeout; precisa configurar bem."
+        },
+        {
+          "option": "External cron (Vercel Cron / GitHub Actions / EasyCron)",
+          "how": "HTTP POST para https://<project>.supabase.co/functions/v1/<fn> com Authorization header.",
+          "pros": "Simples; controle fora da DB.",
+          "cons": "Dependência externa; latência WAN."
+        }
+      ],
+      "secrets_for_apice_v2": [
+        "BYBIT_API_KEY (server-side master; OR user-supplied encrypted — ver security_compliance)",
+        "BYBIT_API_SECRET",
+        "BYBIT_BASE_URL (mainnet/testnet toggle)",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "STRIPE_PRICE_PRO_MONTHLY",
+        "STRIPE_PRICE_CLUB_MONTHLY",
+        "APICE_ENCRYPTION_KEY (derivação server-side)",
+        "POSTHOG_API_KEY",
+        "RESEND_API_KEY (ou Postmark/SendGrid)"
+      ],
+      "edge_functions_apice_v2": [
+        {
+          "name": "bybit-transfer",
+          "trigger": "HTTP (client.invoke)",
+          "purpose": "Executa Spot→Unified transfer via Bybit /v5/asset/transfer/inter-transfer",
+          "auth": "JWT verify (default: --no-verify-jwt OFF)",
+          "timeout_target": "< 10s"
+        },
+        {
+          "name": "balance-monitor",
+          "trigger": "Cron 0 8 * * * UTC + HTTP on-demand",
+          "purpose": "Snapshot balances, compute fund forecast, insert fund_alerts",
+          "auth": "Service role key",
+          "timeout_target": "< 120s (percorre users ativos)"
+        },
+        {
+          "name": "education-progress",
+          "trigger": "HTTP",
+          "purpose": "Complete lesson, award XP, check level-up/badge unlocks",
+          "auth": "JWT verify ON",
+          "timeout_target": "< 5s"
+        },
+        {
+          "name": "challenge-engine",
+          "trigger": "Cron hourly + internal RPC",
+          "purpose": "Evaluate challenge rules against user actions",
+          "auth": "Service role",
+          "timeout_target": "< 120s"
+        },
+        {
+          "name": "stripe-webhook",
+          "trigger": "HTTP (POST from Stripe)",
+          "purpose": "Receive Stripe events, update subscriptions table",
+          "auth": "NÃO usar JWT verify; validar via stripe-signature header",
+          "timeout_target": "< 5s"
+        },
+        {
+          "name": "dca-executor",
+          "trigger": "Cron per-user schedule OR master cron every 15min scanning due plans",
+          "purpose": "Execute DCA plan via Bybit order/create",
+          "auth": "Service role",
+          "timeout_target": "< 60s (pode precisar Queue se milhares de users)"
+        }
+      ],
+      "queue_pattern": {
+        "when": "DCA executor em escala (>500 users ativos em mesma janela)",
+        "solution": "Supabase pgmq (Postgres Message Queue) — ships with Supabase. Enqueue jobs, consumer Edge Function drena batch.",
+        "ref": "https://supabase.com/docs/guides/queues"
+      }
+    },
+    "security_compliance": {
+      "api_key_storage": {
+        "pattern_recommended": "User-supplied Bybit keys encrypted-at-rest com AES-256-GCM via Supabase Vault.",
+        "flow": "1. User digita key+secret no client. 2. Client envia via HTTPS para Edge Function 'api-key-store'. 3. Edge Function encripta com chave derivada de user_id + APICE_ENCRYPTION_KEY (HKDF). 4. Store em profiles.bybit_api_key_enc (text). 5. Em runtime, decrypt server-side only.",
+        "vault_supabase": "Supabase Vault (pgsodium) nativo: CREATE SECRET 'bybit_key_<user_id>'. Acesso via vault.decrypted_secrets view (RLS-protected).",
+        "anti_pattern": "NUNCA armazenar plaintext no client (localStorage/sessionStorage). NUNCA em cookies não-httpOnly. NUNCA expor no bundle (env vars do vite/next).",
+        "key_rotation_user": "UI 'Rotate API Key' regenera chave de encriptação + re-encripta. Feature roadmap v2.1.",
+        "key_rotation_master": "APICE_ENCRYPTION_KEY rotation cada 12 meses; re-encrypt batch via cron job (background)."
+      },
+      "encryption_details": {
+        "algorithm": "AES-256-GCM",
+        "nonce": "12 bytes random por encryption",
+        "key_derivation": "HKDF-SHA256(APICE_ENCRYPTION_KEY, salt=user_id, info='bybit_api_v1')",
+        "aead_ad": "user_id como authenticated data",
+        "max_encryptions_per_key": "2^32 (NIST SP 800-38D) — com HKDF per-user isso NUNCA é gargalo",
+        "library_deno": "Web Crypto API nativo: crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data)"
+      },
+      "rate_limiting": {
+        "platform_native": "Supabase Edge Functions sem rate limit built-in de alto nível (há IP throttle global).",
+        "recommended_solution_mvp": "Upstash Redis + @upstash/ratelimit via REST (compatível com Deno). Pattern: sliding-window 10 req/min por user_id em endpoints sensíveis (bybit-transfer, stripe-webhook).",
+        "cost_upstash": "Free tier 10k cmds/day — suficiente pra launch; scale pay-as-you-go.",
+        "example_deno": "import { Ratelimit } from 'https://esm.sh/@upstash/ratelimit';\nimport { Redis } from 'https://esm.sh/@upstash/redis';\nconst rl = new Ratelimit({ redis: Redis.fromEnv(), limiter: Ratelimit.slidingWindow(10, '60s') });\nconst { success } = await rl.limit(`transfer:${userId}`);\nif (!success) return new Response('rate limited', { status: 429 });"
+      },
+      "kyc_aml": {
+        "apice_positioning": "Apice é SOFTWARE que ajuda user a operar NA SUA PRÓPRIA conta Bybit. NÃO custodia fundos. Isso muda o framing regulatório fundamentally.",
+        "regulatory_implications": {
+          "us_fincen": "Se Apice NÃO transfer dinheiro em nome do user nem custodia, argumento forte para NÃO ser MSB. MAS: cobrar subscription em USD via Stripe → Apice é SaaS, não money transmitter. CRITICAL: nunca tomar possession dos funds. MSB registration = risco de compliance mal usado se não aplicável.",
+          "us_mtl_state": "Não aplicável se não money transmission.",
+          "us_kyc": "Stripe KYC (Stripe Identity) suficiente para billing. Para unlock features de trading real-money, recomendar KYC leve (email+phone verify) pre-launch e KYC pesado (ID+selfie via Persona/Onfido) se scale > 10k users.",
+          "br_bcb": "Resoluções 519/520/521 (publicadas 2025-11-10, vigor 2026-02-02). SPSAV registration obrigatório para custody OU conversão BRL↔crypto. Apice NÃO custodia, mas se ads BR + Stripe BR billing → analisar com advogado BR. CEO deve considerar: (a) NÃO ativar billing BR no launch; (b) faturar via Stripe US com note 'serviço internacional'; (c) futuro: parceria com SPSAV autorizada.",
+          "eu_mica": "Full enforcement 2026-07-01. CASP licence necessária se ops custody/exchange/trading na EU. Apice como tool NÃO precisa CASP. Se user base EU significativo, adicionar MiCA Whitepaper compliance p/ disclosure + Travel Rule ativo no lado do user (Bybit já faz).",
+          "recommendation": "Legal opinion antes do launch público por firm especializada (ex: DLA Piper crypto, Harter Secrest, Mattos Filho BR). Budget $8-15k. Bloqueio PARA launch pago."
+        },
+        "kyc_stack_recommendation": [
+          {"tier": "launch", "provider": "Stripe Identity", "why": "já integrado, $1.50/verification, cobre 99% billing-KYC"},
+          {"tier": "scale", "provider": "Persona OR Sumsub", "why": "liveness + doc OCR + AML screening; Persona é dev-friendly, Sumsub é feature-rich + BR-coverage forte"}
+        ]
+      },
+      "owasp_top_10_checklist_v2": [
+        "Broken Access Control: RLS policies em TODAS as tables (account_transfers, fund_alerts, user_xp etc). Test com 2 users no CI.",
+        "Cryptographic Failures: AES-256-GCM docs acima; HTTPS-only; HSTS header.",
+        "Injection: ZERO raw SQL nos clients. Todo DB access via Supabase SDK ou rpc() functions parametrizadas.",
+        "Insecure Design: threat model feito antes de ship — STRIDE por endpoint sensível.",
+        "Security Misconfiguration: Content-Security-Policy; X-Frame-Options; no stack traces em prod.",
+        "Vulnerable Components: Dependabot + npm audit no CI. Renovate bot para updates automáticos.",
+        "Auth Failures: Supabase Auth com email magic-link + TOTP opcional. Session timeout 7 dias.",
+        "Software Data Integrity: webhook signatures verify (Stripe); HMAC nos Bybit calls; audit log imutável em account_transfers.",
+        "Logging/Monitoring: Sentry pra errors; PostHog pra eventos. Alertas Slack em rate limit + error spikes.",
+        "SSRF: nenhum endpoint aceita URL user-supplied para fetch."
+      ],
+      "data_residency": "Supabase region: us-east-1 para latência US/BR. Se EU scale → dedicated project EU (compliance data residency MiCA)."
+    }
+  },
+  "recommendations": [
+    "Usar Bybit /v5/order/create-batch quando DCA plan >= 3 assets para eficiência de rate limit e atomicidade de UX.",
+    "EMBEDDED Checkout Stripe (ui_mode='embedded') como default — +3-8% conversão vs hosted redirect.",
+    "Stripe Tax habilitado antes de launch público (US/EU cobertos; BR via approach Stripe Atlas US-Corp inicialmente).",
+    "KYC layered: Stripe Identity no launch; Persona/Sumsub quando scale > 10k users.",
+    "Legal opinion obrigatório pre-launch ($8-15k budget) por firm especializada crypto/SaaS — BLOQUEIO para real-money.",
+    "Edge Function 'stripe-webhook' com signature verification + idempotency (event.id em stripe_events table).",
+    "AES-256-GCM + HKDF per-user para encriptar Bybit API keys; Supabase Vault como storage.",
+    "Rate limiting via Upstash Redis (@upstash/ratelimit) em endpoints sensíveis (bybit-transfer: 10/min por user).",
+    "Bybit broker ID (X-Referer) ativado antes do launch — rev-share de 15-30% fee rebate essencial unit economics.",
+    "WebSocket privada Bybit (canal 'wallet' + 'order') para dashboards abertos = 0 rate limit cost + UX real-time.",
+    "pg_cron + pg_net para balance-monitor (08:00 UTC daily) + challenge-engine (hourly).",
+    "pgmq (Supabase queue nativa) para dca-executor quando scale > 500 users concorrentes.",
+    "Testnet-first por feature flag per-user durante V2 beta — zero real money risk antes de QA gate PASS.",
+    "Idempotency keys em TODO Bybit call mutante: orderLinkId=`apice-${planId}-${Date.now()}`, transferId=UUID v4.",
+    "Capability check (GET /v5/user/query-api) IMEDIATAMENTE após user conectar key; se Wallet.AccountTransfer ausente → bloquear fluxo transfer + deep-link para re-auth."
+  ],
+  "open_questions": [
+    "Billing BR no launch? Stripe não é MoR; alternativa Pagar.me/Hotmart aumenta complexidade. Recomendação: começar Stripe US-only e abrir BR em sprint 10+.",
+    "Master API key vs user-supplied keys? Apice tem modelo híbrido: V1.5 usa user-supplied. V2 mantém? Trade-off: master=mais controle mas assume custody risk (MSB trigger).",
+    "Trial 7 dias Pro ativo no launch ou só via ad específico? Impacta LTV projections.",
+    "Annual plan desconto 17% (pricing padrão SaaS) ou 20%+? Decisão PM + dados CAC.",
+    "Bybit broker ID já está ativo no CEO account? Se não, aplicar HOJE — approval leva ~5-7 dias úteis.",
+    "Feature flag testnet/mainnet é per-user OU per-build? Per-user permite beta seguro; per-build é mais simples.",
+    "SPSAV BR registration roadmap: Apice pretende se registrar até 2026-10-30 OU operar como 'serviço internacional' fatura US?"
+  ],
+  "top_3_technical_risks": [
+    {
+      "risk": "Bybit API key scope insuficiente (user conecta sem Wallet.AccountTransfer) → fluxo Transfer quebra silenciosamente",
+      "severity": "HIGH",
+      "mitigation": "Capability check obrigatório no /v5/user/query-api imediatamente após user fornecer key. Bloquear fluxo + deep-link para re-auth com scope correto. Unit test cobrindo response com scope faltando."
+    },
+    {
+      "risk": "Stripe webhook não verificado corretamente em Edge Function → attacker fabrica event → user ganha access Pro/Club grátis",
+      "severity": "CRITICAL",
+      "mitigation": "stripe.webhooks.constructEventAsync com raw body + STRIPE_WEBHOOK_SECRET em Vault. Idempotency via stripe_events table. Integration test envia fake signature → deve retornar 400."
+    },
+    {
+      "risk": "Race condition entre DCA cron (dca-executor) e balance snapshot stale → ordem enviada sem fundos suficientes → user frustrado + erro 110004 Bybit",
+      "severity": "HIGH",
+      "mitigation": "dca-executor chama wallet-balance fresh ANTES de cada order/create; se total_available < required → triggera fund_alerts.status='BLOCKED' em vez de retry loop. Circuit breaker 3 falhas → pause plan."
+    }
+  ]
+}
