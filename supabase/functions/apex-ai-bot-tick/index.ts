@@ -1,44 +1,62 @@
 // Supabase Edge Function: apex-ai-bot-tick
 //
-// Engine principal do bot Apex AI — executa um "tick" em um portfolio ativo.
-// Invocado por pg_cron (ou Scheduled Function) a cada 30s por portfolio com status='active'.
+// Server-side bot engine for Apex AI. Invoked by pg_cron every ~60s per
+// active portfolio (see migration 013_apex_ai_cron.sql). When invoked:
 //
-// Responsabilidades:
-//   1. Carregar portfolio + symbols + exchange account
-//   2. Sincronizar posições com Bybit (via _shared/bybit-api.ts)
-//   3. Analisar sinais (MVP: grid + DCA em hedge mode)
-//   4. Executar ordens (open/close)
-//   5. Em trades fechados com profit: RPC apex_ai_charge_gas_fee (10%)
-//   6. Circuit breaker: drawdown 24h > trigger_pct → pausa + notifica
-//   7. Logar tudo em apex_ai_bot_logs
+//   1. Load portfolio + active symbols + user API credentials (if any)
+//   2. Circuit breaker check (drawdown 24h > trigger_pct → pause)
+//   3. Fetch current Bybit mark prices (public API, no auth)
+//   4. For each open simulated position:
+//      - Update current_price + unrealized_pnl
+//      - If TP/SL hit: close position + create trade + charge gas fee + re-open hedge leg
+//   5. Log tick to apex_ai_bot_logs
 //
-// NOTA: Este é o SCAFFOLDING — a lógica completa de estratégia será expandida
-// na Story 4.1 pelo @dev. Estrutura aqui garante:
-//   ✓ Autenticação service-role
-//   ✓ Payload validation
-//   ✓ Error handling estruturado
-//   ✓ Log forense em apex_ai_bot_logs
-//   ✓ Integração com RPC de cobrança de fee
+// Modes:
+//   - 'simulate' (default): all operations in DB, Bybit for prices only
+//   - 'live' (future): real Bybit orders using user's encrypted API key
 //
-// Invocação: POST /functions/v1/apex-ai-bot-tick com { portfolio_id }
-// Authorization: service_role (para permitir bypass RLS)
+// The client-side ticker (useApexAiTicker) remains as a UI refresher but
+// the server-side tick is authoritative for position lifecycle.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getCorsHeaders } from '../_shared/bybit-api.ts';
 
 const CORS_HEADERS = getCorsHeaders();
-const FEE_RATE_PCT = 10.0; // ← Apex AI signature fee
+const FEE_RATE_PCT = 10.0;
+const DEFAULT_DRAWDOWN_TRIGGER_PCT = 20.0;
+
+// Bybit public tickers endpoint (no auth needed)
+const BYBIT_PUBLIC_BASE = 'https://api.bybit.com';
 
 interface BotTickRequest {
   portfolio_id: string;
+  bootstrap?: boolean;
+  mode?: 'simulate' | 'live' | 'auto';
 }
 
-interface TickResult {
+interface BybitTicker {
+  symbol: string;
+  markPrice: string;
+  lastPrice: string;
+}
+
+interface ApexAiPosition {
+  id: string;
   portfolio_id: string;
-  ticked_at: string;
-  actions: Array<{ type: string; detail: Record<string, unknown> }>;
-  errors: string[];
-  circuit_breaker_triggered: boolean;
+  user_id: string;
+  symbol: string;
+  side: 'long' | 'short';
+  entry_price: number | string;
+  current_price: number | string | null;
+  size: number | string;
+  leverage: number;
+  unrealized_pnl: number | string;
+  realized_pnl: number | string;
+  stop_loss_price: number | string | null;
+  take_profit_price: number | string | null;
+  status: string;
+  exchange_position_id: string | null;
+  opened_at: string;
 }
 
 Deno.serve(async (req) => {
@@ -49,7 +67,7 @@ Deno.serve(async (req) => {
   const startTime = Date.now();
 
   try {
-    // Service-role client (bypassa RLS — bot escreve em trades/logs)
+    // Service-role client bypasses RLS (needed for writes to logs + trades)
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -61,14 +79,6 @@ Deno.serve(async (req) => {
       return json({ success: false, error: 'portfolio_id required' }, 400);
     }
 
-    const result: TickResult = {
-      portfolio_id: body.portfolio_id,
-      ticked_at: new Date().toISOString(),
-      actions: [],
-      errors: [],
-      circuit_breaker_triggered: false,
-    };
-
     // ─── 1. Load portfolio ───────────────────────────
     const { data: portfolio, error: pErr } = await supabase
       .from('apex_ai_portfolios')
@@ -77,19 +87,33 @@ Deno.serve(async (req) => {
       .single();
 
     if (pErr || !portfolio) {
-      await logEvent(supabase, body.portfolio_id, 'error', 'portfolio_not_found', { error: pErr?.message });
       return json({ success: false, error: 'portfolio not found' }, 404);
     }
 
+    // Skip if not active (saves compute)
     if (portfolio.status !== 'active') {
-      await logEvent(supabase, body.portfolio_id, 'info', 'skip_inactive', { status: portfolio.status });
-      return json({ success: true, data: { ...result, actions: [{ type: 'skip_inactive', detail: { status: portfolio.status } }] } });
+      return json({
+        success: true,
+        data: {
+          portfolio_id: body.portfolio_id,
+          skipped: true,
+          reason: `status=${portfolio.status}`,
+        },
+      });
     }
 
-    // ─── 2. Circuit breaker check ────────────────────
-    const drawdownPct = calculateDrawdown24h(portfolio);
-    if (drawdownPct >= portfolio.drawdown_24h_trigger_pct) {
-      result.circuit_breaker_triggered = true;
+    // ─── 2. Circuit breaker ─────────────────────────
+    const currentEquity =
+      Number(portfolio.capital_usdt) + Number(portfolio.total_pnl);
+    const hwm =
+      Number(portfolio.drawdown_high_water_mark ?? portfolio.capital_usdt) ||
+      currentEquity;
+    const drawdownPct = hwm > 0 ? ((hwm - currentEquity) / hwm) * 100 : 0;
+    const trigger = Number(
+      portfolio.drawdown_24h_trigger_pct ?? DEFAULT_DRAWDOWN_TRIGGER_PCT
+    );
+
+    if (drawdownPct >= trigger) {
       await supabase
         .from('apex_ai_portfolios')
         .update({ status: 'circuit_breaker' })
@@ -97,42 +121,179 @@ Deno.serve(async (req) => {
 
       await logEvent(supabase, portfolio.id, 'critical', 'circuit_breaker_triggered', {
         drawdown_pct: drawdownPct,
-        trigger_pct: portfolio.drawdown_24h_trigger_pct,
+        trigger_pct: trigger,
       });
 
-      return json({ success: true, data: result });
+      return json({
+        success: true,
+        data: {
+          portfolio_id: body.portfolio_id,
+          circuit_breaker_triggered: true,
+          drawdown_pct: drawdownPct,
+        },
+      });
     }
 
-    // ─── 3. Load symbols + exchange account (STUB) ───
-    const { data: symbols } = await supabase
-      .from('apex_ai_symbols')
-      .select('*')
-      .eq('portfolio_id', portfolio.id)
-      .eq('is_active', true);
+    // ─── 3. Load positions + symbols ────────────────
+    const [positionsRes, symbolsRes] = await Promise.all([
+      supabase
+        .from('apex_ai_positions')
+        .select('*')
+        .eq('portfolio_id', portfolio.id)
+        .eq('status', 'open'),
+      supabase
+        .from('apex_ai_symbols')
+        .select('*')
+        .eq('portfolio_id', portfolio.id)
+        .eq('is_active', true),
+    ]);
 
-    if (!symbols || symbols.length === 0) {
-      await logEvent(supabase, portfolio.id, 'warning', 'no_symbols', null);
-      return json({ success: true, data: result });
+    const positions = (positionsRes.data ?? []) as ApexAiPosition[];
+    const symbols = symbolsRes.data ?? [];
+
+    if (symbols.length === 0) {
+      await logEvent(supabase, portfolio.id, 'warning', 'no_active_symbols', null);
+      return json({
+        success: true,
+        data: { portfolio_id: body.portfolio_id, no_symbols: true },
+      });
     }
 
-    // ─── 4. Strategy execution (STUB — Story 4.1) ────
-    // TODO[Story 4.1]: implementar strategy engine:
-    //   - Fetch Bybit positions para cada symbol
-    //   - Calcular sinais (grid + DCA hedge)
-    //   - Place orders via leveraged-trade-execute (reuse Altis)
-    //   - Reconcile com apex_ai_positions
-    //   - Close positions quando TP/SL hit
-    //   - Em close com profit: RPC apex_ai_charge_gas_fee
+    // ─── 4. Bootstrap (if requested) ────────────────
+    if (body.bootstrap === true && positions.length === 0) {
+      const opened = await bootstrapHedgePositions(
+        supabase,
+        portfolio,
+        symbols
+      );
+      await logEvent(supabase, portfolio.id, 'info', 'bootstrap_opened', {
+        positions_opened: opened,
+      });
 
-    result.actions.push({
-      type: 'strategy_stub',
-      detail: {
-        symbols_evaluated: symbols.length,
-        note: 'Strategy engine stub — Story 4.1 will implement full logic',
-      },
-    });
+      return json({
+        success: true,
+        data: {
+          portfolio_id: body.portfolio_id,
+          bootstrap: true,
+          actions: Array(opened).fill({ type: 'open_position' }),
+        },
+      });
+    }
 
-    // ─── 5. Update last_tick_at ──────────────────────
+    // ─── 5. Fetch prices for all open positions ─────
+    const uniqueSymbols = Array.from(new Set(positions.map((p) => p.symbol)));
+    const prices = await fetchBybitTickers(uniqueSymbols);
+
+    // ─── 6. Tick each position ──────────────────────
+    const actions: Array<Record<string, unknown>> = [];
+    const updates: Array<Promise<unknown>> = [];
+    const toClose: Array<{
+      position: ApexAiPosition;
+      exitPrice: number;
+      trigger: 'take_profit' | 'stop_loss';
+    }> = [];
+
+    for (const pos of positions) {
+      // Only process simulated positions here. Real positions require
+      // full Bybit API sync (fetchOpenFutures from _shared/apex-ai-bybit.ts)
+      // which is the 'live' mode — future Story 4.1 scope.
+      if (!(pos.exchange_position_id ?? '').startsWith('sim-')) continue;
+
+      const currentPrice = prices[pos.symbol];
+      if (!currentPrice) continue;
+
+      const entryPrice = Number(pos.entry_price);
+      const size = Number(pos.size);
+      const unrealizedPnl =
+        pos.side === 'long'
+          ? (currentPrice - entryPrice) * size
+          : (entryPrice - currentPrice) * size;
+
+      const tpPrice = pos.take_profit_price ? Number(pos.take_profit_price) : null;
+      const slPrice = pos.stop_loss_price ? Number(pos.stop_loss_price) : null;
+
+      // Evaluate exit triggers
+      let exitTrigger: 'take_profit' | 'stop_loss' | null = null;
+      if (pos.side === 'long') {
+        if (tpPrice && currentPrice >= tpPrice) exitTrigger = 'take_profit';
+        else if (slPrice && currentPrice <= slPrice) exitTrigger = 'stop_loss';
+      } else {
+        if (tpPrice && currentPrice <= tpPrice) exitTrigger = 'take_profit';
+        else if (slPrice && currentPrice >= slPrice) exitTrigger = 'stop_loss';
+      }
+
+      if (exitTrigger) {
+        toClose.push({ position: pos, exitPrice: currentPrice, trigger: exitTrigger });
+      } else {
+        updates.push(
+          supabase
+            .from('apex_ai_positions')
+            .update({
+              current_price: currentPrice,
+              unrealized_pnl: unrealizedPnl,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', pos.id)
+            .eq('status', 'open') // idempotency guard
+        );
+        actions.push({
+          type: 'pnl_update',
+          symbol: pos.symbol,
+          side: pos.side,
+          unrealized_pnl: unrealizedPnl,
+        });
+      }
+    }
+
+    // Run PnL updates in parallel
+    await Promise.allSettled(updates);
+
+    // Close triggered positions sequentially (order matters for credits)
+    for (const { position, exitPrice, trigger } of toClose) {
+      const closed = await closePositionAndRecord(
+        supabase,
+        position,
+        exitPrice,
+        trigger
+      );
+      if (closed) {
+        actions.push({
+          type: 'position_closed',
+          symbol: position.symbol,
+          side: position.side,
+          trigger,
+          pnl: closed.pnl,
+        });
+
+        // Re-open hedge leg if portfolio still active
+        const { data: fresh } = await supabase
+          .from('apex_ai_portfolios')
+          .select('status')
+          .eq('id', portfolio.id)
+          .single();
+
+        if (fresh?.status === 'active') {
+          const symbolConfig = symbols.find((s) => s.symbol === position.symbol);
+          if (symbolConfig) {
+            await reopenHedgeLeg(
+              supabase,
+              portfolio,
+              position,
+              exitPrice,
+              symbolConfig
+            );
+            actions.push({
+              type: 'position_reopened',
+              symbol: position.symbol,
+              side: position.side,
+              entry_price: exitPrice,
+            });
+          }
+        }
+      }
+    }
+
+    // ─── 7. Update last_tick_at + log ───────────────
     await supabase
       .from('apex_ai_portfolios')
       .update({ last_tick_at: new Date().toISOString() })
@@ -141,31 +302,271 @@ Deno.serve(async (req) => {
     const elapsedMs = Date.now() - startTime;
     await logEvent(supabase, portfolio.id, 'info', 'tick_completed', {
       elapsed_ms: elapsedMs,
-      actions_count: result.actions.length,
+      positions_touched: positions.length,
+      updates_count: updates.length,
+      closed_count: toClose.length,
     });
 
-    return json({ success: true, data: result });
+    return json({
+      success: true,
+      data: {
+        portfolio_id: body.portfolio_id,
+        ticked_at: new Date().toISOString(),
+        elapsed_ms: elapsedMs,
+        actions,
+      },
+    });
   } catch (error) {
     console.error('[apex-ai-bot-tick] exception', error);
     return json(
-      { success: false, error: error instanceof Error ? error.message : 'Internal error' },
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Internal error',
+      },
       500
     );
   }
 });
 
-// ─── Helpers ────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// Helpers
+// ═══════════════════════════════════════════════════════════════════
 
-function calculateDrawdown24h(portfolio: {
-  total_pnl: number;
-  capital_usdt: number;
-  drawdown_high_water_mark: number | null;
-}): number {
-  const hwm = portfolio.drawdown_high_water_mark ?? portfolio.capital_usdt;
-  const currentEquity = Number(portfolio.capital_usdt) + Number(portfolio.total_pnl);
-  if (hwm <= 0) return 0;
-  const drawdown = ((hwm - currentEquity) / hwm) * 100;
-  return Math.max(0, drawdown);
+async function fetchBybitTickers(
+  symbols: string[]
+): Promise<Record<string, number>> {
+  if (symbols.length === 0) return {};
+  try {
+    const res = await fetch(
+      `${BYBIT_PUBLIC_BASE}/v5/market/tickers?category=linear`
+    );
+    if (!res.ok) return {};
+    const json = await res.json();
+    if (json.retCode !== 0) return {};
+
+    const result: Record<string, number> = {};
+    const list: BybitTicker[] = json.result?.list ?? [];
+    const requested = new Set(symbols);
+
+    for (const ticker of list) {
+      if (!requested.has(ticker.symbol)) continue;
+      const price = Number(ticker.markPrice) || Number(ticker.lastPrice);
+      if (price > 0) result[ticker.symbol] = price;
+    }
+
+    return result;
+  } catch (err) {
+    console.error('[apex-ai-bot-tick] ticker fetch failed', err);
+    return {};
+  }
+}
+
+async function bootstrapHedgePositions(
+  supabase: ReturnType<typeof createClient>,
+  portfolio: {
+    id: string;
+    user_id: string;
+    capital_usdt: number | string;
+  },
+  symbols: Array<{
+    symbol: string;
+    allocation_pct: number | string;
+    leverage: number;
+  }>
+): Promise<number> {
+  const uniqueSymbols = Array.from(new Set(symbols.map((s) => s.symbol)));
+  const prices = await fetchBybitTickers(uniqueSymbols);
+
+  const rows: Array<Record<string, unknown>> = [];
+  const now = new Date().toISOString();
+
+  for (const s of symbols) {
+    const price = prices[s.symbol];
+    if (!price) continue;
+
+    const allocated = (Number(portfolio.capital_usdt) * Number(s.allocation_pct)) / 100;
+    const perSide = allocated / 2;
+    const size = (perSide * s.leverage) / price;
+
+    rows.push({
+      portfolio_id: portfolio.id,
+      user_id: portfolio.user_id,
+      symbol: s.symbol,
+      side: 'long',
+      entry_price: price,
+      current_price: price,
+      size,
+      leverage: s.leverage,
+      unrealized_pnl: 0,
+      realized_pnl: 0,
+      stop_loss_price: price * 0.975,
+      take_profit_price: price * 1.04,
+      status: 'open',
+      exchange_position_id: `sim-${crypto.randomUUID()}`,
+      opened_at: now,
+    });
+
+    rows.push({
+      portfolio_id: portfolio.id,
+      user_id: portfolio.user_id,
+      symbol: s.symbol,
+      side: 'short',
+      entry_price: price,
+      current_price: price,
+      size,
+      leverage: s.leverage,
+      unrealized_pnl: 0,
+      realized_pnl: 0,
+      stop_loss_price: price * 1.025,
+      take_profit_price: price * 0.96,
+      status: 'open',
+      exchange_position_id: `sim-${crypto.randomUUID()}`,
+      opened_at: now,
+    });
+  }
+
+  if (rows.length === 0) return 0;
+
+  const { data } = await supabase
+    .from('apex_ai_positions')
+    .insert(rows)
+    .select('id');
+
+  return data?.length ?? 0;
+}
+
+async function closePositionAndRecord(
+  supabase: ReturnType<typeof createClient>,
+  position: ApexAiPosition,
+  exitPrice: number,
+  trigger: 'take_profit' | 'stop_loss'
+): Promise<{ pnl: number } | null> {
+  const entryPrice = Number(position.entry_price);
+  const size = Number(position.size);
+  const pnl =
+    position.side === 'long'
+      ? (exitPrice - entryPrice) * size
+      : (entryPrice - exitPrice) * size;
+  const feeExchange = Math.abs(pnl) * 0.0006;
+  const now = new Date().toISOString();
+
+  // Idempotency: only close if still open
+  const { data: closedRows, error: closeErr } = await supabase
+    .from('apex_ai_positions')
+    .update({
+      status: 'closed',
+      closed_at: now,
+      current_price: exitPrice,
+      unrealized_pnl: 0,
+      realized_pnl: pnl,
+    })
+    .eq('id', position.id)
+    .eq('status', 'open')
+    .select('id');
+
+  if (closeErr || !closedRows || closedRows.length === 0) {
+    // Already closed (race condition with client-side ticker — not an error)
+    return null;
+  }
+
+  const { data: trade, error: tradeErr } = await supabase
+    .from('apex_ai_trades')
+    .insert({
+      portfolio_id: position.portfolio_id,
+      position_id: position.id,
+      user_id: position.user_id,
+      symbol: position.symbol,
+      side: position.side,
+      entry_price: entryPrice,
+      exit_price: exitPrice,
+      size,
+      leverage: position.leverage,
+      pnl,
+      fee_exchange: feeExchange,
+      gas_fee: 0,
+      closed_at: now,
+    })
+    .select()
+    .single();
+
+  if (tradeErr || !trade) return { pnl };
+
+  // Atomic fee charge via RPC
+  if (pnl > 0) {
+    try {
+      await supabase.rpc('apex_ai_charge_gas_fee', {
+        p_trade_id: trade.id,
+        p_portfolio_id: position.portfolio_id,
+        p_user_id: position.user_id,
+        p_pnl: pnl,
+        p_fee_rate_pct: FEE_RATE_PCT,
+      });
+    } catch (err) {
+      console.warn('[apex-ai-bot-tick] charge_gas_fee failed', err);
+    }
+  }
+
+  // Update portfolio running stats
+  const { data: portfolioFresh } = await supabase
+    .from('apex_ai_portfolios')
+    .select('total_pnl, win_count, loss_count, drawdown_high_water_mark, capital_usdt')
+    .eq('id', position.portfolio_id)
+    .single();
+
+  if (portfolioFresh) {
+    const newTotal = Number(portfolioFresh.total_pnl) + pnl;
+    const newEquity = Number(portfolioFresh.capital_usdt) + newTotal;
+    const currentHwm = Number(
+      portfolioFresh.drawdown_high_water_mark ?? portfolioFresh.capital_usdt
+    );
+    const newHwm = Math.max(currentHwm, newEquity);
+
+    await supabase
+      .from('apex_ai_portfolios')
+      .update({
+        total_pnl: newTotal,
+        win_count: Number(portfolioFresh.win_count) + (pnl > 0 ? 1 : 0),
+        loss_count: Number(portfolioFresh.loss_count) + (pnl <= 0 ? 1 : 0),
+        drawdown_high_water_mark: newHwm,
+      })
+      .eq('id', position.portfolio_id);
+  }
+
+  return { pnl };
+}
+
+async function reopenHedgeLeg(
+  supabase: ReturnType<typeof createClient>,
+  portfolio: { id: string; user_id: string; capital_usdt: number | string },
+  justClosed: ApexAiPosition,
+  currentPrice: number,
+  symbolConfig: { allocation_pct: number | string; leverage: number }
+): Promise<void> {
+  const allocated = (Number(portfolio.capital_usdt) * Number(symbolConfig.allocation_pct)) / 100;
+  const perSide = allocated / 2;
+  const size = (perSide * symbolConfig.leverage) / currentPrice;
+
+  const isLong = justClosed.side === 'long';
+  const stopLossPrice = isLong ? currentPrice * 0.98 : currentPrice * 1.02;
+  const takeProfitPrice = isLong ? currentPrice * 1.03 : currentPrice * 0.97;
+
+  await supabase.from('apex_ai_positions').insert({
+    portfolio_id: portfolio.id,
+    user_id: portfolio.user_id,
+    symbol: justClosed.symbol,
+    side: justClosed.side,
+    entry_price: currentPrice,
+    current_price: currentPrice,
+    size,
+    leverage: symbolConfig.leverage,
+    unrealized_pnl: 0,
+    realized_pnl: 0,
+    stop_loss_price: stopLossPrice,
+    take_profit_price: takeProfitPrice,
+    status: 'open',
+    exchange_position_id: `sim-${crypto.randomUUID()}`,
+    opened_at: new Date().toISOString(),
+  });
 }
 
 async function logEvent(
@@ -174,7 +575,7 @@ async function logEvent(
   level: 'info' | 'warning' | 'error' | 'critical',
   event: string,
   payload: Record<string, unknown> | null
-) {
+): Promise<void> {
   try {
     await supabase.from('apex_ai_bot_logs').insert({
       portfolio_id: portfolioId,
@@ -193,5 +594,3 @@ function json(body: unknown, status = 200): Response {
     headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   });
 }
-
-export { FEE_RATE_PCT };
