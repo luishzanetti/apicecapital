@@ -139,14 +139,17 @@ export function AllocationEngine({ weeklyAmount, onAccept, onCustomize, compact 
                 <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-primary" />
-                        <h3 className="text-sm font-bold">Smart Allocation</h3>
+                        <h3 className="text-sm font-bold">Smart DCA Allocation</h3>
+                        <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-emerald-400">
+                            USDT
+                        </span>
                     </div>
                     <Badge variant="outline" className="text-[11px] border-primary/30 text-primary">
                         {recommendation.source === 'portfolio' ? 'Portfolio-based' : 'AI Recommended'}
                     </Badge>
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                    Personalized for: {contextFactors.join(' · ')}
+                    Splits your weekly DCA across assets · Personalized for: {contextFactors.join(' · ')}
                 </p>
             </div>
 

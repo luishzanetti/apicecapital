@@ -228,19 +228,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ─── 6. Tick each position ──────────────────────
+    // ─── 6. Tick each position (PnL updates) ────────
     const actions: Array<Record<string, unknown>> = [];
     const updates: Array<Promise<unknown>> = [];
-    const toClose: Array<{
-      position: ApexAiPosition;
-      exitPrice: number;
-      trigger: 'take_profit';
-    }> = [];
 
     for (const pos of positions) {
-      // Only process simulated positions here. Real positions require
-      // full Bybit API sync (fetchOpenFutures from _shared/apex-ai-bybit.ts)
-      // which is the 'live' mode — future Story 4.1 scope.
+      // Only process simulated positions in tick loop. LIVE positions
+      // need Bybit fetchOpenFutures to sync (Phase C — future scope).
       if (!(pos.exchange_position_id ?? '').startsWith('sim-')) continue;
 
       const currentPrice = prices[pos.symbol];
@@ -253,87 +247,133 @@ Deno.serve(async (req) => {
           ? (currentPrice - entryPrice) * size
           : (entryPrice - currentPrice) * size;
 
-      const tpPrice = pos.take_profit_price ? Number(pos.take_profit_price) : null;
-      const slPrice = pos.stop_loss_price ? Number(pos.stop_loss_price) : null;
-
-      // MARTINGALE STRATEGY: NEVER close at loss (stop_loss).
-      // Only close on take_profit (individual TP per layer). The RPC
-      // apex_ai_close_position_group additionally enforces "only close when
-      // aggregate PnL > 0" for safety.
-      let exitTrigger: 'take_profit' | null = null;
-      if (pos.side === 'long') {
-        if (tpPrice && currentPrice >= tpPrice) exitTrigger = 'take_profit';
-        // SL hit → do NOT close. Bot will open next martingale layer instead.
-      } else {
-        if (tpPrice && currentPrice <= tpPrice) exitTrigger = 'take_profit';
-        // SL hit → do NOT close. Bot will open next martingale layer instead.
-      }
-
-      if (exitTrigger) {
-        toClose.push({ position: pos, exitPrice: currentPrice, trigger: exitTrigger });
-      } else {
-        updates.push(
-          supabase
-            .from('apex_ai_positions')
-            .update({
-              current_price: currentPrice,
-              unrealized_pnl: unrealizedPnl,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', pos.id)
-            .eq('status', 'open') // idempotency guard
-        );
-        actions.push({
-          type: 'pnl_update',
-          symbol: pos.symbol,
-          side: pos.side,
-          unrealized_pnl: unrealizedPnl,
-        });
-      }
+      updates.push(
+        supabase
+          .from('apex_ai_positions')
+          .update({
+            current_price: currentPrice,
+            unrealized_pnl: unrealizedPnl,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', pos.id)
+          .eq('status', 'open')
+      );
     }
-
-    // Run PnL updates in parallel
     await Promise.allSettled(updates);
 
-    // Close triggered positions sequentially (order matters for credits)
-    for (const { position, exitPrice, trigger } of toClose) {
-      const closed = await closePositionAndRecord(
-        supabase,
-        position,
-        exitPrice,
-        trigger
+    // ─── 7. Martingale group logic ──────────────────
+    // Group positions by (symbol, side, parent_position_group).
+    // For each group: decide CLOSE (blended TP hit) or OPEN_NEXT_LAYER
+    // (threshold breached + within max_layers) or WAIT.
+    const groups = groupPositionsByMartingaleKey(positions);
+    const layerConfigs = await loadLayerConfig(supabase, portfolio.id);
+    const regimeStates = await loadRegimeStates(supabase, Array.from(new Set(positions.map(p => p.symbol))));
+    const tpTargetPct = layerConfigs?.take_profit_pct ?? 1.2;
+
+    for (const [groupKey, group] of groups.entries()) {
+      const symbol = group.symbol;
+      const side = group.side;
+      const currentPrice = prices[symbol];
+      if (!currentPrice) continue;
+
+      // Only process simulated groups (skip live — needs Bybit sync)
+      const isSimulated = group.layers.every((l) =>
+        (l.exchange_position_id ?? '').startsWith('sim-')
       );
-      if (closed) {
-        actions.push({
-          type: 'position_closed',
-          symbol: position.symbol,
-          side: position.side,
-          trigger,
-          pnl: closed.pnl,
+      if (!isSimulated) continue;
+
+      // Compute blended avg entry + aggregate pnl
+      let totalSize = 0;
+      let weightedEntry = 0;
+      let aggregatePnl = 0;
+      for (const layer of group.layers) {
+        const size = Number(layer.size);
+        const entry = Number(layer.entry_price);
+        totalSize += size;
+        weightedEntry += entry * size;
+        aggregatePnl +=
+          side === 'long'
+            ? (currentPrice - entry) * size
+            : (entry - currentPrice) * size;
+      }
+      const avgEntry = totalSize > 0 ? weightedEntry / totalSize : 0;
+
+      // Target blended exit price for TP
+      const tpPrice =
+        side === 'long'
+          ? avgEntry * (1 + tpTargetPct / 100)
+          : avgEntry * (1 - tpTargetPct / 100);
+
+      // Check: is TP hit on blended avg?
+      const tpHit =
+        side === 'long'
+          ? currentPrice >= tpPrice
+          : currentPrice <= tpPrice;
+
+      if (tpHit && aggregatePnl > 0) {
+        // Close the whole group via RPC (never-close-at-loss enforced too)
+        const parentGroup = group.parent_position_group ?? group.layers[0].id;
+        const { data: closeResult } = await supabase.rpc('apex_ai_close_position_group', {
+          p_parent_group: parentGroup,
+          p_exit_price: currentPrice,
+          p_trigger: 'blended_tp',
         });
 
-        // Re-open hedge leg if portfolio still active
-        const { data: fresh } = await supabase
-          .from('apex_ai_portfolios')
-          .select('status')
-          .eq('id', portfolio.id)
-          .single();
+        if (closeResult && typeof closeResult === 'object') {
+          const r = closeResult as Record<string, unknown>;
+          actions.push({
+            type: 'cycle_closed',
+            symbol,
+            side,
+            layers_closed: r.closed,
+            pnl: r.total_pnl,
+            avg_entry: r.avg_entry,
+            exit_price: currentPrice,
+          });
+        }
+        continue;
+      }
 
-        if (fresh?.status === 'active') {
-          const symbolConfig = symbols.find((s) => s.symbol === position.symbol);
-          if (symbolConfig) {
-            await reopenHedgeLeg(
-              supabase,
-              portfolio,
-              position,
-              exitPrice,
-              symbolConfig
-            );
+      // Check: should we open next layer?
+      // Condition: current layer count < max_layers AND price moved >= spacing_atr × ATR against last layer
+      if (!layerConfigs) continue;
+      if (group.layers.length >= layerConfigs.max_layers) continue;
+
+      const regime = regimeStates[symbol];
+      const atr = regime?.atr_14 ? Number(regime.atr_14) : null;
+      if (!atr || atr <= 0) continue;
+
+      const lastLayer = group.layers.reduce((max, l) =>
+        (l.layer_index ?? 1) > (max.layer_index ?? 1) ? l : max
+      );
+      const lastEntry = Number(lastLayer.entry_price);
+      const spacingAtr = Number(layerConfigs.layer_spacing_atr) * atr;
+
+      const thresholdBreached =
+        side === 'long'
+          ? currentPrice <= lastEntry - spacingAtr
+          : currentPrice >= lastEntry + spacingAtr;
+
+      if (thresholdBreached && aggregatePnl < 0) {
+        // Only open next layer if we're currently in loss (makes DCA meaningful)
+        const { data: openResult } = await supabase.rpc('apex_ai_open_next_layer', {
+          p_portfolio_id: portfolio.id,
+          p_symbol: symbol,
+          p_side: side,
+          p_current_price: currentPrice,
+          p_current_atr: atr,
+        });
+
+        if (openResult && typeof openResult === 'object') {
+          const r = openResult as Record<string, unknown>;
+          if (r.opened) {
             actions.push({
-              type: 'position_reopened',
-              symbol: position.symbol,
-              side: position.side,
-              entry_price: exitPrice,
+              type: 'layer_opened',
+              symbol,
+              side,
+              layer_index: r.layer_index,
+              entry_price: r.entry_price,
+              size_usdt: r.size_usdt,
             });
           }
         }
@@ -380,6 +420,104 @@ Deno.serve(async (req) => {
 // ═══════════════════════════════════════════════════════════════════
 // Helpers
 // ═══════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════
+// Martingale group helpers
+// ═══════════════════════════════════════════════════════════════════
+
+interface PositionExtended extends ApexAiPosition {
+  layer_index?: number;
+  parent_position_group?: string | null;
+  atr_at_entry?: number | string | null;
+}
+
+interface MartingaleGroup {
+  key: string; // "SYMBOL-SIDE-PARENTGROUP"
+  symbol: string;
+  side: 'long' | 'short';
+  parent_position_group: string | null;
+  layers: PositionExtended[];
+}
+
+function groupPositionsByMartingaleKey(
+  positions: ApexAiPosition[]
+): Map<string, MartingaleGroup> {
+  const groups = new Map<string, MartingaleGroup>();
+  for (const p of positions) {
+    const ext = p as PositionExtended;
+    // If no parent_position_group (legacy v1 position), treat as its own group
+    const groupId = ext.parent_position_group ?? p.id;
+    const key = `${p.symbol}-${p.side}-${groupId}`;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        key,
+        symbol: p.symbol,
+        side: p.side,
+        parent_position_group: ext.parent_position_group ?? null,
+        layers: [],
+      });
+    }
+    groups.get(key)!.layers.push(ext);
+  }
+  return groups;
+}
+
+interface LayerConfig {
+  max_layers: number;
+  layer_spacing_atr: number;
+  take_profit_pct: number;
+  max_allocation_pct: number;
+}
+
+async function loadLayerConfig(
+  supabase: ReturnType<typeof createClient>,
+  portfolioId: string
+): Promise<LayerConfig | null> {
+  try {
+    const { data } = await supabase
+      .from('apex_ai_layer_config')
+      .select('max_layers, layer_spacing_atr, take_profit_pct, max_allocation_pct')
+      .eq('portfolio_id', portfolioId)
+      .maybeSingle();
+    if (!data) return null;
+    return {
+      max_layers: Number(data.max_layers),
+      layer_spacing_atr: Number(data.layer_spacing_atr),
+      take_profit_pct: Number(data.take_profit_pct),
+      max_allocation_pct: Number(data.max_allocation_pct),
+    };
+  } catch (err) {
+    console.warn('[apex-ai-bot-tick] loadLayerConfig failed', err);
+    return null;
+  }
+}
+
+async function loadRegimeStates(
+  supabase: ReturnType<typeof createClient>,
+  symbols: string[]
+): Promise<Record<string, { atr_14: number | null; atr_pct: number | null; trend_regime: string; volatility_regime: string }>> {
+  if (symbols.length === 0) return {};
+  try {
+    const { data } = await supabase
+      .from('apex_ai_regime_state')
+      .select('symbol, atr_14, atr_pct, trend_regime, volatility_regime')
+      .in('symbol', symbols);
+
+    const map: Record<string, { atr_14: number | null; atr_pct: number | null; trend_regime: string; volatility_regime: string }> = {};
+    for (const row of data ?? []) {
+      map[row.symbol] = {
+        atr_14: row.atr_14 !== null ? Number(row.atr_14) : null,
+        atr_pct: row.atr_pct !== null ? Number(row.atr_pct) : null,
+        trend_regime: row.trend_regime,
+        volatility_regime: row.volatility_regime,
+      };
+    }
+    return map;
+  } catch (err) {
+    console.warn('[apex-ai-bot-tick] loadRegimeStates failed', err);
+    return {};
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // LIVE mode helpers — real Bybit order execution

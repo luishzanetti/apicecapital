@@ -439,126 +439,122 @@ export function ExecutivePortfolioBoard() {
           }}
         />
 
-        <CardContent className="relative p-5 md:p-6 space-y-5">
+        <CardContent className="relative p-4 md:p-6 space-y-4 md:space-y-5">
           {/* ════════════════════════════════════════════════════════════ */}
-          {/* Row 1 · HERO — balance + KPIs + actions                       */}
+          {/* Row 1 · HERO — status row, then balance, then KPIs            */}
           {/* ════════════════════════════════════════════════════════════ */}
-          <section className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]',
-                    isLive
-                      ? 'bg-[hsl(var(--apice-emerald))]/10 text-[hsl(var(--apice-emerald))]'
-                      : 'bg-amber-500/10 text-amber-300',
-                  )}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      'h-1.5 w-1.5 animate-pulse rounded-full',
-                      isLive
-                        ? 'bg-[hsl(var(--apice-emerald))] shadow-[0_0_6px_hsl(var(--apice-emerald)/0.8)]'
-                        : 'bg-amber-400',
-                    )}
-                  />
-                  {isLive ? 'Live · Bybit' : 'Estimated'}
-                </span>
-                <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40">
-                  Total equity
-                </span>
-              </div>
-
-              <h2
-                className="font-display font-mono text-4xl font-semibold tabular-nums tracking-tight text-white md:text-[56px] md:leading-[1.05]"
-                aria-label={hideBalance ? 'Balance hidden' : undefined}
-              >
-                {fmtUSD(analytics.grandTotal, hideBalance)}
-              </h2>
-
-              <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                <span
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums font-mono',
-                    positive
-                      ? 'bg-[hsl(var(--apice-emerald))]/10 text-[hsl(var(--apice-emerald))]'
-                      : 'bg-red-500/10 text-red-400',
-                  )}
-                >
-                  {positive ? (
-                    <TrendingUp className="h-3 w-3" aria-hidden="true" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3" aria-hidden="true" />
-                  )}
-                  {hideBalance
-                    ? '•••'
-                    : `${equityDelta.pct >= 0 ? '+' : ''}${equityDelta.pct.toFixed(2)}%`}
-                </span>
-                <span className="font-mono text-[11px] tabular-nums text-white/55">
-                  {hideBalance
-                    ? '•••'
-                    : `${equityDelta.abs >= 0 ? '+' : ''}${fmtUSD(Math.abs(equityDelta.abs))}`}{' '}
-                  · {range}
-                </span>
-                {healthSnapshot && (
-                  <span
-                    className={cn(
-                      'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold tabular-nums',
-                      healthSnapshot.tone === 'positive' &&
-                        'border-[hsl(var(--apice-emerald))]/25 bg-[hsl(var(--apice-emerald))]/5 text-[hsl(var(--apice-emerald))]',
-                      healthSnapshot.tone === 'info' &&
-                        'border-sky-400/25 bg-sky-400/5 text-sky-300',
-                      healthSnapshot.tone === 'warning' &&
-                        'border-amber-400/25 bg-amber-400/5 text-amber-300',
-                    )}
-                  >
-                    <Shield className="h-3 w-3" aria-hidden="true" />
-                    Health {healthSnapshot.score}
-                  </span>
+          <section className="space-y-2.5">
+            {/* Status row — Live pill + small toolbar (Diagnose, Hide, Refresh).
+                ALTIS lives in the nav now; no need to duplicate it here. */}
+            <div className="flex items-center justify-between gap-3">
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]',
+                  isLive
+                    ? 'bg-[hsl(var(--apice-emerald))]/10 text-[hsl(var(--apice-emerald))]'
+                    : 'bg-amber-500/10 text-amber-300',
                 )}
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'h-1.5 w-1.5 animate-pulse rounded-full',
+                    isLive
+                      ? 'bg-[hsl(var(--apice-emerald))] shadow-[0_0_6px_hsl(var(--apice-emerald)/0.8)]'
+                      : 'bg-amber-400',
+                  )}
+                />
+                {isLive ? 'Live · Bybit' : 'Estimated'}
+              </span>
+
+              <div className="flex shrink-0 items-center gap-1">
+                <BalanceDiagnostic compact />
+                <IconButton
+                  ariaLabel={hideBalance ? 'Show balance' : 'Hide balance'}
+                  onClick={() => setHideBalance(!hideBalance)}
+                  pressed={hideBalance}
+                >
+                  {hideBalance ? (
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </IconButton>
+                <IconButton
+                  ariaLabel="Refresh balances"
+                  onClick={analytics.refresh}
+                  disabled={analytics.isRefreshing}
+                >
+                  <RefreshCw
+                    className={cn('h-4 w-4', analytics.isRefreshing && 'animate-spin')}
+                    aria-hidden="true"
+                  />
+                </IconButton>
               </div>
             </div>
 
-            {/* Action toolbar */}
-            <div className="flex shrink-0 items-center gap-1.5">
-              <BalanceDiagnostic compact />
-              <IconButton
-                ariaLabel={hideBalance ? 'Show balance' : 'Hide balance'}
-                onClick={() => setHideBalance(!hideBalance)}
-                pressed={hideBalance}
-              >
-                {hideBalance ? (
-                  <Eye className="h-4 w-4" aria-hidden="true" />
-                ) : (
-                  <EyeOff className="h-4 w-4" aria-hidden="true" />
+            {/* Total equity label — single line, not competing with toolbar */}
+            <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-white/45">
+              Total equity
+            </p>
+
+            {/* Hero balance — fluid clamp so it never overflows on iPhone SE */}
+            <h2
+              className="font-display font-mono font-semibold tabular-nums tracking-tight text-white text-[clamp(1.65rem,8.5vw,2.5rem)] leading-[1.02] md:text-[56px] md:leading-[1.05]"
+              aria-label={hideBalance ? 'Balance hidden' : undefined}
+            >
+              {fmtUSD(analytics.grandTotal, hideBalance)}
+            </h2>
+
+            {/* KPI strip — uniform pill styling so Health no longer looks alien */}
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums font-mono',
+                  positive
+                    ? 'bg-[hsl(var(--apice-emerald))]/10 text-[hsl(var(--apice-emerald))]'
+                    : 'bg-red-500/10 text-red-400',
                 )}
-              </IconButton>
-              <IconButton
-                ariaLabel="Refresh balances"
-                onClick={analytics.refresh}
-                disabled={analytics.isRefreshing}
               >
-                <RefreshCw
-                  className={cn('h-4 w-4', analytics.isRefreshing && 'animate-spin')}
-                  aria-hidden="true"
-                />
-              </IconButton>
-              <Button
-                size="sm"
-                onClick={() => navigate('/ai-trade')}
-                className="ml-1 gap-1.5 rounded-full bg-[hsl(var(--apice-emerald))] text-[#050816] hover:bg-[hsl(var(--apice-emerald))]/90"
-              >
-                <Zap className="h-3.5 w-3.5" aria-hidden="true" />
-                ALTIS
-              </Button>
+                {positive ? (
+                  <TrendingUp className="h-3 w-3" aria-hidden="true" />
+                ) : (
+                  <TrendingDown className="h-3 w-3" aria-hidden="true" />
+                )}
+                {hideBalance
+                  ? '•••'
+                  : `${equityDelta.pct >= 0 ? '+' : ''}${equityDelta.pct.toFixed(2)}%`}
+              </span>
+              <span className="font-mono text-[11px] tabular-nums text-white/55">
+                {hideBalance
+                  ? '•••'
+                  : `${equityDelta.abs >= 0 ? '+' : ''}${fmtUSD(Math.abs(equityDelta.abs))}`}{' '}
+                · {range}
+              </span>
+              {healthSnapshot && (
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums',
+                    healthSnapshot.tone === 'positive' &&
+                      'bg-[hsl(var(--apice-emerald))]/10 text-[hsl(var(--apice-emerald))]',
+                    healthSnapshot.tone === 'info' &&
+                      'bg-sky-400/10 text-sky-300',
+                    healthSnapshot.tone === 'warning' &&
+                      'bg-amber-400/10 text-amber-300',
+                  )}
+                >
+                  <Shield className="h-3 w-3" aria-hidden="true" />
+                  Health {healthSnapshot.score}
+                </span>
+              )}
             </div>
           </section>
 
           {/* ════════════════════════════════════════════════════════════ */}
           {/* Row 2 · Account strip (Funding · Unified · Available)         */}
+          {/* 3-up on mobile to prevent the lone "Available" card sprawl.   */}
           {/* ════════════════════════════════════════════════════════════ */}
-          <section className="grid grid-cols-2 gap-2.5 md:grid-cols-3">
+          <section className="grid grid-cols-3 gap-2 md:gap-2.5">
             <AccountTile
               label="Funding"
               tint="gold"
@@ -579,7 +575,6 @@ export function ExecutivePortfolioBoard() {
               value={fmtUSD(analytics.totalAvailableBalance, hideBalance)}
               sub="Ready to deploy"
               onClick={() => navigate('/dca-planner')}
-              className="col-span-2 md:col-span-1"
             />
           </section>
 
@@ -1221,30 +1216,31 @@ function AccountTile({
       type="button"
       onClick={onClick}
       className={cn(
-        'group rounded-xl p-3.5 text-left transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30',
+        'group rounded-xl p-2.5 md:p-3.5 text-left transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 min-w-0',
         t.bg,
         t.ring,
         className,
       )}
     >
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-1.5">
         <p
           className={cn(
-            'text-[10px] font-semibold uppercase tracking-[0.22em]',
+            'truncate text-[9.5px] md:text-[10px] font-semibold uppercase tracking-[0.16em] md:tracking-[0.22em]',
             t.text,
           )}
         >
           {label}
         </p>
+        {/* Hint arrow — hidden on mobile to save horizontal space in 3-up grid */}
         <ArrowUpRight
-          className="h-3.5 w-3.5 text-white/30 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-white/60"
+          className="hidden md:inline-block h-3.5 w-3.5 shrink-0 text-white/30 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-white/60"
           aria-hidden="true"
         />
       </div>
-      <p className="font-display font-mono mt-1.5 text-lg font-semibold tabular-nums text-white md:text-xl">
+      <p className="font-display font-mono mt-1 md:mt-1.5 truncate text-[15px] md:text-xl font-semibold tabular-nums text-white">
         {value}
       </p>
-      <p className="mt-0.5 text-[11px] text-white/45">{sub}</p>
+      <p className="mt-0.5 truncate text-[10.5px] md:text-[11px] text-white/45">{sub}</p>
     </button>
   );
 }
