@@ -7,8 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAppStore } from '@/store/appStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useAuth } from '@/components/AuthProvider';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { generateQuickSetupProposal } from '@/lib/apexAi/quickSetup';
+import { createApexAiPortfolio } from '@/lib/apexAi/createPortfolio';
 import {
   ArrowLeft,
   Brain,
@@ -23,7 +26,8 @@ import type { ApexAiQuickSetupProposal, ApexAiRiskProfile } from '@/types/apexAi
 
 export default function ApexAiSetup() {
   const nav = useNavigate();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const { session } = useAuth();
   const wizard = useAppStore((s) => s.apexAiWizard);
   const setApexAiActivePortfolio = useAppStore((s) => s.setApexAiActivePortfolio);
   const resetWizard = useAppStore((s) => s.resetApexAiWizard);
@@ -47,15 +51,39 @@ export default function ApexAiSetup() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('apex-ai-quick-setup', {
-        body: {
-          capital_usdt: wizard.capitalUsdt,
-          risk_profile: wizard.riskProfile,
-        },
-      });
-      if (fnError) throw fnError;
-      if (!data?.success) throw new Error(data?.error ?? 'Unknown error');
-      setProposal(data.data as ApexAiQuickSetupProposal);
+      // First try the Edge Function (canonical path for production).
+      // If it isn't deployed yet, fall back to deterministic client-side logic.
+      try {
+        const { data, error: fnError } = await supabase.functions.invoke(
+          'apex-ai-quick-setup',
+          {
+            body: {
+              capital_usdt: wizard.capitalUsdt,
+              risk_profile: wizard.riskProfile,
+            },
+          }
+        );
+        if (!fnError && data?.success && data.data) {
+          setProposal(data.data as ApexAiQuickSetupProposal);
+          return;
+        }
+        throw fnError ?? new Error(data?.error ?? 'edge_function_failed');
+      } catch (fnErr) {
+        // Graceful degradation — Edge Function not deployed or unreachable.
+        // Deterministic proposal computed locally. Same result as server.
+        if (import.meta.env.DEV) {
+          console.warn(
+            '[apex-ai] Edge Function unreachable, using client-side fallback',
+            fnErr
+          );
+        }
+        const localProposal = generateQuickSetupProposal({
+          capital_usdt: wizard.capitalUsdt!,
+          risk_profile: wizard.riskProfile!,
+          locale: language === 'pt' ? 'pt' : 'en',
+        });
+        setProposal(localProposal);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error');
     } finally {
@@ -65,30 +93,72 @@ export default function ApexAiSetup() {
 
   async function handleCreate() {
     if (!proposal || !portfolioName.trim()) return;
+    if (!session?.user?.id) {
+      toast({
+        title: t('apexAi.setupToastErrorTitle'),
+        description: 'Not authenticated. Please sign in again.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsCreating(true);
     try {
-      const { data, error: fnError } = await supabase.functions.invoke(
-        'apex-ai-create-portfolio',
-        {
-          body: {
+      const symbols = proposal.symbols.map(({ symbol, allocation_pct, leverage }) => ({
+        symbol,
+        allocation_pct,
+        leverage,
+      }));
+
+      let portfolioId: string | null = null;
+
+      // Try Edge Function first
+      try {
+        const { data, error: fnError } = await supabase.functions.invoke(
+          'apex-ai-create-portfolio',
+          {
+            body: {
+              name: portfolioName.trim(),
+              capital_usdt: proposal.capital_usdt,
+              risk_profile: proposal.risk_profile,
+              max_leverage: proposal.max_leverage,
+              max_positions: proposal.max_positions,
+              risk_per_trade_pct: proposal.risk_per_trade_pct,
+              symbols,
+            },
+          }
+        );
+        if (!fnError && data?.success && data.data?.portfolio_id) {
+          portfolioId = data.data.portfolio_id as string;
+        } else {
+          throw fnError ?? new Error(data?.error ?? 'edge_function_failed');
+        }
+      } catch (fnErr) {
+        if (import.meta.env.DEV) {
+          console.warn(
+            '[apex-ai] create-portfolio Edge Function unreachable, using client-side fallback',
+            fnErr
+          );
+        }
+        // Client-side fallback via supabase-js (RLS protects)
+        const result = await createApexAiPortfolio(
+          {
             name: portfolioName.trim(),
             capital_usdt: proposal.capital_usdt,
             risk_profile: proposal.risk_profile,
             max_leverage: proposal.max_leverage,
             max_positions: proposal.max_positions,
             risk_per_trade_pct: proposal.risk_per_trade_pct,
-            symbols: proposal.symbols.map(({ symbol, allocation_pct, leverage }) => ({
-              symbol,
-              allocation_pct,
-              leverage,
-            })),
+            symbols,
           },
-        }
-      );
-      if (fnError) throw fnError;
-      if (!data?.success) throw new Error(data?.error ?? 'Error');
+          session.user.id
+        );
+        portfolioId = result.portfolio_id;
+      }
 
-      setApexAiActivePortfolio(data.data.portfolio_id);
+      if (!portfolioId) throw new Error('Portfolio ID missing');
+
+      setApexAiActivePortfolio(portfolioId);
       resetWizard();
 
       toast({
@@ -100,7 +170,10 @@ export default function ApexAiSetup() {
     } catch (err) {
       toast({
         title: t('apexAi.setupToastErrorTitle'),
-        description: err instanceof Error ? err.message : t('apexAi.setupToastErrorDesc'),
+        description:
+          err instanceof Error
+            ? err.message
+            : t('apexAi.setupToastErrorDesc'),
         variant: 'destructive',
       });
     } finally {

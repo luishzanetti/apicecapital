@@ -74,6 +74,25 @@ async function autoExecuteSignals(
         continue;
       }
 
+      // Anti-flip cooldown: if the user just cancelled a matching position,
+      // wait 120s before re-opening to avoid immediately reversing their
+      // manual intent. Function lives in migration 012.
+      try {
+        const { data: cooldown } = await supabaseAdmin.rpc('altis_recent_close_exists', {
+          p_user_id: userId,
+          p_symbol: signal.symbol,
+          p_side: signal.direction,
+          p_cooldown_seconds: 120,
+        });
+        if (cooldown === true) {
+          console.log(`[orchestrator] SKIP: ${signal.direction} ${signal.symbol} — cooldown (closed < 120s ago)`);
+          continue;
+        }
+      } catch (e) {
+        // RPC not installed yet — don't block signal execution on helper absence
+        console.warn('[orchestrator] cooldown rpc unavailable, proceeding without:', (e as Error).message);
+      }
+
       const price = marketData.find((d: any) => d.symbol === signal.symbol)?.price;
       if (!price || price <= 0) { console.log(`[orchestrator] SKIP: no price for ${signal.symbol}`); continue; }
 

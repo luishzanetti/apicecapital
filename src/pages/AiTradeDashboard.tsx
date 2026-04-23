@@ -57,6 +57,8 @@ export default function AiTradeDashboard() {
   const [confirmCloseAll, setConfirmCloseAll] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [commandCenterStrategy, setCommandCenterStrategy] = useState<StrategyKey | null>(null);
+  const [lastEvaluationAt, setLastEvaluationAt] = useState<number | null>(null);
+  const [nextEvaluationIn, setNextEvaluationIn] = useState<number>(0);
 
   // AI recommendations — rule-based, adapted to profile + regime + capital.
   const { recommendations } = useStrategyAiRecommendations();
@@ -80,6 +82,46 @@ export default function AiTradeDashboard() {
     const id = setInterval(() => reconcilePositions(), 120_000);
     return () => clearInterval(id);
   }, [reconcilePositions]);
+
+  // ─── Client-side auto-trigger (fallback when pg_cron isn't configured) ──
+  // Runs the orchestrator every 60s while the dashboard is mounted AND
+  // the active bot has autoExecute = true. Keeps the pipeline moving
+  // even if the Supabase cron schedule (migration 012) hasn't been
+  // provisioned with the required secrets yet.
+  const autoExecute = activeBot?.autoExecute ?? true;
+  useEffect(() => {
+    if (!hasBots || !autoExecute) return;
+
+    let cancelled = false;
+    const EVAL_INTERVAL = 60_000;
+
+    const runEvaluation = async () => {
+      if (cancelled) return;
+      try {
+        await triggerEvaluation();
+        if (!cancelled) setLastEvaluationAt(Date.now());
+      } catch {
+        /* silent — user-facing state already exposes hookError */
+      }
+    };
+
+    // Kick off one right away so the user sees activity.
+    runEvaluation();
+    const id = setInterval(runEvaluation, EVAL_INTERVAL);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [hasBots, autoExecute, triggerEvaluation]);
+
+  // Visible countdown: seconds until next auto-evaluation.
+  useEffect(() => {
+    if (!lastEvaluationAt) { setNextEvaluationIn(0); return; }
+    const tick = () => {
+      const elapsed = Math.floor((Date.now() - lastEvaluationAt) / 1000);
+      setNextEvaluationIn(Math.max(0, 60 - elapsed));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [lastEvaluationAt]);
 
   // Dev-mode diagnostic — captures state snapshot on every mount so any
   // "Get Started every time" regression shows up immediately in the console.
@@ -110,6 +152,7 @@ export default function AiTradeDashboard() {
   const analyze = async () => {
     setStatus(null);
     const r = await triggerEvaluation();
+    setLastEvaluationAt(Date.now());
     setStatus(
       r.executed > 0 ? `✅ ${r.executed} trades opened` :
       r.pendingSignals.length > 0 ? `📡 ${r.pendingSignals.filter(s => s.approved).length} opportunities found` :
@@ -233,6 +276,8 @@ export default function AiTradeDashboard() {
         isEvaluating={isEvaluating}
         onEvaluate={analyze}
         onSignalClick={openCommandCenter}
+        secondsUntilNextRun={autoExecute ? nextEvaluationIn : null}
+        lastRunAt={lastEvaluationAt}
       />
 
       {/* ═══ TABS ═══ */}

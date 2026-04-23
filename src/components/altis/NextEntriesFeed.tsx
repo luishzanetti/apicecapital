@@ -21,6 +21,10 @@ interface Props {
   onEvaluate?: () => void;
   /** When a signal is clicked, open the command center for its strategy. */
   onSignalClick?: (strategyType: string) => void;
+  /** Seconds until the next automatic evaluation. `null` = auto-eval disabled. */
+  secondsUntilNextRun?: number | null;
+  /** Timestamp of the last successful evaluation. */
+  lastRunAt?: number | null;
 }
 
 /**
@@ -34,7 +38,13 @@ export function NextEntriesFeed({
   isEvaluating,
   onEvaluate,
   onSignalClick,
+  secondsUntilNextRun,
+  lastRunAt,
 }: Props) {
+  const autoEval = typeof secondsUntilNextRun === 'number';
+  const lastRunAgo = lastRunAt
+    ? Math.max(0, Math.floor((Date.now() - lastRunAt) / 1000))
+    : null;
   const sorted = [...signals].sort((a, b) => b.conviction - a.conviction);
   const approved = sorted.filter((s) => s.approved);
   const watchlist = sorted.filter((s) => !s.approved);
@@ -67,9 +77,24 @@ export function NextEntriesFeed({
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--apice-emerald))]">
                 Next entries · live
               </p>
-              <p className="mt-0.5 text-[11px] text-white/55">
-                Regime {regime ? <span className="font-mono font-semibold text-white/80">{regime}</span> : 'loading…'}
-                {approved.length > 0 && ` · ${approved.length} ready`}
+              <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-white/55">
+                <span>
+                  Regime {regime ? <span className="font-mono font-semibold text-white/80">{regime}</span> : 'loading…'}
+                </span>
+                {approved.length > 0 && (
+                  <span className="text-[hsl(var(--apice-emerald))]">· {approved.length} ready</span>
+                )}
+                {autoEval && secondsUntilNextRun !== null && secondsUntilNextRun !== undefined && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[hsl(var(--apice-emerald))]/10 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-[hsl(var(--apice-emerald))]">
+                    <Clock className="h-2.5 w-2.5" aria-hidden="true" />
+                    next in {secondsUntilNextRun}s
+                  </span>
+                )}
+                {lastRunAgo !== null && (
+                  <span className="font-mono text-[10px] tabular-nums text-white/35">
+                    · last {lastRunAgo < 60 ? `${lastRunAgo}s` : `${Math.floor(lastRunAgo / 60)}m`} ago
+                  </span>
+                )}
               </p>
             </div>
           </div>
