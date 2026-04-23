@@ -80,7 +80,7 @@ export function AppLayout() {
                 'w-full',
                 // Mobile: leave space for AppHeader (~72px) + BottomNav (~80px) + safe area;
                 // desktop: page handles its own padding (lg:px-8 xl:px-10).
-                showNav ? 'pt-[72px] lg:pt-0 pb-24 lg:pb-8' : ''
+                showNav ? 'pt-16 lg:pt-0 pb-24 lg:pb-8' : ''
               )}
               style={
                 showNav

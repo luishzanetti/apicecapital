@@ -96,7 +96,7 @@ export function AppHeader() {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-center border-b border-white/5 bg-[#0F1626]/90 px-5 backdrop-blur-xl lg:hidden">
+    <header className="fixed top-0 left-0 right-0 z-30 flex h-16 items-center justify-center border-b border-white/5 bg-[#0F1626]/90 px-5 backdrop-blur-xl lg:hidden">
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-3">
           <button

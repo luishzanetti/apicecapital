@@ -234,7 +234,7 @@ Deno.serve(async (req) => {
     const toClose: Array<{
       position: ApexAiPosition;
       exitPrice: number;
-      trigger: 'take_profit' | 'stop_loss';
+      trigger: 'take_profit';
     }> = [];
 
     for (const pos of positions) {
@@ -256,14 +256,17 @@ Deno.serve(async (req) => {
       const tpPrice = pos.take_profit_price ? Number(pos.take_profit_price) : null;
       const slPrice = pos.stop_loss_price ? Number(pos.stop_loss_price) : null;
 
-      // Evaluate exit triggers
-      let exitTrigger: 'take_profit' | 'stop_loss' | null = null;
+      // MARTINGALE STRATEGY: NEVER close at loss (stop_loss).
+      // Only close on take_profit (individual TP per layer). The RPC
+      // apex_ai_close_position_group additionally enforces "only close when
+      // aggregate PnL > 0" for safety.
+      let exitTrigger: 'take_profit' | null = null;
       if (pos.side === 'long') {
         if (tpPrice && currentPrice >= tpPrice) exitTrigger = 'take_profit';
-        else if (slPrice && currentPrice <= slPrice) exitTrigger = 'stop_loss';
+        // SL hit → do NOT close. Bot will open next martingale layer instead.
       } else {
         if (tpPrice && currentPrice <= tpPrice) exitTrigger = 'take_profit';
-        else if (slPrice && currentPrice >= slPrice) exitTrigger = 'stop_loss';
+        // SL hit → do NOT close. Bot will open next martingale layer instead.
       }
 
       if (exitTrigger) {
@@ -782,7 +785,7 @@ async function closePositionAndRecord(
   supabase: ReturnType<typeof createClient>,
   position: ApexAiPosition,
   exitPrice: number,
-  trigger: 'take_profit' | 'stop_loss'
+  trigger: 'take_profit'
 ): Promise<{ pnl: number } | null> {
   const entryPrice = Number(position.entry_price);
   const size = Number(position.size);

@@ -489,6 +489,55 @@ export interface ApexAiSlice {
   markApexAiLandingViewed: () => void;
 }
 
+// ─── War Chest ──────────────────────────────────────────────
+// Opportunistic capital pool denominated in USDC (separate from the
+// systematic DCA bucket which uses USDT). The bot proposes time-bound
+// recommendations; user can let the AI auto-deploy or approve manually.
+export type WarChestMode = 'auto' | 'manual';
+export type WarChestRecType =
+  | 'dip-buy'
+  | 'momentum'
+  | 'rebalance'
+  | 'protective'
+  | 'breakout';
+
+export interface WarChestRecommendation {
+  id: string;
+  asset: string;             // e.g. 'BTC', 'ETH', 'SOL'
+  amountUsdc: number;        // how much USDC the bot suggests deploying
+  type: WarChestRecType;
+  rationale: string;         // human-readable why ("BTC -8% on weekly RSI 28")
+  confidence: number;        // 0-100
+  expectedHoldDays: number;  // suggested holding period
+  expiresAt: number;         // epoch ms — recommendations are perishable
+  createdAt: number;
+  status: 'pending' | 'applied' | 'dismissed' | 'expired';
+  appliedAt?: number;
+  appliedBy?: 'auto' | 'manual';
+}
+
+export interface WarChestDeployment {
+  id: string;
+  recommendationId: string;
+  asset: string;
+  amountUsdc: number;
+  appliedAt: number;
+  appliedBy: 'auto' | 'manual';
+  type: WarChestRecType;
+}
+
+export interface WarChestSlice {
+  warChestMode: WarChestMode;
+  warChestRecommendations: WarChestRecommendation[];
+  warChestDeployments: WarChestDeployment[];
+  warChestLastSyncAt: number | null;
+
+  setWarChestMode: (mode: WarChestMode) => void;
+  applyWarChestRecommendation: (id: string, by?: 'auto' | 'manual') => void;
+  dismissWarChestRecommendation: (id: string) => void;
+  refreshWarChestRecommendations: () => void;
+}
+
 // ─── Combined AppState ──────────────────────────────────────
 export type AppState =
   OnboardingSlice &
@@ -503,7 +552,8 @@ export type AppState =
   EducationSlice &
   BalanceSlice &
   TransferSlice &
-  ApexAiSlice;
+  ApexAiSlice &
+  WarChestSlice;
 
 // Slice creator helper type
 export type SliceCreator<T> = StateCreator<AppState, [], [], T>;

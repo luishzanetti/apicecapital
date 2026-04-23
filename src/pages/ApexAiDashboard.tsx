@@ -36,8 +36,7 @@ import {
 } from '@/lib/apexAi/activateBot';
 import { useApexAiSymbols } from '@/hooks/useApexAiData';
 import { ApexAiInsightsCard } from '@/components/apex-ai/ApexAiInsightsCard';
-import { ApexAiRegimeCard } from '@/components/apex-ai/ApexAiRegimeCard';
-import { ApexAiLayersCard } from '@/components/apex-ai/ApexAiLayersCard';
+import { ApexAiCommandCenter } from '@/components/apex-ai/ApexAiCommandCenter';
 import { useApexAiTicker } from '@/hooks/useApexAiTicker';
 import {
   useApexAiRegime,
@@ -485,21 +484,19 @@ function DashboardContent({
         />
       </div>
 
-      {/* V2 — Market regime across active symbols */}
+      {/* V2.1 — Command Center: AI analyzing markets in real time */}
       {activeSymbolList.length > 0 && (
         <div className="mb-5">
-          <ApexAiRegimeCard symbols={activeSymbolList} regimeMap={regimeMap} />
+          <ApexAiCommandCenter
+            portfolio={portfolio}
+            symbols={activeSymbolList}
+            regimeMap={regimeMap}
+            intelligenceMap={intelligenceMap}
+          />
         </div>
       )}
 
-      {/* V2 — Multi-layer DCA grid waterfall */}
-      {positions && positions.length > 0 && (
-        <div className="mb-5">
-          <ApexAiLayersCard positions={positions} intelligenceMap={intelligenceMap} maxLayers={10} />
-        </div>
-      )}
-
-      {/* Apex AI Advisor — insights + recommendations + alerts */}
+      {/* Apex AI Advisor — health score + recommendations + alerts */}
       <div className="mb-5">
         <ApexAiInsightsCard portfolioId={portfolio.id} />
       </div>

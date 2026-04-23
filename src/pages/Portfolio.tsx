@@ -24,6 +24,7 @@ import { SpotHoldingsTable } from '@/components/portfolio/SpotHoldingsTable';
 import { AccountOverviewCard } from '@/components/portfolio/AccountOverviewCard';
 import { DCATracker } from '@/components/portfolio/DCATracker';
 import { PerformanceMetrics } from '@/components/portfolio/PerformanceMetrics';
+import { WarChestWidget } from '@/components/portfolio/WarChestWidget';
 import { QuickTransferButton } from '@/components/transfer';
 import {
   DollarSign, ChevronRight, Edit3, Check,
@@ -40,6 +41,16 @@ export default function Portfolio() {
   const weeklyInvestment = useAppStore((s) => s.weeklyInvestment);
   const setWeeklyInvestment = useAppStore((s) => s.setWeeklyInvestment);
   const selectedPortfolio = useAppStore((s) => s.selectedPortfolio);
+  const dcaPlans = useAppStore((s) => s.dcaPlans);
+  const userProfile = useAppStore((s) => s.userProfile);
+  const portfolioAccepted = useAppStore((s) => s.portfolioAccepted);
+  // ActionPlan only matters until the setup checklist is fully green.
+  // After that, surface War Chest / DCA recommendations instead of repeating completed steps.
+  const setupComplete =
+    !!userProfile?.goal &&
+    portfolioAccepted &&
+    weeklyInvestment > 0 &&
+    dcaPlans.some((p) => p.isActive && p.totalInvested > 0);
   const selectPortfolio = useAppStore((s) => s.selectPortfolio);
   const userPortfolios = useAppStore((s) => s.userPortfolios);
   const addPortfolio = useAppStore((s) => s.addPortfolio);
@@ -421,9 +432,18 @@ export default function Portfolio() {
                 </Card>
               </motion.div>
 
-              {/* Smart Allocation Engine */}
-              {weeklyInvestment > 0 && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+              {/* War Chest — opportunistic USDC bucket with AI recommendations.
+                  Distinct from the systematic DCA flow above (which uses USDT). */}
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+                <ErrorBoundary fallback={<div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">War Chest unavailable</div>}>
+                  <WarChestWidget />
+                </ErrorBoundary>
+              </motion.div>
+
+              {/* Smart DCA Allocation — only when user is still configuring weekly DCA.
+                  Once a plan is active, the recommendations live inside DCA Planner. */}
+              {weeklyInvestment > 0 && dcaPlans.length === 0 && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
                   <AllocationEngine
                     weeklyAmount={weeklyInvestment}
                     onAccept={handleAcceptAllocation}
@@ -432,10 +452,13 @@ export default function Portfolio() {
                 </motion.div>
               )}
 
-              {/* Action Plan Widget */}
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
-                <ActionPlanWidget />
-              </motion.div>
+              {/* Action Plan Widget — only when setup checklist still incomplete.
+                  Once everything is green it just shows checkmarks; we hide it then. */}
+              {!setupComplete && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                  <ActionPlanWidget />
+                </motion.div>
+              )}
             </motion.div>
           )}
 

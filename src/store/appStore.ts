@@ -16,6 +16,7 @@ import { createEducationSlice } from './slices/educationSlice';
 import { createBalanceSlice } from './slices/balanceSlice';
 import { createTransferSlice } from './slices/transferSlice';
 import { createApexAiSlice } from './slices/apexAiSlice';
+import { createWarChestSlice } from './slices/warChestSlice';
 
 // Re-export all types for backward compatibility
 export type {
@@ -56,10 +57,11 @@ export const useAppStore = create<AppState>()(
       ...createBalanceSlice(...a),
       ...createTransferSlice(...a),
       ...createApexAiSlice(...a),
+      ...createWarChestSlice(...a),
     }),
     {
       name: 'apice-storage',
-      version: 6, // v6: add Apex AI slice (wizard + landing viewed flags)
+      version: 7, // v7: add War Chest slice (USDC opportunistic bucket)
       // Only persist user-facing fields — transient server state is re-fetched on boot.
       partialize: (state) => {
         // Cast through unknown so we can explicitly control which keys are persisted.
@@ -118,6 +120,10 @@ export const useAppStore = create<AppState>()(
           // apex ai — UI state only (canonical data lives in Supabase)
           apexAiActivePortfolioId: s.apexAiActivePortfolioId,
           apexAiHasViewedLanding: s.apexAiHasViewedLanding,
+          // war chest — user preference (mode) + lightweight history.
+          // Recommendations are perishable so they are NOT persisted.
+          warChestMode: s.warChestMode,
+          warChestDeployments: (s.warChestDeployments ?? []).slice(0, 50),
         } as Partial<AppState>;
       },
       migrate: (persistedState: any, version: number) => {
@@ -189,6 +195,14 @@ export const useAppStore = create<AppState>()(
             ...state,
             apexAiActivePortfolioId: state.apexAiActivePortfolioId ?? null,
             apexAiHasViewedLanding: state.apexAiHasViewedLanding ?? false,
+          };
+        }
+        if (version < 7) {
+          // v6 → v7: seed War Chest defaults (manual mode, empty history)
+          state = {
+            ...state,
+            warChestMode: state.warChestMode ?? 'manual',
+            warChestDeployments: state.warChestDeployments ?? [],
           };
         }
         if (version < 5) {
