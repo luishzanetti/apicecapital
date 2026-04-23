@@ -108,7 +108,13 @@ async function getPositions(
   apiKey: string, apiSecret: string, testnet: boolean, symbol?: string
 ): Promise<any[]> {
   const params: Record<string, string> = { category: 'linear', limit: '200' };
-  if (symbol) params.symbol = symbol;
+  if (symbol) {
+    params.symbol = symbol;
+  } else {
+    // When fetching all positions, Bybit v5 requires EITHER symbol OR
+    // settleCoin. Default to USDT perps which cover the app's universe.
+    params.settleCoin = 'USDT';
+  }
 
   const result = await bybitGet(apiKey, apiSecret, testnet, '/v5/position/list', params);
   return (result.list || []).filter((p: any) => parseFloat(p.size) > 0);
@@ -273,10 +279,37 @@ Deno.serve(async (req: Request) => {
 
       const creds = await getUserCredentials(supabaseAdmin, userId, ENCRYPTION_KEY);
       const bybitSide = pos.side === 'long' ? 'Buy' as const : 'Sell' as const;
-      const { orderId, closePrice } = await closePosition(
-        creds.apiKey, creds.apiSecret, creds.testnet,
-        pos.symbol, bybitSide, String(pos.size_qty)
-      );
+
+      let orderId: string | null = null;
+      let closePrice: number | null = pos.mark_price ?? null;
+      let reconciled = false;
+      let closeReason = reason;
+
+      try {
+        const resp = await closePosition(
+          creds.apiKey, creds.apiSecret, creds.testnet,
+          pos.symbol, bybitSide, String(pos.size_qty)
+        );
+        orderId = resp.orderId;
+        closePrice = resp.closePrice;
+      } catch (e: unknown) {
+        const msg = (e as Error).message ?? '';
+        // 110017 = current position is zero (already closed on Bybit — TP/SL
+        //          hit, user closed via Bybit app, liquidation, etc.)
+        // 110025 = position idx not match (phantom position).
+        // In these cases, do NOT propagate the error to the user — mark the
+        // row as closed locally so the DB stops drifting from the exchange.
+        if (/110017|110025/.test(msg)) {
+          console.log(`[trade-execute] Reconciling orphan position ${positionId}: ${msg}`);
+          reconciled = true;
+          closeReason = reason === 'manual'
+            ? 'reconciled_already_closed'
+            : `${reason}:reconciled`;
+        } else {
+          // True failure (auth, network, size mismatch) — surface it.
+          throw e;
+        }
+      }
 
       const realizedPnl = closePrice && pos.entry_price
         ? pos.side === 'long'
@@ -285,11 +318,80 @@ Deno.serve(async (req: Request) => {
         : 0;
 
       await supabaseAdmin.from('leveraged_positions').update({
-        status: 'closed', close_price: closePrice, close_reason: reason,
-        realized_pnl: realizedPnl, closed_at: new Date().toISOString(),
+        status: 'closed',
+        close_price: closePrice,
+        close_reason: closeReason,
+        realized_pnl: realizedPnl,
+        closed_at: new Date().toISOString(),
       }).eq('id', positionId);
 
-      return json({ positionId, closePrice, realizedPnl, reason });
+      return json({
+        positionId,
+        closePrice,
+        realizedPnl,
+        reason: closeReason,
+        orderId,
+        reconciled,
+      });
+    }
+
+    // ─── reconcile ───────────────────────────────────────────
+    // Compares local open positions vs Bybit's /v5/position/list and
+    // marks as closed any local row that Bybit no longer reports. Called
+    // from the client on mount and periodically. No trades are placed.
+    if (action === 'reconcile') {
+      const { data: openLocal } = await supabaseAdmin.from('leveraged_positions')
+        .select('id, symbol, side, size_qty, entry_price, mark_price')
+        .eq('user_id', userId)
+        .eq('status', 'open');
+
+      if (!openLocal || openLocal.length === 0) {
+        return json({ reconciled: 0, closedOrphans: [] });
+      }
+
+      const creds = await getUserCredentials(supabaseAdmin, userId, ENCRYPTION_KEY);
+      // Bybit /v5/position/list returns up to 200 rows per category.
+      const livePositions = await getPositions(creds.apiKey, creds.apiSecret, creds.testnet);
+
+      // Index live positions by (symbol, side-lowercase). Non-zero size only.
+      const liveIndex = new Map<string, { size: number; markPrice: number }>();
+      for (const p of livePositions) {
+        const size = parseFloat(p.size ?? '0');
+        if (!Number.isFinite(size) || size <= 0) continue;
+        const side = (p.side || '').toLowerCase() === 'buy' ? 'long' : 'short';
+        liveIndex.set(`${p.symbol}:${side}`, {
+          size,
+          markPrice: parseFloat(p.markPrice ?? '0') || 0,
+        });
+      }
+
+      const closedOrphans: string[] = [];
+      for (const local of openLocal) {
+        const key = `${local.symbol}:${local.side}`;
+        const live = liveIndex.get(key);
+        if (!live || live.size < local.size_qty * 0.01) {
+          // Bybit has no position (or dust) on this pair — orphan, close it.
+          const closeAt = local.mark_price ?? local.entry_price ?? 0;
+          const realizedPnl = closeAt && local.entry_price
+            ? local.side === 'long'
+              ? (closeAt - local.entry_price) * local.size_qty
+              : (local.entry_price - closeAt) * local.size_qty
+            : 0;
+          await supabaseAdmin.from('leveraged_positions').update({
+            status: 'closed',
+            close_price: closeAt,
+            close_reason: 'reconciled_orphan',
+            realized_pnl: realizedPnl,
+            closed_at: new Date().toISOString(),
+          }).eq('id', local.id);
+          closedOrphans.push(local.id);
+        }
+      }
+
+      if (closedOrphans.length > 0) {
+        console.log(`[trade-execute] Reconciled ${closedOrphans.length} orphan(s) for user ${userId.slice(0, 8)}`);
+      }
+      return json({ reconciled: closedOrphans.length, closedOrphans });
     }
 
     // ─── set-tp-sl ───────────────────────────────────────────

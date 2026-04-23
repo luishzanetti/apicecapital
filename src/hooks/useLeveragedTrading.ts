@@ -589,12 +589,45 @@ export function useLeveragedTrading() {
       setPositions((prev) => prev.filter((p) => p.id !== positionId));
       return true;
     }
-    const { error: fnError } = await invokeEdgeFunction('leveraged-trade-execute', {
-      body: { action: 'close-position', positionId, reason: 'manual' },
-    });
-    if (fnError) { setError(fnError.message); return false; }
+    const { data, error: fnError } = await invokeEdgeFunction<{ data: { reconciled?: boolean } }>(
+      'leveraged-trade-execute',
+      { body: { action: 'close-position', positionId, reason: 'manual' } },
+    );
+    if (fnError) {
+      // 110017 should now be handled server-side (auto-reconciled) but if it
+      // ever slips through, do a client-side reconcile sweep and refresh.
+      if (/110017|position is zero|already closed/i.test(fnError.message)) {
+        await invokeEdgeFunction('leveraged-trade-execute', { body: { action: 'reconcile' } });
+        await fetchPositions();
+        return true;
+      }
+      setError(fnError.message);
+      return false;
+    }
+    if (data?.data?.reconciled && import.meta.env.DEV) {
+      console.info('[ALTIS] close auto-reconciled (Bybit had no position)');
+    }
     await fetchPositions();
     return true;
+  }, [fetchPositions]);
+
+  // Sync local open positions with Bybit live positions. Marks any stale
+  // DB row (TP/SL fill, manual Bybit-app close, liquidation) as closed.
+  const reconcilePositions = useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+    const { data, error } = await invokeEdgeFunction<{ data: { reconciled: number } }>(
+      'leveraged-trade-execute',
+      { body: { action: 'reconcile' } },
+    );
+    if (error) {
+      if (import.meta.env.DEV) console.warn('[ALTIS] reconcile failed:', error.message);
+      return;
+    }
+    const count = data?.data?.reconciled ?? 0;
+    if (count > 0) {
+      if (import.meta.env.DEV) console.info(`[ALTIS] reconciled ${count} orphan position(s)`);
+      await fetchPositions();
+    }
   }, [fetchPositions]);
 
   const closeAllPositions = useCallback(async () => {
@@ -632,6 +665,7 @@ export function useLeveragedTrading() {
     fetchAll, fetchPositions, fetchRisk, triggerEvaluation,
     enableStrategy, disableStrategy, closePosition, closeAllPositions,
     syncStrategiesToBackend,
+    reconcilePositions,
     // Live stream telemetry
     tickersLive,
   };

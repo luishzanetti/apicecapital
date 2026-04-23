@@ -41,6 +41,7 @@ export default function AiTradeDashboard() {
     totalCapital, totalUnrealizedPnl, activeStrategies,
     isLoading, error: hookError,
     fetchAll, enableStrategy, disableStrategy, closePosition, closeAllPositions, triggerEvaluation,
+    reconcilePositions,
   } = useLeveragedTrading();
 
   // Authoritative setup state from the store — reactive and in sync after activation.
@@ -53,6 +54,16 @@ export default function AiTradeDashboard() {
   const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  // Reconcile DB ↔ Bybit state on mount and every 2 min while mounted.
+  // Catches stale "open" rows where the exchange position already closed
+  // (TP/SL, manual close via Bybit app, liquidation) without the app
+  // being notified. Also runs right after a close attempt as a safety net.
+  useEffect(() => {
+    reconcilePositions();
+    const id = setInterval(() => reconcilePositions(), 120_000);
+    return () => clearInterval(id);
+  }, [reconcilePositions]);
 
   // Dev-mode diagnostic — captures state snapshot on every mount so any
   // "Get Started every time" regression shows up immediately in the console.

@@ -43,6 +43,12 @@ const CashbackDashboard = lazy(() => import("./pages/CashbackDashboard"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const AiTradeDashboard = lazy(() => import("./pages/AiTradeDashboard"));
 const AiTradeSetup = lazy(() => import("./pages/AiTradeSetup"));
+const ApexAiLanding = lazy(() => import("./pages/ApexAiLanding"));
+const ApexAiOnboarding = lazy(() => import("./pages/ApexAiOnboarding"));
+const ApexAiSetup = lazy(() => import("./pages/ApexAiSetup"));
+const ApexAiDashboard = lazy(() => import("./pages/ApexAiDashboard"));
+const ApexAiPortfolios = lazy(() => import("./pages/ApexAiPortfolios"));
+const ApexAiStatements = lazy(() => import("./pages/ApexAiStatements"));
 const AssetDetail = lazy(() => import("./pages/AssetDetail"));
 const QuickDCA = lazy(() => import("./pages/QuickDCA"));
 const ExplosiveList = lazy(() => import("./pages/ExplosiveList"));
@@ -133,6 +139,13 @@ function AppContent() {
         <Route path="/strategies/ai-trade" element={<Navigate to="/ai-trade" replace />} />
         <Route path="/ai-trade" element={<AiTradeDashboard />} />
         <Route path="/ai-trade/setup" element={<AiTradeSetup />} />
+        {/* Apex AI — Trading 24/7 com IA, fee 10% profit */}
+        <Route path="/apex-ai" element={<ApexAiLanding />} />
+        <Route path="/apex-ai/onboarding" element={<ApexAiOnboarding />} />
+        <Route path="/apex-ai/setup" element={<ApexAiSetup />} />
+        <Route path="/apex-ai/dashboard" element={<ApexAiDashboard />} />
+        <Route path="/apex-ai/portfolios" element={<ApexAiPortfolios />} />
+        <Route path="/apex-ai/statements" element={<ApexAiStatements />} />
         <Route path="/learn" element={<Learn />} />
         <Route path="/learn/lesson/:lessonId" element={<LessonPlayerPage />} />
         <Route path="/learn/:trackId/:lessonId" element={<LegacyLessonRedirect />} />
