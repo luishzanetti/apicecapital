@@ -468,6 +468,27 @@ export interface TransferSlice {
   clearTransferError: () => void;
 }
 
+// ─── Apex AI Slice ──────────────────────────────────────────
+// Minimal UI-state slice for Apex AI. Canonical data (portfolios/positions/trades)
+// lives in Supabase and is read via TanStack Query + Realtime. This slice only
+// tracks client-side UI selection and setup wizard state.
+export interface ApexAiWizardState {
+  step: 'exchange' | 'capital' | 'risk' | 'confirm' | 'done';
+  capitalUsdt: number | null;
+  riskProfile: 'conservative' | 'balanced' | 'aggressive' | null;
+  lastProposal: import('@/types/apexAi').ApexAiQuickSetupProposal | null;
+}
+
+export interface ApexAiSlice {
+  apexAiActivePortfolioId: string | null;
+  apexAiWizard: ApexAiWizardState;
+  apexAiHasViewedLanding: boolean;
+  setApexAiActivePortfolio: (id: string | null) => void;
+  resetApexAiWizard: () => void;
+  updateApexAiWizard: (updates: Partial<ApexAiWizardState>) => void;
+  markApexAiLandingViewed: () => void;
+}
+
 // ─── Combined AppState ──────────────────────────────────────
 export type AppState =
   OnboardingSlice &
@@ -481,7 +502,8 @@ export type AppState =
   AltisSlice &
   EducationSlice &
   BalanceSlice &
-  TransferSlice;
+  TransferSlice &
+  ApexAiSlice;
 
 // Slice creator helper type
 export type SliceCreator<T> = StateCreator<AppState, [], [], T>;

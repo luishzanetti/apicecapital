@@ -35,7 +35,7 @@ function getStatus(type: string, regime: string | undefined, hasPos: boolean): s
 export default function AiTradeDashboard() {
   const nav = useNavigate();
   const {
-    bots, activeBot, setActiveBotId,
+    bots, activeBot,
     strategies, positions, risk, signals, performance,
     marketContext, pendingSignals, isEvaluating,
     totalCapital, totalUnrealizedPnl, activeStrategies,
@@ -124,13 +124,14 @@ export default function AiTradeDashboard() {
             </p>
           </div>
           <div className="flex gap-1.5">
-            {bots.length > 1 && (
-              <select value={activeBot?.id || ''} onChange={e => setActiveBotId(e.target.value)}
-                className="bg-white/[0.05] border border-white/10 rounded-lg px-2 py-1 text-[10px] text-foreground">
-                {bots.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-            )}
-            <button onClick={() => nav('/ai-trade/setup')} className="px-2 py-1 rounded-lg text-[10px] glass-light text-muted-foreground">+ Bot</button>
+            {/* Single-bot model — one ALTIS configuration per user. "Edit"
+                navigates to Setup, which pre-fills with the current config. */}
+            <button
+              onClick={() => nav('/ai-trade/setup')}
+              className="px-2 py-1 rounded-lg text-[10px] glass-light text-muted-foreground hover:bg-white/[0.06]"
+            >
+              Edit setup
+            </button>
           </div>
         </div>
 

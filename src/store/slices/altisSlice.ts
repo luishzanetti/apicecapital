@@ -20,15 +20,24 @@ export const createAltisSlice: SliceCreator<AltisSlice> = (set, get) => ({
   bots: [],
   activeBotId: null,
 
+  // Single-bot model: one ALTIS setup per user. Calling `addBot` when a bot
+  // already exists REPLACES it (preserving id + createdAt) instead of
+  // stacking duplicates. This matches the backend — `strategy_configs` has
+  // UNIQUE(user_id, strategy_type), and strategy-orchestrator / positions /
+  // signals / risk are all keyed on user_id (no bot_id column yet).
+  //
+  // Multi-bot parallel strategies is tracked as a post-launch Pro-tier
+  // feature; it requires schema + orchestrator changes across 4 tables.
   addBot: (name, capital, profile, strategies, options) => {
-    const id = createBotId();
+    const existing = Array.isArray(get().bots) ? get().bots[0] : null;
+    const id = existing?.id ?? createBotId();
     const newBot: BotConfig = {
       id,
       name,
       capital,
       profile,
       strategies,
-      createdAt: new Date().toISOString(),
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
       isActive: true,
       maxLeverage: options?.maxLeverage ?? 5,
       riskPerTradePct: options?.riskPerTradePct ?? 33,
@@ -37,10 +46,9 @@ export const createAltisSlice: SliceCreator<AltisSlice> = (set, get) => ({
       selectedAssets: options?.selectedAssets ?? ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
     };
 
-    set((state) => ({
-      bots: [...(Array.isArray(state.bots) ? state.bots : []), newBot],
-      activeBotId: id,
-    }));
+    // Always collapse to a single-bot array. Any legacy multi-bot state
+    // from older sessions is cleaned up here.
+    set({ bots: [newBot], activeBotId: id });
 
     if (import.meta.env.DEV) {
       try {
@@ -49,8 +57,9 @@ export const createAltisSlice: SliceCreator<AltisSlice> = (set, get) => ({
             ? localStorage.getItem('apice-storage')
             : null;
         const parsed = raw ? JSON.parse(raw) : null;
-        console.info('[altis] addBot persisted', {
+        console.info('[altis] saveBot persisted', {
           id,
+          mode: existing ? 'update' : 'create',
           inMemoryCount: get().bots.length,
           inStorageCount: parsed?.state?.bots?.length ?? 'missing',
         });

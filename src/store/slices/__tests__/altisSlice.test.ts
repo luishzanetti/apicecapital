@@ -33,11 +33,24 @@ describe('altisSlice — addBot (Sprint 0 hotfix)', () => {
     expect(useAppStore.getState().activeBotId).toBe(id);
   });
 
-  it('supports multiple sequential creations', () => {
-    useAppStore.getState().addBot('B1', 100, 'balanced', [baseStrategy]);
-    useAppStore.getState().addBot('B2', 200, 'balanced', [baseStrategy]);
-    useAppStore.getState().addBot('B3', 300, 'balanced', [baseStrategy]);
-    expect(useAppStore.getState().bots.length).toBe(3);
+  // Single-bot model (v5): addBot is idempotent — repeated calls REPLACE
+  // the existing configuration instead of stacking duplicate bots. The
+  // bot id + createdAt are preserved across updates so that downstream
+  // references (e.g. open positions attributed to a strategy) remain stable.
+  it('collapses sequential calls into a single updated bot (single-bot model)', () => {
+    const id1 = useAppStore.getState().addBot('B1', 100, 'balanced', [baseStrategy]);
+    const id2 = useAppStore.getState().addBot('B2', 200, 'conservative', [baseStrategy]);
+    const id3 = useAppStore.getState().addBot('B3', 300, 'aggressive', [baseStrategy]);
+
+    expect(useAppStore.getState().bots.length).toBe(1);
+    expect(id1).toBe(id2);
+    expect(id2).toBe(id3);
+
+    const bot = useAppStore.getState().bots[0];
+    expect(bot.name).toBe('B3');
+    expect(bot.capital).toBe(300);
+    expect(bot.profile).toBe('aggressive');
+    expect(useAppStore.getState().activeBotId).toBe(id3);
   });
 
   it('defends against corrupted state where bots is not an array', () => {

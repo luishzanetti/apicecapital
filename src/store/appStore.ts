@@ -15,6 +15,7 @@ import { createAltisSlice } from './slices/altisSlice';
 import { createEducationSlice } from './slices/educationSlice';
 import { createBalanceSlice } from './slices/balanceSlice';
 import { createTransferSlice } from './slices/transferSlice';
+import { createApexAiSlice } from './slices/apexAiSlice';
 
 // Re-export all types for backward compatibility
 export type {
@@ -54,10 +55,11 @@ export const useAppStore = create<AppState>()(
       ...createEducationSlice(...a),
       ...createBalanceSlice(...a),
       ...createTransferSlice(...a),
+      ...createApexAiSlice(...a),
     }),
     {
       name: 'apice-storage',
-      version: 4, // Bump when schema changes (v4: education/balance/transfer slices)
+      version: 6, // v6: add Apex AI slice (wizard + landing viewed flags)
       // Only persist user-facing fields — transient server state is re-fetched on boot.
       partialize: (state) => {
         // Cast through unknown so we can explicitly control which keys are persisted.
@@ -113,6 +115,9 @@ export const useAppStore = create<AppState>()(
           lastSnapshot: s.lastSnapshot,
           // transfer — last 20 entries for history display
           transfers: (s.transfers ?? []).slice(0, 20),
+          // apex ai — UI state only (canonical data lives in Supabase)
+          apexAiActivePortfolioId: s.apexAiActivePortfolioId,
+          apexAiHasViewedLanding: s.apexAiHasViewedLanding,
         } as Partial<AppState>;
       },
       migrate: (persistedState: any, version: number) => {
@@ -177,6 +182,39 @@ export const useAppStore = create<AppState>()(
             lastSnapshot: state.lastSnapshot ?? null,
             transfers: state.transfers ?? [],
           };
+        }
+        if (version < 6) {
+          // v5 → v6: seed Apex AI defaults
+          state = {
+            ...state,
+            apexAiActivePortfolioId: state.apexAiActivePortfolioId ?? null,
+            apexAiHasViewedLanding: state.apexAiHasViewedLanding ?? false,
+          };
+        }
+        if (version < 5) {
+          // v4 → v5: ALTIS collapses to single-bot. Users who accumulated
+          // multiple bots via the old flow keep only the MOST RECENTLY
+          // created one (highest createdAt). Their strategies / capital /
+          // assets are preserved. Others are discarded.
+          if (Array.isArray(state.bots) && state.bots.length > 1) {
+            const sorted = [...state.bots].sort(
+              (a: any, b: any) =>
+                new Date(b?.createdAt ?? 0).getTime() -
+                new Date(a?.createdAt ?? 0).getTime(),
+            );
+            const keep = sorted[0];
+            state = {
+              ...state,
+              bots: [keep],
+              activeBotId: keep?.id ?? null,
+            };
+            if (import.meta.env.DEV) {
+              console.info('[apice-storage] v4→v5: collapsed multi-bot', {
+                kept: keep?.id,
+                discarded: sorted.slice(1).map((b: any) => b?.id),
+              });
+            }
+          }
         }
         // Defensive: guarantee required arrays exist after migration chain
         state.bots = Array.isArray(state.bots) ? state.bots : [];

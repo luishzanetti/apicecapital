@@ -27,26 +27,41 @@ export default function AiTradeSetup() {
   const { addBot, bots, triggerEvaluation, syncStrategiesToBackend } = useLeveragedTrading();
   const { data: balanceData, status: balanceStatus } = useExchangeBalance();
 
+  // Pre-fill from existing bot so Setup becomes an edit flow (single-bot
+  // model: there is at most one ALTIS configuration per user).
+  const existingBot = bots[0];
+  const allocationsFromBot = useMemo(() => {
+    const map: Record<string, number> = {};
+    if (existingBot?.strategies) {
+      for (const s of existingBot.strategies) map[s.strategyType] = s.allocationPct;
+    }
+    return map;
+  }, [existingBot]);
+
   const [step, setStep] = useState(0);
   const [capitalMode, setCapitalMode] = useState<'auto' | 'custom'>('auto');
-  const [customCapital, setCustomCapital] = useState(5000);
-  const [profile, setProfile] = useState<keyof typeof RISK_PROFILES | null>(null);
-  const [allocations, setAllocations] = useState<Record<string, number>>({});
+  const [customCapital, setCustomCapital] = useState(existingBot?.capital ?? 5000);
+  const [profile, setProfile] = useState<keyof typeof RISK_PROFILES | null>(
+    (existingBot?.profile as keyof typeof RISK_PROFILES) ?? null,
+  );
+  const [allocations, setAllocations] = useState<Record<string, number>>(allocationsFromBot);
   const [expandedStrategy, setExpandedStrategy] = useState<string | null>(null);
-  const [robotName, setRobotName] = useState(`ALTIS Bot #${bots.length + 1}`);
+  const [robotName, setRobotName] = useState(existingBot?.name ?? 'My ALTIS Setup');
   const [isActivating, setIsActivating] = useState(false);
-  // Advanced customization
-  const [maxLeverage, setMaxLeverage] = useState(5);
-  const [riskPerTradePct, setRiskPerTradePct] = useState(33);
-  const [maxPositions, setMaxPositions] = useState(5);
-  const [autoExecute, setAutoExecute] = useState(true);
-  const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set(['BTCUSDT', 'ETHUSDT', 'SOLUSDT']));
+  // Advanced customization — inherit from existing bot where available.
+  const [maxLeverage, setMaxLeverage] = useState(existingBot?.maxLeverage ?? 5);
+  const [riskPerTradePct, setRiskPerTradePct] = useState(existingBot?.riskPerTradePct ?? 33);
+  const [maxPositions, setMaxPositions] = useState(existingBot?.maxPositions ?? 5);
+  const [autoExecute, setAutoExecute] = useState(existingBot?.autoExecute ?? true);
+  const [selectedAssets, setSelectedAssets] = useState<Set<string>>(
+    new Set(existingBot?.selectedAssets ?? ['BTCUSDT', 'ETHUSDT', 'SOLUSDT']),
+  );
 
   // Detect available balance
   const unifiedBalance = balanceData?.totalAvailableBalance || 0;
   const totalCapital = capitalMode === 'auto' ? unifiedBalance : customCapital;
   const hasBalance = balanceStatus === 'connected' && unifiedBalance > 0;
-  const isEditingExisting = bots.length > 0;
+  const isEditingExisting = Boolean(existingBot);
 
   // Auto-set capital mode based on balance detection
   useEffect(() => {
