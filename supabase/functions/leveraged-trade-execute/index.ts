@@ -192,6 +192,28 @@ Deno.serve(async (req: Request) => {
       if (!symbol || !qty) return err('Missing symbol or qty');
       if (leverage > 10) return err('Max leverage is 10x');
 
+      // Idempotency: reject if an open position on (user, symbol, side) exists.
+      // strategy-orchestrator already checks this, but direct callers (manual
+      // trades, re-queued signals, retries) bypass it — this guard prevents
+      // duplicate positions across the board.
+      const intendedSide = action === 'open-long' ? 'long' : 'short';
+      const { data: existingOpen } = await supabaseAdmin
+        .from('leveraged_positions')
+        .select('id, symbol, side, entry_price')
+        .eq('user_id', userId)
+        .eq('symbol', symbol)
+        .eq('side', intendedSide)
+        .eq('status', 'open')
+        .limit(1);
+      if (existingOpen && existingOpen.length > 0) {
+        console.log(`[trade-execute] SKIP duplicate: ${intendedSide} ${symbol} — already open (${existingOpen[0].id})`);
+        return json({
+          skipped: true,
+          reason: 'duplicate_open_position',
+          existingPositionId: existingOpen[0].id,
+        });
+      }
+
       const creds = await getUserCredentials(supabaseAdmin, userId, ENCRYPTION_KEY);
       const side = action === 'open-long' ? 'Buy' as const : 'Sell' as const;
       const { orderId, entryPrice } = await openPosition(

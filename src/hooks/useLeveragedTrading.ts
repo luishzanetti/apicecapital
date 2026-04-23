@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { invokeEdgeFunction } from '@/lib/supabaseFunction';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { useAppStore } from '@/store/appStore';
+import { useBybitTickers } from '@/hooks/useBybitTickers';
 import type { BotConfig, StrategyConfig } from '@/store/types';
 
 // ─── Re-export types for backward compatibility ─────────────
@@ -380,16 +381,36 @@ export function useLeveragedTrading() {
   }, [fetchStrategies, fetchPositions, fetchRisk, fetchSignals, fetchPerformance]);
 
   // ─── Supabase Realtime Subscriptions ────────────────────
+  // Filtered by user_id so the client does not receive other users'
+  // position updates (RLS blocks SELECTs but Realtime bypass is a leak).
 
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
     if (!isSupabaseConfigured) return;
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled) setCurrentUserId(data.user?.id ?? null);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUserId(session?.user?.id ?? null);
+    });
+    return () => {
+      cancelled = true;
+      sub?.subscription?.unsubscribe?.();
+    };
+  }, []);
 
-    const channel = supabase.channel('altis-realtime')
-      // Live position updates (mark_price, unrealized_pnl from price-updater)
+  useEffect(() => {
+    if (!isSupabaseConfigured || !currentUserId) return;
+
+    const userFilter = `user_id=eq.${currentUserId}`;
+    const channel = supabase.channel(`altis-realtime:${currentUserId}`)
+      // Live position updates — scoped to this user only.
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
         table: 'leveraged_positions',
+        filter: userFilter,
       }, (payload) => {
         const updated = payload.new as any;
         setPositions((prev) => prev.map((p) =>
@@ -401,19 +422,19 @@ export function useLeveragedTrading() {
           } : p
         ));
       })
-      // New positions opened by auto-executor
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'leveraged_positions',
+        filter: userFilter,
       }, () => {
-        fetchPositions(); // Full refresh on new position
+        fetchPositions();
       })
-      // New signals from strategy-orchestrator
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'trading_signals',
+        filter: userFilter,
       }, (payload) => {
         const sig = payload.new as any;
         setSignals((prev) => [{
@@ -426,13 +447,13 @@ export function useLeveragedTrading() {
           riskApproved: sig.risk_approved,
           wasExecuted: sig.was_executed,
           createdAt: sig.created_at,
-        }, ...prev].slice(0, 50)); // Keep last 50
+        }, ...prev].slice(0, 50));
       })
-      // Risk events (circuit breaker, liquidation)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'risk_events',
+        filter: userFilter,
       }, (payload) => {
         const event = payload.new as any;
         if (event.event_type === 'circuit_breaker_tripped') {
@@ -441,7 +462,6 @@ export function useLeveragedTrading() {
             circuitBreaker: { isTripped: true, dailyPnlPct: event.daily_pnl_pct || -0.05 },
           }));
         }
-        // Refresh risk data
         fetchRisk();
       })
       .subscribe();
@@ -449,7 +469,30 @@ export function useLeveragedTrading() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchPositions, fetchRisk]);
+  }, [currentUserId, fetchPositions, fetchRisk]);
+
+  // ─── Live mark price + PnL from Bybit WebSocket (no cron needed) ─────
+  // Backend price-updater is not deployed on pg_cron, so the frontend
+  // subscribes to Bybit's public tickers stream for every symbol with an
+  // open position and recomputes mark_price / unrealized_pnl locally on
+  // every tick. Effectively gives real-time PnL without extra backend cost.
+  const openSymbols = useMemo(
+    () => Array.from(new Set(positions.filter((p) => p.status === 'open').map((p) => p.symbol))),
+    [positions],
+  );
+  const { prices: livePrices, isLive: tickersLive } = useBybitTickers(openSymbols, 'linear');
+
+  const livePositions = useMemo<LeveragedPosition[]>(() => {
+    if (positions.length === 0 || Object.keys(livePrices).length === 0) return positions;
+    return positions.map((p) => {
+      if (p.status !== 'open') return p;
+      const mark = livePrices[p.symbol];
+      if (!Number.isFinite(mark) || !mark) return p;
+      const direction = p.side === 'long' ? 1 : -1;
+      const unrealized = (mark - p.entryPrice) * p.sizeQty * direction;
+      return { ...p, markPrice: mark, unrealizedPnl: Math.round(unrealized * 100) / 100 };
+    });
+  }, [positions, livePrices]);
 
   // ─── Actions ────────────────────────────────────────────
 
@@ -571,16 +614,17 @@ export function useLeveragedTrading() {
 
   // ─── Computed ───────────────────────────────────────────
 
-  const totalUnrealizedPnl = positions.reduce((s, p) => s + p.unrealizedPnl, 0);
-  const totalFundingIncome = positions.reduce((s, p) => s + p.fundingReceived, 0);
+  // Use livePositions (client-side ticker overlay) so totals are live.
+  const totalUnrealizedPnl = livePositions.reduce((s, p) => s + p.unrealizedPnl, 0);
+  const totalFundingIncome = livePositions.reduce((s, p) => s + p.fundingReceived, 0);
   const activeStrategies = strategies.filter((s) => s.isActive);
   const isSetupComplete = bots.length > 0 && strategies.length > 0;
 
   return {
     // Multi-bot
     bots, activeBot, setActiveBotId, addBot, removeBot,
-    // Active bot data
-    strategies, positions, risk, signals, performance,
+    // Active bot data — positions override with live tickers
+    strategies, positions: livePositions, risk, signals, performance,
     marketContext, pendingSignals, isEvaluating,
     isLoading, error,
     totalCapital, setTotalCapital,
@@ -588,5 +632,7 @@ export function useLeveragedTrading() {
     fetchAll, fetchPositions, fetchRisk, triggerEvaluation,
     enableStrategy, disableStrategy, closePosition, closeAllPositions,
     syncStrategiesToBackend,
+    // Live stream telemetry
+    tickersLive,
   };
 }
