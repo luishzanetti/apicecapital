@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  Card, CardContent,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -17,6 +15,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useAppStore } from '@/store/appStore';
+import { useTranslation } from '@/hooks/useTranslation';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import {
@@ -29,7 +28,14 @@ import {
   useApexAiDailyPnL,
 } from '@/hooks/useApexAiData';
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  ReferenceLine,
 } from 'recharts';
 import {
   Activity,
@@ -42,27 +48,24 @@ import {
   Plus,
   Square,
   TrendingUp,
-  Wallet,
-  Zap,
   RefreshCw,
   ChevronRight,
   Coins,
+  Zap,
 } from 'lucide-react';
-import type { ApexAiPortfolio, ApexAiPortfolioStatus } from '@/types/apexAi';
-
-// ═════════════════════════════════════════════════════════════════
-// Apex AI — Dashboard principal
-// KPIs + posições live (Realtime) + P&L chart + kill switch
-// ═════════════════════════════════════════════════════════════════
+import type {
+  ApexAiPortfolio,
+  ApexAiPortfolioStatus,
+  ApexAiPosition,
+  ApexAiTrade,
+} from '@/types/apexAi';
 
 export default function ApexAiDashboard() {
-  const nav = useNavigate();
+  const { t } = useTranslation();
   const activeId = useAppStore((s) => s.apexAiActivePortfolioId);
   const setActiveId = useAppStore((s) => s.setApexAiActivePortfolio);
-
   const { data: portfolios, isLoading: loadingList } = useApexAiPortfolios();
 
-  // Escolhe portfolio ativo, ou o primeiro da lista
   const currentId = useMemo(() => {
     if (activeId && portfolios?.some((p) => p.id === activeId)) return activeId;
     return portfolios?.[0]?.id ?? null;
@@ -72,7 +75,6 @@ export default function ApexAiDashboard() {
     if (currentId && currentId !== activeId) setActiveId(currentId);
   }, [currentId, activeId, setActiveId]);
 
-  // Empty state: nenhum portfolio
   if (!loadingList && (!portfolios || portfolios.length === 0)) {
     return <EmptyDashboard />;
   }
@@ -80,18 +82,24 @@ export default function ApexAiDashboard() {
   if (!currentId) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">Carregando…</div>
+        <div className="text-muted-foreground">{t('apexAi.dashboardLoading')}</div>
       </div>
     );
   }
 
-  return <DashboardContent portfolioId={currentId} onSwitchPortfolio={setActiveId} allPortfolios={portfolios ?? []} />;
+  return (
+    <DashboardContent
+      portfolioId={currentId}
+      allPortfolios={portfolios ?? []}
+    />
+  );
 }
 
 // ─── Empty state ──────────────────────────────────────────────
 
 function EmptyDashboard() {
   const nav = useNavigate();
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background px-5 py-10">
       <div className="max-w-md mx-auto text-center space-y-6 pt-10">
@@ -99,10 +107,8 @@ function EmptyDashboard() {
           <Bot className="w-10 h-10 text-white" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold">Apex AI pronto para ligar</h1>
-          <p className="text-sm text-muted-foreground">
-            Você ainda não tem nenhum bot configurado. Crie seu primeiro portfolio em menos de 5 minutos.
-          </p>
+          <h1 className="text-2xl font-bold">{t('apexAi.dashboardEmptyTitle')}</h1>
+          <p className="text-sm text-muted-foreground">{t('apexAi.dashboardEmptyDesc')}</p>
         </div>
         <Button
           size="lg"
@@ -110,7 +116,7 @@ function EmptyDashboard() {
           className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
         >
           <Zap className="w-4 h-4 mr-2" />
-          Ativar Apex AI
+          {t('apexAi.dashboardEmptyCta')}
         </Button>
       </div>
     </div>
@@ -122,13 +128,12 @@ function EmptyDashboard() {
 function DashboardContent({
   portfolioId,
   allPortfolios,
-  onSwitchPortfolio,
 }: {
   portfolioId: string;
   allPortfolios: ApexAiPortfolio[];
-  onSwitchPortfolio: (id: string) => void;
 }) {
   const nav = useNavigate();
+  const { t } = useTranslation();
 
   const { data: portfolio } = useApexAiPortfolio(portfolioId);
   const { data: credits } = useApexAiCredits();
@@ -148,20 +153,22 @@ function DashboardContent({
         .from('apex_ai_portfolios')
         .update({ status: targetStatus })
         .eq('id', portfolio.id);
-
       if (error) throw error;
 
       toast({
-        title: targetStatus === 'active' ? 'Bot ativado' : 'Bot pausado',
+        title:
+          targetStatus === 'active'
+            ? t('apexAi.dashboardToastActivateTitle')
+            : t('apexAi.dashboardToastPauseTitle'),
         description:
           targetStatus === 'active'
-            ? 'Apex AI começou a operar. Acompanhe as posições abaixo.'
-            : 'Bot pausado. Nenhuma nova ordem será aberta.',
+            ? t('apexAi.dashboardToastActivateDesc')
+            : t('apexAi.dashboardToastPauseDesc'),
       });
     } catch (err) {
       toast({
-        title: 'Erro',
-        description: err instanceof Error ? err.message : 'Falha ao atualizar status',
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'Failed',
         variant: 'destructive',
       });
     } finally {
@@ -173,7 +180,6 @@ function DashboardContent({
     if (!portfolio) return;
     setActionLoading('stopped');
     try {
-      // MVP: apenas muda status. v2: chama edge function que fecha posições na Bybit.
       const { error } = await supabase
         .from('apex_ai_portfolios')
         .update({ status: 'stopped' })
@@ -181,14 +187,14 @@ function DashboardContent({
       if (error) throw error;
 
       toast({
-        title: 'Kill switch acionado',
-        description: 'Bot parado. Feche manualmente as posições na Bybit se necessário.',
+        title: t('apexAi.dashboardToastKillTitle'),
+        description: t('apexAi.dashboardToastKillDesc'),
       });
       setConfirmKill(false);
     } catch (err) {
       toast({
-        title: 'Erro',
-        description: err instanceof Error ? err.message : 'Falha',
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'Failed',
         variant: 'destructive',
       });
     } finally {
@@ -199,15 +205,14 @@ function DashboardContent({
   if (!portfolio) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">Carregando portfolio…</div>
+        <div className="text-muted-foreground">{t('apexAi.dashboardPortfolioLoading')}</div>
       </div>
     );
   }
 
   const isActive = portfolio.status === 'active';
-  const isPaused = portfolio.status === 'paused';
-  const isCircuitBreaker = portfolio.status === 'circuit_breaker';
   const isStopped = portfolio.status === 'stopped';
+  const isCircuitBreaker = portfolio.status === 'circuit_breaker';
 
   return (
     <div className="min-h-screen bg-background px-5 py-6 pb-28 safe-top">
@@ -221,7 +226,13 @@ function DashboardContent({
             <h1 className="font-bold text-lg">{portfolio.name}</h1>
             <div className="flex items-center gap-2">
               <StatusBadge status={portfolio.status} />
-              <span className="text-xs text-muted-foreground capitalize">{portfolio.risk_profile}</span>
+              <span className="text-xs text-muted-foreground capitalize">
+                {portfolio.risk_profile === 'conservative'
+                  ? t('apexAi.riskConservative')
+                  : portfolio.risk_profile === 'balanced'
+                  ? t('apexAi.riskBalanced')
+                  : t('apexAi.riskAggressive')}
+              </span>
             </div>
           </div>
         </div>
@@ -229,7 +240,7 @@ function DashboardContent({
         <div className="flex items-center gap-2">
           {allPortfolios.length > 1 && (
             <Button variant="ghost" size="sm" onClick={() => nav('/apex-ai/portfolios')}>
-              Trocar
+              {t('apexAi.dashboardSwitchBtn')}
               <ChevronRight className="w-3 h-3 ml-1" />
             </Button>
           )}
@@ -245,10 +256,14 @@ function DashboardContent({
           <CardContent className="p-4 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
             <div className="space-y-1 flex-1">
-              <p className="text-sm font-semibold text-red-400">Circuit Breaker acionado</p>
+              <p className="text-sm font-semibold text-red-400">
+                {t('apexAi.dashboardCircuitBreakerTitle')}
+              </p>
               <p className="text-xs text-muted-foreground">
-                Drawdown 24h ultrapassou {portfolio.drawdown_24h_trigger_pct}%. Bot pausado automaticamente.
-                Revise a configuração antes de reativar.
+                {t('apexAi.dashboardCircuitBreakerDesc').replace(
+                  '{{trigger}}',
+                  String(portfolio.drawdown_24h_trigger_pct)
+                )}
               </p>
             </div>
           </CardContent>
@@ -261,14 +276,18 @@ function DashboardContent({
           <CardContent className="p-4 flex items-start gap-3">
             <Coins className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
             <div className="space-y-1 flex-1">
-              <p className="text-sm font-semibold text-orange-400">Saldo de Credits baixo</p>
+              <p className="text-sm font-semibold text-orange-400">
+                {t('apexAi.dashboardLowCreditsTitle')}
+              </p>
               <p className="text-xs text-muted-foreground">
-                Você tem <span className="font-semibold">{credits.balance.toFixed(0)} Credits</span>.
-                Recarregue para evitar que o bot pause ao cobrar fee.
+                {t('apexAi.dashboardLowCreditsDesc').replace(
+                  '{{balance}}',
+                  credits.balance.toFixed(0)
+                )}
               </p>
             </div>
             <Button size="sm" variant="outline">
-              Recarregar
+              {t('apexAi.dashboardLowCreditsCta')}
             </Button>
           </CardContent>
         </Card>
@@ -277,25 +296,27 @@ function DashboardContent({
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-3 mb-5">
         <KpiCard
-          label="P&L Total"
+          label={t('apexAi.kpiPnlTotal')}
           value={formatCurrency(stats?.total_pnl ?? 0)}
           trend={stats?.total_pnl ?? 0}
           icon={TrendingUp}
         />
         <KpiCard
-          label="P&L 24h"
+          label={t('apexAi.kpiPnl24h')}
           value={formatCurrency(stats?.total_pnl_24h ?? 0)}
           trend={stats?.total_pnl_24h ?? 0}
           icon={Activity}
         />
         <KpiCard
-          label="Win rate"
+          label={t('apexAi.kpiWinRate')}
           value={`${(stats?.win_rate ?? 0).toFixed(1)}%`}
           icon={ArrowUpRight}
-          subtle={`${stats?.win_count ?? 0}W / ${stats?.loss_count ?? 0}L`}
+          subtle={t('apexAi.kpiWinLoss')
+            .replace('{{wins}}', String(stats?.win_count ?? 0))
+            .replace('{{losses}}', String(stats?.loss_count ?? 0))}
         />
         <KpiCard
-          label="Credits"
+          label={t('apexAi.kpiCredits')}
           value={`${(credits?.balance ?? 0).toFixed(0)}`}
           icon={Coins}
           subtle={`≈ $${((credits?.balance ?? 0) / 100).toFixed(2)}`}
@@ -307,8 +328,8 @@ function DashboardContent({
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold">P&L diário — 30 dias</p>
-              <p className="text-xs text-muted-foreground">Lucro líquido após fees</p>
+              <p className="text-sm font-semibold">{t('apexAi.dashboardChartTitle')}</p>
+              <p className="text-xs text-muted-foreground">{t('apexAi.dashboardChartDesc')}</p>
             </div>
           </div>
           <div className="h-40">
@@ -322,11 +343,7 @@ function DashboardContent({
                     stroke="#9ca3af"
                     fontSize={10}
                   />
-                  <YAxis
-                    stroke="#9ca3af"
-                    fontSize={10}
-                    tickFormatter={(v) => `$${v}`}
-                  />
+                  <YAxis stroke="#9ca3af" fontSize={10} tickFormatter={(v) => `$${v}`} />
                   <Tooltip
                     contentStyle={{
                       background: 'rgba(20,20,20,0.95)',
@@ -348,7 +365,7 @@ function DashboardContent({
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                Sem dados ainda. Trade fechado aparecerá aqui.
+                {t('apexAi.dashboardChartEmpty')}
               </div>
             )}
           </div>
@@ -360,9 +377,11 @@ function DashboardContent({
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold">Controles do bot</p>
+              <p className="text-sm font-semibold">{t('apexAi.dashboardControlsTitle')}</p>
               <p className="text-xs text-muted-foreground">
-                Capital: ${portfolio.capital_usdt.toLocaleString()} · Alav. máx: {portfolio.max_leverage}x
+                {t('apexAi.dashboardControlsMeta')
+                  .replace('{{capital}}', `$${portfolio.capital_usdt.toLocaleString()}`)
+                  .replace('{{leverage}}', String(portfolio.max_leverage))}
               </p>
             </div>
           </div>
@@ -376,7 +395,7 @@ function DashboardContent({
                 disabled={actionLoading !== null}
               >
                 <Pause className="w-4 h-4 mr-1" />
-                Pausar
+                {t('apexAi.dashboardBtnPause')}
               </Button>
             ) : (
               <Button
@@ -387,7 +406,7 @@ function DashboardContent({
                 disabled={actionLoading !== null || isStopped}
               >
                 <Play className="w-4 h-4 mr-1" />
-                Ativar
+                {t('apexAi.dashboardBtnActivate')}
               </Button>
             )}
 
@@ -399,7 +418,7 @@ function DashboardContent({
               disabled={actionLoading !== null || isStopped}
             >
               <Square className="w-4 h-4 mr-1" />
-              Kill switch
+              {t('apexAi.dashboardBtnKill')}
             </Button>
           </div>
         </CardContent>
@@ -409,7 +428,8 @@ function DashboardContent({
       <div className="mb-5">
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-semibold">
-            Posições abertas {positions && positions.length > 0 && `(${positions.length})`}
+            {t('apexAi.dashboardPositionsTitle')}{' '}
+            {positions && positions.length > 0 && `(${positions.length})`}
           </p>
           <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
         </div>
@@ -424,8 +444,8 @@ function DashboardContent({
           <Card className="border-border/50">
             <CardContent className="p-6 text-center text-sm text-muted-foreground">
               {isActive
-                ? 'Nenhuma posição aberta no momento. A IA aguarda o setup ideal.'
-                : 'Ative o bot para começar a operar.'}
+                ? t('apexAi.dashboardPositionsEmptyActive')
+                : t('apexAi.dashboardPositionsEmptyInactive')}
             </CardContent>
           </Card>
         )}
@@ -434,23 +454,23 @@ function DashboardContent({
       {/* Recent Trades */}
       <div className="mb-5">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold">Trades recentes</p>
+          <p className="text-sm font-semibold">{t('apexAi.dashboardTradesTitle')}</p>
           <Button variant="ghost" size="sm" onClick={() => nav('/apex-ai/statements')}>
-            Ver todos
+            {t('apexAi.dashboardTradesSeeAll')}
             <ChevronRight className="w-3 h-3 ml-1" />
           </Button>
         </div>
 
         {trades && trades.length > 0 ? (
           <div className="space-y-2">
-            {trades.slice(0, 5).map((t) => (
-              <TradeRow key={t.id} trade={t} />
+            {trades.slice(0, 5).map((tr) => (
+              <TradeRow key={tr.id} trade={tr} />
             ))}
           </div>
         ) : (
           <Card className="border-border/50">
             <CardContent className="p-6 text-center text-sm text-muted-foreground">
-              Nenhum trade fechado ainda.
+              {t('apexAi.dashboardTradesEmpty')}
             </CardContent>
           </Card>
         )}
@@ -460,19 +480,15 @@ function DashboardContent({
       <AlertDialog open={confirmKill} onOpenChange={setConfirmKill}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Parar o bot agora?</AlertDialogTitle>
+            <AlertDialogTitle>{t('apexAi.dashboardKillConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação pausa o Apex AI imediatamente. Posições abertas na Bybit ficam como estão —
-              feche manualmente se necessário. Você pode reativar depois.
+              {t('apexAi.dashboardKillConfirmDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={killSwitch}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              Confirmar kill switch
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={killSwitch} className="bg-red-500 hover:bg-red-600">
+              {t('apexAi.dashboardKillConfirmCta')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -506,10 +522,7 @@ function KpiCard({
       : 'text-foreground';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 5 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
+    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}>
       <Card className="border-border/50">
         <CardContent className="p-4 space-y-2">
           <div className="flex items-center justify-between">
@@ -527,73 +540,106 @@ function KpiCard({
 }
 
 function StatusBadge({ status }: { status: ApexAiPortfolioStatus }) {
-  const config: Record<ApexAiPortfolioStatus, { label: string; className: string }> = {
-    active: { label: 'Ativo', className: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-    paused: { label: 'Pausado', className: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
-    stopped: { label: 'Parado', className: 'bg-red-500/20 text-red-400 border-red-500/30' },
-    error: { label: 'Erro', className: 'bg-red-500/20 text-red-400 border-red-500/30' },
-    circuit_breaker: { label: 'Circuit breaker', className: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+  const { t } = useTranslation();
+  const config: Record<ApexAiPortfolioStatus, { labelKey: string; className: string }> = {
+    active: {
+      labelKey: 'apexAi.statusActive',
+      className: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    },
+    paused: {
+      labelKey: 'apexAi.statusPaused',
+      className: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+    },
+    stopped: {
+      labelKey: 'apexAi.statusStopped',
+      className: 'bg-red-500/20 text-red-400 border-red-500/30',
+    },
+    error: {
+      labelKey: 'apexAi.statusError',
+      className: 'bg-red-500/20 text-red-400 border-red-500/30',
+    },
+    circuit_breaker: {
+      labelKey: 'apexAi.statusCircuitBreaker',
+      className: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+    },
   };
   const c = config[status];
-  return <Badge className={c.className}>{c.label}</Badge>;
+  return <Badge className={c.className}>{t(c.labelKey)}</Badge>;
 }
 
-function PositionCard({ position }: { position: import('@/types/apexAi').ApexAiPosition }) {
+function PositionCard({ position }: { position: ApexAiPosition }) {
+  const { t } = useTranslation();
   const pnl = Number(position.unrealized_pnl);
   const isLong = position.side === 'long';
   return (
     <Card className="border-border/50">
       <CardContent className="p-3 flex items-center gap-3">
-        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-          isLong ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
-        }`}>
+        <div
+          className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+            isLong ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+          }`}
+        >
           {isLong ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{position.symbol.replace('USDT', '')}</span>
             <span className="text-xs text-muted-foreground">
-              {position.side.toUpperCase()} · {position.leverage}x
+              {isLong ? t('apexAi.sideLong') : t('apexAi.sideShort')} · {position.leverage}x
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            Entrada: ${Number(position.entry_price).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+            {t('apexAi.entryLabel').replace(
+              '{{price}}',
+              `$${Number(position.entry_price).toLocaleString(undefined, { maximumFractionDigits: 4 })}`
+            )}
           </p>
         </div>
         <div className="text-right">
-          <p className={`text-sm font-bold ${pnl > 0 ? 'text-emerald-400' : pnl < 0 ? 'text-red-400' : 'text-foreground'}`}>
+          <p
+            className={`text-sm font-bold ${
+              pnl > 0
+                ? 'text-emerald-400'
+                : pnl < 0
+                ? 'text-red-400'
+                : 'text-foreground'
+            }`}
+          >
             {pnl > 0 ? '+' : ''}${pnl.toFixed(2)}
           </p>
-          <p className="text-xs text-muted-foreground">
-            {position.size} un.
-          </p>
+          <p className="text-xs text-muted-foreground">{position.size}</p>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function TradeRow({ trade }: { trade: import('@/types/apexAi').ApexAiTrade }) {
+function TradeRow({ trade }: { trade: ApexAiTrade }) {
+  const { t } = useTranslation();
   const pnl = Number(trade.net_pnl ?? trade.pnl);
   const isProfit = pnl > 0;
   const closedAt = new Date(trade.closed_at);
   return (
     <Card className="border-border/50">
       <CardContent className="p-3 flex items-center gap-3">
-        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-          isProfit ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
-        }`}>
+        <div
+          className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+            isProfit ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+          }`}
+        >
           {isProfit ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{trade.symbol.replace('USDT', '')}</span>
             <span className="text-xs text-muted-foreground">
-              {trade.side.toUpperCase()} · {trade.leverage}x
+              {trade.side === 'long' ? t('apexAi.sideLong') : t('apexAi.sideShort')} ·{' '}
+              {trade.leverage}x
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            {closedAt.toLocaleDateString('pt-BR')} {closedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            {closedAt.toLocaleDateString()}{' '}
+            {closedAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
         <div className="text-right">

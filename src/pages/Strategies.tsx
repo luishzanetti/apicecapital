@@ -380,6 +380,7 @@ function RiskDots({ level, max = 5 }: { level: number; max?: number }) {
 
 export default function Strategies() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const unlockState = useAppStore((s) => s.unlockState);
   const dcaPlans = useAppStore((s) => s.dcaPlans);
   const subscription = useAppStore((s) => s.subscription);
@@ -477,16 +478,22 @@ export default function Strategies() {
     },
     {
       id: 'apex-ai',
-      title: 'Apex AI',
-      subtitle: 'Autonomous AI trading — 10% fee',
-      description: 'AI bot that trades futures on your Bybit 24/7. Zero-custody, AES-256 encrypted API keys, circuit breaker at 20% drawdown. Only 10% fee on net profit — half of market standard.',
+      title: t('apexAi.cardTitle'),
+      subtitle: t('apexAi.cardSubtitle'),
+      description: t('apexAi.cardDescription'),
       icon: Sparkles,
       iconGradient: 'from-emerald-400 to-green-600',
       route: '/apex-ai',
-      badge: 'NEW',
+      badge: t('apexAi.cardBadge'),
       badgeVariant: 'premium',
-      features: ['24/7 autonomous operation', 'Quick Setup AI (grid + DCA hedge)', '10% fee on profit only', 'Zero-custody (funds stay on Bybit)', 'Circuit breaker + kill switch'],
-      projection: 'Target: 3-8% monthly (balanced profile)',
+      features: [
+        t('apexAi.cardFeature1'),
+        t('apexAi.cardFeature2'),
+        t('apexAi.cardFeature3'),
+        t('apexAi.cardFeature4'),
+        t('apexAi.cardFeature5'),
+      ],
+      projection: t('apexAi.cardProjection'),
       isLocked: false,
       category: 'automation',
     },

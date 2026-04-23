@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLeveragedTrading } from '@/hooks/useLeveragedTrading';
 import { ALTIS_STRATEGIES } from '@/constants/strategies';
 import { CandlestickChart } from '@/components/altis/CandlestickChart';
+import { NextEntriesFeed } from '@/components/altis/NextEntriesFeed';
+import { StrategyCommandCenter } from '@/components/altis/StrategyCommandCenter';
+import { useStrategyAiRecommendations } from '@/hooks/useStrategyAiRecommendations';
+import type { StrategyKey } from '@/data/strategyIntelligence';
 import { motion } from 'framer-motion';
 
 // ─── Strategy lookup ────────────────────────────────────────
@@ -52,6 +56,18 @@ export default function AiTradeDashboard() {
   const [closingId, setClosingId] = useState<string | null>(null);
   const [confirmCloseAll, setConfirmCloseAll] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [commandCenterStrategy, setCommandCenterStrategy] = useState<StrategyKey | null>(null);
+
+  // AI recommendations — rule-based, adapted to profile + regime + capital.
+  const { recommendations } = useStrategyAiRecommendations();
+  const recByStrategy = useMemo(
+    () => Object.fromEntries(recommendations.map((r) => [r.key, r])),
+    [recommendations],
+  );
+
+  const openCommandCenter = (strategyType: string) => {
+    setCommandCenterStrategy(strategyType as StrategyKey);
+  };
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -210,35 +226,14 @@ export default function AiTradeDashboard() {
         />
       </div>
 
-      {/* ═══ AUTO-TRADING STATUS ═══ */}
-      <div className="flex items-center justify-between glass-light rounded-xl px-3 py-2">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-[10px] text-muted-foreground">Auto-trading active — analyzing every 15 min</span>
-        </div>
-        <button onClick={analyze} disabled={isEvaluating}
-          className="text-[10px] text-primary font-medium disabled:opacity-50">
-          {isEvaluating ? 'Running...' : 'Run now'}
-        </button>
-      </div>
-
-      {/* ═══ UPCOMING TRADES ═══ */}
-      {pendingSignals.filter(s => s.approved).length > 0 && (
-        <div className="space-y-1.5">
-          <h3 className="text-[10px] text-muted-foreground uppercase tracking-wider">Upcoming</h3>
-          {pendingSignals.filter(s => s.approved).map((sig, i) => (
-            <div key={i} className="glass-card rounded-xl p-2.5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${sig.direction === 'long' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                  {sig.direction.toUpperCase()}
-                </span>
-                <span className="text-xs font-semibold">{sig.symbol.replace('USDT', '')}</span>
-              </div>
-              <span className="text-[9px] text-muted-foreground">{ST[sig.strategyType as SType]?.shortLabel} • {sig.conviction}%</span>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* ═══ NEXT ENTRIES FEED (live pipeline) ═══ */}
+      <NextEntriesFeed
+        signals={pendingSignals}
+        regime={regime}
+        isEvaluating={isEvaluating}
+        onEvaluate={analyze}
+        onSignalClick={openCommandCenter}
+      />
 
       {/* ═══ TABS ═══ */}
       <div className="flex gap-1 bg-white/[0.04] rounded-xl p-1">
@@ -264,15 +259,38 @@ export default function AiTradeDashboard() {
             const cap = totalCapital * ((cfg?.allocationPct || 0) / 100);
             const sp = performance.find(p => p.strategyType === type);
             const nPos = positions.filter(p => p.strategyType === type).length;
+            const rec = recByStrategy[type];
+            const recBadge = rec && rec.tone !== 'hold' ? rec : null;
 
             return (
-              <div key={type} className="glass-card rounded-xl p-3 space-y-2">
+              <button
+                key={type}
+                type="button"
+                onClick={() => openCommandCenter(type)}
+                className="w-full text-left glass-card rounded-xl p-3 space-y-2 transition-colors hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+              >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{m.icon}</span>
-                    <div>
-                      <p className="text-sm font-semibold">{m.label}</p>
-                      <p className="text-[10px] text-muted-foreground">{m.description}</p>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-lg shrink-0">{m.icon}</span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold">{m.label}</p>
+                        {recBadge && (
+                          <span
+                            className={
+                              recBadge.tone === 'increase' || recBadge.tone === 'activate'
+                                ? 'inline-flex items-center rounded-full bg-[hsl(var(--apice-emerald))]/10 text-[hsl(var(--apice-emerald))] text-[9px] font-semibold uppercase tracking-[0.12em] px-1.5 py-0.5'
+                                : recBadge.tone === 'decrease' || recBadge.tone === 'pause'
+                                  ? 'inline-flex items-center rounded-full bg-amber-500/10 text-amber-300 text-[9px] font-semibold uppercase tracking-[0.12em] px-1.5 py-0.5'
+                                  : 'inline-flex items-center rounded-full bg-sky-500/10 text-sky-300 text-[9px] font-semibold uppercase tracking-[0.12em] px-1.5 py-0.5'
+                            }
+                            title={recBadge.reason}
+                          >
+                            AI · {recBadge.tone}
+                          </span>
+                        )}
+                      </div>
+                      <p className="truncate text-[10px] text-muted-foreground">{m.description}</p>
                     </div>
                   </div>
                   {sp && <p className={`text-sm font-bold ${pc(sp.totalPnlUsd)}`}>{sn(sp.totalPnlUsd)}{fmt(sp.totalPnlUsd)}</p>}
@@ -287,8 +305,9 @@ export default function AiTradeDashboard() {
                   <span>Lev: <b className="text-foreground">{cfg?.maxLeverage}x</b></span>
                   {nPos > 0 && <span>Open: <b className="text-foreground">{nPos}</b></span>}
                   {sp?.winRate ? <span>WR: <b className="text-foreground">{sp.winRate.toFixed(0)}%</b></span> : null}
+                  <span className="ml-auto text-[hsl(var(--apice-emerald))] font-semibold">Details →</span>
                 </div>
-              </div>
+              </button>
             );
           })}
 
@@ -412,6 +431,51 @@ export default function AiTradeDashboard() {
           </>)}
         </motion.div>
       )}
+
+      {/* ═══ STRATEGY COMMAND CENTER (side drawer) ═══ */}
+      {(() => {
+        const key = commandCenterStrategy;
+        const cfg = key ? strategies.find((s) => s.strategyType === key) : undefined;
+        const isActive = cfg?.isActive ?? false;
+        const allocationPct = cfg?.allocationPct ?? 0;
+        const strategyPendingSignals = key
+          ? pendingSignals.filter((p) => p.strategyType === key)
+          : [];
+        const strategyPerformance = key
+          ? performance.find((p) => p.strategyType === key)
+          : undefined;
+        const rec = key ? recByStrategy[key] : undefined;
+
+        return (
+          <StrategyCommandCenter
+            open={Boolean(commandCenterStrategy)}
+            onOpenChange={(open) => {
+              if (!open) setCommandCenterStrategy(null);
+            }}
+            strategyType={key}
+            strategy={cfg}
+            pendingSignals={strategyPendingSignals}
+            performance={strategyPerformance}
+            regime={regime ?? 'UNKNOWN'}
+            recommendation={rec}
+            isActive={isActive}
+            allocationPct={allocationPct}
+            totalCapital={totalCapital}
+            onToggle={async (nextActive) => {
+              if (!key) return;
+              if (nextActive) {
+                await enableStrategy(key, allocationPct || 20, cfg?.maxLeverage ?? 2, cfg?.assets);
+              } else {
+                await disableStrategy(key);
+              }
+            }}
+            onAllocationChange={async (nextPct) => {
+              if (!key) return;
+              await enableStrategy(key, nextPct, cfg?.maxLeverage ?? 2, cfg?.assets);
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }
