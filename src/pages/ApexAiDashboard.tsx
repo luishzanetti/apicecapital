@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAppStore } from '@/store/appStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useAuth } from '@/components/AuthProvider';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import {
@@ -27,6 +29,14 @@ import {
   useApexAiPortfolioStats,
   useApexAiDailyPnL,
 } from '@/hooks/useApexAiData';
+import { seedApexAiDemoData, wipeApexAiDemoData } from '@/lib/apexAi/seedDemo';
+import {
+  activateApexAiPortfolio,
+  closeAllApexAiPositions,
+} from '@/lib/apexAi/activateBot';
+import { useApexAiSymbols } from '@/hooks/useApexAiData';
+import { ApexAiInsightsCard } from '@/components/apex-ai/ApexAiInsightsCard';
+import { useApexAiTicker } from '@/hooks/useApexAiTicker';
 import {
   LineChart,
   Line,
@@ -52,6 +62,8 @@ import {
   ChevronRight,
   Coins,
   Zap,
+  Sparkles,
+  Trash2,
 } from 'lucide-react';
 import type {
   ApexAiPortfolio,
@@ -134,6 +146,8 @@ function DashboardContent({
 }) {
   const nav = useNavigate();
   const { t } = useTranslation();
+  const { session } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: portfolio } = useApexAiPortfolio(portfolioId);
   const { data: credits } = useApexAiCredits();
@@ -141,30 +155,116 @@ function DashboardContent({
   const { data: trades } = useApexAiTrades(portfolioId, 10);
   const { data: stats } = useApexAiPortfolioStats(portfolioId);
   const { data: dailySeries } = useApexAiDailyPnL(portfolioId, 30);
+  const { data: symbols } = useApexAiSymbols(portfolioId);
+
+  // Client-side bot tick loop — updates PnL live + closes TP/SL + re-opens.
+  // Only runs when portfolio status === 'active'. Safe to keep mounted.
+  useApexAiTicker({ portfolio });
+
+  // Flag whether the currently-open positions are simulated (client-side)
+  // or real (from Bybit). Shown as a banner so user knows the mode.
+  const hasSimulatedPositions = (positions ?? []).some((p) =>
+    (p.exchange_position_id ?? '').startsWith('sim-')
+  );
 
   const [confirmKill, setConfirmKill] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [seedLoading, setSeedLoading] = useState<'seed' | 'wipe' | null>(null);
+
+  const isDev = import.meta.env.DEV;
+
+  async function handleSeedDemo() {
+    if (!portfolio || !session?.user?.id) return;
+    setSeedLoading('seed');
+    try {
+      const result = await seedApexAiDemoData(portfolio, session.user.id);
+      if (result.error) {
+        toast({
+          title: 'Seed failed',
+          description: result.error,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Demo data loaded',
+          description: `${result.positions_inserted} positions + ${result.trades_inserted} trades`,
+        });
+        queryClient.invalidateQueries({ queryKey: ['apex-ai-positions'] });
+        queryClient.invalidateQueries({ queryKey: ['apex-ai-trades'] });
+        queryClient.invalidateQueries({ queryKey: ['apex-ai-portfolio'] });
+        queryClient.invalidateQueries({ queryKey: ['apex-ai-daily-pnl'] });
+        queryClient.invalidateQueries({ queryKey: ['apex-ai-credits'] });
+      }
+    } finally {
+      setSeedLoading(null);
+    }
+  }
+
+  async function handleWipeDemo() {
+    if (!portfolio) return;
+    setSeedLoading('wipe');
+    try {
+      const result = await wipeApexAiDemoData(portfolio.id);
+      if (result.success) {
+        toast({ title: 'Demo data wiped' });
+        queryClient.invalidateQueries({ queryKey: ['apex-ai-positions'] });
+        queryClient.invalidateQueries({ queryKey: ['apex-ai-trades'] });
+        queryClient.invalidateQueries({ queryKey: ['apex-ai-portfolio'] });
+        queryClient.invalidateQueries({ queryKey: ['apex-ai-daily-pnl'] });
+      }
+    } finally {
+      setSeedLoading(null);
+    }
+  }
 
   async function toggleBotStatus(targetStatus: ApexAiPortfolioStatus) {
-    if (!portfolio) return;
+    if (!portfolio || !session?.user?.id) return;
     setActionLoading(targetStatus);
     try {
-      const { error } = await supabase
-        .from('apex_ai_portfolios')
-        .update({ status: targetStatus })
-        .eq('id', portfolio.id);
-      if (error) throw error;
+      if (targetStatus === 'active') {
+        // Activation opens hedge positions immediately (CEO directive).
+        // Real path: Edge Function bot-tick (deployed). Fallback: simulated.
+        const result = await activateApexAiPortfolio(
+          portfolio,
+          symbols ?? [],
+          session.user.id
+        );
 
-      toast({
-        title:
-          targetStatus === 'active'
-            ? t('apexAi.dashboardToastActivateTitle')
-            : t('apexAi.dashboardToastPauseTitle'),
-        description:
-          targetStatus === 'active'
-            ? t('apexAi.dashboardToastActivateDesc')
-            : t('apexAi.dashboardToastPauseDesc'),
-      });
+        if (result.status === 'error') {
+          throw new Error(result.message ?? 'activation failed');
+        }
+
+        toast({
+          title: t('apexAi.dashboardToastActivateTitle'),
+          description:
+            result.status === 'activated_simulated'
+              ? `${t('apexAi.dashboardToastActivateDesc')} (simulation mode — ${result.positions_opened} positions opened)`
+              : `${t('apexAi.dashboardToastActivateDesc')} — ${result.positions_opened} positions opened`,
+        });
+
+        // Invalidate ALL Apex AI queries so dashboard reflects new positions immediately
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['apex-ai-positions', portfolio.id] }),
+          queryClient.invalidateQueries({ queryKey: ['apex-ai-portfolio', portfolio.id] }),
+          queryClient.invalidateQueries({ queryKey: ['apex-ai-portfolios'] }),
+          queryClient.invalidateQueries({ queryKey: ['apex-ai-trades', portfolio.id] }),
+          queryClient.invalidateQueries({ queryKey: ['apex-ai-credits'] }),
+          queryClient.invalidateQueries({ queryKey: ['apex-ai-daily-pnl', portfolio.id] }),
+          queryClient.invalidateQueries({ queryKey: ['apex-ai-symbols', portfolio.id] }),
+        ]);
+      } else {
+        // Pause: flip status only. Positions stay open (user can kill if wants to close)
+        const { error } = await supabase
+          .from('apex_ai_portfolios')
+          .update({ status: targetStatus })
+          .eq('id', portfolio.id);
+        if (error) throw error;
+
+        toast({
+          title: t('apexAi.dashboardToastPauseTitle'),
+          description: t('apexAi.dashboardToastPauseDesc'),
+        });
+      }
     } catch (err) {
       toast({
         title: 'Error',
@@ -177,9 +277,15 @@ function DashboardContent({
   }
 
   async function killSwitch() {
-    if (!portfolio) return;
+    if (!portfolio || !session?.user?.id) return;
     setActionLoading('stopped');
     try {
+      // Kill switch closes all open positions (simulated ones persist to trades)
+      const { closed } = await closeAllApexAiPositions(
+        portfolio.id,
+        session.user.id
+      );
+
       const { error } = await supabase
         .from('apex_ai_portfolios')
         .update({ status: 'stopped' })
@@ -188,9 +294,13 @@ function DashboardContent({
 
       toast({
         title: t('apexAi.dashboardToastKillTitle'),
-        description: t('apexAi.dashboardToastKillDesc'),
+        description: `${t('apexAi.dashboardToastKillDesc')} (${closed} positions closed)`,
       });
       setConfirmKill(false);
+
+      queryClient.invalidateQueries({ queryKey: ['apex-ai-positions', portfolio.id] });
+      queryClient.invalidateQueries({ queryKey: ['apex-ai-trades', portfolio.id] });
+      queryClient.invalidateQueries({ queryKey: ['apex-ai-portfolio', portfolio.id] });
     } catch (err) {
       toast({
         title: 'Error',
@@ -249,6 +359,23 @@ function DashboardContent({
           </Button>
         </div>
       </div>
+
+      {/* Simulation mode banner — visible only when positions are simulated */}
+      {hasSimulatedPositions && (
+        <Card className="mb-5 border-violet-500/30 bg-violet-500/5">
+          <CardContent className="p-3 flex items-start gap-3">
+            <Sparkles className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 space-y-1">
+              <p className="text-xs font-semibold text-violet-400">
+                Simulation mode
+              </p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Positions mirror real Bybit prices but orders are not executed on the exchange. PnL updates every ~8 seconds. Deploy apex-ai-bot-tick Edge Function for live trading with your real funds.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Circuit breaker alert */}
       {isCircuitBreaker && (
@@ -321,6 +448,11 @@ function DashboardContent({
           icon={Coins}
           subtle={`≈ $${((credits?.balance ?? 0) / 100).toFixed(2)}`}
         />
+      </div>
+
+      {/* Apex AI Advisor — insights + recommendations + alerts */}
+      <div className="mb-5">
+        <ApexAiInsightsCard portfolioId={portfolio.id} />
       </div>
 
       {/* P&L Chart */}
@@ -423,6 +555,46 @@ function DashboardContent({
           </div>
         </CardContent>
       </Card>
+
+      {/* DEV-only: Demo data seeder */}
+      {isDev && (
+        <Card className="mb-5 border-dashed border-violet-500/30 bg-violet-500/5">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+              <p className="text-xs font-semibold text-violet-400">
+                Dev tools — demo data
+              </p>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Populate dashboard with realistic mock trades to preview how it
+              looks with real activity. Only visible in development.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-violet-500/30 text-violet-400 hover:bg-violet-500/10"
+                disabled={seedLoading !== null}
+                onClick={handleSeedDemo}
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-1" />
+                {seedLoading === 'seed' ? 'Seeding…' : 'Populate demo'}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                disabled={seedLoading !== null}
+                onClick={handleWipeDemo}
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1" />
+                {seedLoading === 'wipe' ? 'Wiping…' : 'Wipe demo'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Open Positions */}
       <div className="mb-5">

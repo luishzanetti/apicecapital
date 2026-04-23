@@ -18,6 +18,7 @@ import { AiInsightCard } from '@/components/ai/AiInsightCard';
 import { AiAdvisorChat } from '@/components/ai/AiAdvisorChat';
 import { AiPortfolioScore } from '@/components/ai/AiPortfolioScore';
 import { ExplosivePicksWidget } from '@/components/home/ExplosivePicksWidget';
+import { ApexAiWidget } from '@/components/home/ApexAiWidget';
 import { InsufficientFundsAlert } from '@/components/balance/InsufficientFundsAlert';
 import { AcademyHomeWidget } from '@/components/academy/AcademyHomeWidget';
 // EarnSuggestionCard removed — not relevant for the app
@@ -292,6 +293,13 @@ export default function Home() {
             <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
               <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Explosive picks unavailable</div>}>
                 <ExplosivePicksWidget />
+              </ErrorBoundary>
+            </motion.div>
+
+            {/* Apex AI — status / promo */}
+            <motion.div initial="hidden" animate="visible" custom={4.2} variants={fadeUp}>
+              <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Apex AI widget unavailable</div>}>
+                <ApexAiWidget />
               </ErrorBoundary>
             </motion.div>
 

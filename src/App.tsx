@@ -49,6 +49,7 @@ const ApexAiSetup = lazy(() => import("./pages/ApexAiSetup"));
 const ApexAiDashboard = lazy(() => import("./pages/ApexAiDashboard"));
 const ApexAiPortfolios = lazy(() => import("./pages/ApexAiPortfolios"));
 const ApexAiStatements = lazy(() => import("./pages/ApexAiStatements"));
+import { ApexAiErrorBoundary } from "./components/apex-ai/ApexAiErrorBoundary";
 const AssetDetail = lazy(() => import("./pages/AssetDetail"));
 const QuickDCA = lazy(() => import("./pages/QuickDCA"));
 const ExplosiveList = lazy(() => import("./pages/ExplosiveList"));
@@ -140,12 +141,12 @@ function AppContent() {
         <Route path="/ai-trade" element={<AiTradeDashboard />} />
         <Route path="/ai-trade/setup" element={<AiTradeSetup />} />
         {/* Apex AI — Trading 24/7 com IA, fee 10% profit */}
-        <Route path="/apex-ai" element={<ApexAiLanding />} />
-        <Route path="/apex-ai/onboarding" element={<ApexAiOnboarding />} />
-        <Route path="/apex-ai/setup" element={<ApexAiSetup />} />
-        <Route path="/apex-ai/dashboard" element={<ApexAiDashboard />} />
-        <Route path="/apex-ai/portfolios" element={<ApexAiPortfolios />} />
-        <Route path="/apex-ai/statements" element={<ApexAiStatements />} />
+        <Route path="/apex-ai" element={<ApexAiErrorBoundary><ApexAiLanding /></ApexAiErrorBoundary>} />
+        <Route path="/apex-ai/onboarding" element={<ApexAiErrorBoundary><ApexAiOnboarding /></ApexAiErrorBoundary>} />
+        <Route path="/apex-ai/setup" element={<ApexAiErrorBoundary><ApexAiSetup /></ApexAiErrorBoundary>} />
+        <Route path="/apex-ai/dashboard" element={<ApexAiErrorBoundary><ApexAiDashboard /></ApexAiErrorBoundary>} />
+        <Route path="/apex-ai/portfolios" element={<ApexAiErrorBoundary><ApexAiPortfolios /></ApexAiErrorBoundary>} />
+        <Route path="/apex-ai/statements" element={<ApexAiErrorBoundary><ApexAiStatements /></ApexAiErrorBoundary>} />
         <Route path="/learn" element={<Learn />} />
         <Route path="/learn/lesson/:lessonId" element={<LessonPlayerPage />} />
         <Route path="/learn/:trackId/:lessonId" element={<LegacyLessonRedirect />} />
