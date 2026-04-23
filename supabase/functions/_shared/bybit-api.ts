@@ -6,17 +6,24 @@ import { hmacSHA256 } from './crypto.ts';
 // ─── CORS Headers ───────────────────────────────────────────
 
 export function getCorsHeaders(req?: Request): Record<string, string> {
-  const allowedOrigins = [
-    Deno.env.get('ALLOWED_ORIGIN'),
-    'http://localhost:8080', 'http://localhost:8081',
-    'http://localhost:5173', 'http://localhost:3000',
-  ].filter(Boolean) as string[];
+  const envOrigin = Deno.env.get('ALLOWED_ORIGIN');
   const origin = req?.headers.get('origin') || '';
-  const allowOrigin = allowedOrigins.includes(origin) ? origin : (allowedOrigins[0] || '*');
+
+  // Accept: exact prod match, any localhost/127.0.0.1 port (dev), and
+  // any Vercel preview deploy for this project. Fall back to prod domain.
+  const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  const isVercelPreview = /^https:\/\/apicecapital[-a-z0-9]*\.vercel\.app$/.test(origin);
+  const isProd = origin === envOrigin;
+
+  const allowOrigin = isProd || isLocalhost || isVercelPreview
+    ? origin
+    : (envOrigin || '*');
+
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-secret',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
   };
 }
 
