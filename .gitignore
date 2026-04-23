@@ -26,3 +26,7 @@ dist-ssr
 
 apicecapital/
 .vercel
+
+# Local SQL scripts with secrets (service_role_key, etc) — never commit
+local_scripts/
+*.local.sql
