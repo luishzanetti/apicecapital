@@ -44,7 +44,9 @@ export const createPortfolioSlice: SliceCreator<PortfolioSlice> = (set, get) => 
               created_at: new Date().toISOString(),
             });
           }
-        }).catch(() => {});
+        }).catch((err) => {
+        if (import.meta.env.DEV) console.warn('[portfolio] supabase sync failed:', err);
+      });
       } catch {
         // Supabase sync failed; local state is authoritative
       }
@@ -92,7 +94,9 @@ export const createPortfolioSlice: SliceCreator<PortfolioSlice> = (set, get) => 
             created_at: newPortfolio.createdAt,
           });
         }
-      }).catch(() => {});
+      }).catch((err) => {
+        if (import.meta.env.DEV) console.warn('[portfolio] supabase sync failed:', err);
+      });
     } catch {
       // Supabase sync failed; local state is authoritative
     }

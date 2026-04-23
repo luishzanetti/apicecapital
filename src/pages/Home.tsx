@@ -121,15 +121,13 @@ export default function Home() {
     void refreshBalances();
   }, [refreshBalances]);
 
-  // ── Store selectors ────────────────────────────────────────────────────────
+  // ── Store selectors (scalar — avoids re-renders on unrelated field changes) ─
   const investorType = useAppStore((s) => s.investorType);
   const currentInsightIndex = useAppStore((s) => s.currentInsightIndex);
   const missionProgress = useAppStore((s) => s.missionProgress);
   const userProfile = useAppStore((state) => state.userProfile);
-  const subscription = useAppStore((state) => state.subscription);
   const daysActive = useAppStore((state) => state.daysActive);
-  // ── Derived state ──────────────────────────────────────────────────────────
-  const isJourneyCompleted = useMemo(() => missionProgress.m5_advancedUnlocked, [missionProgress]);
+  const isJourneyCompleted = useAppStore((s) => s.missionProgress.m5_advancedUnlocked);
 
   const todayInsight = dailyInsights[currentInsightIndex % dailyInsights.length];
   const dateLocale = language === 'pt' ? 'pt-BR' : language === 'es' ? 'es' : 'en-US';
@@ -153,7 +151,12 @@ export default function Home() {
     return null;
   }, [missionProgress]);
 
-  const lastUpdated = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Stabilized at mount — avoids recomputing on every render. Not a live
+  // clock (use a state + interval if live ticking is ever needed).
+  const lastUpdated = useMemo(
+    () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    [],
+  );
 
   // ── Quick Actions — emerald signature per brand, mapped by expert accent color ────
   const quickActions = [

@@ -1348,15 +1348,16 @@ Deno.serve(async (req: Request) => {
 
     const supabaseService = getServiceClient();
 
-    // Cron-triggered actions: authenticated via x-cron-secret, service_role JWT, or pg_cron (no auth)
-    // These actions only write to DB using service_role, so they are safe to run without user auth.
+    // Cron-triggered actions: MUST authenticate via x-cron-secret or service_role JWT.
+    // (Previously allowed `!authHeader` — unauth requests — which let any caller
+    //  trigger collect/calculate-scores and drain the Supabase free tier.)
     const cronSecret = req.headers.get("x-cron-secret");
     const authHeader = req.headers.get("Authorization");
     const isCronSecret = cronSecret === CRON_SECRET && CRON_SECRET !== "";
     const isServiceRole = authHeader ? authHeader.includes(SUPABASE_SERVICE_KEY) : false;
     const isCronAction = action === "collect" || action === "calculate-scores";
 
-    if (isCronAction && (isCronSecret || isServiceRole || !authHeader)) {
+    if (isCronAction && (isCronSecret || isServiceRole)) {
       // Allow cron actions from: cron_secret, service_role, or pg_cron (headerless)
       switch (action) {
         case "collect": {

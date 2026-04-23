@@ -202,7 +202,7 @@ export function LiveBalanceCard() {
                   <div key={holding.coin} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {COIN_IMAGES[holding.coin] ? (
-                        <img src={COIN_IMAGES[holding.coin]} alt={holding.coin} className="h-5 w-5 rounded-full" />
+                        <img src={COIN_IMAGES[holding.coin]} alt={holding.coin} loading="lazy" decoding="async" className="h-5 w-5 rounded-full" />
                       ) : (
                         <div className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[11px] font-bold">
                           {holding.coin.slice(0, 2)}

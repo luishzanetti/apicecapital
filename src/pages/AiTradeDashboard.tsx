@@ -54,6 +54,28 @@ export default function AiTradeDashboard() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  // Dev-mode diagnostic — captures state snapshot on every mount so any
+  // "Get Started every time" regression shows up immediately in the console.
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    try {
+      const raw = typeof localStorage !== 'undefined'
+        ? localStorage.getItem('apice-storage')
+        : null;
+      const parsed = raw ? JSON.parse(raw) : null;
+      console.info('[ALTIS] dashboard mount snapshot', {
+        inMemoryBots: bots.length,
+        inStorageBots: parsed?.state?.bots?.length ?? 'missing',
+        activeBotId: parsed?.state?.activeBotId ?? 'missing',
+        hasBotsGate: hasBots,
+        isLoading,
+      });
+    } catch {
+      /* ignore — diagnostic only */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const totalPnl = totalUnrealizedPnl + performance.reduce((s, p) => s + p.totalPnlUsd, 0);
   const totalPnlPct = totalCapital > 0 ? (totalPnl / totalCapital) * 100 : 0;
   const regime = marketContext?.regime;
@@ -108,7 +130,7 @@ export default function AiTradeDashboard() {
                 {bots.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
             )}
-            <button onClick={() => nav('/ai-trade/setup')} className="px-2 py-1 rounded-lg text-[10px] glass-light text-muted-foreground">Edit</button>
+            <button onClick={() => nav('/ai-trade/setup')} className="px-2 py-1 rounded-lg text-[10px] glass-light text-muted-foreground">+ Bot</button>
           </div>
         </div>
 

@@ -189,7 +189,7 @@ export function TopCoinsList() {
                                 onClick={() => navigate(`/asset/${coin.id}`)}
                             >
                                 <div className="flex items-center gap-3 mb-3">
-                                    <img src={coin.image} alt={coin.name} className="w-8 h-8 rounded-full" />
+                                    <img src={coin.image} alt={coin.name} loading="lazy" decoding="async" className="w-8 h-8 rounded-full" />
                                     <div className="min-w-0">
                                         <p className="font-semibold text-sm text-white truncate max-w-[80px]">{coin.symbol.toUpperCase()}</p>
                                         <p className="text-[11px] text-white/45 truncate max-w-[80px]">{coin.name}</p>

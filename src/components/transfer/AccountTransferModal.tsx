@@ -365,7 +365,9 @@ export function AccountTransferModal({
                       maximumFractionDigits: 8,
                     })}{' '}
                     {completedTransfer?.coin} moved to{' '}
-                    {completedTransfer?.toAccount}
+                    {ACCOUNT_OPTIONS.find((o) => o.value === (completedTransfer?.toAccount ?? toAccount))?.label
+                      ?? completedTransfer?.toAccount
+                      ?? toAccount}
                   </p>
                 </div>
 

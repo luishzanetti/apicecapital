@@ -24,7 +24,7 @@ function formatUsd(v: number) {
 
 export default function AiTradeSetup() {
   const navigate = useNavigate();
-  const { enableStrategy, addBot, bots, triggerEvaluation } = useLeveragedTrading();
+  const { addBot, bots, triggerEvaluation, syncStrategiesToBackend } = useLeveragedTrading();
   const { data: balanceData, status: balanceStatus } = useExchangeBalance();
 
   const [step, setStep] = useState(0);
@@ -101,17 +101,17 @@ export default function AiTradeSetup() {
         selectedAssets: [...selectedAssets],
       });
 
-      // Sync to Supabase
-      for (const strat of stratConfigs) {
-        await enableStrategy(strat.strategyType, strat.allocationPct, strat.maxLeverage);
-      }
-
+      // Navigate synchronously — store state is already committed with the
+      // exact stratConfigs (including per-strategy assets). No race.
       toast.success(`${robotName} activated — ${formatUsd(totalCapital)}`, {
         description: `${stratConfigs.length} strategies configured`,
       });
-
-      // Navigate synchronously — store state is already committed, no race.
       navigate('/ai-trade', { replace: true });
+
+      // Backend sync — fire-and-forget, non-destructive (never mutates store).
+      syncStrategiesToBackend(stratConfigs).catch((err) => {
+        if (import.meta.env.DEV) console.error('[ALTIS] backend sync failed:', err);
+      });
 
       // Trigger market analysis + trade execution in background (fire and forget).
       triggerEvaluation().then(result => {

@@ -41,6 +41,7 @@ interface Balances {
   funding: number;
   unified: number;
   spot: number;
+  contract: number;
   total: number;
 }
 
@@ -198,25 +199,53 @@ async function fetchUserBalances(
   apiSecret: string,
   testnet: boolean,
 ): Promise<Balances> {
-  // UNIFIED account (primary trading capital — used by DCA)
+  // UNIFIED account (primary trading capital — used by DCA + ALTIS)
+  // Prefer totalEquity so locked-in positions count toward "total balance".
   let unifiedTotal = 0;
-  let spotTotal = 0;
   try {
     const unifiedRes = await bybitGet(apiKey, apiSecret, testnet, '/v5/account/wallet-balance', {
       accountType: 'UNIFIED',
     });
     const account = ((unifiedRes as { list?: BybitUnifiedAccount[] }).list ?? [])[0];
     if (account) {
-      // totalAvailableBalance is what the user can actually deploy right now;
-      // fall back to totalEquity then totalWalletBalance if the primary field
-      // comes back empty (happens on accounts with no open positions).
-      unifiedTotal = toNumber(account.totalAvailableBalance)
-        || toNumber(account.totalEquity)
-        || toNumber(account.totalWalletBalance);
-      spotTotal = toNumber(account.totalWalletBalance);
+      unifiedTotal = toNumber(account.totalEquity)
+        || toNumber(account.totalWalletBalance)
+        || toNumber(account.totalAvailableBalance);
     }
   } catch (err) {
     log('warn', 'unified_balance_failed', { message: err instanceof Error ? err.message : 'unknown' });
+  }
+
+  // SPOT account — only populated on Bybit Classic (pre-UTA). On UTA this
+  // endpoint returns an empty list, so a 0 here is a safe no-op.
+  let spotTotal = 0;
+  try {
+    const spotRes = await bybitGet(apiKey, apiSecret, testnet, '/v5/account/wallet-balance', {
+      accountType: 'SPOT',
+    });
+    const account = ((spotRes as { list?: BybitUnifiedAccount[] }).list ?? [])[0];
+    if (account) {
+      spotTotal = toNumber(account.totalEquity)
+        || toNumber(account.totalWalletBalance);
+    }
+  } catch (err) {
+    // Most users are on UTA — this endpoint returning "account type error" is expected.
+    log('info', 'spot_balance_skipped', { message: err instanceof Error ? err.message : 'unknown' });
+  }
+
+  // CONTRACT account — Bybit Classic derivatives wallet. Empty for UTA users.
+  let contractTotal = 0;
+  try {
+    const contractRes = await bybitGet(apiKey, apiSecret, testnet, '/v5/account/wallet-balance', {
+      accountType: 'CONTRACT',
+    });
+    const account = ((contractRes as { list?: BybitUnifiedAccount[] }).list ?? [])[0];
+    if (account) {
+      contractTotal = toNumber(account.totalEquity)
+        || toNumber(account.totalWalletBalance);
+    }
+  } catch (err) {
+    log('info', 'contract_balance_skipped', { message: err instanceof Error ? err.message : 'unknown' });
   }
 
   // FUND account (savings / accumulation)
@@ -233,7 +262,8 @@ async function fetchUserBalances(
     if (coins.length > 0) {
       const priced = await Promise.all(
         coins.map(async (c) => {
-          const balance = toNumber(c.walletBalance);
+          // Prefer transferBalance (what is actually movable) over walletBalance.
+          const balance = toNumber(c.transferBalance) || toNumber(c.walletBalance);
           if (balance <= 0) return 0;
           const price = await getCoinUsdPrice(apiKey, apiSecret, testnet, c.coin);
           return balance * price;
@@ -245,11 +275,12 @@ async function fetchUserBalances(
     log('warn', 'funding_balance_failed', { message: err instanceof Error ? err.message : 'unknown' });
   }
 
-  const total = unifiedTotal + fundingTotal;
+  const total = unifiedTotal + fundingTotal + spotTotal + contractTotal;
   return {
     funding: fundingTotal,
     unified: unifiedTotal,
     spot: spotTotal,
+    contract: contractTotal,
     total,
   };
 }
@@ -274,6 +305,7 @@ async function insertSnapshot(
       funding: balances.funding,
       unified: balances.unified,
       spot: balances.spot,
+      contract: balances.contract,
       total: balances.total,
     },
     captured_at: capturedAt,
@@ -608,6 +640,9 @@ async function handleRefresh(
     userId,
     unified: result.balances.unified,
     funding: result.balances.funding,
+    spot: result.balances.spot,
+    contract: result.balances.contract,
+    total: result.balances.total,
     alertsActive: alerts.length,
     alertsProcessed: result.alertsProcessed,
   });

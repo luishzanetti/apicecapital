@@ -28,7 +28,7 @@ const STABLECOINS = ['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'FDUSD'];
 
 function CoinIcon({ coin }: { coin: string }) {
   if (COIN_IMAGES[coin]) {
-    return <img src={COIN_IMAGES[coin]} alt={coin} className="w-7 h-7 rounded-full" />;
+    return <img src={COIN_IMAGES[coin]} alt={coin} loading="lazy" decoding="async" className="w-7 h-7 rounded-full" />;
   }
   return (
     <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-[11px] font-bold">

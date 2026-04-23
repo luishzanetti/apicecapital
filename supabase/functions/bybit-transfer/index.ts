@@ -438,7 +438,7 @@ async function handleExecute(
 
   const completedAt = new Date().toISOString();
 
-  const { error: updateError } = await supabaseAdmin
+  const { data: updatedRow, error: updateError } = await supabaseAdmin
     .from('account_transfers')
     .update({
       status: result.status,
@@ -448,7 +448,9 @@ async function handleExecute(
       completed_at: completedAt,
     })
     .eq('id', transferId)
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .select('id, user_id, from_account, to_account, coin, amount, status, bybit_txn_id, error_code, error_message, initiated_from, created_at, completed_at')
+    .maybeSingle();
 
   if (updateError) {
     log('error', 'db_update_failed', {
@@ -460,16 +462,25 @@ async function handleExecute(
     // and the row is persisted as 'pending'. Admin reconciliation can fix the row.
   }
 
-  const responseData = {
-    transferId,
-    bybitTxnId: result.bybitTxnId,
-    status: result.status,
-    amount,
-    coin,
-    from: fromAccount,
-    to: toAccount,
-    timestamp: completedAt,
-  };
+  // Shape consumed by the client (useAccountTransfer + transferSlice).
+  // Must match src/store/types.ts::Transfer: id, fromAccount, toAccount,
+  // coin, amount, status, bybitTxnId, createdAt, completedAt, ...
+  const responseData = updatedRow
+    ? mapRowToTransferApi(updatedRow as TransferRow)
+    : {
+        id: transferId,
+        fromAccount,
+        toAccount,
+        coin,
+        amount,
+        status: result.status,
+        bybitTxnId: result.bybitTxnId ?? undefined,
+        errorCode: result.errorCode ?? undefined,
+        errorMessage: result.errorMessage ?? undefined,
+        initiatedFrom,
+        createdAt: pendingRow.created_at,
+        completedAt,
+      };
 
   if (result.status === 'failed') {
     return jsonResponse(
@@ -512,7 +523,13 @@ async function handleHistory(
   }
 
   const transfers = (data as TransferRow[] | null ?? []).map(mapRowToTransferApi);
-  return jsonResponse({ data: { transfers }, error: null }, 200, corsHeaders);
+  // Return the array directly so clients can do `data?.data` and get a list.
+  // Keep `transfers` in the envelope for backwards-compatible callers.
+  return jsonResponse(
+    { data: transfers, error: null, transfers },
+    200,
+    corsHeaders,
+  );
 }
 
 // ─── Quote flow ─────────────────────────────────────────────

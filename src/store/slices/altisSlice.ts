@@ -38,9 +38,26 @@ export const createAltisSlice: SliceCreator<AltisSlice> = (set, get) => ({
     };
 
     set((state) => ({
-      bots: [...state.bots, newBot],
+      bots: [...(Array.isArray(state.bots) ? state.bots : []), newBot],
       activeBotId: id,
     }));
+
+    if (import.meta.env.DEV) {
+      try {
+        const raw =
+          typeof localStorage !== 'undefined'
+            ? localStorage.getItem('apice-storage')
+            : null;
+        const parsed = raw ? JSON.parse(raw) : null;
+        console.info('[altis] addBot persisted', {
+          id,
+          inMemoryCount: get().bots.length,
+          inStorageCount: parsed?.state?.bots?.length ?? 'missing',
+        });
+      } catch {
+        /* ignore — dev-only assertion */
+      }
+    }
 
     return id;
   },

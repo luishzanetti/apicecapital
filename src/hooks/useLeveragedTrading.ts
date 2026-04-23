@@ -156,8 +156,15 @@ export function useLeveragedTrading() {
 
   // ─── Fetch from Supabase (when available) ───────────────
 
+  // Strategies are LOCAL-authoritative — the user configures them in the
+  // setup wizard (AiTradeSetup) and `addBot` persists them synchronously
+  // via Zustand + localStorage. Supabase acts as a backup for cross-device
+  // sync only, and MUST NOT silently overwrite a freshly-activated bot.
+  // We only backfill from backend when the active bot has zero strategies
+  // AND the backend returns data (i.e., first boot on a new device).
   const fetchStrategies = useCallback(async () => {
     if (!isSupabaseConfigured || !activeBot) return;
+    if (activeBot.strategies.length > 0) return; // local is authoritative
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -176,11 +183,16 @@ export function useLeveragedTrading() {
           isActive: d.is_active,
           allocationPct: d.allocation_pct,
           maxLeverage: d.max_leverage,
-          assets: d.assets || ['BTCUSDT', 'ETHUSDT'],
+          assets: (d.assets as string[] | null) ?? ['BTCUSDT', 'ETHUSDT'],
         }));
         setStrategies(() => mapped);
+        if (import.meta.env.DEV) {
+          console.info('[ALTIS] backfilled strategies from backend', { count: mapped.length });
+        }
       }
-    } catch { /* Supabase unavailable — use local */ }
+    } catch (err) {
+      if (import.meta.env.DEV) console.warn('[ALTIS] fetchStrategies failed:', err);
+    }
   }, [activeBot, setStrategies]);
 
   const fetchPositions = useCallback(async () => {
@@ -441,15 +453,20 @@ export function useLeveragedTrading() {
 
   // ─── Actions ────────────────────────────────────────────
 
-  const enableStrategy = useCallback(async (strategyType: string, allocationPct: number, maxLeverage: number = 2) => {
-    // Always update store state first (instant UI response)
+  const enableStrategy = useCallback(async (
+    strategyType: string,
+    allocationPct: number,
+    maxLeverage: number = 2,
+    assets: string[] = ['BTCUSDT', 'ETHUSDT'],
+  ) => {
+    // Update store first (instant UI response) — preserve user's asset selection.
     const newConfig: StrategyConfig = {
       id: `local-${strategyType}`,
       strategyType,
       isActive: true,
       allocationPct,
       maxLeverage,
-      assets: ['BTCUSDT', 'ETHUSDT'],
+      assets,
     };
 
     updateStrategiesStore((prev) => {
@@ -457,7 +474,7 @@ export function useLeveragedTrading() {
       return [...existing, newConfig];
     });
 
-    // Then try Supabase if available
+    // Supabase sync — non-blocking, never mutates store.
     if (isSupabaseConfigured) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -468,12 +485,42 @@ export function useLeveragedTrading() {
             is_active: true,
             allocation_pct: allocationPct,
             max_leverage: maxLeverage,
+            assets,
             updated_at: new Date().toISOString(),
           }, { onConflict: 'user_id,strategy_type' });
         }
-      } catch { /* Supabase unavailable — local state is source of truth */ }
+      } catch (err) {
+        if (import.meta.env.DEV) console.warn('[ALTIS] enableStrategy backend sync failed:', err);
+      }
     }
   }, [updateStrategiesStore]);
+
+  // Pure backend sync — does NOT mutate store. Used after addBot() when
+  // strategies are already committed locally and we just need to persist
+  // them to the backend for cross-device/server-side orchestration.
+  const syncStrategiesToBackend = useCallback(async (
+    strategies: StrategyConfig[],
+  ): Promise<void> => {
+    if (!isSupabaseConfigured || strategies.length === 0) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const rows = strategies.map((s) => ({
+        user_id: user.id,
+        strategy_type: s.strategyType,
+        is_active: s.isActive,
+        allocation_pct: s.allocationPct,
+        max_leverage: s.maxLeverage,
+        assets: s.assets,
+        updated_at: new Date().toISOString(),
+      }));
+      await supabase.from('strategy_configs').upsert(rows, {
+        onConflict: 'user_id,strategy_type',
+      });
+    } catch (err) {
+      if (import.meta.env.DEV) console.warn('[ALTIS] syncStrategiesToBackend failed:', err);
+    }
+  }, []);
 
   const disableStrategy = useCallback(async (strategyType: string) => {
     updateStrategiesStore((prev) => prev.map((s) =>
@@ -540,5 +587,6 @@ export function useLeveragedTrading() {
     totalUnrealizedPnl, totalFundingIncome, activeStrategies, isSetupComplete,
     fetchAll, fetchPositions, fetchRisk, triggerEvaluation,
     enableStrategy, disableStrategy, closePosition, closeAllPositions,
+    syncStrategiesToBackend,
   };
 }

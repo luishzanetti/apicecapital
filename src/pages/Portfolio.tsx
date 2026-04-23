@@ -15,6 +15,7 @@ import { portfolios, aiMarketRecommendations } from '@/data/sampleData';
 import { AllocationEngine } from '@/components/AllocationEngine';
 import DCAOnboarding from '@/components/DCAOnboarding';
 import InvestmentDashboard from '@/components/InvestmentDashboard';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import ActionPlanWidget from '@/components/ActionPlanWidget';
 import LockedStrategies from '@/components/LockedStrategies';
 import { TopCoinsList } from '@/components/TopCoinsList';
@@ -188,21 +189,33 @@ export default function Portfolio() {
               ${analytics.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
             {(() => {
-              const changePct = analytics.grandTotal > 0
-                ? ((analytics.grandTotal - (analytics.grandTotal * 0.98)) / (analytics.grandTotal * 0.98)) * 100
-                : 0;
-              const changeAbs = analytics.grandTotal * 0.02;
-              const isPositive = changePct >= 0;
+              // Show REAL unrealized PnL from Bybit when available. Do not
+              // fabricate 24h deltas — showing fake performance to users with
+              // real money connected is a trust-breaker.
+              const pnl = analytics.totalUnrealizedPnL ?? 0;
+              const costBasis = analytics.totalCostBasis ?? 0;
+              const hasPnl = Math.abs(pnl) > 0.009;
+              if (!hasPnl) {
+                return (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[11px] text-muted-foreground">
+                      Live P&L · no open positions
+                    </span>
+                  </div>
+                );
+              }
+              const pct = costBasis > 0 ? (pnl / costBasis) * 100 : 0;
+              const isPositive = pnl >= 0;
               return (
                 <div className="flex items-center gap-2 mt-1">
                   <span className={cn(
                     'flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-md',
                     isPositive ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'
                   )}>
-                    {isPositive ? '+' : ''}{changePct.toFixed(2)}%
+                    {isPositive ? '+' : ''}{pct.toFixed(2)}%
                   </span>
                   <span className="text-[11px] text-muted-foreground">
-                    {isPositive ? '+' : '-'}${Math.abs(changeAbs).toFixed(2)} 24h
+                    {isPositive ? '+' : '-'}${Math.abs(pnl).toFixed(2)} unrealized
                   </span>
                 </div>
               );
@@ -671,7 +684,15 @@ export default function Portfolio() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-4"
             >
-              <InvestmentDashboard />
+              <ErrorBoundary
+                fallback={
+                  <div className="rounded-2xl glass-card p-4 text-center text-xs text-white/60">
+                    History unavailable — please refresh.
+                  </div>
+                }
+              >
+                <InvestmentDashboard />
+              </ErrorBoundary>
             </motion.div>
           )}
         </AnimatePresence>

@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { BalanceDiagnostic } from '@/components/BalanceDiagnostic';
 import { usePortfolioAnalytics } from '@/hooks/usePortfolioAnalytics';
 import { useAppStore } from '@/store/appStore';
 import {
@@ -389,29 +390,32 @@ export function ExecutivePortfolioBoard() {
               </p>
             </div>
           </div>
-          {analytics.status === 'no_credentials' ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/settings')}
-              className="gap-2"
-            >
-              Connect <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={analytics.refresh}
-              disabled={analytics.isRefreshing}
-              className="gap-2"
-            >
-              <RefreshCw
-                className={cn('h-3.5 w-3.5', analytics.isRefreshing && 'animate-spin')}
-              />
-              Retry
-            </Button>
-          )}
+          <div className="flex items-center gap-1.5">
+            <BalanceDiagnostic compact />
+            {analytics.status === 'no_credentials' ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/settings')}
+                className="gap-2"
+              >
+                Connect <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={analytics.refresh}
+                disabled={analytics.isRefreshing}
+                className="gap-2"
+              >
+                <RefreshCw
+                  className={cn('h-3.5 w-3.5', analytics.isRefreshing && 'animate-spin')}
+                />
+                Retry
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
@@ -518,6 +522,7 @@ export function ExecutivePortfolioBoard() {
 
             {/* Action toolbar */}
             <div className="flex shrink-0 items-center gap-1.5">
+              <BalanceDiagnostic compact />
               <IconButton
                 ariaLabel={hideBalance ? 'Show balance' : 'Hide balance'}
                 onClick={() => setHideBalance(!hideBalance)}

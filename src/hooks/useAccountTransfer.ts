@@ -56,18 +56,22 @@ export function useAccountTransfer() {
   const fetchHistory = useCallback(
     async (limit = 20): Promise<Transfer[]> => {
       try {
-        const { data, error } = await invokeEdgeFunction<{ data: Transfer[] }>(
-          'bybit-transfer',
-          {
-            body: { action: 'history', limit },
-          }
-        );
+        const { data, error } = await invokeEdgeFunction<{
+          data?: Transfer[] | { transfers?: Transfer[] };
+          transfers?: Transfer[];
+        }>('bybit-transfer', {
+          body: { action: 'history', limit },
+        });
 
-        if (error) {
-          return [];
+        if (error) return [];
+
+        const payload = data?.data;
+        if (Array.isArray(payload)) return payload;
+        if (payload && Array.isArray((payload as { transfers?: Transfer[] }).transfers)) {
+          return (payload as { transfers: Transfer[] }).transfers;
         }
-
-        return data?.data ?? [];
+        if (Array.isArray(data?.transfers)) return data.transfers;
+        return [];
       } catch {
         return [];
       }

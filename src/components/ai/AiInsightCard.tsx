@@ -65,7 +65,40 @@ export function AiInsightCard() {
     );
   }
 
-  if (!insight) return null;
+  if (!insight) {
+    // Visible empty state — never silently disappear. Gives the user agency
+    // (retry button) so a one-off network glitch does not permanently remove
+    // a home-page widget without explanation.
+    return (
+      <Card className="border-none glass-card">
+        <CardContent className="p-5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-white/[0.04] flex items-center justify-center shrink-0">
+              <Brain className="w-4 h-4 text-white/45" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.12em] font-semibold text-white/45">
+                AI Insight
+              </p>
+              <p className="text-xs text-white/60 mt-0.5 truncate">
+                Unavailable right now — tap retry
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => loadInsight(true)}
+            disabled={isLoading}
+            className="shrink-0 gap-1.5 text-[11px]"
+          >
+            <RefreshCw className={cn('h-3 w-3', isLoading && 'animate-spin')} aria-hidden="true" />
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const typeConfig = TYPE_CONFIG[insight.type] || TYPE_CONFIG.market;
   const sentimentConfig = SENTIMENT_CONFIG[insight.sentiment] || SENTIMENT_CONFIG.neutral;

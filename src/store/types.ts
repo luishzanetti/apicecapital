@@ -228,6 +228,7 @@ export interface CurrentBalances {
   spot: number;
   unified: number;
   funding: number;
+  contract: number;
   total: number;
 }
 

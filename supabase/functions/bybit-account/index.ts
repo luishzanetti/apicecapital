@@ -573,19 +573,52 @@ Deno.serve(async (req) => {
 
     // ─── Action: balance (unified + funding) ────────────
     if (action === 'balance') {
-      // Fetch UNIFIED account (spot/derivatives)
-      const accountType = body.accountType || 'UNIFIED';
-      const result = await bybitAuthGet<{ list?: BybitUnifiedAccount[] }>(apiKey, apiSecret, testnet, '/v5/account/wallet-balance', {
-        accountType,
-      });
+      // Try UNIFIED first (UTA-upgraded accounts), then CONTRACT (Standard Account)
+      // so Standard Account users ALSO see their derivatives/futures balance.
+      const requestedType = body.accountType as string | undefined;
+      const tryOrder: string[] = requestedType
+        ? [requestedType]
+        : ['UNIFIED', 'CONTRACT'];
 
-      const account = result.list?.[0];
+      let account: BybitUnifiedAccount | null = null;
+      let accountType: string = tryOrder[0];
+      const probeLog: Array<{ accountType: string; ok: boolean; err?: string; totalEquity?: number }> = [];
+
+      for (const type of tryOrder) {
+        try {
+          const res = await bybitAuthGet<{ list?: BybitUnifiedAccount[] }>(
+            apiKey, apiSecret, testnet, '/v5/account/wallet-balance', { accountType: type }
+          );
+          const candidate = res.list?.[0];
+          const eq = candidate ? toNumber(candidate.totalEquity) : 0;
+          probeLog.push({ accountType: type, ok: !!candidate, totalEquity: eq });
+          if (candidate) {
+            // Accept the first account that is funded OR the first returned
+            // if nothing else worked. This lets UTA users see UNIFIED (their
+            // primary) while Standard users land on CONTRACT.
+            if (eq > 0 || !account) {
+              account = candidate;
+              accountType = type;
+            }
+            if (eq > 0) break; // stop probing — found a funded account
+          }
+        } catch (e) {
+          probeLog.push({ accountType: type, ok: false, err: (e as Error).message });
+        }
+      }
+
       if (!account) {
+        console.log('[bybit-account] No wallet account returned:', probeLog);
         return new Response(
-          JSON.stringify({ error: 'No account data returned' }),
+          JSON.stringify({
+            error: 'No account data returned',
+            diagnostics: { probeLog },
+          }),
           { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+
+      console.log('[bybit-account] Selected wallet account:', { accountType, probeLog });
 
       const transferableBalances = await getTransferableBalances(
         apiKey,

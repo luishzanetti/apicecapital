@@ -116,7 +116,19 @@ export const useAppStore = create<AppState>()(
         } as Partial<AppState>;
       },
       migrate: (persistedState: any, version: number) => {
-        let state = persistedState;
+        if (import.meta.env.DEV) {
+          console.info('[apice-storage] migrate', {
+            fromVersion: version,
+            toVersion: 4,
+            hasBots: Array.isArray(persistedState?.bots)
+              ? persistedState.bots.length
+              : 'invalid',
+            hasUserPortfolios: Array.isArray(persistedState?.userPortfolios)
+              ? persistedState.userPortfolios.length
+              : 'invalid',
+          });
+        }
+        let state = persistedState ?? {};
         if (version === 0 || version === 1) {
           // v1 → v2: ensure new fields exist
           state = {
@@ -166,15 +178,34 @@ export const useAppStore = create<AppState>()(
             transfers: state.transfers ?? [],
           };
         }
+        // Defensive: guarantee required arrays exist after migration chain
+        state.bots = Array.isArray(state.bots) ? state.bots : [];
+        state.userPortfolios = Array.isArray(state.userPortfolios)
+          ? state.userPortfolios
+          : [];
         return state as any;
       },
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          if (import.meta.env.DEV) {
+            console.error('[apice-storage] rehydrate error', error);
+          }
+          return;
+        }
+        if (import.meta.env.DEV) {
+          console.info('[apice-storage] rehydrated', {
+            bots: state?.bots?.length ?? 0,
+            userPortfolios: state?.userPortfolios?.length ?? 0,
+          });
+        }
         // After rehydrate, attempt legacy migration if nothing landed in the store.
         if (state && typeof state.migrateFromLocalStorage === 'function') {
           try {
             state.migrateFromLocalStorage();
-          } catch {
-            // ignore
+          } catch (err) {
+            if (import.meta.env.DEV) {
+              console.error('[apice-storage] legacy migration failed', err);
+            }
           }
         }
       },

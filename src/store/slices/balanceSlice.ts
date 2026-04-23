@@ -19,7 +19,7 @@ import type {
 
 interface RefreshResponse {
   data?: {
-    balances: CurrentBalances;
+    balances: Partial<CurrentBalances>;
     alerts: Array<{
       id: string;
       planId: string | null;
@@ -65,7 +65,7 @@ function normalizeAlert(raw: RefreshResponse['data'] extends { alerts: infer A }
 }
 
 export const createBalanceSlice: SliceCreator<BalanceSlice> = (set, get) => ({
-  currentBalances: { spot: 0, unified: 0, funding: 0, total: 0 },
+  currentBalances: { spot: 0, unified: 0, funding: 0, contract: 0, total: 0 },
   alerts: [],
   lastSnapshot: null,
   isRefreshing: false,
@@ -90,13 +90,23 @@ export const createBalanceSlice: SliceCreator<BalanceSlice> = (set, get) => ({
 
       const alerts = (payload.alerts ?? []).map((a) => normalizeAlert(a));
 
+      const nextBalances = {
+        spot: payload.balances?.spot ?? 0,
+        unified: payload.balances?.unified ?? 0,
+        funding: payload.balances?.funding ?? 0,
+        contract: payload.balances?.contract ?? 0,
+        total: payload.balances?.total ?? 0,
+      };
+      // Defensive: if the edge function under-reported total (older deploy),
+      // recompute locally so the UI never shows a partial grand total.
+      const recomputedTotal =
+        nextBalances.spot + nextBalances.unified + nextBalances.funding + nextBalances.contract;
+      if (recomputedTotal > nextBalances.total) {
+        nextBalances.total = recomputedTotal;
+      }
+
       set({
-        currentBalances: {
-          spot: payload.balances?.spot ?? 0,
-          unified: payload.balances?.unified ?? 0,
-          funding: payload.balances?.funding ?? 0,
-          total: payload.balances?.total ?? 0,
-        },
+        currentBalances: nextBalances,
         alerts,
         lastSnapshot: payload.snapshotAt ?? new Date().toISOString(),
       });

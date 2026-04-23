@@ -98,9 +98,41 @@ export function MarketPulseWidget() {
   }
 
   if (error || !stats) {
+    const retry = () => {
+      setError(false);
+      setLoading(true);
+      getTopMarketCoins(10)
+        .then((data) => {
+          setCoins(data);
+          setError(data.length === 0);
+          setLoading(false);
+        })
+        .catch(() => {
+          setError(true);
+          setLoading(false);
+        });
+    };
     return (
-      <div className="rounded-3xl glass-card p-5 text-xs text-white/50">
-        Market pulse offline \u2014 retrying...
+      <div className="rounded-3xl glass-card p-5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Activity className="h-4 w-4 text-white/45 shrink-0" aria-hidden="true" />
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.12em] font-semibold text-white/55">
+              Market pulse
+            </p>
+            <p className="text-xs text-white/60 mt-0.5 truncate">
+              Offline — tap retry
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={retry}
+          disabled={loading}
+          className="shrink-0 rounded-full bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold text-white/75 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 disabled:opacity-50"
+        >
+          {loading ? 'Retrying…' : 'Retry'}
+        </button>
       </div>
     );
   }
