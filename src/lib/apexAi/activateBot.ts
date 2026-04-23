@@ -45,9 +45,10 @@ function fallbackPrice(symbol: string): number {
 }
 
 export interface ActivationResult {
-  status: 'activated' | 'activated_simulated' | 'error';
+  status: 'activated' | 'activated_simulated' | 'activated_live' | 'error';
   positions_opened: number;
   message?: string;
+  mode?: 'live' | 'simulate';
 }
 
 /**
@@ -140,10 +141,15 @@ export async function activateApexAiPortfolio(
 
     if (!fnError && data?.success) {
       const actionsOpened = data?.data?.actions?.length ?? 0;
+      const edgeMode = data?.data?.mode as 'live' | 'simulate' | undefined;
       if (actionsOpened > 0) {
-        return { status: 'activated', positions_opened: actionsOpened };
+        return {
+          status: edgeMode === 'live' ? 'activated_live' : 'activated',
+          positions_opened: actionsOpened,
+          mode: edgeMode,
+        };
       }
-      // Edge function responded but opened zero orders (stub) → fall through to simulation
+      // Edge function responded but opened zero orders → fall through to simulation
     } else {
       throw fnError ?? new Error(data?.error ?? 'edge_function_failed');
     }

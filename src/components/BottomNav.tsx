@@ -132,16 +132,21 @@ export function BottomNav() {
         )}
       </AnimatePresence>
 
-      {/* Bottom Nav Bar — hidden when AI chat is open (clean takeover) */}
+      {/* Bottom Nav Bar — hidden when AI chat is open (clean takeover).
+          Outer div owns horizontal centering (translate-x via Tailwind) so the
+          inner motion.div can freely animate Y/opacity without conflict. */}
       <AnimatePresence>
         {!aiChatOpen && (
+          <div
+            className="pointer-events-none fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-24px)] max-w-[440px]"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          >
           <motion.div
             initial={{ y: 32, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 32, opacity: 0 }}
             transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-            className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-24px)] max-w-[440px]"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+            className="pointer-events-auto"
           >
         <nav
           className="flex items-center justify-between px-2.5 py-2.5 rounded-[22px]"
@@ -240,6 +245,7 @@ export function BottomNav() {
           })}
         </nav>
           </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>

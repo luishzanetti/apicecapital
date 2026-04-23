@@ -20,6 +20,14 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getCorsHeaders } from '../_shared/bybit-api.ts';
+import { aesDecryptAsync } from '../_shared/crypto.ts';
+import {
+  fetchApexAiBalance,
+  fetchOpenFutures,
+  placeFuturesOrder,
+  closeFuturesPosition,
+  setLeverage,
+} from '../_shared/apex-ai-bybit.ts';
 
 const CORS_HEADERS = getCorsHeaders();
 const FEE_RATE_PCT = 10.0;
@@ -159,22 +167,51 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ─── 3.5. Detect execution mode (LIVE vs SIMULATE) ───
+    // Load user's Bybit credentials (if any). If present + non-empty, we run
+    // in LIVE mode: real orders on Bybit testnet/mainnet per their testnet flag.
+    const creds = await loadBybitCredentials(supabase, portfolio.user_id);
+    const requestedMode = body.mode ?? 'auto';
+    const mode: 'live' | 'simulate' =
+      requestedMode === 'simulate'
+        ? 'simulate'
+        : requestedMode === 'live'
+        ? 'live'
+        : creds
+        ? 'live'
+        : 'simulate';
+
+    if (import.meta.env?.DEV ?? false) {
+      console.info('[apex-ai-bot-tick] mode detected', {
+        portfolio_id: portfolio.id,
+        mode,
+        has_credentials: !!creds,
+        testnet: creds?.testnet ?? null,
+      });
+    }
+
     // ─── 4. Bootstrap (if requested) ────────────────
     if (body.bootstrap === true && positions.length === 0) {
-      const opened = await bootstrapHedgePositions(
-        supabase,
-        portfolio,
-        symbols
-      );
-      await logEvent(supabase, portfolio.id, 'info', 'bootstrap_opened', {
-        positions_opened: opened,
-      });
+      let opened = 0;
+      if (mode === 'live' && creds) {
+        opened = await bootstrapLiveHedgePositions(supabase, portfolio, symbols, creds);
+        await logEvent(supabase, portfolio.id, 'info', 'bootstrap_opened_live', {
+          positions_opened: opened,
+          testnet: creds.testnet,
+        });
+      } else {
+        opened = await bootstrapHedgePositions(supabase, portfolio, symbols);
+        await logEvent(supabase, portfolio.id, 'info', 'bootstrap_opened_simulated', {
+          positions_opened: opened,
+        });
+      }
 
       return json({
         success: true,
         data: {
           portfolio_id: body.portfolio_id,
           bootstrap: true,
+          mode,
           actions: Array(opened).fill({ type: 'open_position' }),
         },
       });
@@ -339,6 +376,201 @@ Deno.serve(async (req) => {
 
 // ═══════════════════════════════════════════════════════════════════
 // Helpers
+// ═══════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════
+// LIVE mode helpers — real Bybit order execution
+// ═══════════════════════════════════════════════════════════════════
+
+interface BybitCreds {
+  apiKey: string;
+  apiSecret: string;
+  testnet: boolean;
+}
+
+async function loadBybitCredentials(
+  supabase: ReturnType<typeof createClient>,
+  userId: string
+): Promise<BybitCreds | null> {
+  try {
+    const { data, error } = await supabase
+      .from('bybit_credentials')
+      .select('api_key, api_secret_encrypted, testnet')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error || !data?.api_key || !data?.api_secret_encrypted) return null;
+
+    const encryptionKey = Deno.env.get('ENCRYPTION_KEY');
+    if (!encryptionKey) {
+      console.error('[apex-ai-bot-tick] ENCRYPTION_KEY not configured');
+      return null;
+    }
+
+    const apiSecret = await aesDecryptAsync(data.api_secret_encrypted, encryptionKey);
+    return {
+      apiKey: data.api_key,
+      apiSecret,
+      testnet: data.testnet ?? false,
+    };
+  } catch (err) {
+    console.error('[apex-ai-bot-tick] credential decrypt error', err);
+    return null;
+  }
+}
+
+/**
+ * Bootstrap with REAL Bybit orders. For each active symbol:
+ *   - Ensure leverage set
+ *   - Open LONG + SHORT legs via market order (hedge mode)
+ *   - Record the real position in DB with exchange_position_id = order_id
+ *
+ * Uses the linear perp category on Bybit v5.
+ */
+async function bootstrapLiveHedgePositions(
+  supabase: ReturnType<typeof createClient>,
+  portfolio: {
+    id: string;
+    user_id: string;
+    capital_usdt: number | string;
+    max_leverage: number;
+  },
+  symbols: Array<{
+    symbol: string;
+    allocation_pct: number | string;
+    leverage: number;
+  }>,
+  creds: BybitCreds
+): Promise<number> {
+  let opened = 0;
+  const now = new Date().toISOString();
+
+  // Fetch prices from Bybit (since we have creds, we can use auth endpoint)
+  const uniqueSymbols = Array.from(new Set(symbols.map((s) => s.symbol)));
+  const { prices } = await fetchBybitTickers(uniqueSymbols);
+
+  for (const s of symbols) {
+    const price = prices[s.symbol];
+    if (!price) {
+      console.warn('[apex-ai-bot-tick] skip bootstrap, no price', s.symbol);
+      continue;
+    }
+
+    const leverage = Math.min(s.leverage, portfolio.max_leverage);
+    const allocated = (Number(portfolio.capital_usdt) * Number(s.allocation_pct)) / 100;
+    const perSide = allocated / 2;
+    const qty = roundQty((perSide * leverage) / price, s.symbol);
+
+    if (qty <= 0) continue;
+
+    // Set leverage (idempotent)
+    try {
+      await setLeverage(creds.apiKey, creds.apiSecret, creds.testnet, s.symbol, leverage);
+    } catch (err) {
+      console.warn('[apex-ai-bot-tick] setLeverage failed', s.symbol, err);
+    }
+
+    // LONG leg
+    try {
+      const longOrder = await placeFuturesOrder(creds.apiKey, creds.apiSecret, creds.testnet, {
+        symbol: s.symbol,
+        side: 'long',
+        qty,
+        leverage,
+        stopLossPrice: price * 0.975,
+        takeProfitPrice: price * 1.04,
+        positionIdx: 1, // hedge mode: buy
+      });
+      await supabase.from('apex_ai_positions').insert({
+        portfolio_id: portfolio.id,
+        user_id: portfolio.user_id,
+        symbol: s.symbol,
+        side: 'long',
+        entry_price: price,
+        current_price: price,
+        size: qty,
+        leverage,
+        unrealized_pnl: 0,
+        realized_pnl: 0,
+        stop_loss_price: price * 0.975,
+        take_profit_price: price * 1.04,
+        status: 'open',
+        exchange_position_id: longOrder.orderId, // real Bybit order id
+        opened_at: now,
+      });
+      opened++;
+    } catch (err) {
+      console.error('[apex-ai-bot-tick] LONG order failed', s.symbol, err);
+      await logEvent(supabase, portfolio.id, 'error', 'live_order_failed', {
+        symbol: s.symbol,
+        side: 'long',
+        error: (err as Error).message,
+      });
+    }
+
+    // SHORT leg
+    try {
+      const shortOrder = await placeFuturesOrder(creds.apiKey, creds.apiSecret, creds.testnet, {
+        symbol: s.symbol,
+        side: 'short',
+        qty,
+        leverage,
+        stopLossPrice: price * 1.025,
+        takeProfitPrice: price * 0.96,
+        positionIdx: 2, // hedge mode: sell
+      });
+      await supabase.from('apex_ai_positions').insert({
+        portfolio_id: portfolio.id,
+        user_id: portfolio.user_id,
+        symbol: s.symbol,
+        side: 'short',
+        entry_price: price,
+        current_price: price,
+        size: qty,
+        leverage,
+        unrealized_pnl: 0,
+        realized_pnl: 0,
+        stop_loss_price: price * 1.025,
+        take_profit_price: price * 0.96,
+        status: 'open',
+        exchange_position_id: shortOrder.orderId,
+        opened_at: now,
+      });
+      opened++;
+    } catch (err) {
+      console.error('[apex-ai-bot-tick] SHORT order failed', s.symbol, err);
+      await logEvent(supabase, portfolio.id, 'error', 'live_order_failed', {
+        symbol: s.symbol,
+        side: 'short',
+        error: (err as Error).message,
+      });
+    }
+  }
+
+  return opened;
+}
+
+/**
+ * Bybit lot size rounding. Simplified per-symbol rules.
+ * For BTC: step = 0.001. For ETH: 0.01. For others: 1.
+ * TODO: fetch instrument info from Bybit for exact rules.
+ */
+function roundQty(qty: number, symbol: string): number {
+  const rules: Record<string, number> = {
+    BTCUSDT: 0.001,
+    ETHUSDT: 0.01,
+    SOLUSDT: 0.1,
+    BNBUSDT: 0.01,
+    XRPUSDT: 1,
+    AVAXUSDT: 0.1,
+    LINKUSDT: 0.1,
+    ARBUSDT: 1,
+    DOGEUSDT: 1,
+  };
+  const step = rules[symbol] ?? 0.01;
+  return Math.floor(qty / step) * step;
+}
+
 // ═══════════════════════════════════════════════════════════════════
 
 async function fetchBybitTickers(

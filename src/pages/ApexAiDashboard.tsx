@@ -175,10 +175,15 @@ function DashboardContent({
   const { data: regimeMap = {} } = useApexAiRegime(activeSymbolList);
   const { data: intelligenceMap = {} } = useApexAiSymbolIntelligence(activeSymbolList);
 
-  // Flag whether the currently-open positions are simulated (client-side)
-  // or real (from Bybit). Shown as a banner so user knows the mode.
-  const hasSimulatedPositions = (positions ?? []).some((p) =>
+  // Detect execution mode from open positions:
+  // - 'sim-*' prefix = simulated (DB-only)
+  // - anything else = real Bybit order IDs
+  const openPositions = positions ?? [];
+  const hasSimulatedPositions = openPositions.some((p) =>
     (p.exchange_position_id ?? '').startsWith('sim-')
+  );
+  const hasLivePositions = openPositions.some(
+    (p) => p.exchange_position_id && !p.exchange_position_id.startsWith('sim-')
   );
 
   const [confirmKill, setConfirmKill] = useState(false);
@@ -374,8 +379,24 @@ function DashboardContent({
         </div>
       </div>
 
-      {/* Simulation mode banner — visible only when positions are simulated */}
-      {hasSimulatedPositions && (
+      {/* Mode banner */}
+      {hasLivePositions && (
+        <Card className="mb-5 border-emerald-500/30 bg-emerald-500/5">
+          <CardContent className="p-3 flex items-start gap-3">
+            <Activity className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 space-y-1">
+              <p className="text-xs font-semibold text-emerald-400">
+                Live trading mode
+              </p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Bot is executing real orders on your Bybit account. PnL reflects actual positions on the exchange.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {hasSimulatedPositions && !hasLivePositions && (
         <Card className="mb-5 border-violet-500/30 bg-violet-500/5">
           <CardContent className="p-3 flex items-start gap-3">
             <Sparkles className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
@@ -384,7 +405,7 @@ function DashboardContent({
                 Simulation mode
               </p>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Positions mirror real Bybit prices but orders are not executed on the exchange. PnL updates every ~8 seconds. Deploy apex-ai-bot-tick Edge Function for live trading with your real funds.
+                No Bybit API key connected — positions are simulated with real market prices but orders are not placed on the exchange. Connect Bybit in Settings to switch to live trading.
               </p>
             </div>
           </CardContent>

@@ -44,7 +44,10 @@ export function AiAdvisorChat() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isOpen, open, close } = useAiChat();
-  const setIsOpen = (v: boolean) => (v ? open() : close());
+  const setIsOpen = useMemo(
+    () => (v: boolean) => (v ? open() : close()),
+    [open, close],
+  );
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -159,6 +162,7 @@ export function AiAdvisorChat() {
     setupProgress.corePortfolioSelected,
     dcaPlans,
     navigate,
+    setIsOpen,
   ]);
 
   // Auto-scroll to bottom
