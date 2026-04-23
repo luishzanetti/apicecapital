@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAiAdvisor } from '@/hooks/useAiAdvisor';
 import { useAppStore } from '@/store/appStore';
+import { useAiChat } from './AiChatContext';
 import {
   X, Send, Loader2, Trash2, ArrowRight, TrendingUp, Calendar, Zap,
 } from 'lucide-react';
@@ -41,7 +42,9 @@ export function AiAdvisorChat() {
   const missionProgress = useAppStore((s) => s.missionProgress);
   const setupProgress = useAppStore((s) => s.setupProgress);
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const { isOpen, open, close } = useAiChat();
+  const setIsOpen = (v: boolean) => (v ? open() : close());
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -184,6 +187,22 @@ export function AiAdvisorChat() {
     await sendMessage(prompt);
   };
 
+  // Don't render FAB in full-screen flows (auth, onboarding, quiz, landing)
+  const HIDE_ON = [
+    '/auth',
+    '/landing',
+    '/onboarding',
+    '/quiz',
+    '/quiz-v2',
+    '/quiz-legacy',
+    '/profile-result',
+    '/welcome',
+    '/splash',
+  ];
+  if (HIDE_ON.some((p) => location.pathname === p || location.pathname.startsWith(p + '/'))) {
+    return null;
+  }
+
   return (
     <>
       {/* FAB Button */}
@@ -195,7 +214,8 @@ export function AiAdvisorChat() {
             exit={{ scale: 0, opacity: 0 }}
             aria-label="Open Apice AI advisor"
             onClick={() => setIsOpen(true)}
-            className="group fixed bottom-24 right-6 z-50 lg:bottom-8 lg:right-8"
+            className="group fixed bottom-[120px] right-4 z-50 lg:bottom-8 lg:right-8"
+            style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.94 }}
           >
@@ -257,7 +277,7 @@ export function AiAdvisorChat() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md"
+              className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md"
               onClick={() => setIsOpen(false)}
             />
 
@@ -267,7 +287,7 @@ export function AiAdvisorChat() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-50 flex flex-col overflow-hidden rounded-t-3xl lg:left-auto lg:right-6 lg:bottom-6 lg:w-[420px] lg:rounded-3xl"
+              className="fixed bottom-0 left-0 right-0 z-[60] flex flex-col overflow-hidden rounded-t-3xl lg:left-auto lg:right-6 lg:bottom-6 lg:w-[420px] lg:rounded-3xl"
               style={{
                 height: '75vh',
                 maxHeight: '640px',

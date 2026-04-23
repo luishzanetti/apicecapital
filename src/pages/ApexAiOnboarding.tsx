@@ -81,7 +81,7 @@ export default function ApexAiOnboarding() {
   // This prevents a flash of false-negative state for connected users.
   if (isCheckingBybit) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-5 py-6 pb-28 safe-top">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 md:px-6 lg:px-8 py-5 safe-top">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center mx-auto shadow-lg">
             <svg
@@ -113,7 +113,7 @@ export default function ApexAiOnboarding() {
   // ── Blocker: genuinely NOT connected (status === 'no_credentials' or 'error') ──
   if (!hasBybitConnected) {
     return (
-      <div className="min-h-screen bg-background px-5 py-6 pb-28 safe-top">
+      <div className="min-h-screen bg-background px-4 md:px-6 lg:px-8 py-5 safe-top">
         <Button variant="ghost" size="sm" onClick={() => nav('/apex-ai')}>
           <ArrowLeft className="w-4 h-4 mr-1" />
           {t('common.back')}
@@ -152,7 +152,7 @@ export default function ApexAiOnboarding() {
     .replace('{{total}}', String(TOTAL_STEPS_WITH_BYBIT));
 
   return (
-    <div className="min-h-screen bg-background px-5 py-6 pb-28 safe-top">
+    <div className="min-h-screen bg-background px-4 md:px-6 lg:px-8 py-5 safe-top">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Button variant="ghost" size="sm" onClick={goBack}>

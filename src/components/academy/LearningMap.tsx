@@ -112,7 +112,7 @@ export function LearningMap({ focusTrackId }: LearningMapProps) {
     return { tracksWithNodes: result, activeLessonId: activeId };
   }, [learnProgress, subscription]);
 
-  // Auto-scroll to active node (or optionally a focused track)
+  // Auto-scroll to active node — centered so it sits comfortably above the floating nav
   useEffect(() => {
     if (!activeNodeRef.current) return;
     const prefersReduced =
@@ -220,35 +220,20 @@ export function LearningMap({ focusTrackId }: LearningMapProps) {
               </div>
             </motion.div>
 
-            {/* Path of nodes (zigzag) */}
-            <div className="relative flex flex-col items-center gap-6">
-              {/* Connecting line (zigzag SVG) */}
-              <svg
-                className="absolute inset-0 w-full h-full pointer-events-none"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              >
-                <path
-                  d={buildZigzagPath(nodes.length)}
-                  fill="none"
-                  stroke={worldColor}
-                  strokeWidth="2"
-                  strokeDasharray="6 8"
-                  strokeLinecap="round"
-                  opacity="0.35"
-                />
-              </svg>
-
+            {/* Path of nodes (zigzag) — uses CSS-aligned dotted segments instead of an
+                absolute SVG so the guide line always tracks the real node positions. */}
+            <div className="relative flex flex-col items-center gap-7 sm:gap-8">
               {nodes.map((node, i) => {
-                const zigOffset = i % 2 === 0 ? 0 : 1; // alternate
+                const zigOffset = i % 2 === 0 ? 0 : 1; // alternate left/right
                 const isActiveNode = node.lessonId === activeLessonId;
                 const prevTitle = i > 0 ? nodes[i - 1]!.title : undefined;
+                const isLast = i === nodes.length - 1;
 
                 return (
                   <motion.div
                     key={node.lessonId}
                     ref={isActiveNode ? activeNodeRef : undefined}
-                    initial={{ opacity: 0, scale: 0.85 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true, margin: '-40px' }}
                     transition={{
@@ -259,7 +244,9 @@ export function LearningMap({ focusTrackId }: LearningMapProps) {
                     }}
                     className={cn(
                       'relative flex w-full',
-                      zigOffset ? 'justify-end pr-8 sm:pr-20' : 'justify-start pl-8 sm:pl-20'
+                      zigOffset
+                        ? 'justify-end pr-4 sm:pr-16'
+                        : 'justify-start pl-4 sm:pl-16',
                     )}
                   >
                     <div className="relative flex flex-col items-center">
@@ -272,12 +259,24 @@ export function LearningMap({ focusTrackId }: LearningMapProps) {
                           handleNodeSelect(node, accessible, track.name, prevTitle)
                         }
                       />
+                      {/* Dotted connector to the next node — anchored to this node */}
+                      {!isLast && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute -bottom-7 sm:-bottom-8 left-1/2 -translate-x-1/2 h-7 sm:h-8 w-px"
+                          style={{
+                            backgroundImage: `linear-gradient(to bottom, ${worldColor.replace(')', ' / 0.45)')} 50%, transparent 50%)`,
+                            backgroundSize: '1px 6px',
+                            backgroundRepeat: 'repeat-y',
+                          }}
+                        />
+                      )}
                       <span
                         className={cn(
-                          'mt-2 max-w-[160px] text-center text-[11px] font-medium leading-tight',
+                          'mt-2 max-w-[120px] sm:max-w-[160px] text-center text-[11px] font-medium leading-tight',
                           node.state === 'locked'
                             ? 'text-muted-foreground'
-                            : 'text-foreground'
+                            : 'text-foreground',
                         )}
                       >
                         {node.title}
@@ -303,29 +302,6 @@ export function LearningMap({ focusTrackId }: LearningMapProps) {
       })}
     </div>
   );
-}
-
-/**
- * Build a simple SVG path describing a zigzag that visually matches
- * `flex justify-start` ↔ `flex justify-end` on alternate nodes. The
- * precise pixel layout doesn't need to line up exactly — this acts
- * as a decorative guide.
- */
-function buildZigzagPath(count: number): string {
-  const step = 100; // vertical spacing per node (approx)
-  const parts: string[] = [];
-  for (let i = 0; i < count; i++) {
-    const x = i % 2 === 0 ? 15 : 85;
-    const y = 40 + i * step;
-    if (i === 0) parts.push(`M ${x} ${y}`);
-    else {
-      const prevX = (i - 1) % 2 === 0 ? 15 : 85;
-      const prevY = 40 + (i - 1) * step;
-      const cpY = (prevY + y) / 2;
-      parts.push(`C ${prevX} ${cpY}, ${x} ${cpY}, ${x} ${y}`);
-    }
-  }
-  return parts.join(' ');
 }
 
 export default LearningMap;

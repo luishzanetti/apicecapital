@@ -39,7 +39,7 @@ export default function ApexAiStatements() {
       : t('apexAi.statementsEmptyLoss');
 
   return (
-    <div className="min-h-screen bg-background px-5 py-6 pb-28 safe-top">
+    <div className="min-h-screen bg-background px-4 md:px-6 lg:px-8 py-5 safe-top">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Button variant="ghost" size="icon" onClick={() => nav('/apex-ai/dashboard')}>

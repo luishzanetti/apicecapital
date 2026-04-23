@@ -15,7 +15,6 @@ import { SmartReportWidget } from '@/components/home/SmartReportWidget';
 import { MarketPulseWidget } from '@/components/home/MarketPulseWidget';
 import { useAutoDCA } from '@/hooks/useAutoDCA';
 import { AiInsightCard } from '@/components/ai/AiInsightCard';
-import { AiAdvisorChat } from '@/components/ai/AiAdvisorChat';
 import { AiPortfolioScore } from '@/components/ai/AiPortfolioScore';
 import { ExplosivePicksWidget } from '@/components/home/ExplosivePicksWidget';
 import { ApexAiWidget } from '@/components/home/ApexAiWidget';
@@ -169,7 +168,7 @@ export default function Home() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-background pb-28 scroll-smooth">
+    <div className="min-h-screen bg-background scroll-smooth">
       {/* Ambient background orbs — emerald signature per brand */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
         <div
@@ -213,20 +212,20 @@ export default function Home() {
 
         {/* ── Greeting Bar — single line, responsive, EN-first ──────────── */}
         <motion.div
-          className="px-4 md:px-6 lg:px-8 xl:px-10 pt-3 lg:pt-6 pb-4 flex items-center justify-between gap-4"
+          className="px-4 md:px-6 lg:px-8 xl:px-10 pt-3 lg:pt-6 pb-3 flex items-center justify-between gap-4"
           initial="hidden"
           animate="visible"
           custom={0}
           variants={fadeUp}
         >
           <div className="min-w-0 flex-1">
-            <h1 className="font-display text-xl md:text-2xl font-semibold tracking-tight text-white truncate">
+            <h1 className="font-display text-[19px] md:text-2xl font-semibold tracking-tight text-white truncate leading-tight">
               {t(getTimeGreetingKey())},{' '}
               <span className="text-white/80">
                 {userProfile?.name || investorType || 'Investor'}
               </span>
             </h1>
-            <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-white/40 capitalize">
+            <p className="mt-1 text-[10.5px] uppercase tracking-[0.22em] text-white/40 capitalize">
               {todayDate}
             </p>
           </div>
@@ -241,7 +240,7 @@ export default function Home() {
         </motion.div>
 
         {/* ── Full-width single-column layout · every widget spans the full available width ── */}
-        <div className="px-4 md:px-6 lg:px-8 xl:px-10 space-y-6 lg:space-y-7">
+        <div className="px-4 md:px-6 lg:px-8 xl:px-10 space-y-4 md:space-y-5 lg:space-y-7">
 
           {/* Hero: Portfolio Board */}
           <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp}>
@@ -251,7 +250,7 @@ export default function Home() {
           </motion.div>
 
           {/* Widgets stack full-width in sequence */}
-          <div className="space-y-5 lg:space-y-6">
+          <div className="space-y-4 md:space-y-5 lg:space-y-6">
 
             {/* Quick Actions — horizontal on desktop, 2x2 on mobile */}
             <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
@@ -368,7 +367,7 @@ export default function Home() {
         </div>
 
         {/* ── Apice Journey · full width ──────────────────────────────── */}
-        <div className="px-4 md:px-6 lg:px-8 xl:px-10 mt-6 lg:mt-7">
+        <div className="px-4 md:px-6 lg:px-8 xl:px-10 mt-5 lg:mt-7">
           <motion.div initial="hidden" animate="visible" custom={7} variants={fadeUp}>
             <SectionHeader icon={Target} label={isJourneyCompleted ? 'Your Journey' : 'Apice Journey'} />
             <SetupMissions />
@@ -376,7 +375,7 @@ export default function Home() {
         </div>
 
         {/* ── Gamification · full width ──────────────────────────────── */}
-        <div className="px-4 md:px-6 lg:px-8 xl:px-10 mt-6 lg:mt-7">
+        <div className="px-4 md:px-6 lg:px-8 xl:px-10 mt-5 lg:mt-7">
           <motion.div initial="hidden" animate="visible" custom={8} variants={fadeUp}>
             {isGamificationUnlocked ? (
               <>
@@ -397,7 +396,7 @@ export default function Home() {
 
         {/* ── Last Updated ────────────────────────────────────────────────── */}
         <motion.div
-          className="px-5 mt-8 mb-4 flex items-center justify-center gap-1.5"
+          className="px-4 md:px-6 lg:px-8 xl:px-10 mt-6 mb-2 flex items-center justify-center gap-1.5"
           initial="hidden"
           animate="visible"
           custom={7}
@@ -410,8 +409,7 @@ export default function Home() {
         </motion.div>
       </div>
 
-      {/* AI Advisor Chat FAB */}
-      <AiAdvisorChat />
+      {/* AI Advisor Chat FAB is now mounted globally in AppLayout */}
     </div>
   );
 }

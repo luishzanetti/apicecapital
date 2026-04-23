@@ -36,7 +36,13 @@ import {
 } from '@/lib/apexAi/activateBot';
 import { useApexAiSymbols } from '@/hooks/useApexAiData';
 import { ApexAiInsightsCard } from '@/components/apex-ai/ApexAiInsightsCard';
+import { ApexAiRegimeCard } from '@/components/apex-ai/ApexAiRegimeCard';
+import { ApexAiLayersCard } from '@/components/apex-ai/ApexAiLayersCard';
 import { useApexAiTicker } from '@/hooks/useApexAiTicker';
+import {
+  useApexAiRegime,
+  useApexAiSymbolIntelligence,
+} from '@/hooks/useApexAiV2Data';
 import {
   LineChart,
   Line,
@@ -160,6 +166,14 @@ function DashboardContent({
   // Client-side bot tick loop — updates PnL live + closes TP/SL + re-opens.
   // Only runs when portfolio status === 'active'. Safe to keep mounted.
   useApexAiTicker({ portfolio });
+
+  // V2: regime + symbol intelligence for active symbols
+  const activeSymbolList = useMemo(
+    () => (symbols ?? []).filter((s) => s.is_active).map((s) => s.symbol),
+    [symbols]
+  );
+  const { data: regimeMap = {} } = useApexAiRegime(activeSymbolList);
+  const { data: intelligenceMap = {} } = useApexAiSymbolIntelligence(activeSymbolList);
 
   // Flag whether the currently-open positions are simulated (client-side)
   // or real (from Bybit). Shown as a banner so user knows the mode.
@@ -325,7 +339,7 @@ function DashboardContent({
   const isCircuitBreaker = portfolio.status === 'circuit_breaker';
 
   return (
-    <div className="min-h-screen bg-background px-5 py-6 pb-28 safe-top">
+    <div className="min-h-screen bg-background px-4 md:px-6 lg:px-8 py-5 safe-top">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -449,6 +463,20 @@ function DashboardContent({
           subtle={`≈ $${((credits?.balance ?? 0) / 100).toFixed(2)}`}
         />
       </div>
+
+      {/* V2 — Market regime across active symbols */}
+      {activeSymbolList.length > 0 && (
+        <div className="mb-5">
+          <ApexAiRegimeCard symbols={activeSymbolList} regimeMap={regimeMap} />
+        </div>
+      )}
+
+      {/* V2 — Multi-layer DCA grid waterfall */}
+      {positions && positions.length > 0 && (
+        <div className="mb-5">
+          <ApexAiLayersCard positions={positions} intelligenceMap={intelligenceMap} maxLayers={10} />
+        </div>
+      )}
 
       {/* Apex AI Advisor — insights + recommendations + alerts */}
       <div className="mb-5">

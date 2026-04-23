@@ -176,3 +176,86 @@ export const APEX_AI_RECOMMENDED_SYMBOLS = {
   balanced: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT'],
   aggressive: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'LINKUSDT', 'ARBUSDT', 'DOGEUSDT'],
 } as const;
+
+// ═══════════════════════════════════════════════════════════════════
+// V2.0 TYPES — multi-layer grid DCA + regime intelligence
+// ═══════════════════════════════════════════════════════════════════
+
+export type ApexAiTrendRegime = 'bull_trending' | 'bear_trending' | 'sideways' | 'unknown';
+export type ApexAiVolatilityRegime = 'low' | 'medium' | 'high';
+export type ApexAiStrategyTag = 'grid_dca' | 'trend' | 'funding_arb' | 'mean_reversion';
+
+export interface ApexAiLayerConfig {
+  portfolio_id: string;
+  max_layers: number;
+  layer_spacing_atr: number;
+  layer_size_multiplier: number;
+  take_profit_pct: number;
+  max_allocation_pct: number;
+  updated_at: string;
+}
+
+export interface ApexAiRegimeState {
+  symbol: string;
+  trend_regime: ApexAiTrendRegime;
+  volatility_regime: ApexAiVolatilityRegime;
+  ema_50: number | null;
+  ema_200: number | null;
+  adx_14: number | null;
+  atr_14: number | null;
+  atr_pct: number | null;
+  detected_at: string;
+}
+
+export interface ApexAiSymbolIntelligence {
+  symbol: string;
+  current_price: number | null;
+  funding_rate: number | null;
+  next_funding_at: string | null;
+  volume_24h_usd: number | null;
+  open_interest_usd: number | null;
+  correlations: Record<string, number> | null;
+  updated_at: string;
+}
+
+export interface ApexAiAggregatedPosition {
+  portfolio_id: string;
+  user_id: string;
+  symbol: string;
+  side: ApexAiPositionSide;
+  layer_count: number;
+  first_layer: number;
+  last_layer: number;
+  total_size: number;
+  avg_entry_price: number;
+  total_unrealized_pnl: number;
+  min_leverage: number;
+  max_leverage: number;
+  first_opened_at: string;
+  last_opened_at: string;
+  parent_position_group: string;
+  strategy_tag: ApexAiStrategyTag;
+  avg_take_profit: number | null;
+  aggregate_stop_loss: number | null;
+}
+
+export interface ApexAiStrategyEvent {
+  id: string;
+  portfolio_id: string;
+  event_type: string;
+  symbol: string | null;
+  from_value: string | null;
+  to_value: string | null;
+  rationale: string | null;
+  payload_json: Record<string, unknown> | null;
+  created_at: string;
+}
+
+// Extended position with layer metadata
+export interface ApexAiPositionV2 extends ApexAiPosition {
+  layer_index: number;
+  parent_position_group: string | null;
+  strategy_tag: ApexAiStrategyTag;
+  intended_exit_price: number | null;
+  atr_at_entry: number | null;
+}

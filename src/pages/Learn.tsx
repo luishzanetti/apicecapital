@@ -81,9 +81,9 @@ export default function Learn() {
   }, [learnProgress.lastLessonDate]);
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background">
       {/* Hero header */}
-      <div className="relative px-5 pt-7 pb-6 overflow-hidden">
+      <div className="relative px-4 md:px-6 lg:px-8 pt-5 md:pt-7 pb-5 overflow-hidden">
         <div
           className="absolute inset-0 opacity-60"
           style={{
@@ -165,7 +165,7 @@ export default function Learn() {
         </div>
       </div>
 
-      <div className="px-5 space-y-6">
+      <div className="px-4 md:px-6 lg:px-8 space-y-5 md:space-y-6">
         {/* Daily goal */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}

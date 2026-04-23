@@ -5,17 +5,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import { AltisIcon } from '@/components/brand/AltisIcon';
+import { ApexAiIcon } from '@/components/brand/ApexAiIcon';
+import { useAiChat } from '@/components/ai/AiChatContext';
 
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const [showMore, setShowMore] = useState(false);
   const { t } = useTranslation();
+  const { isOpen: aiChatOpen } = useAiChat();
 
   const navItems = [
     { to: '/home', icon: Home, label: t('nav.home') },
     { to: '/portfolio', icon: PieChart, label: t('nav.portfolio') },
     { to: '/ai-trade', icon: AltisIcon, label: 'ALTIS' },
+    { to: '/apex-ai', icon: ApexAiIcon, label: 'Apex AI' },
     { to: '/dca-planner', icon: CalendarClock, label: 'DCA' },
     { to: '__more__', icon: MoreHorizontal, label: t('nav.more') },
   ];
@@ -46,7 +50,7 @@ export function BottomNav() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+              className="fixed inset-0 z-[45] bg-black/50 backdrop-blur-sm"
               onClick={() => setShowMore(false)}
             />
             <motion.div
@@ -54,7 +58,7 @@ export function BottomNav() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl overflow-hidden"
+              className="fixed bottom-0 left-0 right-0 z-[45] rounded-t-3xl overflow-hidden"
               style={{
                 background: 'hsl(var(--card) / var(--glass-bg-heavy, 0.90))',
                 backdropFilter: 'blur(40px) saturate(200%)',
@@ -128,10 +132,19 @@ export function BottomNav() {
         )}
       </AnimatePresence>
 
-      {/* Bottom Nav Bar */}
-      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-40px)] max-w-[380px] pb-safe">
+      {/* Bottom Nav Bar — hidden when AI chat is open (clean takeover) */}
+      <AnimatePresence>
+        {!aiChatOpen && (
+          <motion.div
+            initial={{ y: 32, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 32, opacity: 0 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+            className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-24px)] max-w-[440px]"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          >
         <nav
-          className="flex items-center justify-between px-4 py-2.5 rounded-[22px]"
+          className="flex items-center justify-between px-2.5 py-2.5 rounded-[22px]"
           style={{
             background: 'hsl(var(--card) / var(--glass-bg-heavy, 0.82))',
             backdropFilter: 'blur(40px) saturate(200%)',
@@ -155,7 +168,7 @@ export function BottomNav() {
                   key="more"
                   onClick={() => setShowMore(true)}
                   aria-label="More options"
-                  className="relative flex flex-col items-center gap-1 px-2 py-1 press-scale"
+                  className="relative flex flex-1 flex-col items-center gap-1 px-1 py-1 press-scale min-w-0"
                 >
                   <motion.div
                     animate={isActive ? { scale: 1.1, y: -1 } : { scale: 1, y: 0 }}
@@ -171,7 +184,7 @@ export function BottomNav() {
                   </motion.div>
                   <span
                     className={cn(
-                      'text-[11px] font-medium tracking-wide transition-colors duration-200',
+                      'text-[10.5px] font-medium tracking-tight transition-colors duration-200 max-w-full truncate',
                       isActive ? 'text-foreground' : 'text-muted-foreground'
                     )}
                   >
@@ -193,7 +206,7 @@ export function BottomNav() {
                 key={item.to}
                 to={item.to}
                 aria-label={item.label}
-                className="relative flex flex-col items-center gap-1 px-2 py-1 press-scale"
+                className="relative flex flex-1 flex-col items-center gap-1 px-1 py-1 press-scale min-w-0"
               >
                 <motion.div
                   animate={isActive ? { scale: 1.1, y: -1 } : { scale: 1, y: 0 }}
@@ -226,7 +239,9 @@ export function BottomNav() {
             );
           })}
         </nav>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

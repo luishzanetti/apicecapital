@@ -2,29 +2,43 @@ import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, PieChart, Compass, BookOpen, BarChart3, CalendarClock, Crown, Headphones, User, Gift, ChevronUp, ChevronDown } from 'lucide-react';
 import { AltisIcon } from '@/components/brand/AltisIcon';
+import { ApexAiIcon } from '@/components/brand/ApexAiIcon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { TriangleMark } from '@/components/brand/BrandMark';
 import { ApiceLogo } from '@/components/brand';
 
-const mainNav = [
-  { to: '/home', icon: Home, label: 'Home' },
-  { to: '/portfolio', icon: PieChart, label: 'Portfolio' },
-  { to: '/ai-trade', icon: AltisIcon, label: 'ALTIS Trading' },
-  { to: '/dca-planner', icon: CalendarClock, label: 'DCA Planner' },
-  { to: '/strategies', icon: Compass, label: 'Strategies' },
-  { to: '/analytics', icon: BarChart3, label: 'Analytics' },
-  { to: '/learn', icon: BookOpen, label: 'Learn' },
+type NavIcon = React.ComponentType<{
+  className?: string;
+  strokeWidth?: number | string;
+  'aria-hidden'?: boolean | string;
+}>;
+
+interface NavItem {
+  to: string;
+  icon: NavIcon;
+  label: string;
+}
+
+const mainNav: NavItem[] = [
+  { to: '/home', icon: Home as unknown as NavIcon, label: 'Home' },
+  { to: '/portfolio', icon: PieChart as unknown as NavIcon, label: 'Portfolio' },
+  { to: '/ai-trade', icon: AltisIcon as unknown as NavIcon, label: 'ALTIS Trading' },
+  { to: '/apex-ai', icon: ApexAiIcon as unknown as NavIcon, label: 'Apex AI' },
+  { to: '/dca-planner', icon: CalendarClock as unknown as NavIcon, label: 'DCA Planner' },
+  { to: '/strategies', icon: Compass as unknown as NavIcon, label: 'Strategies' },
+  { to: '/analytics', icon: BarChart3 as unknown as NavIcon, label: 'Analytics' },
+  { to: '/learn', icon: BookOpen as unknown as NavIcon, label: 'Learn' },
 ];
 
-const secondaryNav = [
-  { to: '/settings', icon: User, label: 'Profile & Settings' },
-  { to: '/upgrade', icon: Crown, label: 'Upgrade' },
-  { to: '/referrals', icon: Gift, label: 'Referrals' },
-  { to: '/support', icon: Headphones, label: 'Support' },
+const secondaryNav: NavItem[] = [
+  { to: '/settings', icon: User as unknown as NavIcon, label: 'Profile & Settings' },
+  { to: '/upgrade', icon: Crown as unknown as NavIcon, label: 'Upgrade' },
+  { to: '/referrals', icon: Gift as unknown as NavIcon, label: 'Referrals' },
+  { to: '/support', icon: Headphones as unknown as NavIcon, label: 'Support' },
 ];
 
-function SidebarLink({ item }: { item: { to: string; icon: typeof Home; label: string } }) {
+function SidebarLink({ item }: { item: NavItem }) {
   const location = useLocation();
   const isActive =
     location.pathname === item.to ||

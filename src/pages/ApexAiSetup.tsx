@@ -189,7 +189,7 @@ export default function ApexAiSetup() {
       : t('apexAi.riskAggressive');
 
   return (
-    <div className="min-h-screen bg-background px-5 py-6 pb-28 safe-top">
+    <div className="min-h-screen bg-background px-4 md:px-6 lg:px-8 py-5 safe-top">
       <div className="flex items-center justify-between mb-6">
         <Button variant="ghost" size="sm" onClick={() => nav('/apex-ai/onboarding')}>
           <ArrowLeft className="w-4 h-4 mr-1" />
