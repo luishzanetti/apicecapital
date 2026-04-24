@@ -165,7 +165,19 @@ export default function DCAPlanner() {
   });
 
   const activePlans = dcaPlans.filter((p) => p.isActive);
-  const requiresApiConnection = isSupabaseConfigured && !missionProgress.m2_apiConnected;
+  const setupProgress = useAppStore((s) => s.setupProgress);
+  const liveTotalBalance = useAppStore((s) => s.currentBalances?.total ?? 0);
+  // Gate the "Connect API" wall when there's NO evidence of a working
+  // Bybit connection. The mission flag (`m2_apiConnected`) is unreliable —
+  // users who connected via direct Settings flow or via legacy paths often
+  // have a live balance but the flag never flipped, leaving them stuck on
+  // the gate forever. Treat live balance + setup progress as ground truth.
+  const looksConnected =
+    missionProgress.m2_apiConnected ||
+    setupProgress.exchangeAccountCreated ||
+    liveTotalBalance > 0 ||
+    activePlans.length > 0;
+  const requiresApiConnection = isSupabaseConfigured && !looksConnected;
 
   // --- Wizard helpers ---
 

@@ -56,6 +56,8 @@ export interface PlaceOrderInput {
   takeProfitPrice?: number;
   reduceOnly?: boolean;
   positionIdx?: number;
+  /** Idempotency key — prevents duplicate orders on retry. Max 36 chars. */
+  clientOrderId?: string;
 }
 
 export interface OrderResult {
@@ -241,6 +243,12 @@ export async function placeFuturesOrder(
   }
   if (input.takeProfitPrice) {
     body.takeProfit = String(input.takeProfitPrice);
+  }
+  // Idempotency: Bybit dedupe by orderLinkId if provided (max 36 chars).
+  // Same orderLinkId → Bybit returns the existing order instead of creating
+  // a duplicate — safe retry even if request times out.
+  if (input.clientOrderId) {
+    body.orderLinkId = input.clientOrderId.slice(0, 36);
   }
 
   const res = await bybitPost(

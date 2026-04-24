@@ -228,32 +228,87 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ─── 6. Tick each position (PnL updates) ────────
+    // ─── 6. LIVE reconciliation (if in LIVE mode with creds) ────────
+    // Fetch Bybit real positions and sync DB state. Detects:
+    //   - Positions closed externally on Bybit (user manually closed)
+    //   - Price + PnL updates from Bybit mark price
+    //   - Missing positions (DB open but not on Bybit → mark closed)
+    let livePositions: Awaited<ReturnType<typeof fetchOpenFutures>> = [];
+    if (mode === 'live' && creds) {
+      try {
+        livePositions = await fetchOpenFutures(
+          creds.apiKey,
+          creds.apiSecret,
+          creds.testnet,
+          uniqueSymbols
+        );
+        await reconcileLivePositions(supabase, portfolio.id, positions, livePositions);
+
+        await supabase
+          .from('apex_ai_portfolios')
+          .update({
+            last_reconcile_at: new Date().toISOString(),
+            reconcile_error: null,
+          })
+          .eq('id', portfolio.id);
+      } catch (reconErr) {
+        const errMsg = reconErr instanceof Error ? reconErr.message : String(reconErr);
+        console.error('[apex-ai-bot-tick] reconcile failed', errMsg);
+        await supabase
+          .from('apex_ai_portfolios')
+          .update({ reconcile_error: errMsg.slice(0, 500) })
+          .eq('id', portfolio.id);
+        await logEvent(supabase, portfolio.id, 'error', 'live_reconcile_failed', { error: errMsg });
+      }
+    }
+
+    // ─── 7. Tick each position (PnL updates) ────────
     const actions: Array<Record<string, unknown>> = [];
     const updates: Array<Promise<unknown>> = [];
 
-    for (const pos of positions) {
-      // Only process simulated positions in tick loop. LIVE positions
-      // need Bybit fetchOpenFutures to sync (Phase C — future scope).
-      if (!(pos.exchange_position_id ?? '').startsWith('sim-')) continue;
+    // Build lookup of live positions by symbol+side for quick PnL pull
+    const livePositionBySymbolSide: Record<string, typeof livePositions[0]> = {};
+    for (const lp of livePositions) {
+      livePositionBySymbolSide[`${lp.symbol}-${lp.side}`] = lp;
+    }
 
+    for (const pos of positions) {
+      const isSim = (pos.exchange_position_id ?? '').startsWith('sim-');
       const currentPrice = prices[pos.symbol];
       if (!currentPrice) continue;
 
       const entryPrice = Number(pos.entry_price);
       const size = Number(pos.size);
-      const unrealizedPnl =
-        pos.side === 'long'
-          ? (currentPrice - entryPrice) * size
-          : (entryPrice - currentPrice) * size;
+
+      let unrealizedPnl: number;
+      let effectivePrice = currentPrice;
+
+      if (!isSim) {
+        // LIVE: prefer Bybit's unrealized_pnl for accuracy (includes funding etc)
+        const live = livePositionBySymbolSide[`${pos.symbol}-${pos.side}`];
+        if (live) {
+          unrealizedPnl = live.unrealizedPnl;
+          effectivePrice = live.markPrice;
+        } else {
+          // Position not on Bybit anymore — reconcile marked it closed already
+          continue;
+        }
+      } else {
+        // SIM: compute from fetched ticker price
+        unrealizedPnl =
+          pos.side === 'long'
+            ? (currentPrice - entryPrice) * size
+            : (entryPrice - currentPrice) * size;
+      }
 
       updates.push(
         supabase
           .from('apex_ai_positions')
           .update({
-            current_price: currentPrice,
+            current_price: effectivePrice,
             unrealized_pnl: unrealizedPnl,
             updated_at: new Date().toISOString(),
+            ...(!isSim && { last_bybit_sync_at: new Date().toISOString() }),
           })
           .eq('id', pos.id)
           .eq('status', 'open')
@@ -352,12 +407,46 @@ Deno.serve(async (req) => {
           : currentPrice <= tpPrice;
 
       if (tpHit && aggregatePnl > 0) {
-        // Close the whole group via RPC (never-close-at-loss enforced too)
+        // Close the whole group
         const parentGroup = group.parent_position_group ?? group.layers[0].id;
+
+        // If this group is LIVE (has real Bybit order IDs), close each leg on Bybit first
+        const isGroupLive =
+          mode === 'live' && creds && group.layers.every(l =>
+            l.exchange_position_id && !l.exchange_position_id.startsWith('sim-')
+          );
+
+        if (isGroupLive && creds) {
+          const closeTasks = group.layers.map(async (layer) => {
+            try {
+              await closeFuturesPosition(
+                creds.apiKey,
+                creds.apiSecret,
+                creds.testnet,
+                layer.symbol,
+                layer.side,
+                Number(layer.size),
+                (layer as PositionExtended & { bybit_position_idx?: number }).bybit_position_idx ??
+                  (layer.side === 'long' ? 1 : 2)
+              );
+            } catch (err) {
+              console.error('[apex-ai-bot-tick] closeFuturesPosition failed', layer.symbol, layer.side, err);
+              await logEvent(supabase, portfolio.id, 'error', 'live_close_failed', {
+                symbol: layer.symbol,
+                side: layer.side,
+                layer_index: layer.layer_index,
+                error: (err as Error).message,
+              });
+            }
+          });
+          await Promise.allSettled(closeTasks);
+        }
+
+        // Then update DB + record trades + charge fee via RPC (enforces never-close-at-loss)
         const { data: closeResult } = await supabase.rpc('apex_ai_close_position_group', {
           p_parent_group: parentGroup,
           p_exit_price: currentPrice,
-          p_trigger: 'blended_tp',
+          p_trigger: isGroupLive ? 'live_blended_tp' : 'blended_tp',
         });
 
         if (closeResult && typeof closeResult === 'object') {
@@ -370,13 +459,13 @@ Deno.serve(async (req) => {
             pnl: r.total_pnl,
             avg_entry: r.avg_entry,
             exit_price: currentPrice,
+            mode: isGroupLive ? 'live' : 'simulate',
           });
         }
         continue;
       }
 
       // Check: should we open next layer?
-      // Condition: current layer count < max_layers AND price moved >= spacing_atr × ATR against last layer
       if (!layerConfigs) continue;
       if (group.layers.length >= layerConfigs.max_layers) continue;
 
@@ -396,7 +485,12 @@ Deno.serve(async (req) => {
           : currentPrice >= lastEntry + spacingAtr;
 
       if (thresholdBreached && aggregatePnl < 0) {
-        // Only open next layer if we're currently in loss (makes DCA meaningful)
+        const isGroupLive =
+          mode === 'live' && creds && group.layers.every(l =>
+            l.exchange_position_id && !l.exchange_position_id.startsWith('sim-')
+          );
+
+        // Call RPC to compute sizing + reserve layer slot
         const { data: openResult } = await supabase.rpc('apex_ai_open_next_layer', {
           p_portfolio_id: portfolio.id,
           p_symbol: symbol,
@@ -407,7 +501,74 @@ Deno.serve(async (req) => {
 
         if (openResult && typeof openResult === 'object') {
           const r = openResult as Record<string, unknown>;
+
           if (r.opened) {
+            // If LIVE group: also place the real order on Bybit
+            if (isGroupLive && creds) {
+              const sizeUsdt = Number(r.size_usdt);
+              const qty = roundQty(sizeUsdt / currentPrice, symbol);
+              const layerIndex = Number(r.layer_index);
+              const positionIdx = side === 'long' ? 1 : 2;
+
+              // A3: Idempotency key
+              const clientOrderId = `apex-${portfolio.id.slice(0, 8)}-${symbol.replace('USDT', '')}-${side}-L${layerIndex}-${Math.floor(Date.now() / 60000)}`;
+
+              // A4: Margin buffer check
+              const marginCheck = await checkMarginBuffer(creds, sizeUsdt, lastLayer.leverage);
+              if (!marginCheck.ok) {
+                await logEvent(supabase, portfolio.id, 'warning', 'live_margin_insufficient', {
+                  symbol,
+                  side,
+                  layer_index: layerIndex,
+                  required: marginCheck.required,
+                  balance: marginCheck.balance,
+                  reason: marginCheck.reason,
+                });
+                // Rollback the DB insert since we can't place order
+                await supabase
+                  .from('apex_ai_positions')
+                  .delete()
+                  .eq('id', r.position_id);
+                continue;
+              }
+
+              try {
+                const order = await placeFuturesOrder(creds.apiKey, creds.apiSecret, creds.testnet, {
+                  symbol,
+                  side,
+                  qty,
+                  leverage: lastLayer.leverage,
+                  positionIdx,
+                  clientOrderId,
+                });
+
+                // Update position with real Bybit order_id + client_order_id
+                await supabase
+                  .from('apex_ai_positions')
+                  .update({
+                    exchange_position_id: order.orderId,
+                    client_order_id: clientOrderId,
+                    bybit_position_idx: positionIdx,
+                    last_bybit_sync_at: new Date().toISOString(),
+                  })
+                  .eq('id', r.position_id);
+              } catch (err) {
+                console.error('[apex-ai-bot-tick] placeFuturesOrder failed', symbol, side, err);
+                // Rollback DB since Bybit didn't accept
+                await supabase
+                  .from('apex_ai_positions')
+                  .delete()
+                  .eq('id', r.position_id);
+                await logEvent(supabase, portfolio.id, 'error', 'live_order_failed', {
+                  symbol,
+                  side,
+                  layer_index: layerIndex,
+                  error: (err as Error).message,
+                });
+                continue;
+              }
+            }
+
             actions.push({
               type: 'layer_opened',
               symbol,
@@ -415,6 +576,7 @@ Deno.serve(async (req) => {
               layer_index: r.layer_index,
               entry_price: r.entry_price,
               size_usdt: r.size_usdt,
+              mode: isGroupLive ? 'live' : 'simulate',
             });
           }
         }
@@ -730,6 +892,126 @@ async function bootstrapLiveHedgePositions(
   }
 
   return opened;
+}
+
+/**
+ * Reconcile DB positions with real Bybit positions.
+ * - If a DB position has exchange_position_id (not sim-*) but Bybit doesn't
+ *   have the corresponding (symbol, side) open → mark DB as closed (external)
+ * - Log events for any mismatches so user sees them in the timeline
+ */
+async function reconcileLivePositions(
+  supabase: ReturnType<typeof createClient>,
+  portfolioId: string,
+  dbPositions: ApexAiPosition[],
+  livePositions: Awaited<ReturnType<typeof fetchOpenFutures>>
+): Promise<void> {
+  const liveKeys = new Set(livePositions.map((p) => `${p.symbol}-${p.side}`));
+
+  for (const dbPos of dbPositions) {
+    const isSim = (dbPos.exchange_position_id ?? '').startsWith('sim-');
+    if (isSim) continue; // skip simulated
+
+    const key = `${dbPos.symbol}-${dbPos.side}`;
+    if (!liveKeys.has(key)) {
+      // Position not on Bybit anymore → closed externally
+      const exitPrice = Number(dbPos.current_price ?? dbPos.entry_price);
+      const entryPrice = Number(dbPos.entry_price);
+      const size = Number(dbPos.size);
+      const pnl =
+        dbPos.side === 'long'
+          ? (exitPrice - entryPrice) * size
+          : (entryPrice - exitPrice) * size;
+
+      const now = new Date().toISOString();
+
+      // Create trade record
+      await supabase.from('apex_ai_trades').insert({
+        portfolio_id: dbPos.portfolio_id,
+        position_id: dbPos.id,
+        user_id: dbPos.user_id,
+        symbol: dbPos.symbol,
+        side: dbPos.side,
+        entry_price: entryPrice,
+        exit_price: exitPrice,
+        size,
+        leverage: dbPos.leverage,
+        pnl,
+        fee_exchange: Math.abs(pnl) * 0.0006,
+        gas_fee: 0, // no fee on externally-closed (not bot's decision)
+        closed_at: now,
+      });
+
+      // Mark position closed
+      await supabase
+        .from('apex_ai_positions')
+        .update({
+          status: 'closed',
+          closed_at: now,
+          realized_pnl: pnl,
+          last_bybit_sync_at: now,
+        })
+        .eq('id', dbPos.id);
+
+      // Log event
+      await supabase.from('apex_ai_strategy_events').insert({
+        portfolio_id: portfolioId,
+        event_type: 'live_position_closed_externally',
+        symbol: dbPos.symbol,
+        rationale: `Position ${dbPos.symbol} ${dbPos.side} closed on Bybit outside the bot (user action or SL). Reconciled + trade recorded. PnL ${pnl.toFixed(2)} USDT.`,
+        payload_json: {
+          position_id: dbPos.id,
+          exit_price: exitPrice,
+          entry_price: entryPrice,
+          pnl,
+          bybit_order_id: dbPos.exchange_position_id,
+        },
+      });
+    }
+  }
+}
+
+/**
+ * Check if user has enough margin buffer before opening a new order.
+ * Returns { ok: true } if total_available >= required + safety_buffer_pct.
+ * Safety buffer: keep at least 20% of account as free margin.
+ */
+async function checkMarginBuffer(
+  creds: BybitCreds,
+  requiredUsdt: number,
+  leverage: number,
+  safetyBufferPct = 20
+): Promise<{ ok: boolean; reason?: string; balance?: number; required?: number }> {
+  try {
+    const balance = await fetchApexAiBalance(creds.apiKey, creds.apiSecret, creds.testnet);
+    const marginNeeded = requiredUsdt / leverage;
+    const totalEquity = balance.totalEquityUsdt;
+    const available = balance.totalAvailableBalanceUsdt;
+    const bufferRequired = totalEquity * (safetyBufferPct / 100);
+    const bufferAfterOrder = available - marginNeeded;
+
+    if (marginNeeded > available) {
+      return {
+        ok: false,
+        reason: 'insufficient_margin',
+        balance: available,
+        required: marginNeeded,
+      };
+    }
+    if (bufferAfterOrder < bufferRequired) {
+      return {
+        ok: false,
+        reason: 'would_breach_safety_buffer',
+        balance: available,
+        required: marginNeeded,
+      };
+    }
+    return { ok: true, balance: available, required: marginNeeded };
+  } catch (err) {
+    console.error('[apex-ai-bot-tick] margin check failed', err);
+    // If we can't check, be conservative and block
+    return { ok: false, reason: 'balance_fetch_failed' };
+  }
 }
 
 /**

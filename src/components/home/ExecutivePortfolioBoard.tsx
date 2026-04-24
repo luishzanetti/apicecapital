@@ -498,13 +498,29 @@ export function ExecutivePortfolioBoard() {
               Total equity
             </p>
 
-            {/* Hero balance — fluid clamp so it never overflows on iPhone SE */}
-            <h2
-              className="font-display font-mono font-semibold tabular-nums tracking-tight text-white text-[clamp(1.65rem,8.5vw,2.5rem)] leading-[1.02] md:text-[56px] md:leading-[1.05]"
-              aria-label={hideBalance ? 'Balance hidden' : undefined}
-            >
-              {fmtUSD(analytics.grandTotal, hideBalance)}
-            </h2>
+            {/* Hero balance — fluid clamp so it never overflows on iPhone SE.
+                During the initial 1-3s fetch we render a shimmering placeholder
+                instead of $0.00, so users never see a phantom "wrong balance"
+                flash before the real number arrives. */}
+            {isLoading && analytics.grandTotal <= 0 ? (
+              <div
+                role="status"
+                aria-label="Loading balance"
+                className="my-1 h-[clamp(1.65rem,8.5vw,2.5rem)] md:h-[56px] w-[58%] max-w-[260px] overflow-hidden rounded-lg bg-white/[0.04] relative"
+              >
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/[0.08] to-transparent"
+                />
+              </div>
+            ) : (
+              <h2
+                className="font-display font-mono font-semibold tabular-nums tracking-tight text-white text-[clamp(1.65rem,8.5vw,2.5rem)] leading-[1.02] md:text-[56px] md:leading-[1.05]"
+                aria-label={hideBalance ? 'Balance hidden' : undefined}
+              >
+                {fmtUSD(analytics.grandTotal, hideBalance)}
+              </h2>
+            )}
 
             {/* KPI strip — uniform pill styling so Health no longer looks alien */}
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
@@ -561,6 +577,7 @@ export function ExecutivePortfolioBoard() {
               value={fmtUSD(analytics.fundingBalance, hideBalance)}
               sub={`${analytics.fundingHoldings.length} coin${analytics.fundingHoldings.length === 1 ? '' : 's'}`}
               onClick={() => navigate('/portfolio?account=funding')}
+              loading={isLoading && analytics.grandTotal <= 0}
             />
             <AccountTile
               label="Unified"
@@ -568,6 +585,7 @@ export function ExecutivePortfolioBoard() {
               value={fmtUSD(analytics.totalEquity, hideBalance)}
               sub={`${analytics.spotCount} asset${analytics.spotCount === 1 ? '' : 's'}`}
               onClick={() => navigate('/portfolio?account=unified')}
+              loading={isLoading && analytics.grandTotal <= 0}
             />
             <AccountTile
               label="Available"
@@ -575,6 +593,7 @@ export function ExecutivePortfolioBoard() {
               value={fmtUSD(analytics.totalAvailableBalance, hideBalance)}
               sub="Ready to deploy"
               onClick={() => navigate('/dca-planner')}
+              loading={isLoading && analytics.grandTotal <= 0}
             />
           </section>
 
@@ -1185,6 +1204,7 @@ function AccountTile({
   tint,
   onClick,
   className,
+  loading = false,
 }: {
   label: string;
   value: string;
@@ -1192,6 +1212,9 @@ function AccountTile({
   tint: 'gold' | 'sky' | 'emerald';
   onClick: () => void;
   className?: string;
+  /** When true, render a shimmering placeholder instead of the value/sub.
+   *  Avoids flashing $0.00 while the live balance is in flight. */
+  loading?: boolean;
 }) {
   const tintMap: Record<typeof tint, { bg: string; text: string; ring: string }> = {
     gold: {
@@ -1237,10 +1260,28 @@ function AccountTile({
           aria-hidden="true"
         />
       </div>
-      <p className="font-display font-mono mt-1 md:mt-1.5 truncate text-[15px] md:text-xl font-semibold tabular-nums text-white">
-        {value}
-      </p>
-      <p className="mt-0.5 truncate text-[10.5px] md:text-[11px] text-white/45">{sub}</p>
+      {loading ? (
+        <>
+          <div
+            role="status"
+            aria-label={`Loading ${label}`}
+            className="relative mt-1 md:mt-1.5 h-5 md:h-6 w-[80%] overflow-hidden rounded bg-white/[0.06]"
+          >
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/[0.10] to-transparent"
+            />
+          </div>
+          <div className="mt-1 h-3 w-[55%] overflow-hidden rounded bg-white/[0.04]" />
+        </>
+      ) : (
+        <>
+          <p className="font-display font-mono mt-1 md:mt-1.5 truncate text-[15px] md:text-xl font-semibold tabular-nums text-white">
+            {value}
+          </p>
+          <p className="mt-0.5 truncate text-[10.5px] md:text-[11px] text-white/45">{sub}</p>
+        </>
+      )}
     </button>
   );
 }
