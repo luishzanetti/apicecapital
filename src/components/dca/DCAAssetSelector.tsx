@@ -1,8 +1,8 @@
  import { useState } from 'react';
  import { motion, AnimatePresence } from 'framer-motion';
  import { Badge } from '@/components/ui/badge';
- import { dcaAssets, DCAAsset } from '@/data/sampleData';
- import { Sparkles, AlertTriangle, Check, Plus, Minus } from 'lucide-react';
+ import { dcaAssets, dcaCoreAssets, DCAAsset } from '@/data/sampleData';
+ import { Sparkles, AlertTriangle, Check, Plus, Minus, Eye, EyeOff } from 'lucide-react';
  
  interface SelectedAsset {
    symbol: string;
@@ -26,6 +26,10 @@
  
  export function DCAAssetSelector({ selectedAssets, onChange, maxAssets = 5 }: DCAAssetSelectorProps) {
    const [activeCategory, setActiveCategory] = useState<string | null>(null);
+   // Default surface = Apice top-10 (BTC, ETH, SOL, UNI, USDC + 5 supporting).
+   // Long-tail assets (TIA, JUP, NEAR, SUI, ADA, OP, AAVE) are gated behind
+   // a "Show all" toggle so the picker stays focused for new users.
+   const [showAll, setShowAll] = useState(false);
  
    const isSelected = (symbol: string) => selectedAssets.some(a => a.symbol === symbol);
    const getAllocation = (symbol: string) => selectedAssets.find(a => a.symbol === symbol)?.allocation || 0;
@@ -88,37 +92,59 @@
      'High': 'text-apice-success',
    };
  
-   const filteredAssets = activeCategory 
-     ? dcaAssets.filter(a => a.category === activeCategory)
-     : dcaAssets;
+   // Source pool depends on the showAll toggle. Always include any currently
+   // selected asset even if it's outside the core 10 (so users editing a
+   // legacy plan with TIA/JUP can still see and remove it).
+   const selectedSymbols = new Set(selectedAssets.map((a) => a.symbol));
+   const sourcePool = showAll
+     ? dcaAssets
+     : [
+         ...dcaCoreAssets,
+         ...dcaAssets.filter((a) => !a.isCore && selectedSymbols.has(a.symbol)),
+       ];
+   const filteredAssets = activeCategory
+     ? sourcePool.filter((a) => a.category === activeCategory)
+     : sourcePool;
  
    return (
      <div className="space-y-4">
-       {/* Category Tabs */}
-       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-         <button
-           onClick={() => setActiveCategory(null)}
-           className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-             activeCategory === null
-               ? 'bg-primary text-primary-foreground'
-               : 'bg-secondary text-muted-foreground'
-           }`}
-         >
-           All
-         </button>
-         {CATEGORIES.map(cat => (
+       {/* Category Tabs + Show-all toggle */}
+       <div className="flex items-center gap-2">
+         <div className="flex flex-1 gap-2 overflow-x-auto pb-2 scrollbar-hide">
            <button
-             key={cat.id}
-             onClick={() => setActiveCategory(cat.id)}
+             onClick={() => setActiveCategory(null)}
              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-               activeCategory === cat.id
+               activeCategory === null
                  ? 'bg-primary text-primary-foreground'
                  : 'bg-secondary text-muted-foreground'
              }`}
            >
-             {cat.label}
+             {showAll ? 'All' : 'Top 10'}
            </button>
-         ))}
+           {CATEGORIES.map(cat => (
+             <button
+               key={cat.id}
+               onClick={() => setActiveCategory(cat.id)}
+               className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                 activeCategory === cat.id
+                   ? 'bg-primary text-primary-foreground'
+                   : 'bg-secondary text-muted-foreground'
+               }`}
+             >
+               {cat.label}
+             </button>
+           ))}
+         </div>
+         <button
+           type="button"
+           onClick={() => setShowAll((v) => !v)}
+           className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-secondary px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
+           aria-pressed={showAll}
+           title={showAll ? 'Hide long-tail assets' : 'Show all assets including long-tail'}
+         >
+           {showAll ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+           {showAll ? 'Top 10' : 'Show all'}
+         </button>
        </div>
  
        {/* Asset Grid */}

@@ -65,6 +65,16 @@ export interface UserPortfolio {
 }
 
 // ─── DCA ────────────────────────────────────────────────────
+/**
+ * DCAPlanKind distinguishes between the systematic core plan and the
+ * opportunistic dip-buying plans the AI proposes during sharp drawdowns.
+ *
+ *   continuous       — main recurring plan, runs forever (durationDays = null)
+ *   dip_burst_7d     — 7-day intensified buying triggered by a fast pullback
+ *   dip_intensive_21d — 21-day deep-discount accumulation in confirmed bear legs
+ */
+export type DCAPlanKind = 'continuous' | 'dip_burst_7d' | 'dip_intensive_21d';
+
 export interface DCAPlan {
   id: string;
   assets: { symbol: string; allocation: number }[];
@@ -75,6 +85,10 @@ export interface DCAPlan {
   isActive: boolean;
   totalInvested: number;
   nextExecutionDate: string;
+  /** Optional plan flavor. Defaults to 'continuous' when omitted. */
+  kind?: DCAPlanKind;
+  /** Optional human label so UI can read "BTC/ETH Core", "Dip Buy 7D", etc. */
+  label?: string;
 }
 
 export type DCAPlanDraft = Omit<DCAPlan, 'id'> & { id?: string };

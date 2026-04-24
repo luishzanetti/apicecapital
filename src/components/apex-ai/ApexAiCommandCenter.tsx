@@ -17,7 +17,9 @@ import {
   AlertTriangle,
   ArrowRight,
 } from 'lucide-react';
-import { useApexAiStrategyEvents } from '@/hooks/useApexAiV2Data';
+import { useApexAiStrategyEvents, useApexAiLayerConfig } from '@/hooks/useApexAiV2Data';
+import { useApexAiPositions } from '@/hooks/useApexAiData';
+import { Shield, ShieldAlert } from 'lucide-react';
 import type {
   ApexAiRegimeState,
   ApexAiSymbolIntelligence,
@@ -53,6 +55,14 @@ export function ApexAiCommandCenter({
   intelligenceMap: Record<string, ApexAiSymbolIntelligence>;
 }) {
   const { data: events = [] } = useApexAiStrategyEvents(portfolio.id, 8);
+  const { data: layerCfg } = useApexAiLayerConfig(portfolio.id);
+  const { data: positions = [] } = useApexAiPositions(portfolio.id);
+
+  // Compute worst-case drawdown across active groups vs tolerance
+  const drawdownStatus = useMemo(
+    () => computeWorstDrawdown(positions, intelligenceMap, layerCfg?.drawdown_tolerance_pct ?? 35),
+    [positions, intelligenceMap, layerCfg]
+  );
 
   // Aggregate regime across active symbols
   const aggregate = useMemo(
@@ -172,10 +182,10 @@ export function ApexAiCommandCenter({
       </Card>
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* 2. Three indicator cards                                      */}
+      {/* 2. Indicator cards                                            */}
       {/* ═══════════════════════════════════════════════════════════ */}
       {aggregate && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <IndicatorCard
             title="Trend"
             icon={trendIcon}
@@ -208,6 +218,25 @@ export function ApexAiCommandCenter({
             value={aggregate.liquidityBucket}
             meta={`$${formatLargeNum(aggregate.totalVolume24h)}`}
             tone={aggregate.liquidityBucket === 'High' ? 'success' : 'neutral'}
+          />
+          <IndicatorCard
+            title="Safety"
+            icon={drawdownStatus.worstDrawdownPct >= drawdownStatus.tolerancePct * 0.7 ? ShieldAlert : Shield}
+            value={drawdownStatus.hasPositions
+              ? `${drawdownStatus.bufferRemainingPct.toFixed(0)}% buffer`
+              : `${drawdownStatus.tolerancePct}% max`}
+            meta={drawdownStatus.hasPositions
+              ? `DD ${drawdownStatus.worstDrawdownPct.toFixed(1)}% / ${drawdownStatus.tolerancePct}%`
+              : 'Liquidation tolerance'}
+            tone={
+              !drawdownStatus.hasPositions
+                ? 'success'
+                : drawdownStatus.bufferRemainingPct < 10
+                ? 'danger'
+                : drawdownStatus.bufferRemainingPct < 20
+                ? 'warning'
+                : 'success'
+            }
           />
         </div>
       )}
@@ -514,3 +543,59 @@ const VOL_WEIGHT: Record<ApexAiVolatilityRegime, number> = {
   medium: 2,
   high: 3,
 };
+
+// ─── Drawdown vs tolerance ──────────────────────────────────
+
+interface DrawdownStatus {
+  hasPositions: boolean;
+  worstDrawdownPct: number;
+  tolerancePct: number;
+  bufferRemainingPct: number;
+}
+
+function computeWorstDrawdown(
+  positions: Array<{ symbol: string; side: string; entry_price: number | string; layer_index?: number; parent_position_group?: string | null; exchange_position_id?: string | null }>,
+  intelligenceMap: Record<string, ApexAiSymbolIntelligence>,
+  tolerancePct: number
+): DrawdownStatus {
+  // Group by symbol + side + parent_group; for each group find L1 (min layer_index)
+  const groups = new Map<string, { symbol: string; side: string; l1Entry: number }>();
+  for (const p of positions) {
+    // Consider only sim positions (v2 positions have layer_index); skip orphan unlabeled
+    const key = `${p.symbol}-${p.side}-${p.parent_position_group ?? 'default'}`;
+    const l1 = groups.get(key);
+    const layerIdx = p.layer_index ?? 1;
+    if (!l1 || layerIdx < 999) {
+      // always keep the lowest layer_index (= L1)
+      if (!l1 || layerIdx < (l1 as { layerIdx?: number }).layerIdx!) {
+        groups.set(key, {
+          symbol: p.symbol,
+          side: p.side,
+          l1Entry: Number(p.entry_price),
+        });
+      }
+    }
+  }
+
+  let worstDrawdown = 0;
+
+  for (const [, group] of groups.entries()) {
+    const intel = intelligenceMap[group.symbol];
+    const currentPrice = intel?.current_price ? Number(intel.current_price) : null;
+    if (!currentPrice || !group.l1Entry) continue;
+
+    const dd =
+      group.side === 'long'
+        ? Math.max(0, ((group.l1Entry - currentPrice) / group.l1Entry) * 100)
+        : Math.max(0, ((currentPrice - group.l1Entry) / group.l1Entry) * 100);
+
+    if (dd > worstDrawdown) worstDrawdown = dd;
+  }
+
+  return {
+    hasPositions: groups.size > 0,
+    worstDrawdownPct: worstDrawdown,
+    tolerancePct,
+    bufferRemainingPct: Math.max(0, tolerancePct - worstDrawdown),
+  };
+}

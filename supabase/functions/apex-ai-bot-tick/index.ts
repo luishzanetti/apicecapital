@@ -263,12 +263,53 @@ Deno.serve(async (req) => {
 
     // ─── 7. Martingale group logic ──────────────────
     // Group positions by (symbol, side, parent_position_group).
-    // For each group: decide CLOSE (blended TP hit) or OPEN_NEXT_LAYER
-    // (threshold breached + within max_layers) or WAIT.
     const groups = groupPositionsByMartingaleKey(positions);
     const layerConfigs = await loadLayerConfig(supabase, portfolio.id);
     const regimeStates = await loadRegimeStates(supabase, Array.from(new Set(positions.map(p => p.symbol))));
     const tpTargetPct = layerConfigs?.take_profit_pct ?? 1.2;
+    const toleranceTargetPct = layerConfigs?.drawdown_tolerance_pct ?? 35.0;
+
+    // ★ CATASTROPHIC PRE-CHECK ★
+    // Before any group logic, verify that no active group has drawdown
+    // exceeding tolerance. If one does, pause the portfolio immediately.
+    for (const [, group] of groups.entries()) {
+      if (!group.layers.some(l => (l.exchange_position_id ?? '').startsWith('sim-'))) continue;
+      const currentPrice = prices[group.symbol];
+      if (!currentPrice) continue;
+      const firstLayer = group.layers.reduce((min, l) =>
+        (l.layer_index ?? 1) < (min.layer_index ?? 1) ? l : min
+      );
+      const l1Entry = Number(firstLayer.entry_price);
+      const drawdownPct =
+        group.side === 'long'
+          ? Math.max(0, ((l1Entry - currentPrice) / l1Entry) * 100)
+          : Math.max(0, ((currentPrice - l1Entry) / l1Entry) * 100);
+
+      if (drawdownPct >= toleranceTargetPct) {
+        await supabase
+          .from('apex_ai_portfolios')
+          .update({ status: 'circuit_breaker' })
+          .eq('id', portfolio.id);
+        await logEvent(supabase, portfolio.id, 'critical', 'drawdown_tolerance_breached', {
+          symbol: group.symbol,
+          side: group.side,
+          drawdown_pct: drawdownPct,
+          tolerance_pct: toleranceTargetPct,
+          l1_entry: l1Entry,
+          current_price: currentPrice,
+        });
+        return json({
+          success: true,
+          data: {
+            portfolio_id: body.portfolio_id,
+            circuit_breaker_triggered: true,
+            reason: 'drawdown_tolerance_breached',
+            drawdown_pct: drawdownPct,
+            tolerance_pct: toleranceTargetPct,
+          },
+        });
+      }
+    }
 
     for (const [groupKey, group] of groups.entries()) {
       const symbol = group.symbol;

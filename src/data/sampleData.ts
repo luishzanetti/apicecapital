@@ -43,35 +43,47 @@ export interface DCAAsset {
   categoryLabel: string;
   color: string;
   isRecommended?: boolean;
+  /**
+   * Curated "Top 10" universe surfaced by default in DCA selectors.
+   * Long-tail assets (TIA, JUP, NEAR, SUI, ADA, OP, AAVE) remain in this list
+   * so existing plans/UI keep working, but UI shows them only behind a
+   * "Show all" toggle. Order of `isCore: true` here = display priority.
+   */
+  isCore?: boolean;
   riskLevel: 'low' | 'medium' | 'high';
 }
 
 export const dcaAssets: DCAAsset[] = [
+  // ─── CORE TOP-10 (default surface area for DCA flows) ─────────────────
   // Blue Chips
-  { symbol: 'BTC', name: 'Bitcoin', category: 'blueChips', categoryLabel: 'Blue Chips', color: 'hsl(33, 100%, 50%)', isRecommended: true, riskLevel: 'low' },
-  { symbol: 'ETH', name: 'Ethereum', category: 'blueChips', categoryLabel: 'Blue Chips', color: 'hsl(217, 100%, 60%)', isRecommended: true, riskLevel: 'low' },
-  // Layer 1s
-  { symbol: 'SOL', name: 'Solana', category: 'layer1', categoryLabel: 'Layer 1', color: 'hsl(280, 100%, 60%)', isRecommended: true, riskLevel: 'medium' },
-  { symbol: 'AVAX', name: 'Avalanche', category: 'layer1', categoryLabel: 'Layer 1', color: 'hsl(0, 100%, 60%)', riskLevel: 'medium' },
-  { symbol: 'ADA', name: 'Cardano', category: 'layer1', categoryLabel: 'Layer 1', color: 'hsl(210, 100%, 50%)', riskLevel: 'medium' },
-  { symbol: 'NEAR', name: 'NEAR Protocol', category: 'layer1', categoryLabel: 'Layer 1', color: 'hsl(160, 100%, 45%)', riskLevel: 'medium' },
-  { symbol: 'SUI', name: 'Sui', category: 'layer1', categoryLabel: 'Layer 1', color: 'hsl(200, 100%, 55%)', riskLevel: 'high' },
+  { symbol: 'BTC',  name: 'Bitcoin',   category: 'blueChips',   categoryLabel: 'Blue Chips',  color: 'hsl(33, 100%, 50%)',  isRecommended: true, isCore: true, riskLevel: 'low' },
+  { symbol: 'ETH',  name: 'Ethereum',  category: 'blueChips',   categoryLabel: 'Blue Chips',  color: 'hsl(217, 100%, 60%)', isRecommended: true, isCore: true, riskLevel: 'low' },
+  // Layer 1s — only the proven ones survive the cut
+  { symbol: 'SOL',  name: 'Solana',    category: 'layer1',      categoryLabel: 'Layer 1',     color: 'hsl(280, 100%, 60%)', isRecommended: true, isCore: true, riskLevel: 'medium' },
+  { symbol: 'AVAX', name: 'Avalanche', category: 'layer1',      categoryLabel: 'Layer 1',     color: 'hsl(0, 100%, 60%)',                       isCore: true, riskLevel: 'medium' },
   // Layer 2s
-  { symbol: 'ARB', name: 'Arbitrum', category: 'layer2', categoryLabel: 'Layer 2', color: 'hsl(210, 100%, 55%)', riskLevel: 'medium' },
-  { symbol: 'OP', name: 'Optimism', category: 'layer2', categoryLabel: 'Layer 2', color: 'hsl(0, 100%, 55%)', riskLevel: 'medium' },
-  { symbol: 'MATIC', name: 'Polygon', category: 'layer2', categoryLabel: 'Layer 2', color: 'hsl(270, 100%, 60%)', riskLevel: 'medium' },
+  { symbol: 'ARB',  name: 'Arbitrum',  category: 'layer2',      categoryLabel: 'Layer 2',     color: 'hsl(210, 100%, 55%)',                     isCore: true, riskLevel: 'medium' },
+  { symbol: 'MATIC', name: 'Polygon',  category: 'layer2',      categoryLabel: 'Layer 2',     color: 'hsl(270, 100%, 60%)',                     isCore: true, riskLevel: 'medium' },
   // DeFi
-  { symbol: 'LINK', name: 'Chainlink', category: 'defi', categoryLabel: 'DeFi', color: 'hsl(220, 100%, 55%)', riskLevel: 'medium' },
-  { symbol: 'UNI', name: 'Uniswap', category: 'defi', categoryLabel: 'DeFi', color: 'hsl(330, 100%, 60%)', riskLevel: 'medium' },
-  { symbol: 'AAVE', name: 'Aave', category: 'defi', categoryLabel: 'DeFi', color: 'hsl(280, 80%, 55%)', riskLevel: 'medium' },
-  // Stablecoins
-  { symbol: 'USDT', name: 'Tether', category: 'stablecoins', categoryLabel: 'Stablecoins', color: 'hsl(152, 70%, 50%)', riskLevel: 'low' },
-  { symbol: 'USDC', name: 'USD Coin', category: 'stablecoins', categoryLabel: 'Stablecoins', color: 'hsl(210, 100%, 55%)', riskLevel: 'low' },
-  // Emerging
-  { symbol: 'TIA', name: 'Celestia', category: 'emerging', categoryLabel: 'Emerging', color: 'hsl(270, 100%, 65%)', riskLevel: 'high' },
-  { symbol: 'INJ', name: 'Injective', category: 'emerging', categoryLabel: 'Emerging', color: 'hsl(200, 100%, 55%)', riskLevel: 'high' },
-  { symbol: 'JUP', name: 'Jupiter', category: 'emerging', categoryLabel: 'Emerging', color: 'hsl(30, 100%, 55%)', riskLevel: 'high' },
+  { symbol: 'LINK', name: 'Chainlink', category: 'defi',        categoryLabel: 'DeFi',        color: 'hsl(220, 100%, 55%)',                     isCore: true, riskLevel: 'medium' },
+  { symbol: 'UNI',  name: 'Uniswap',   category: 'defi',        categoryLabel: 'DeFi',        color: 'hsl(330, 100%, 60%)', isRecommended: true, isCore: true, riskLevel: 'medium' },
+  // Stablecoin reserve — USDC is the war-chest fuel (USDT stays available for ops)
+  { symbol: 'USDC', name: 'USD Coin',  category: 'stablecoins', categoryLabel: 'Stablecoins', color: 'hsl(210, 100%, 55%)', isRecommended: true, isCore: true, riskLevel: 'low' },
+  { symbol: 'USDT', name: 'Tether',    category: 'stablecoins', categoryLabel: 'Stablecoins', color: 'hsl(152, 70%, 50%)',                       isCore: true, riskLevel: 'low' },
+
+  // ─── EXTENDED UNIVERSE (hidden behind "Show all" toggle) ──────────────
+  { symbol: 'ADA',  name: 'Cardano',       category: 'layer1',   categoryLabel: 'Layer 1',  color: 'hsl(210, 100%, 50%)', riskLevel: 'medium' },
+  { symbol: 'NEAR', name: 'NEAR Protocol', category: 'layer1',   categoryLabel: 'Layer 1',  color: 'hsl(160, 100%, 45%)', riskLevel: 'medium' },
+  { symbol: 'SUI',  name: 'Sui',           category: 'layer1',   categoryLabel: 'Layer 1',  color: 'hsl(200, 100%, 55%)', riskLevel: 'high' },
+  { symbol: 'OP',   name: 'Optimism',      category: 'layer2',   categoryLabel: 'Layer 2',  color: 'hsl(0, 100%, 55%)',   riskLevel: 'medium' },
+  { symbol: 'AAVE', name: 'Aave',          category: 'defi',     categoryLabel: 'DeFi',     color: 'hsl(280, 80%, 55%)',  riskLevel: 'medium' },
+  { symbol: 'TIA',  name: 'Celestia',      category: 'emerging', categoryLabel: 'Emerging', color: 'hsl(270, 100%, 65%)', riskLevel: 'high' },
+  { symbol: 'INJ',  name: 'Injective',     category: 'emerging', categoryLabel: 'Emerging', color: 'hsl(200, 100%, 55%)', riskLevel: 'high' },
+  { symbol: 'JUP',  name: 'Jupiter',       category: 'emerging', categoryLabel: 'Emerging', color: 'hsl(30, 100%, 55%)',  riskLevel: 'high' },
 ];
+
+/** Top-10 helper for selectors / recommender — preserves declared order. */
+export const dcaCoreAssets: DCAAsset[] = dcaAssets.filter((a) => a.isCore);
 
 // ============== DCA RECOMMENDATIONS ==============
 

@@ -25,6 +25,7 @@ import { AccountOverviewCard } from '@/components/portfolio/AccountOverviewCard'
 import { DCATracker } from '@/components/portfolio/DCATracker';
 import { PerformanceMetrics } from '@/components/portfolio/PerformanceMetrics';
 import { WarChestWidget } from '@/components/portfolio/WarChestWidget';
+import { DcaRecommendationsWidget } from '@/components/dca/DcaRecommendationsWidget';
 import { QuickTransferButton } from '@/components/transfer';
 import {
   DollarSign, ChevronRight, Edit3, Check,
@@ -430,6 +431,14 @@ export default function Portfolio() {
                     )}
                   </CardContent>
                 </Card>
+              </motion.div>
+
+              {/* AI-Recommended DCA Plans — surfaces 2 infinite plans tuned to
+                  the user's profile + capital. Includes USDC as war-chest fuel. */}
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+                <ErrorBoundary fallback={null}>
+                  <DcaRecommendationsWidget />
+                </ErrorBoundary>
               </motion.div>
 
               {/* War Chest — opportunistic USDC bucket with AI recommendations.

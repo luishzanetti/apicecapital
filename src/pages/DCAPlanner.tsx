@@ -22,6 +22,9 @@ import { DCAPlanCard } from '@/components/dca/DCAPlanCard';
 import { DCASummaryBar } from '@/components/dca/DCASummaryBar';
 import { DCAPerformanceChart } from '@/components/dca/DCAPerformanceChart';
 import { DCAExecutionTimeline } from '@/components/dca/DCAExecutionTimeline';
+import { DcaRecommendationsWidget } from '@/components/dca/DcaRecommendationsWidget';
+import { DipBuyPlansWidget } from '@/components/dca/DipBuyPlansWidget';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import {
   ArrowLeft,
   Calendar,
@@ -396,8 +399,20 @@ export default function DCAPlanner() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-5 py-6 space-y-6"
+        className="px-4 md:px-6 lg:px-8 py-5 space-y-5"
       >
+        {/* AI-recommended infinite plans (Primary + Diversifier) */}
+        <ErrorBoundary fallback={null}>
+          <DcaRecommendationsWidget
+            onCustomize={() => openWizard()}
+          />
+        </ErrorBoundary>
+
+        {/* Dip-Buy plans — opportunistic 7d / 21d bursts */}
+        <ErrorBoundary fallback={null}>
+          <DipBuyPlansWidget />
+        </ErrorBoundary>
+
         {/* Empty state */}
         {dcaPlans.length === 0 ? (
           <motion.div
