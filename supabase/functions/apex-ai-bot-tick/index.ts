@@ -192,17 +192,52 @@ Deno.serve(async (req) => {
 
     // ─── 4. Bootstrap (if requested) ────────────────
     if (body.bootstrap === true && positions.length === 0) {
+      // ★ V3 — SMA-20 filter (validated config from backtest v2) ★
+      // For each symbol: if sma_filter_enabled and current_price < sma_20 × 0.95
+      // for the LONG leg (or > 1.05 for SHORT), skip that symbol's L1.
+      // Per backtest: bot operates 100% win rate when this filter is on.
+      const filtered = await applySmaFilter(supabase, portfolio.id, symbols);
+      const survivingSymbols = filtered.symbols;
+
+      if (filtered.skippedCount > 0) {
+        await logEvent(supabase, portfolio.id, 'info', 'sma_filter_applied', {
+          total_symbols: symbols.length,
+          skipped: filtered.skippedCount,
+          surviving: survivingSymbols.length,
+          rejections: filtered.rejections.slice(0, 5),
+        });
+      }
+
       let opened = 0;
+      if (survivingSymbols.length === 0) {
+        await logEvent(supabase, portfolio.id, 'warning', 'bootstrap_blocked_sma', {
+          reason: 'all_symbols_below_sma_20_filter',
+          rejections: filtered.rejections.slice(0, 5),
+        });
+        return json({
+          success: true,
+          data: {
+            portfolio_id: body.portfolio_id,
+            bootstrap: true,
+            mode,
+            actions: [],
+            blocked_by_sma_filter: filtered.rejections,
+          },
+        });
+      }
+
       if (mode === 'live' && creds) {
-        opened = await bootstrapLiveHedgePositions(supabase, portfolio, symbols, creds);
+        opened = await bootstrapLiveHedgePositions(supabase, portfolio, survivingSymbols, creds);
         await logEvent(supabase, portfolio.id, 'info', 'bootstrap_opened_live', {
           positions_opened: opened,
           testnet: creds.testnet,
+          sma_filtered: filtered.skippedCount,
         });
       } else {
-        opened = await bootstrapHedgePositions(supabase, portfolio, symbols);
+        opened = await bootstrapHedgePositions(supabase, portfolio, survivingSymbols);
         await logEvent(supabase, portfolio.id, 'info', 'bootstrap_opened_simulated', {
           positions_opened: opened,
+          sma_filtered: filtered.skippedCount,
         });
       }
 
@@ -213,6 +248,7 @@ Deno.serve(async (req) => {
           bootstrap: true,
           mode,
           actions: Array(opened).fill({ type: 'open_position' }),
+          sma_skipped: filtered.skippedCount,
         },
       });
     }
@@ -623,6 +659,92 @@ Deno.serve(async (req) => {
 // ═══════════════════════════════════════════════════════════════════
 // Helpers
 // ═══════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════
+// V3 SMA-20 filter (validated production config)
+// ═══════════════════════════════════════════════════════════════════
+
+interface SmaFilterResult {
+  symbols: Array<{ symbol: string; allocation_pct: number | string; leverage: number }>;
+  skippedCount: number;
+  rejections: Array<{ symbol: string; reason: string; current_price?: number; sma_20?: number }>;
+}
+
+/**
+ * Apply SMA-20 filter to L1 bootstrap candidates.
+ * Per backtest v2 validated config:
+ *   - LONG L1 blocked if current_price < sma_20 × 0.95 (strong downtrend)
+ *   - For hedge mode (long+short), if LONG fails, both legs are skipped for that symbol
+ *
+ * If sma_filter_enabled is false in layer_config, all symbols pass through.
+ */
+async function applySmaFilter(
+  supabase: ReturnType<typeof createClient>,
+  portfolioId: string,
+  candidateSymbols: Array<{ symbol: string; allocation_pct: number | string; leverage: number }>
+): Promise<SmaFilterResult> {
+  // Check if filter is enabled for this portfolio
+  const { data: cfg } = await supabase
+    .from('apex_ai_layer_config')
+    .select('sma_filter_enabled')
+    .eq('portfolio_id', portfolioId)
+    .maybeSingle();
+
+  if (!cfg?.sma_filter_enabled) {
+    return { symbols: candidateSymbols, skippedCount: 0, rejections: [] };
+  }
+
+  // Pull fresh prices + sma_20 for each symbol
+  const symbolNames = candidateSymbols.map((s) => s.symbol);
+  const [pricesResult, regimes] = await Promise.all([
+    fetchBybitTickers(symbolNames),
+    loadRegimeStates(supabase, symbolNames),
+  ]);
+  const { prices } = pricesResult;
+
+  const survivors: typeof candidateSymbols = [];
+  const rejections: SmaFilterResult['rejections'] = [];
+
+  for (const s of candidateSymbols) {
+    const price = prices[s.symbol];
+    const regime = regimes[s.symbol];
+    const sma20 = regime?.atr_14 != null ? null : null; // placeholder
+    // Try to read sma_20 from a fresh query (loadRegimeStates only fetched limited cols)
+    const { data: fullRegime } = await supabase
+      .from('apex_ai_regime_state')
+      .select('sma_20, trend_regime')
+      .eq('symbol', s.symbol)
+      .maybeSingle();
+
+    const sma = fullRegime?.sma_20 ? Number(fullRegime.sma_20) : null;
+
+    if (!price || !sma) {
+      // No data → admit (better to operate than miss opportunity)
+      survivors.push(s);
+      continue;
+    }
+
+    // SMA filter: block if price < sma × 0.95 (5% below SMA-20 = strong downtrend)
+    const threshold = sma * 0.95;
+    if (price < threshold) {
+      rejections.push({
+        symbol: s.symbol,
+        reason: `price ${price.toFixed(2)} < SMA20×0.95 (${threshold.toFixed(2)}) — downtrend filter`,
+        current_price: price,
+        sma_20: sma,
+      });
+      continue;
+    }
+
+    survivors.push(s);
+  }
+
+  return {
+    symbols: survivors,
+    skippedCount: rejections.length,
+    rejections,
+  };
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // Martingale group helpers

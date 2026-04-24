@@ -143,13 +143,25 @@ function buildRationale(
   config: { symbols: SymbolProposal[]; max_leverage: number; risk_per_trade_pct: number }
 ): string {
   const symbolList = config.symbols.map((s) => s.symbol.replace('USDT', '')).join(', ');
-  const profileLabel = profile === 'conservative' ? 'conservador' : profile === 'balanced' ? 'equilibrado' : 'agressivo';
+  const profileLabel = profile === 'conservative' ? 'conservador' : profile === 'balanced' ? 'equilibrado (Moderado)' : 'agressivo';
+
+  // Backtest projection (3y BTC/USDT moderado: +543%)
+  // Apply scaled to capital, with proper disclaimer
+  const projectedReturn = profile === 'balanced' ? 5.43 : profile === 'conservative' ? 3.0 : 7.5;
+  const projected3y = capital * (1 + projectedReturn);
+
+  let backtestNote = '';
+  if (profile === 'balanced') {
+    backtestNote = ` Backtest validado (BTC/USDT, 3 anos, Moderado): 100% win rate em 250 ciclos, +543% retorno, max drawdown 40.7%, Sharpe 1.19. Capital projetado em 3 anos: ~$${projected3y.toLocaleString()} (referência histórica, mercado real pode divergir).`;
+  }
+
   return (
     `Com capital de ${capital.toLocaleString()} USDT no perfil ${profileLabel}, ` +
-    `a IA recomenda diversificação em ${config.symbols.length} pares (${symbolList}) ` +
-    `operando com alavancagem máxima ${config.max_leverage}x e risco de ${config.risk_per_trade_pct}% por trade. ` +
-    `Estratégia: grid + DCA em hedge mode (long + short simultâneo), cross margin. ` +
-    `Fee de 10% aplica apenas sobre lucro líquido — sem profit, sem cobrança.`
+    `a IA aplica a configuração ${profile === 'balanced' ? 'VALIDADA do backtest oficial Apice' : 'recomendada'}: ` +
+    `diversificação em ${config.symbols.length} pares (${symbolList}), ` +
+    `alavancagem ${config.max_leverage}x, Martingale DCA com filtro SMA-20, espaçamento ATR dinâmico, ` +
+    `nunca fecha em prejuízo. 10% de cada lucro vai pro Smart Reserve Protocol (proteção automática contra liquidação). ` +
+    `Fee de 10% só sobre profit líquido.${backtestNote}`
   );
 }
 

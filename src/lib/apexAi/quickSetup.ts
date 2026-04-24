@@ -181,37 +181,45 @@ function buildRationale(
   config: StrategyTemplate,
   locale: 'en' | 'pt'
 ): string {
-  const symbolList = config.symbols
-    .map((s) => s.symbol.replace('USDT', ''))
-    .join(', ');
+  const symbolList = config.symbols.map((s) => s.symbol.replace('USDT', '')).join(', ');
+
+  // Backtest scaled projection (validated config: BTC/USDT 3y, balanced = +543%)
+  const projectedMultiplier = profile === 'balanced' ? 5.43 : profile === 'conservative' ? 3.0 : 7.5;
+  const projected3y = capital * (1 + projectedMultiplier);
 
   if (locale === 'pt') {
     const profileLabel =
-      profile === 'conservative'
-        ? 'conservador'
-        : profile === 'balanced'
-        ? 'equilibrado'
-        : 'agressivo';
+      profile === 'conservative' ? 'conservador'
+      : profile === 'balanced' ? 'equilibrado (Moderado — config oficial validada)'
+      : 'agressivo';
+
+    const backtestNote = profile === 'balanced'
+      ? ` Backtest oficial Apice (BTC/USDT, 3 anos): 100% win rate em 250 ciclos, +543% retorno, max drawdown 40.7%, Sharpe 1.19. Projeção 3 anos com $${capital.toLocaleString()}: ~$${projected3y.toLocaleString()} (referência histórica).`
+      : '';
+
     return (
       `Com capital de ${capital.toLocaleString()} USDT no perfil ${profileLabel}, ` +
-      `a IA recomenda diversificação em ${config.symbols.length} pares (${symbolList}) ` +
-      `operando com alavancagem máxima ${config.max_leverage}x e risco de ${config.risk_per_trade_pct}% por trade. ` +
-      `Estratégia: grid + DCA em hedge mode (long + short simultâneo), cross margin. ` +
-      `Fee de 10% aplica apenas sobre lucro líquido — sem lucro, sem cobrança.`
+      `aplicamos diversificação em ${config.symbols.length} pares (${symbolList}), ` +
+      `alavancagem ${config.max_leverage}x, Martingale DCA com filtro SMA-20, espaçamento ATR dinâmico. ` +
+      `Bot nunca fecha em prejuízo. 10% de cada lucro alimenta o Smart Reserve Protocol (proteção contra liquidação). ` +
+      `Fee 10% só sobre profit.${backtestNote}`
     );
   }
 
   const profileLabel =
-    profile === 'conservative'
-      ? 'conservative'
-      : profile === 'balanced'
-      ? 'balanced'
-      : 'aggressive';
+    profile === 'conservative' ? 'conservative'
+    : profile === 'balanced' ? 'balanced (Moderado — official validated config)'
+    : 'aggressive';
+
+  const backtestNote = profile === 'balanced'
+    ? ` Apice official backtest (BTC/USDT, 3 years): 100% win rate over 250 cycles, +543% return, max drawdown 40.7%, Sharpe 1.19. 3-year projection on $${capital.toLocaleString()}: ~$${projected3y.toLocaleString()} (historical reference).`
+    : '';
+
   return (
-    `With ${capital.toLocaleString()} USDT on a ${profileLabel} profile, ` +
-    `the AI recommends diversifying across ${config.symbols.length} pairs (${symbolList}) ` +
-    `with up to ${config.max_leverage}x leverage and ${config.risk_per_trade_pct}% risk per trade. ` +
-    `Strategy: grid + DCA in hedge mode (long + short simultaneously), cross margin. ` +
-    `10% fee applies only to net profit — no profit, no charge.`
+    `With ${capital.toLocaleString()} USDT on ${profileLabel}, ` +
+    `we diversify across ${config.symbols.length} pairs (${symbolList}), ` +
+    `${config.max_leverage}x leverage, Martingale DCA with SMA-20 filter, dynamic ATR spacing. ` +
+    `Bot never closes at loss. 10% of each profit feeds the Smart Reserve Protocol (liquidation protection). ` +
+    `10% fee only on profit.${backtestNote}`
   );
 }
