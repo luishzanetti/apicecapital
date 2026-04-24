@@ -37,6 +37,8 @@ import {
 import { useApexAiSymbols } from '@/hooks/useApexAiData';
 import { ApexAiInsightsCard } from '@/components/apex-ai/ApexAiInsightsCard';
 import { ApexAiCommandCenter } from '@/components/apex-ai/ApexAiCommandCenter';
+import { ApexAiBurnInMonitor } from '@/components/apex-ai/ApexAiBurnInMonitor';
+import { ApexAiFundingWidget } from '@/components/apex-ai/ApexAiFundingWidget';
 import { useApexAiTicker } from '@/hooks/useApexAiTicker';
 import {
   useApexAiRegime,
@@ -493,6 +495,18 @@ function DashboardContent({
             regimeMap={regimeMap}
             intelligenceMap={intelligenceMap}
           />
+        </div>
+      )}
+
+      {/* V2.5 — Burn-in system health monitor */}
+      <div className="mb-5">
+        <ApexAiBurnInMonitor portfolioId={portfolio.id} />
+      </div>
+
+      {/* V2.5 — Funding intelligence (yield opportunities) */}
+      {activeSymbolList.length > 0 && (
+        <div className="mb-5">
+          <ApexAiFundingWidget intelligenceMap={intelligenceMap} />
         </div>
       )}
 

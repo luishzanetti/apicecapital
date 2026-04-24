@@ -333,25 +333,58 @@ async function fetchFundingRate(symbol: string): Promise<{
   volume: number | null;
   oi: number | null;
 } | null> {
+  // Bybit first (with browser UA to bypass WAF)
   try {
     const url = `${BYBIT_PUBLIC}/v5/market/tickers?category=linear&symbol=${symbol}`;
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
     });
-    if (!res.ok) return null;
-    const json = await res.json();
-    if (json.retCode !== 0) return null;
-    const t = json.result?.list?.[0];
-    if (!t) return null;
-    return {
-      rate: Number(t.fundingRate),
-      nextAt: t.nextFundingTime ? new Date(Number(t.nextFundingTime)).toISOString() : null,
-      volume: Number(t.volume24h) * Number(t.lastPrice),
-      oi: Number(t.openInterestValue),
-    };
-  } catch {
-    return null;
-  }
+    if (res.ok) {
+      const json = await res.json();
+      if (json.retCode === 0 && json.result?.list?.[0]) {
+        const t = json.result.list[0];
+        return {
+          rate: Number(t.fundingRate),
+          nextAt: t.nextFundingTime ? new Date(Number(t.nextFundingTime)).toISOString() : null,
+          volume: Number(t.volume24h) * Number(t.lastPrice),
+          oi: Number(t.openInterestValue),
+        };
+      }
+    }
+  } catch { /* fall through */ }
+
+  // Binance fallback (has funding rate + volume for USDT-M perps)
+  try {
+    const [premRes, tickerRes] = await Promise.all([
+      fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${symbol}`, {
+        headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+      }),
+      fetch(`https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${symbol}`, {
+        headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+      }),
+    ]);
+
+    if (premRes.ok) {
+      const prem = await premRes.json();
+      let volume: number | null = null;
+      if (tickerRes.ok) {
+        const ticker = await tickerRes.json();
+        volume = Number(ticker.quoteVolume);
+      }
+      return {
+        rate: Number(prem.lastFundingRate),
+        nextAt: prem.nextFundingTime ? new Date(Number(prem.nextFundingTime)).toISOString() : null,
+        volume,
+        oi: null,
+      };
+    }
+  } catch { /* fall through */ }
+
+  return null;
 }
 
 function json(body: unknown, status = 200): Response {
