@@ -39,6 +39,7 @@ import { ApexAiInsightsCard } from '@/components/apex-ai/ApexAiInsightsCard';
 import { ApexAiCommandCenter } from '@/components/apex-ai/ApexAiCommandCenter';
 import { ApexAiBurnInMonitor } from '@/components/apex-ai/ApexAiBurnInMonitor';
 import { ApexAiFundingWidget } from '@/components/apex-ai/ApexAiFundingWidget';
+import { ApexAiReserveFundWidget } from '@/components/apex-ai/ApexAiReserveFundWidget';
 import { useApexAiTicker } from '@/hooks/useApexAiTicker';
 import {
   useApexAiRegime,
@@ -497,6 +498,11 @@ function DashboardContent({
           />
         </div>
       )}
+
+      {/* V3 — Smart Reserve Protocol */}
+      <div className="mb-5">
+        <ApexAiReserveFundWidget portfolioId={portfolio.id} />
+      </div>
 
       {/* V2.5 — Burn-in system health monitor */}
       <div className="mb-5">

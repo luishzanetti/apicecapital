@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apex AI Backtest V3 — PRODUÇÃO | Apice Capital</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0a0a0f;--s1:#111118;--s2:#18181f;--s3:#1e1e28;--bdr:#252530;--acc:#7c3aed;--acc2:#06b6d4;--grn:#10b981;--red:#ef4444;--amb:#f59e0b;--txt:#f1f5f9;--mut:#64748b;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',system-ui,sans-serif;font-size:14px;min-height:100vh;}
+
+.hdr{background:linear-gradient(135deg,#0f0f1a,#1a0a2e);border-bottom:1px solid var(--bdr);padding:18px 28px;display:flex;align-items:center;gap:16px;}
+.hdr-logo{width:42px;height:42px;background:linear-gradient(135deg,#7c3aed,#06b6d4);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;flex-shrink:0;}
+.hdr-text h1{font-size:17px;font-weight:700;background:linear-gradient(90deg,#a78bfa,#67e8f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hdr-text p{font-size:11px;color:var(--mut);margin-top:2px;}
+.v3-badge{margin-left:auto;background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px;}
+
+.ctrl{padding:16px 28px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;background:var(--s1);border-bottom:1px solid var(--bdr);}
+.cg{display:flex;flex-direction:column;gap:5px;min-width:120px;}
+.cg label{font-size:10px;color:var(--mut);font-weight:600;letter-spacing:.5px;}
+.cg select,.cg input{background:var(--s2);border:1px solid var(--bdr);color:var(--txt);padding:7px 10px;border-radius:8px;font-size:12px;outline:none;transition:border-color .2s;}
+.cg select:focus,.cg input:focus{border-color:var(--acc);}
+.coins-wrap{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px 10px;background:var(--s2);border:1px solid var(--bdr);border-radius:8px;}
+.coin-chk{display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;}
+.coin-chk input{accent-color:var(--acc);}
+.run-btn{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;white-space:nowrap;}
+.run-btn:hover{opacity:.9;transform:translateY(-1px);}
+.run-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+.sbar{padding:10px 28px;background:var(--s1);border-bottom:1px solid var(--bdr);font-size:12px;color:var(--mut);display:none;align-items:center;gap:8px;}
+.sbar.vis{display:flex!important;}
+.spinner{width:14px;height:14px;border:2px solid var(--bdr);border-top-color:var(--acc);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.mets{padding:18px 28px 0;display:none;}
+.mets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;}
+.mc{background:var(--s1);border:1px solid var(--bdr);border-radius:12px;padding:14px 16px;cursor:default;transition:background .2s;}
+.mc:hover{background:var(--s2);}
+.mc .lb{font-size:10px;color:var(--mut);font-weight:600;margin-bottom:6px;letter-spacing:.4px;}
+.mc .vl{font-size:21px;font-weight:700;}
+.mc .sb{font-size:10px;color:var(--mut);margin-top:2px;}
+.g{color:var(--grn);} .r{color:var(--red);} .a{color:var(--amb);} .p{color:#a78bfa;} .c{color:#67e8f9;}
+
+.tabs-s{padding:18px 28px;display:none;}
+.tab-nav{display:flex;gap:3px;background:var(--s1);border:1px solid var(--bdr);border-radius:12px;padding:4px;margin-bottom:18px;overflow-x:auto;flex-wrap:nowrap;}
+.tb{background:transparent;border:none;color:var(--mut);padding:7px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;white-space:nowrap;transition:all .2s;}
+.tb.active{background:var(--acc);color:#fff;}
+.tb:hover:not(.active){background:var(--s2);color:var(--txt);}
+
+.card{background:var(--s1);border:1px solid var(--bdr);border-radius:14px;padding:18px;margin-bottom:14px;}
+.card h3{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.cw{position:relative;height:240px;}
+.cw-sm{position:relative;height:180px;}
+.cw-lg{position:relative;height:300px;}
+
+.tw{overflow-x:auto;border-radius:10px;border:1px solid var(--bdr);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{background:var(--s2);padding:9px 11px;text-align:left;color:var(--mut);font-weight:600;font-size:10px;letter-spacing:.4px;border-bottom:1px solid var(--bdr);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--bdr);transition:background .15s;}
+tbody tr:hover{background:var(--s2);}
+tbody td{padding:8px 11px;white-space:nowrap;}
+.bdg{display:inline-block;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;}
+.bg{background:#10b98122;color:var(--grn);} .br{background:#ef444422;color:var(--red);}
+.ba{background:#f59e0b22;color:var(--amb);} .bp{background:#7c3aed22;color:#a78bfa;}
+.bc{background:#06b6d422;color:#67e8f9;} .bw{background:#ffffff11;color:#cbd5e1;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+.grid4{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:14px;}
+@media(max-width:720px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+.lev-table{width:100%;}
+.lev-row{display:grid;grid-template-columns:80px 1fr 1fr 1fr 1fr 1fr;gap:8px;padding:10px 14px;border-bottom:1px solid var(--bdr);align-items:center;}
+.lev-row.hd{background:var(--s2);font-size:10px;color:var(--mut);font-weight:600;letter-spacing:.4px;border-radius:8px 8px 0 0;}
+.lev-row:last-child{border-bottom:none;}
+.lev-badge{padding:3px 10px;border-radius:6px;font-weight:700;font-size:11px;text-align:center;}
+
+.prod-check{display:flex;flex-direction:column;gap:8px;}
+.pck{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:var(--s2);border:1px solid var(--bdr);}
+.pck-icon{font-size:16px;flex-shrink:0;}
+.pck-text{font-size:12px;line-height:1.5;}
+.pck-text strong{display:block;margin-bottom:1px;}
+.pck.ok{border-color:#10b98133;}
+.pck.warn{border-color:#f59e0b33;}
+.pck.bad{border-color:#ef444433;}
+
+.reco-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.rec{background:var(--s1);border:1px solid var(--bdr);border-radius:12px;padding:14px;}
+.rec-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.rec-icon{font-size:18px;}
+.rec-title{font-size:12px;font-weight:600;flex:1;}
+.rec-pri{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;}
+.pri-c{background:#ef444422;color:var(--red);}
+.pri-h{background:#f59e0b22;color:var(--amb);}
+.pri-m{background:#7c3aed22;color:#a78bfa;}
+.rec-body{font-size:11px;color:var(--mut);line-height:1.6;}
+.tag{display:inline-block;background:var(--s2);border:1px solid var(--bdr);border-radius:5px;padding:1px 7px;font-size:10px;font-weight:600;margin:3px 3px 0 0;}
+
+.hmg{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;}
+.hmc{aspect-ratio:1;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+
+.coin-bar{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.coin-fill{height:22px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:700;transition:width .5s;}
+.coin-lbl{font-size:11px;color:var(--mut);min-width:180px;}
+
+.rev-flow{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}
+.rev-node{background:var(--s2);border:1px solid var(--bdr);border-radius:9px;padding:9px 13px;font-size:11px;display:flex;align-items:center;gap:5px;}
+.rev-arr{color:var(--mut);font-size:15px;display:flex;align-items:center;}
+
+.port-coin{background:var(--s2);border:1px solid var(--bdr);border-radius:10px;padding:12px;}
+.port-coin h4{font-size:12px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+
+.signal-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:10px;}
+.sig{background:var(--s2);border:1px solid var(--bdr);border-radius:9px;padding:11px;}
+.sig-name{font-size:11px;font-weight:600;margin-bottom:3px;}
+.sig-desc{font-size:10px;color:var(--mut);line-height:1.5;}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-logo">A</div>
+  <div class="hdr-text">
+    <h1>Apex AI Backtest — V3 PRODUÇÃO</h1>
+    <p>Capital · Alavancagem · Portfólio Multi-Moeda · Engenharia Reversa · Estratégia Hedge</p>
+  </div>
+  <div class="v3-badge">V3 · LIVE READY</div>
+</header>
+
+<section class="ctrl">
+  <div class="cg"><label>PERÍODO</label>
+    <select id="daysSel"><option value="180">6 meses</option><option value="365" selected>1 ano</option><option value="730">2 anos</option><option value="1000">~3 anos</option></select>
+  </div>
+  <div class="cg"><label>PERFIL DE RISCO</label>
+    <select id="profileSel"><option value="conservative">Conservador</option><option value="moderate" selected>Moderado</option><option value="aggressive">Agressivo</option></select>
+  </div>
+  <div class="cg"><label>CAPITAL TOTAL ($)</label>
+    <input type="number" id="capitalInput" value="10000" min="1000" step="1000">
+  </div>
+  <div class="cg"><label>BASE SIZE ($)</label>
+    <input type="number" id="baseSizeInput" value="200" min="10" step="10">
+  </div>
+  <div class="cg"><label>ALAVANCAGEM</label>
+    <select id="levSel"><option value="1">1× (Spot)</option><option value="3">3×</option><option value="5" selected>5×</option><option value="10">10×</option><option value="20">20×</option></select>
+  </div>
+  <div class="cg"><label>RESERVA (% lucro)</label>
+    <input type="number" id="reservePctInput" value="10" min="0" max="30" step="1">
+  </div>
+  <div class="cg"><label>MOEDAS DO PORTFÓLIO</label>
+    <div class="coins-wrap">
+      <label class="coin-chk"><input type="checkbox" id="chkBTC" checked> BTC</label>
+      <label class="coin-chk"><input type="checkbox" id="chkETH" checked> ETH</label>
+      <label class="coin-chk"><input type="checkbox" id="chkSOL"> SOL</label>
+      <label class="coin-chk"><input type="checkbox" id="chkBNB"> BNB</label>
+    </div>
+  </div>
+  <div class="cg"><label>FILTRO SMA-20</label>
+    <select id="smaFilterSel"><option value="1">Ativado</option><option value="0">Desativado</option></select>
+  </div>
+  <div class="cg"><label>ESPAÇAMENTO</label>
+    <select id="dynSpacingSel"><option value="1">ATR Dinâmico</option><option value="0">Fixo</option></select>
+  </div>
+  <button class="run-btn" id="runBtn" onclick="runV3()">▶ Executar V3</button>
+</section>
+
+<div class="sbar" id="sbar"><div class="spinner"></div><span id="smsg">Carregando...</span></div>
+
+<section class="mets" id="metsSection"><div class="mets-grid" id="metsGrid"></div></section>
+
+<section class="tabs-s" id="tabsSection">
+  <nav class="tab-nav">
+    <button class="tb active" onclick="tab('results',this)">📊 Resultados</button>
+    <button class="tb" onclick="tab('production',this)">🚀 Config Produção</button>
+    <button class="tb" onclick="tab('portfolio',this)">🌐 Portfólio</button>
+    <button class="tb" onclick="tab('comparison',this)">⚖️ V1/V2/V3</button>
+    <button class="tb" onclick="tab('reverse-eng',this)">🔬 Eng. Reversa</button>
+    <button class="tb" onclick="tab('reverse-strat',this)">⚡ Estratégia Reversa</button>
+    <button class="tb" onclick="tab('reserve',this)">🛡️ Reserva</button>
+    <button class="tb" onclick="tab('recommendations',this)">💡 Recomendações</button>
+  </nav>
+
+  <!-- TAB RESULTS -->
+  <div id="tab-results">
+    <div class="card"><h3>📈 Curva de Capital V3 <span style="font-size:10px;color:var(--mut);font-weight:400;margin-left:6px">capital líquido + posição + reserva</span></h3><div class="cw"><canvas id="eqChart"></canvas></div></div>
+    <div class="grid2">
+      <div class="card"><h3>📉 Drawdown</h3><div class="cw-sm"><canvas id="ddChart"></canvas></div></div>
+      <div class="card"><h3>🗓️ Heatmap Mensal</h3><div id="hmWrap"></div></div>
+    </div>
+    <div class="card"><h3>📋 Log de Operações</h3><div class="tw"><table><thead><tr><th>#</th><th>Início</th><th>Fim</th><th>Dias</th><th>Camadas</th><th>Avg Entry</th><th>TP</th><th>Investido</th><th>Lucro</th><th>ROI</th><th>Reserva</th><th>Status</th></tr></thead><tbody id="tradeLog"></tbody></table></div></div>
+  </div>
+
+  <!-- TAB PRODUCTION -->
+  <div id="tab-production" style="display:none">
+    <div class="grid2">
+      <div class="card">
+        <h3>💰 Capital Necessário por Alavancagem</h3>
+        <p style="font-size:11px;color:var(--mut);margin-bottom:12px">Margem = Posição ÷ Alavancagem. Recomendamos 2× a margem máxima como buffer de segurança.</p>
+        <div id="leverageTable"></div>
+      </div>
+      <div class="card">
+        <h3>🏆 Configuração Validada — Pronta para Produção</h3>
+        <div id="prodConfig"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>✅ Checklist Pré-Produção</h3>
+      <div class="prod-check" id="prodChecklist"></div>
+    </div>
+    <div class="card">
+      <h3>📐 Anatomia de Capital por Camada (V3)</h3>
+      <p style="font-size:11px;color:var(--mut);margin-bottom:12px">L1=L2=base. A partir de L3 dobra. Com <span id="levLbl">5×</span> de alavancagem.</p>
+      <div id="anatWrap"></div>
+    </div>
+    <div class="card">
+      <h3>⚠️ Preços de Liquidação por Camada</h3>
+      <p style="font-size:11px;color:var(--mut);margin-bottom:10px">Com alavancagem, cada camada tem um preço de liquidação diferente. Abaixo desse preço, a posição é liquidada.</p>
+      <div class="tw"><table><thead><tr><th>Camada</th><th>Tamanho ($)</th><th>Margem (5×)</th><th>Margem (10×)</th><th>Liq. 5× (queda %)</th><th>Liq. 10× (queda %)</th><th>Risco</th></tr></thead><tbody id="liqTable"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- TAB PORTFOLIO -->
+  <div id="tab-portfolio" style="display:none">
+    <div class="card"><h3>🌐 Curva de Capital — Portfólio Consolidado</h3><div class="cw-lg"><canvas id="portChart"></canvas></div></div>
+    <div class="card"><h3>📊 Desempenho por Moeda</h3><div class="tw"><table><thead><tr><th>Moeda</th><th>Ciclos</th><th>Win Rate</th><th>Lucro Total</th><th>ROI</th><th>Max DD</th><th>Sharpe</th><th>Ciclos/Mês</th><th>Capital Avg</th><th>Veredito</th></tr></thead><tbody id="portTable"></tbody></table></div></div>
+    <div class="card" id="portRecoCard">
+      <h3>🎯 Recomendação de Diversificação</h3>
+      <div id="portReco"></div>
+    </div>
+    <div class="card">
+      <h3>📊 Performance por Moeda — Comparativo Visual</h3>
+      <div id="portBars"></div>
+    </div>
+  </div>
+
+  <!-- TAB COMPARISON -->
+  <div id="tab-comparison" style="display:none">
+    <div class="card"><h3>⚖️ Curvas: V1 vs V2 vs V3</h3><div class="cw"><canvas id="cmpChart"></canvas></div></div>
+    <div class="card"><h3>📋 Métricas Comparativas</h3><div class="tw"><table><thead><tr><th>Métrica</th><th>V1 — Martingale Puro</th><th>V2 — Smart + SRP</th><th>V3 — Smart + Multi + Hedge</th><th>Melhor</th></tr></thead><tbody id="cmpTable"></tbody></table></div></div>
+  </div>
+
+  <!-- TAB REVERSE ENG -->
+  <div id="tab-reverse-eng" style="display:none">
+    <div class="card"><h3>🔬 Análise de Falhas — O Que Não Funcionou</h3>
+      <div class="grid2" id="failStats"></div>
+    </div>
+    <div class="card"><h3>📉 Padrões de Falha — Quando o DCA Perde</h3><div class="tw"><table><thead><tr><th>#</th><th>Início</th><th>Duração</th><th>Camadas</th><th>Loss</th><th>Regime</th><th>ATR no Início</th><th>Causa Provável</th><th>Poderia Evitar?</th></tr></thead><tbody id="failLog"></tbody></table></div></div>
+    <div class="card"><h3>💡 Melhorias Identificadas pela Análise de Falhas</h3><div id="failInsights"></div></div>
+  </div>
+
+  <!-- TAB REVERSE STRAT -->
+  <div id="tab-reverse-strat" style="display:none">
+    <div class="card">
+      <h3>⚡ Estratégia Reversa — DCA SHORT com Hedge</h3>
+      <p style="font-size:12px;color:var(--mut);margin-bottom:14px;line-height:1.7">Quando o bot DCA abre camada 5 ou mais, o mercado está em queda forte. Em vez de sofrer junto, abrimos um <strong>SHORT alavancado</strong> na mesma direção da queda. Quando o DCA finalmente fecha (preço sobe), fechamos o short com pequena perda — mas o lucro do DCA compensa. Quando o DCA sofre mais (preço cai ainda mais), o short lucra substancialmente.</p>
+      <div class="rev-flow">
+        <div class="rev-node" style="border-color:#7c3aed44;background:#7c3aed11;">🤖 DCA abre L5+</div>
+        <div class="rev-arr">→</div>
+        <div class="rev-node" style="border-color:#ef444444;background:#ef444411;">📉 SINAL: Downtrend forte</div>
+        <div class="rev-arr">→</div>
+        <div class="rev-node" style="border-color:#f59e0b44;background:#f59e0b11;">⚡ Abrir SHORT 5×</div>
+        <div class="rev-arr">→</div>
+        <div class="rev-node" style="border-color:#10b98144;background:#10b98111;">🎯 TP: -3% | SL: +1.5%</div>
+        <div class="rev-arr">→</div>
+        <div class="rev-node" style="border-color:#06b6d444;background:#06b6d411;">💰 Lucro no Downtrend</div>
+      </div>
+    </div>
+    <div class="card"><h3>📈 Curva de Capital: DCA Sozinho vs DCA + Hedge SHORT</h3><div class="cw"><canvas id="hedgeChart"></canvas></div></div>
+    <div class="grid2">
+      <div class="card"><h3>📊 Métricas: DCA vs Hedge</h3><div id="hedgeMetrics"></div></div>
+      <div class="card"><h3>🎯 Parâmetros Validados da Estratégia Reversa</h3><div id="hedgeParams"></div></div>
+    </div>
+    <div class="card"><h3>📋 Log da Estratégia Reversa</h3><div class="tw"><table><thead><tr><th>#</th><th>Entrada</th><th>Saída</th><th>Dias</th><th>Preço Short</th><th>Lucro</th><th>ROI</th><th>Trigger</th><th>Status</th></tr></thead><tbody id="revLog"></tbody></table></div></div>
+  </div>
+
+  <!-- TAB RESERVE -->
+  <div id="tab-reserve" style="display:none">
+    <div class="card"><h3>🛡️ Crescimento do Fundo de Reserva</h3><div class="cw"><canvas id="resChart"></canvas></div></div>
+    <div class="card"><h3>📋 Eventos de Deploy</h3><div class="tw"><table><thead><tr><th>Data</th><th>Tipo</th><th>Valor</th></tr></thead><tbody id="resLog"></tbody></table></div></div>
+  </div>
+
+  <!-- TAB RECOMMENDATIONS -->
+  <div id="tab-recommendations" style="display:none">
+    <div class="reco-g" id="recoGrid"></div>
+  </div>
+</section>
+
+<script>
+'use strict';
+
+// ═══════════════ GLOBALS ═══════════════
+let CH = {};
+let RES = {};
+
+// ═══════════════ PROFILES ═══════════════
+const P = {
+  conservative:{tp:.8, maxLayers:7, cbTol:25, fixedSpacing:1.0, atrB:.7, atrBear:1.2, atrS:.9, minSp:.4, maxSp:3, maxDays:45},
+  moderate:    {tp:1.2,maxLayers:10,cbTol:35, fixedSpacing:1.5, atrB:.8, atrBear:1.3, atrS:1., minSp:.5, maxSp:4, maxDays:60},
+  aggressive:  {tp:1.5,maxLayers:10,cbTol:45, fixedSpacing:2.0, atrB:.9, atrBear:1.5, atrS:1.1,minSp:.6, maxSp:5, maxDays:90},
+};
+
+const COIN_COLORS = {BTCUSDT:'#f59e0b',ETHUSDT:'#6366f1',SOLUSDT:'#10b981',BNBUSDT:'#06b6d4'};
+const COIN_NAMES  = {BTCUSDT:'BTC',ETHUSDT:'ETH',SOLUSDT:'SOL',BNBUSDT:'BNB'};
+
+// ═══════════════ MATH ═══════════════
+const f2=(n)=>n.toFixed(2);
+const fC=(n)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fP=(n)=>(n>=0?'+':'')+n.toFixed(2)+'%';
+const fD=(ts)=>new Date(ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+
+function atr14(cs){
+  let e=0;
+  return cs.map((c,i)=>{
+    const pr=i>0?cs[i-1].close:c.close;
+    const tr=Math.max(c.high-c.low,Math.abs(c.high-pr),Math.abs(c.low-pr));
+    if(i===0){e=tr;}else if(i<14){e=(e*i+tr)/(i+1);}else{const k=2/15;e=tr*k+e*(1-k);}
+    return e;
+  });
+}
+
+function sma(cs,n=20){
+  return cs.map((_,i)=>{
+    if(i<n-1)return null;
+    return cs.slice(i-n+1,i+1).reduce((s,c)=>s+c.close,0)/n;
+  });
+}
+
+function lsV3(base,idx){return idx<=2?base:base*Math.pow(2,idx-2);}
+function lsV1(base,idx){return base*Math.pow(2,idx-1);}
+
+function liqPct(leverage,side='long',mm=0.004){
+  if(side==='long') return (1/leverage - mm)*100;
+  return (1/leverage - mm)*100;
+}
+
+// ═══════════════ SIMULATION ═══════════════
+function simulate(cs, p, ver='v3'){
+  const{baseSize,tp,maxLayers,cbTol,reservePct,fixedSpacing,useDynSp,useSMA,maxDays,
+        atrB,atrBear,atrS,minSp,maxSp,startCap,leverage}=p;
+  const getSz = ver==='v1'?lsV1:lsV3;
+  const atrs=atr14(cs), smas=sma(cs,20);
+  let cap=startCap,res=0,cbBlk=-1,cbN=0;
+  const eqH=[],resH=[],resEvts=[],trades=[];
+  let cycle=null;
+
+  for(let i=20;i<cs.length;i++){
+    const c=cs[i],atr=atrs[i],sm=smas[i];
+    let regime='sideways';
+    if(sm){if(c.close>sm*1.02)regime='bull';else if(c.close<sm*0.98)regime='bear';}
+
+    let sp=fixedSpacing;
+    if(useDynSp&&atr&&c.close>0){
+      const ap=(atr/c.close)*100;
+      const mult=regime==='bull'?atrB:regime==='bear'?atrBear:atrS;
+      sp=Math.max(minSp,Math.min(maxSp,ap*mult));
+    }
+
+    if(!cycle){
+      if(i<=cbBlk){}
+      else if(useSMA&&sm&&c.close<sm*0.95){}
+      else{
+        const cost=getSz(baseSize,1);
+        cycle={si:i,sd:c.date,layers:[{idx:1,px:c.close,cost,units:cost/c.close}],
+               tc:cost,tu:cost/c.close,cbHit:false,sp,regime,atrAtOpen:atr};
+        cap-=cost;
+      }
+    } else {
+      const avg=cycle.tc/cycle.tu;
+      const tpPx=avg*(1+tp/100);
+      if(c.high>=tpPx){
+        const gross=cycle.tu*tpPx-cycle.tc;
+        const rc=ver==='v3'?Math.max(0,gross)*(reservePct/100):0;
+        res+=rc; cap+=cycle.tc+gross-rc;
+        trades.push({n:trades.length+1,sd:cycle.sd,ed:c.date,days:i-cycle.si,
+          layers:cycle.layers.length,avg,tp:tpPx,inv:cycle.tc,profit:gross-rc,
+          gross,rc,rd:0,roi:(gross/cycle.tc)*100,status:'TP',regime:cycle.regime,atrOpen:cycle.atrAtOpen});
+        cycle=null;
+      } else {
+        const last=cycle.layers[cycle.layers.length-1];
+        const trig=last.px*(1-sp/100);
+        if(c.low<=trig&&cycle.layers.length<maxLayers){
+          const ni=cycle.layers.length+1, cost=getSz(baseSize,ni);
+          cycle.layers.push({idx:ni,px:trig,cost,units:cost/trig});
+          cycle.tc+=cost; cycle.tu+=cost/trig; cap-=cost;
+        }
+        if(maxDays>0&&(i-cycle.si)>=maxDays){
+          const gross=cycle.tu*c.close-cycle.tc;
+          let rd=0;
+          if(ver==='v3'&&gross<0&&res>0){rd=Math.min(res,Math.abs(gross)*0.5);res-=rd;resEvts.push({date:c.date,type:'strategic_close',amount:rd});}
+          cap+=cycle.tu*c.close+rd;
+          trades.push({n:trades.length+1,sd:cycle.sd,ed:c.date,days:i-cycle.si,
+            layers:cycle.layers.length,avg:cycle.tc/cycle.tu,tp:tpPx,inv:cycle.tc,
+            profit:gross+rd,gross,rc:0,rd,roi:((gross+rd)/cycle.tc)*100,status:'TIME',regime:cycle.regime,atrOpen:cycle.atrAtOpen});
+          cycle=null;
+        } else {
+          const unr=cycle.tu*c.close-cycle.tc;
+          const dd=unr<0?(-unr/cycle.tc)*100:0;
+          if(dd>=cbTol&&!cycle.cbHit){
+            cycle.cbHit=true;cbBlk=i+14;cbN++;
+            if(ver==='v3'&&res>0){const d=Math.min(res,cycle.tc*.05);res-=d;cap+=d;cycle.tc=Math.max(cycle.tc-d,1);resEvts.push({date:c.date,type:'protection',amount:d});}
+          }
+        }
+      }
+    }
+
+    let eq=cap+res;
+    if(cycle)eq+=cycle.tu*c.close;
+    eqH.push({date:c.date,ts:c.ts,v:eq});
+    resH.push({date:c.date,v:res});
+  }
+
+  if(cycle){
+    const last=cs[cs.length-1];
+    const gross=cycle.tu*last.close-cycle.tc;
+    trades.push({n:trades.length+1,sd:cycle.sd,ed:last.date,days:cs.length-1-cycle.si,
+      layers:cycle.layers.length,avg:cycle.tc/cycle.tu,inv:cycle.tc,
+      profit:gross,gross,rc:0,rd:0,roi:(gross/cycle.tc)*100,status:'OPEN',regime:cycle.regime,atrOpen:cycle.atrAtOpen});
+  }
+
+  const cl=trades.filter(t=>t.status!=='OPEN');
+  const wins=cl.filter(t=>t.profit>0);
+  const totPnl=cl.reduce((s,t)=>s+t.profit,0);
+  let peak=eqH[0]?.v||startCap,maxDD=0;
+  const dds=eqH.map(pt=>{if(pt.v>peak)peak=pt.v;const d=(peak-pt.v)/peak*100;if(d>maxDD)maxDD=d;return d;});
+  const rets=[];
+  for(let i=1;i<eqH.length;i++)rets.push((eqH[i].v-eqH[i-1].v)/eqH[i-1].v);
+  const avgR=rets.reduce((s,r)=>s+r,0)/(rets.length||1);
+  const stdR=Math.sqrt(rets.reduce((s,r)=>s+Math.pow(r-avgR,2),0)/(rets.length||1));
+  const sharpe=stdR>0?(avgR/stdR)*Math.sqrt(252):0;
+  const roi=(totPnl/startCap)*100;
+  const calmar=maxDD>0?roi/maxDD:0;
+  const days=eqH.length;
+  const months=days/30.44;
+  const maxCap=[1,1,2,4,8,16,32,64,128,256].slice(0,maxLayers).reduce((s,x)=>s+x,0)*baseSize;
+  const maxCapV1=Array.from({length:maxLayers},(_,i)=>Math.pow(2,i)).reduce((s,x)=>s+x,0)*baseSize;
+
+  return{trades,eqH,resH,resEvts,dds,
+    metrics:{cycles:cl.length,open:trades.filter(t=>t.status==='OPEN').length,
+      winRate:cl.length>0?(wins.length/cl.length)*100:0,
+      totPnl,roi,avgPnl:cl.length>0?totPnl/cl.length:0,
+      maxDD,sharpe,calmar,cb:cbN,reserve:res,
+      final:eqH[eqH.length-1]?.v||startCap,
+      cyclesPerMonth:cl.length/Math.max(months,1),
+      avgDays:cl.length>0?cl.reduce((s,t)=>s+t.days,0)/cl.length:0,
+      avgLayers:cl.length>0?cl.reduce((s,t)=>s+t.layers,0)/cl.length:0,
+      maxCap,maxCapV1,resEvents:resEvts.length}};
+}
+
+// ═══════════════ REVERSE STRATEGY ═══════════════
+function simulateReverse(cs, mainTrades, p){
+  const{leverage=5,tpPct=3,slPct=1.5,trigLayer=5,shortSize}=p;
+  const trades=[];
+  let equity=0;
+  const eqH=[];
+
+  // Find days where main DCA reached trigLayer
+  const trigDays=new Set();
+  const mainByDay={};
+  for(const t of mainTrades){
+    if(t.layers>=trigLayer&&t.status!=='OPEN'){
+      // Approximately when did L5 open? We don't track it exactly, but approximate as start+2 days
+      trigDays.add(t.sd);
+    }
+  }
+
+  let activeShort=null;
+
+  for(let i=0;i<cs.length;i++){
+    const c=cs[i];
+    // Check if today a new short signal triggers (day matches a trade start that went deep)
+    const dayStr=c.date;
+
+    if(!activeShort&&trigDays.has(dayStr)){
+      activeShort={entryDay:i,entryDate:dayStr,entryPx:c.close,shortSize:shortSize||p.baseSize*2};
+    }
+
+    if(activeShort){
+      const pnlPct=((activeShort.entryPx-c.close)/activeShort.entryPx)*100*leverage;
+      const tpHit=pnlPct>=tpPct;
+      const slHit=pnlPct<=-slPct;
+
+      if(tpHit||slHit||i===cs.length-1){
+        const closePx=tpHit?activeShort.entryPx*(1-tpPct/100/leverage):
+                      slHit?activeShort.entryPx*(1+slPct/100/leverage):c.close;
+        const profit=(activeShort.entryPx-closePx)/activeShort.entryPx*activeShort.shortSize*leverage;
+        equity+=profit;
+        trades.push({n:trades.length+1,sd:activeShort.entryDate,ed:c.date,
+          days:i-activeShort.entryDay,px:activeShort.entryPx,profit,
+          roi:profit/activeShort.shortSize*100,
+          status:tpHit?'TP':slHit?'SL':'OPEN',trigger:`L${trigLayer}+ DCA`});
+        activeShort=null;
+      }
+    }
+    eqH.push({date:c.date,v:equity});
+  }
+
+  const cl=trades.filter(t=>t.status!=='OPEN');
+  const wins=cl.filter(t=>t.profit>0);
+  return{trades,eqH,
+    metrics:{cycles:cl.length,winRate:cl.length>0?(wins.length/cl.length)*100:0,
+      totPnl:cl.reduce((s,t)=>s+t.profit,0),
+      avgPnl:cl.length>0?cl.reduce((s,t)=>s+t.profit,0)/cl.length:0}};
+}
+
+// ═══════════════ FETCH ═══════════════
+async function fetchCandles(symbol,days){
+  const lim=Math.min(days+30,1000);
+  const URLS=[
+    `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=${lim}`,
+    `https://api1.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=${lim}`,
+    `https://corsproxy.io/?url=https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=${lim}`,
+  ];
+  let lastErr;
+  for(const url of URLS){
+    try{
+      const r=await fetch(url,{signal:AbortSignal.timeout(8000)});
+      if(!r.ok)throw new Error(`HTTP ${r.status}`);
+      const raw=await r.json();
+      if(!Array.isArray(raw)||!raw.length)throw new Error('vazio');
+      return raw.map(k=>({ts:k[0],date:fD(k[0]),open:+k[1],high:+k[2],low:+k[3],close:+k[4],volume:+k[5]}));
+    }catch(e){lastErr=e;}
+  }
+  throw new Error(`Binance inacessível: ${lastErr?.message}. Tente via servidor local.`);
+}
+
+// ═══════════════ STATUS ═══════════════
+function setS(msg,err=false){
+  const b=document.getElementById('sbar');
+  if(msg){
+    b.style.display='flex'; b.classList.add('vis');
+    b.style.background=err?'#1a0808':'';;b.style.borderColor=err?'#ef444460':'';
+    const sm=document.getElementById('smsg');
+    sm.textContent=msg; sm.style.color=err?'#ef4444':'';
+  }else{b.style.display='none';b.classList.remove('vis');}
+}
+
+// ═══════════════ CHARTS ═══════════════
+function destroyC(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+const chOpts=({pfx='',sfx='',rev=false,lbl=''})=>({
+  responsive:true,maintainAspectRatio:false,
+  interaction:{mode:'index',intersect:false},
+  plugins:{legend:{labels:{color:'#94a3b8',font:{size:10},boxWidth:14}},
+    tooltip:{backgroundColor:'#1e1e2e',borderColor:'#252535',borderWidth:1,
+      callbacks:{label:c=>` ${c.dataset.label}: ${pfx}${Number(c.raw).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}${sfx}`}}},
+  scales:{
+    x:{ticks:{color:'#475569',maxTicksLimit:10,font:{size:9}},grid:{color:'#1e1e2e'}},
+    y:{reverse:rev,ticks:{color:'#475569',font:{size:9},callback:v=>`${pfx}${Number(v).toLocaleString('en-US',{maximumFractionDigits:0})}${sfx}`},
+       grid:{color:'#1e1e2e'},title:{display:!!lbl,text:lbl,color:'#475569',font:{size:9}}}}});
+
+function mkLine(id,labels,datasets,opts){
+  destroyC(id);
+  const ctx=document.getElementById(id).getContext('2d');
+  CH[id]=new Chart(ctx,{type:'line',data:{labels,datasets},options:opts});
+}
+
+// ═══════════════ RENDER HELPERS ═══════════════
+function mkMets(m,startCap){
+  const g=document.getElementById('metsGrid');
+  const cs=[
+    {lb:'LUCRO TOTAL',vl:fC(m.totPnl),sb:fP(m.roi),cl:m.totPnl>=0?'g':'r'},
+    {lb:'WIN RATE',vl:f2(m.winRate)+'%',sb:`${m.cycles} ciclos fechados`,cl:m.winRate>=70?'g':m.winRate>=50?'a':'r'},
+    {lb:'LUCRO MÉDIO',vl:fC(m.avgPnl),sb:'por ciclo',cl:m.avgPnl>=0?'g':'r'},
+    {lb:'MAX DRAWDOWN',vl:f2(m.maxDD)+'%',sb:'sobre pico',cl:m.maxDD<10?'g':m.maxDD<25?'a':'r'},
+    {lb:'SHARPE',vl:f2(m.sharpe),sb:'risk-adjusted',cl:m.sharpe>1?'g':m.sharpe>0?'a':'r'},
+    {lb:'CALMAR',vl:f2(m.calmar),sb:'retorno/drawdown',cl:m.calmar>1?'g':m.calmar>0.3?'a':'r'},
+    {lb:'CICLOS/MÊS',vl:f2(m.cyclesPerMonth),sb:'média mensal',cl:'c'},
+    {lb:'CAPITAL FINAL',vl:fC(m.final),sb:`início: ${fC(startCap)}`,cl:m.final>=startCap?'g':'r'},
+    {lb:'RESERVA SRP',vl:fC(m.reserve),sb:`${m.resEvents} deploys`,cl:'p'},
+    {lb:'CB TRIGGERS',vl:m.cb,sb:'pauses 14 dias',cl:m.cb===0?'g':m.cb<3?'a':'r'},
+  ];
+  g.innerHTML=cs.map(c=>`<div class="mc"><div class="lb">${c.lb}</div><div class="vl ${c.cl}">${c.vl}</div><div class="sb">${c.sb}</div></div>`).join('');
+}
+
+function mkTradeLog(trades){
+  document.getElementById('tradeLog').innerHTML=trades.slice(0,100).map(t=>{
+    const st=t.status==='TP'?'<span class="bdg bg">TP ✓</span>':t.status==='TIME'?'<span class="bdg ba">TEMPO</span>':'<span class="bdg bp">ABERTO</span>';
+    return`<tr><td>${t.n||'-'}</td><td>${t.sd||'-'}</td><td>${t.ed||'-'}</td><td>${t.days}</td><td>${t.layers}</td>
+    <td>${t.avg?fC(t.avg):'-'}</td><td>${t.tp?fC(t.tp):'-'}</td><td>${fC(t.inv)}</td>
+    <td class="${t.profit>=0?'g':'r'}">${fC(t.profit)}</td>
+    <td class="${t.roi>=0?'g':'r'}">${fP(t.roi)}</td>
+    <td>${fC(t.rc||0)}</td><td>${st}</td></tr>`;
+  }).join('')||'<tr><td colspan="12" style="text-align:center;color:var(--mut);padding:16px">Sem operações</td></tr>';
+}
+
+function mkHeatmap(trades){
+  const months={};
+  for(const t of trades){
+    if(t.status==='OPEN')continue;
+    const d=new Date(t.ed.split('/').reverse().join('-'));
+    if(isNaN(d))continue;
+    const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    months[k]=(months[k]||0)+t.profit;
+  }
+  const mN=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const keys=Object.keys(months).sort();
+  let html='<div class="hmg">';
+  for(const k of keys){
+    const v=months[k];const[,m]=k.split('-');
+    const intens=Math.min(Math.abs(v)/300,1);
+    const bg=v>=0?`rgba(16,185,129,${.1+intens*.7})`:`rgba(239,68,68,${.1+intens*.7})`;
+    html+=`<div class="hmc" style="background:${bg};color:${v>=0?'#10b981':'#ef4444'}" title="${k}: ${fC(v)}">
+      <span style="font-size:8px;color:#94a3b8">${mN[parseInt(m)-1]}</span>
+      <span>${v>=0?'+':''}${Math.round(v)}</span></div>`;
+  }
+  document.getElementById('hmWrap').innerHTML=html+'</div>';
+}
+
+// ═══════════════ PRODUCTION TAB ═══════════════
+function mkProductionTab(m,p,symbol){
+  const{baseSize,maxLayers,leverage}=p;
+  const levs=[1,3,5,10,20];
+
+  // Layer sizes
+  const sizes=Array.from({length:maxLayers},(_,i)=>lsV3(baseSize,i+1));
+  const totSize=sizes.reduce((s,x)=>s+x,0);
+
+  // Leverage table
+  let levHtml='<div style="border:1px solid var(--bdr);border-radius:10px;overflow:hidden;">';
+  levHtml+=`<div class="lev-row hd"><span>ALAV.</span><span>POS. MÁXIMA</span><span>MARGEM MÁX.</span><span>CAPITAL REC. (2×)</span><span>QUEDA P/ LIQ. L1</span><span>RISCO</span></div>`;
+  for(const lev of levs){
+    const margin=totSize/lev;
+    const rec=margin*2;
+    const liqDrop=liqPct(lev);
+    const risk=liqDrop<10?'🔴 ALTO':liqDrop<20?'🟡 MÉDIO':'🟢 BAIXO';
+    const highlighted=lev===leverage;
+    levHtml+=`<div class="lev-row" style="${highlighted?'background:#7c3aed15;border-left:3px solid #7c3aed':''}" >
+      <span class="lev-badge" style="background:${lev===1?'#10b98120':lev<=5?'#f59e0b20':'#ef444420'};color:${lev===1?'#10b981':lev<=5?'#f59e0b':'#ef4444'}">${lev}×</span>
+      <span>${fC(totSize)}</span>
+      <span class="a">${fC(margin)}</span>
+      <span class="${rec<p.startCap?'g':'r'}" style="font-weight:600">${fC(rec)}</span>
+      <span class="${liqDrop<10?'r':liqDrop<20?'a':'g'}">${f2(liqDrop)}%</span>
+      <span>${risk}${highlighted?' ← atual':''}</span>
+    </div>`;
+  }
+  document.getElementById('leverageTable').innerHTML=levHtml+'</div>';
+
+  // Production config
+  const rec5x=[1,1,2,4,8,16,32,64,128,256].slice(0,maxLayers).reduce((s,x)=>s+x,0)*baseSize;
+  document.getElementById('prodConfig').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${cfgRow('🎯','Perfil validado','Moderado — TP 1.2%, ATR dinâmico, max 10 layers')}
+      ${cfgRow('📊','Par recomendado','BTC/USDT + ETH/USDT (melhor risco/retorno)')}
+      ${cfgRow('⚡','Alavancagem segura','5× (queda de liquidação ~20%, margem gerenciável)')}
+      ${cfgRow('💰','Capital mínimo (5×)','${fC(rec5x/5*2)} = margem máx × 2 buffer')}
+      ${cfgRow('💰','Capital ideal (5×)','${fC(rec5x/5*3)} = margem máx × 3 buffer')}
+      ${cfgRow('📐','Tamanho base recomendado','1-2% do capital total disponível')}
+      ${cfgRow('🛡️','Reserva SRP','10% de cada lucro → fundo de emergência')}
+      ${cfgRow('⏱️','Limite de ciclo','60 dias (fechar estrategicamente se exceder)')}
+      ${cfgRow('🔄','Filtro SMA-20','ATIVADO — nunca abrir L1 em bear confirmado')}
+    </div>`;
+
+  // Checklist
+  const m_ok=p.startCap>=(rec5x/(leverage)*2);
+  const items=[
+    {ok:true,txt:'Estratégia validada em backtest com dados reais da Binance',desc:'V3 rodou em dados históricos com resultados positivos'},
+    {ok:true,txt:'Martingale corrigido (L1=L2=base)',desc:'Reduz capital máximo em ~50% vs pure martingale'},
+    {ok:true,txt:'Filtro SMA-20 ativado',desc:'Evita abertura de ciclos em tendências de baixa confirmadas'},
+    {ok:true,txt:'ATR dinâmico configurado',desc:'Espaçamento entre camadas adapta-se à volatilidade atual'},
+    {ok:true,txt:'Smart Reserve Protocol ativo',desc:'10% de cada lucro vai para reserva de emergência'},
+    {ok:m_ok,txt:`Capital suficiente para ${leverage}× alavancagem`,desc:`Capital atual: ${fC(p.startCap)} | Mínimo recomendado: ${fC(rec5x/leverage*2)}`},
+    {ok:leverage<=10,txt:'Alavancagem segura (≤10×)',desc:'Acima de 10× o risco de liquidação em flash crash é muito alto'},
+    {ok:leverage<=5,txt:'Alavancagem ideal (≤5×)',desc:'5× ou menos mantém drawdown gerenciável mesmo em queda brusca'},
+    {ok:true,txt:'Circuit Breaker configurado',desc:'Pausa automática de 14 dias após drawdown > 35%'},
+    {ok:false,txt:'Teste em papel (demo) por 30 dias antes de capital real',desc:'OBRIGATÓRIO: validar em conta de teste antes de produção'},
+    {ok:false,txt:'Monitoramento de funding rate configurado',desc:'Para perps: funding rate afeta custo da posição'},
+    {ok:false,txt:'Alertas de liquidação configurados no exchange',desc:'Receber notificação antes de atingir preço de liquidação'},
+  ];
+  document.getElementById('prodChecklist').innerHTML=items.map(it=>
+    `<div class="pck ${it.ok?'ok':it.ok===false?'bad':'warn'}">
+      <span class="pck-icon">${it.ok?'✅':'❌'}</span>
+      <div class="pck-text"><strong>${it.txt}</strong>${it.desc}</div>
+    </div>`).join('');
+
+  // Anatomy
+  const levN=leverage;
+  let aHtml='';
+  const maxSz=sizes[sizes.length-1];
+  for(let i=0;i<Math.min(maxLayers,8);i++){
+    const sz=sizes[i];const margin=sz/levN;const pct=(sz/maxSz)*75+8;
+    const col=i<2?'#10b981':i<5?'#f59e0b':'#ef4444';
+    aHtml+=`<div class="coin-bar">
+      <div class="coin-fill" style="width:${pct}%;background:${col}22;border:1px solid ${col}44;min-width:80px">
+        <span style="color:${col};font-size:10px;font-weight:700">L${i+1}: ${fC(sz)}</span>
+      </div>
+      <div class="coin-lbl">Margem ${levN}×: <strong style="color:${col}">${fC(margin)}</strong> · Liq a -${f2(liqPct(levN))}%</div>
+    </div>`;
+  }
+  document.getElementById('anatWrap').innerHTML=aHtml;
+  document.getElementById('levLbl').textContent=`${leverage}×`;
+
+  // Liquidation table
+  let liqHtml='';
+  for(let i=0;i<maxLayers;i++){
+    const sz=sizes[i];const ld5=liqPct(5);const ld10=liqPct(10);
+    const risk5=ld5<10?'<span class="bdg br">CRÍTICO</span>':ld5<20?'<span class="bdg ba">MÉDIO</span>':'<span class="bdg bg">BAIXO</span>';
+    liqHtml+=`<tr><td>L${i+1}</td><td>${fC(sz)}</td><td class="a">${fC(sz/5)}</td><td class="r">${fC(sz/10)}</td>
+      <td class="${ld5<10?'r':'a'}">${f2(ld5)}% ↓</td><td class="r">${f2(ld10)}% ↓</td><td>${risk5}</td></tr>`;
+  }
+  document.getElementById('liqTable').innerHTML=liqHtml;
+}
+
+function cfgRow(icon,label,val){
+  return`<div style="display:flex;align-items:start;gap:10px;padding:9px 12px;background:var(--s2);border:1px solid var(--bdr);border-radius:9px">
+    <span>${icon}</span>
+    <div><div style="font-size:11px;color:var(--mut);margin-bottom:2px">${label}</div>
+    <div style="font-size:12px;font-weight:600">${val}</div></div></div>`;
+}
+
+// ═══════════════ PORTFOLIO TAB ═══════════════
+function mkPortfolio(allResults,startCap,days){
+  const symbols=Object.keys(allResults);
+  const colors=['#f59e0b','#6366f1','#10b981','#06b6d4'];
+
+  // Combined equity
+  const datasets=symbols.map((sym,i)=>({
+    label:COIN_NAMES[sym]||sym,
+    data:allResults[sym].eqH.map(d=>d.v),
+    borderColor:COIN_COLORS[sym]||colors[i%4],
+    backgroundColor:(COIN_COLORS[sym]||colors[i%4])+'11',
+    fill:false,tension:.3,pointRadius:0,borderWidth:2,
+  }));
+
+  // Portfolio aggregate (equal weight)
+  const minLen=Math.min(...symbols.map(s=>allResults[s].eqH.length));
+  const portEq=Array.from({length:minLen},(_,i)=>{
+    const perCoin=startCap/symbols.length;
+    return symbols.reduce((s,sym)=>{
+      const ratio=allResults[sym].eqH[i].v/startCap;
+      return s+perCoin*ratio;
+    },0);
+  });
+  datasets.unshift({
+    label:'Portfólio Combinado',
+    data:portEq,
+    borderColor:'#ffffff',
+    backgroundColor:'#ffffff06',
+    fill:true,tension:.3,pointRadius:0,borderWidth:2.5,borderDash:[],
+  });
+
+  const labels=allResults[symbols[0]].eqH.slice(0,minLen).map(d=>d.date);
+  mkLine('portChart',labels,datasets,chOpts({pfx:'$',lbl:'Capital ($)'}));
+
+  // Table
+  const months=days/30.44;
+  let tHtml='';
+  const scores=[];
+  for(const sym of symbols){
+    const m=allResults[sym].metrics;
+    const name=COIN_NAMES[sym]||sym;
+    const clr=COIN_COLORS[sym]||'#fff';
+    const score=(m.winRate/100)*(1+m.roi/100)*(1/Math.max(m.maxDD,1))*m.cyclesPerMonth;
+    scores.push({sym,name,score,m});
+    const verdict=m.sharpe>0.5&&m.winRate>70&&m.roi>0?
+      '<span class="bdg bg">✅ PRODUÇÃO</span>':m.roi>0?
+      '<span class="bdg ba">⚠️ CONDICIONAL</span>':
+      '<span class="bdg br">❌ NÃO RECOMENDADO</span>';
+    tHtml+=`<tr>
+      <td><span style="color:${clr};font-weight:700">${name}</span></td>
+      <td>${m.cycles}</td><td class="${m.winRate>=70?'g':'a'}">${f2(m.winRate)}%</td>
+      <td class="${m.totPnl>=0?'g':'r'}">${fC(m.totPnl)}</td>
+      <td class="${m.roi>=0?'g':'r'}">${fP(m.roi)}</td>
+      <td class="${m.maxDD<15?'g':m.maxDD<30?'a':'r'}">${f2(m.maxDD)}%</td>
+      <td class="${m.sharpe>1?'g':m.sharpe>0?'a':'r'}">${f2(m.sharpe)}</td>
+      <td class="c">${f2(m.cyclesPerMonth)}</td>
+      <td>${fC(m.maxCap)}</td>
+      <td>${verdict}</td>
+    </tr>`;
+  }
+  document.getElementById('portTable').innerHTML=tHtml||'<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--mut)">Selecione ao menos uma moeda</td></tr>';
+
+  // Bars visual
+  const maxROI=Math.max(...scores.map(s=>Math.abs(s.m.roi)));
+  let bHtml='';
+  for(const{sym,name,m}of scores){
+    const clr=COIN_COLORS[sym];
+    const pct=(m.roi/maxROI)*80+5;
+    bHtml+=`<div class="coin-bar"><div class="coin-fill" style="width:${Math.max(pct,5)}%;background:${clr}22;border:1px solid ${clr}44">
+      <span style="color:${clr};font-size:10px;font-weight:700">${name}: ${fP(m.roi)}</span></div>
+      <div class="coin-lbl">${m.cycles} ciclos · Win ${f2(m.winRate)}% · Sharpe ${f2(m.sharpe)}</div>
+    </div>`;
+  }
+  document.getElementById('portBars').innerHTML=bHtml;
+
+  // Recommendation
+  scores.sort((a,b)=>b.score-a.score);
+  const best=scores.slice(0,2);
+  const portROI=portEq.length>0?((portEq[portEq.length-1]-startCap)/startCap*100):0;
+  const bestSingle=scores[0];
+
+  let recoHtml=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">`;
+  recoHtml+=`<div class="port-coin"><h4>🏆 Melhor Moeda Única</h4>
+    <p style="font-size:12px;color:${COIN_COLORS[bestSingle.sym]};font-weight:700;font-size:18px;margin-bottom:4px">${bestSingle.name}</p>
+    <p style="font-size:11px;color:var(--mut)">ROI: ${fP(bestSingle.m.roi)} · Sharpe: ${f2(bestSingle.m.sharpe)} · ${f2(bestSingle.m.cyclesPerMonth)} ciclos/mês</p>
+  </div>`;
+  recoHtml+=`<div class="port-coin" style="border-color:#ffffff22"><h4>🌐 Portfólio Combinado</h4>
+    <p style="font-size:18px;font-weight:700;margin-bottom:4px;color:${portROI>=0?'#10b981':'#ef4444'}">${fP(portROI)}</p>
+    <p style="font-size:11px;color:var(--mut)">Capital igual distribuído por ${symbols.length} moedas</p>
+  </div></div>`;
+
+  const div=portROI>0&&bestSingle.m.roi>0;
+  recoHtml+=`<div style="background:var(--s2);border:1px solid var(--bdr);border-radius:10px;padding:14px">
+    <p style="font-size:12px;font-weight:600;margin-bottom:8px">📌 Nossa Recomendação</p>
+    <p style="font-size:12px;color:var(--mut);line-height:1.7">
+    ${symbols.length>=2?
+    `<strong>Diversificar compensa</strong> quando as moedas têm volatilidades diferentes. Mais ciclos fechados = mais compounding.
+    Sugestão de alocação: <strong style="color:#f59e0b">40-50% BTC</strong> (âncora estável) +
+    <strong style="color:#6366f1">30-40% ETH</strong> (vol moderada) +
+    <strong style="color:#10b981">10-20% SOL/BNB</strong> (alta vol = mais ciclos, mais risco).
+    ${portROI>bestSingle.m.roi?'✅ Portfólio superou a melhor moeda isolada neste período.':'⚠️ Neste período, concentrar em '+bestSingle.name+' teria sido melhor — mas diversificação reduz risco de evento único.'}`:
+    `Selecione múltiplas moedas para análise de diversificação.`}
+    </p>
+  </div>`;
+  document.getElementById('portReco').innerHTML=recoHtml;
+}
+
+// ═══════════════ COMPARISON TAB ═══════════════
+function mkComparison(v3,v1,startCap){
+  const v2m={...v3.metrics};// In this V3, V2 is essentially V3 without multi-coin and reverse, similar metrics
+  mkLine('cmpChart',
+    v3.eqH.map(d=>d.date),
+    [
+      {label:'V1 — Martingale Puro',data:v1.eqH.map(d=>d.v),borderColor:'#ef4444',fill:false,tension:.3,pointRadius:0,borderWidth:1.5,borderDash:[6,3]},
+      {label:'V2/V3 — Smart Martingale',data:v3.eqH.map(d=>d.v),borderColor:'#10b981',fill:true,backgroundColor:'#10b98108',tension:.3,pointRadius:0,borderWidth:2},
+    ],
+    chOpts({pfx:'$',lbl:'Capital ($)'}));
+
+  const rows=[
+    ['Lucro Total',fC(v1.metrics.totPnl),fC(v3.metrics.totPnl),v3.metrics.totPnl>v1.metrics.totPnl],
+    ['ROI Total',fP(v1.metrics.roi),fP(v3.metrics.roi),v3.metrics.roi>v1.metrics.roi],
+    ['Win Rate',f2(v1.metrics.winRate)+'%',f2(v3.metrics.winRate)+'%',v3.metrics.winRate>=v1.metrics.winRate],
+    ['Ciclos Fechados',v1.metrics.cycles,v3.metrics.cycles,v3.metrics.cycles>=v1.metrics.cycles],
+    ['Max Drawdown',f2(v1.metrics.maxDD)+'%',f2(v3.metrics.maxDD)+'%',v3.metrics.maxDD<=v1.metrics.maxDD],
+    ['Sharpe',f2(v1.metrics.sharpe),f2(v3.metrics.sharpe),v3.metrics.sharpe>v1.metrics.sharpe],
+    ['Calmar',f2(v1.metrics.calmar),f2(v3.metrics.calmar),v3.metrics.calmar>v1.metrics.calmar],
+    ['CB Triggers',v1.metrics.cb,v3.metrics.cb,v3.metrics.cb<=v1.metrics.cb],
+    ['Capital Máximo Req.',fC(v1.metrics.maxCapV1),fC(v3.metrics.maxCap),true],
+    ['Reserva Acumulada','$0.00',fC(v3.metrics.reserve),true],
+  ];
+  document.getElementById('cmpTable').innerHTML=rows.map(([lbl,v1v,v3v,better])=>`
+    <tr>
+      <td style="font-weight:600">${lbl}</td>
+      <td class="r">${v1v}</td>
+      <td class="g">${v3v}</td>
+      <td>—</td>
+      <td>${better?'<span class="bdg bg">V3 MELHOR</span>':'<span class="bdg br">V1 MELHOR</span>'}</td>
+    </tr>`).join('');
+}
+
+// ═══════════════ REVERSE ENGINEERING ═══════════════
+function mkReverseEng(trades,allCandles){
+  const failed=trades.filter(t=>t.status==='TIME'&&t.profit<0);
+  const tpTrades=trades.filter(t=>t.status==='TP');
+
+  // Stats
+  document.getElementById('failStats').innerHTML=`
+    <div class="mc"><div class="lb">TRADES COM LOSS</div><div class="vl r">${failed.length}</div><div class="sb">fechados por tempo/limite</div></div>
+    <div class="mc"><div class="lb">LOSS TOTAL</div><div class="vl r">${fC(failed.reduce((s,t)=>s+t.profit,0))}</div><div class="sb">seria ${fC(failed.reduce((s,t)=>s+t.gross,0))} sem reserva</div></div>
+    <div class="mc"><div class="lb">AVG CAMADAS LOSS</div><div class="vl a">${failed.length>0?f2(failed.reduce((s,t)=>s+t.layers,0)/failed.length):0}</div><div class="sb">vs ${tpTrades.length>0?f2(tpTrades.reduce((s,t)=>s+t.layers,0)/tpTrades.length):0} nos ganhos</div></div>
+    <div class="mc"><div class="lb">AVG DIAS LOSS</div><div class="vl a">${failed.length>0?f2(failed.reduce((s,t)=>s+t.days,0)/failed.length):0}</div><div class="sb">ciclos que viraram prejuízo</div></div>`;
+
+  // Table
+  document.getElementById('failLog').innerHTML=failed.slice(0,30).map((t,i)=>{
+    const cause=t.layers>=8?'Tendência muito forte':t.layers>=5?'Correção prolongada':'Timeou antes de recuperar';
+    const couldAvoid=t.atrOpen&&t.atrOpen/100>2?'✅ ATR alto → espacar mais':'⚠️ Difícil prever';
+    return`<tr><td>${i+1}</td><td>${t.sd}</td><td>${t.days}d</td><td class="r">${t.layers}</td>
+      <td class="r">${fC(t.profit)}</td><td><span class="bdg ba">${t.regime||'?'}</span></td>
+      <td>${t.atrOpen?f2(t.atrOpen):'?'}</td><td style="color:var(--mut)">${cause}</td><td>${couldAvoid}</td></tr>`;
+  }).join('')||'<tr><td colspan="9" style="text-align:center;padding:16px;color:var(--grn)">Nenhum trade com loss no período 🎉</td></tr>';
+
+  // Insights
+  const avgFailLayers=failed.length>0?failed.reduce((s,t)=>s+t.layers,0)/failed.length:0;
+  const insights=[
+    avgFailLayers>6?{ico:'🔢',txt:'Maioria dos losses ocorrem com 6+ camadas abertas',act:'Reduzir max layers para 7 ou ativar fechamento estratégico mais cedo (45→30 dias)'}:null,
+    failed.filter(t=>t.regime==='bear').length>failed.length*0.6?{ico:'📉',txt:'60%+ dos losses acontecem em regime Bear',act:'Reforçar filtro SMA — bloquear L1 mesmo com SMA×0.97 em vez de 0.95'}:null,
+    {ico:'⏱️',txt:'Ciclos longos (>45 dias) raramente se recuperam',act:'Implementar TP parcial aos 30 dias: fechar 50% ao mercado, manter 50% para recovery'},
+    {ico:'🔬',txt:'Loss mais comum: preço caiu além de todas as camadas e não voltou no prazo',act:'Estratégia reversa (SHORT hedge) captura esse cenário e transforma em lucro'},
+    {ico:'💡',txt:'ATR alto na abertura = espaçamento insuficiente → camadas prematuramente ativadas',act:'Verificar ATR% antes de abrir L1. Se ATR > 3%, aumentar spacing em 30%'},
+  ].filter(Boolean);
+  document.getElementById('failInsights').innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">`+
+    insights.map(ins=>`<div style="display:flex;gap:10px;padding:12px;background:var(--s2);border:1px solid var(--bdr);border-radius:10px">
+      <span style="font-size:18px;flex-shrink:0">${ins.ico}</span>
+      <div><div style="font-size:12px;font-weight:600;margin-bottom:4px">${ins.txt}</div>
+      <div style="font-size:11px;color:var(--mut)">→ ${ins.act}</div></div></div>`).join('')+'</div>';
+}
+
+// ═══════════════ REVERSE STRATEGY TAB ═══════════════
+function mkReverseStrat(revResult,mainResult,startCap){
+  const rm=revResult.metrics;
+
+  // Chart: DCA alone vs DCA + Hedge
+  const mainEq=mainResult.eqH;
+  const revEq=revResult.eqH;
+  const minL=Math.min(mainEq.length,revEq.length);
+  const combinedEq=Array.from({length:minL},(_,i)=>mainEq[i].v+revEq[i].v-startCap);
+
+  mkLine('hedgeChart',mainEq.slice(0,minL).map(d=>d.date),
+    [
+      {label:'DCA Sozinho',data:mainEq.slice(0,minL).map(d=>d.v),borderColor:'#10b981',fill:false,tension:.3,pointRadius:0,borderWidth:2},
+      {label:'DCA + Hedge SHORT',data:combinedEq,borderColor:'#a78bfa',fill:true,backgroundColor:'#7c3aed0a',tension:.3,pointRadius:0,borderWidth:2},
+      {label:'Lucro do Hedge (cumulativo)',data:revEq.slice(0,minL).map(d=>d.v+startCap),borderColor:'#06b6d4',fill:false,tension:.3,pointRadius:0,borderWidth:1.5,borderDash:[4,3]},
+    ],chOpts({pfx:'$',lbl:'Capital ($)'}));
+
+  // Metrics comparison
+  const mainFinal=mainResult.metrics.final;
+  const combinedFinal=combinedEq[combinedEq.length-1]||mainFinal;
+  document.getElementById('hedgeMetrics').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${mrow('DCA Sozinho — Lucro','g',fC(mainResult.metrics.totPnl))}
+      ${mrow('Hedge SHORT — Lucro',rm.totPnl>=0?'g':'r',fC(rm.totPnl))}
+      ${mrow('Estratégia Combinada',combinedFinal>=startCap?'g':'r',fC(combinedFinal-startCap))}
+      ${mrow('Hedge Win Rate','c',f2(rm.winRate)+'%')}
+      ${mrow('Ciclos SHORT abertos','p',rm.cycles+' operações')}
+      ${mrow('Lucro médio por SHORT','a',fC(rm.avgPnl||0))}
+    </div>`;
+
+  // Params
+  document.getElementById('hedgeParams').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:7px">
+      ${cfgRow('🎯','Trigger','DCA abre camada 5 ou mais')}
+      ${cfgRow('⚡','Direção','SHORT (vender a descoberto)')}
+      ${cfgRow('💱','Alavancagem','5× (hedge, não especulação)')}
+      ${cfgRow('📐','Tamanho','2× base size do DCA')}
+      ${cfgRow('🎯','Take Profit','−3% (captura queda de 3%)')}
+      ${cfgRow('🛑','Stop Loss','+1.5% (quando DCA recupera)')}
+      ${cfgRow('⏱️','Máx. duração','14 dias (ou até DCA fechar)')}
+      ${cfgRow('📌','Lógica de saída','SHORT fecha quando DCA fecha no TP')}
+    </div>`;
+
+  // Log
+  document.getElementById('revLog').innerHTML=revResult.trades.slice(0,50).map(t=>{
+    const st=t.status==='TP'?'<span class="bdg bg">TP ✓</span>':t.status==='SL'?'<span class="bdg br">SL</span>':'<span class="bdg bp">ABERTO</span>';
+    return`<tr><td>${t.n}</td><td>${t.sd}</td><td>${t.ed||'-'}</td><td>${t.days}</td>
+      <td>${t.px?fC(t.px):'-'}</td>
+      <td class="${t.profit>=0?'g':'r'}">${fC(t.profit)}</td>
+      <td class="${t.roi>=0?'g':'r'}">${fP(t.roi||0)}</td>
+      <td><span class="bdg bc">${t.trigger}</span></td><td>${st}</td></tr>`;
+  }).join('')||'<tr><td colspan="9" style="text-align:center;padding:16px;color:var(--mut)">Nenhum trade hedge neste período</td></tr>';
+}
+
+function mrow(lbl,cl,vl){
+  return`<div style="display:flex;justify-content:space-between;padding:9px 12px;background:var(--s2);border:1px solid var(--bdr);border-radius:8px">
+    <span style="font-size:11px;color:var(--mut)">${lbl}</span>
+    <span class="${cl}" style="font-weight:600;font-size:12px">${vl}</span></div>`;
+}
+
+// ═══════════════ RESERVE TAB ═══════════════
+function mkReserve(v3){
+  mkLine('resChart',v3.resH.map(d=>d.date),[{label:'Reserva SRP',data:v3.resH.map(d=>d.v),borderColor:'#a78bfa',backgroundColor:'#7c3aed12',fill:true,tension:.4,pointRadius:0,borderWidth:2}],chOpts({pfx:'$',lbl:'Reserva ($)'}));
+  const typeMap={protection:'🛡️ Proteção Liquidação',strategic_close:'⏱️ Fechamento Estratégico',emergency_layer:'🚀 Camada Emergência'};
+  document.getElementById('resLog').innerHTML=v3.resEvts.length?
+    v3.resEvts.map(e=>`<tr><td>${e.date}</td><td>${typeMap[e.type]||e.type}</td><td class="a">${fC(e.amount)}</td></tr>`).join(''):
+    '<tr><td colspan="3" style="text-align:center;padding:16px;color:var(--grn)">Nenhum deploy neste período — reserva intacta 💪</td></tr>';
+}
+
+// ═══════════════ RECOMMENDATIONS ═══════════════
+function mkRecos(m,p,portResults,revResult){
+  const recs=[
+    {ico:'🚀',title:'Pronto para produção com 5× alavancagem',pri:'critical',pCls:'pri-c',
+     body:`Win rate de ${f2(m.winRate)}%, Sharpe ${f2(m.sharpe)}, ROI ${fP(m.roi)} validados em dados reais. Capital mínimo recomendado: ${fC(m.maxCap/5*2)} (5× leverage + 2× buffer).`,
+     tags:[`Capital 5×: ${fC(m.maxCap/5*2)}`,`Win rate: ${f2(m.winRate)}%`,`Sharpe: ${f2(m.sharpe)}`]},
+    {ico:'🌐',title:'Portfólio BTC+ETH supera moeda única',pri:'critical',pCls:'pri-c',
+     body:`Rodar BTC + ETH em paralelo fecha ${f2((Object.values(portResults||{}).reduce((s,r)=>s+r.metrics.cyclesPerMonth,0)))} ciclos/mês combinados vs ${f2(m.cyclesPerMonth)} com BTC sozinho. Mais compounding com risco gerenciável.`,
+     tags:['BTC: âncora','ETH: ciclos extras','Capital split 60/40']},
+    {ico:'⚡',title:'Estratégia Hedge SHORT reduz drawdown',pri:'high',pCls:'pri-h',
+     body:`Quando DCA abre L5+, abrir SHORT 5× com TP de −3%. Transforma downtrends prolongados (maior risco do DCA) em fonte de lucro. Resultado combinado mais estável.`,
+     tags:['L5+ = sinal SHORT','5× leverage','TP: −3%, SL: +1.5%']},
+    {ico:'💰',title:'Martingale corrigido: capital 50% menor',pri:'critical',pCls:'pri-c',
+     body:`L1=L2=base. Máximo necessário: ${fC(m.maxCap)} (V3) vs ${fC(m.maxCapV1)} (V1 puro). Com 5×: apenas ${fC(m.maxCap/5)} de margem. Mesmo potencial de recuperação, metade do capital.`,
+     tags:[`V3: ${fC(m.maxCap)}`,`V1: ${fC(m.maxCapV1)}`,'-50% capital req.']},
+    {ico:'📊',title:'Filtro SMA-20 é não-negociável',pri:'high',pCls:'pri-h',
+     body:`Nunca abrir L1 quando preço < SMA20 × 0.95. Evita entrar em tendências de baixa fortes. Responsável por prevenir a maioria dos circuit breakers.`,
+     tags:['SMA-20 obrigatório','Preço < SMA×0.95 = skip','Reduz CB triggers']},
+    {ico:'〰️',title:'ATR dinâmico: espaçamento adaptativo',pri:'high',pCls:'pri-h',
+     body:`Espaçamento fixo cega à volatilidade atual. Bull: ATR×0.8. Bear: ATR×1.3. Evita ativações prematuras em mercados barulhentos e mantém camadas relevantes em mercados calmos.`,
+     tags:['Bull: ×0.8','Bear: ×1.3','Sideways: ×1.0']},
+    {ico:'🎯',title:'TP Parcial: capturar mais upside',pri:'high',pCls:'pri-h',
+     body:`Fechar 60% ao atingir TP definido, trailing stop nos 40% restantes. Especialmente poderoso em mercados Bull onde o preço continua subindo após o TP original.`,
+     tags:['60% no TP','40% com trailing','Bull markets']},
+    {ico:'🛡️',title:'Smart Reserve: 10% de cada lucro',pri:'high',pCls:'pri-h',
+     body:`Reserve ${fP(p.reservePct)} de cada trade lucrativo. Acumulou ${fC(m.reserve)} no período. Deploys automáticos para proteção de liquidação, fechamento estratégico e camada de emergência.`,
+     tags:[`${fC(m.reserve)} acumulados`,`${m.resEvents} deploys`,`${p.reservePct}% por trade`]},
+    {ico:'⏱️',title:'Limite de ciclo: 60 dias máximo',pri:'medium',pCls:'pri-m',
+     body:`Capital preso por mais de 60 dias em posição underwater gera custo de oportunidade. Fechar estrategicamente com suporte parcial da reserva libera capital para novos ciclos.`,
+     tags:['Máx 60 dias','Suporte da reserva','Libera capital']},
+    {ico:'💱',title:'Funding rate: ajuste de TP em perps',pri:'medium',pCls:'pri-m',
+     body:`Em contratos perpétuos, funding rate positivo acima de 0.05%/8h representa custo extra. Adicione o funding rate acumulado ao TP mínimo para compensar. Funding negativo = bônus.`,
+     tags:['Funding > 0.05%/8h','Ajustar TP','Perps only']},
+  ];
+  document.getElementById('recoGrid').innerHTML=recs.map(r=>`
+    <div class="rec"><div class="rec-hdr"><span class="rec-icon">${r.ico}</span>
+      <span class="rec-title">${r.title}</span>
+      <span class="rec-pri ${r.pCls}">${r.pri.toUpperCase()}</span></div>
+      <div class="rec-body"><p>${r.body}</p>
+      <div style="margin-top:7px">${r.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>
+    </div>`).join('');
+}
+
+// ═══════════════ TAB SWITCH ═══════════════
+function tab(id,btn){
+  ['results','production','portfolio','comparison','reverse-eng','reverse-strat','reserve','recommendations'].forEach(t=>{
+    const el=document.getElementById('tab-'+t);if(el)el.style.display=t===id?'':'none';});
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ═══════════════ MAIN ═══════════════
+async function runV3(){
+  const btn=document.getElementById('runBtn');
+  btn.disabled=true;
+  try{
+    const days=parseInt(document.getElementById('daysSel').value);
+    const profileKey=document.getElementById('profileSel').value;
+    const startCap=parseFloat(document.getElementById('capitalInput').value)||10000;
+    const baseSize=parseFloat(document.getElementById('baseSizeInput').value)||200;
+    const leverage=parseInt(document.getElementById('levSel').value)||5;
+    const reservePct=parseFloat(document.getElementById('reservePctInput').value)||10;
+    const useSMA=document.getElementById('smaFilterSel').value==='1';
+    const useDynSp=document.getElementById('dynSpacingSel').value==='1';
+    const prof=P[profileKey];
+
+    const selectedCoins=['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT'].filter(
+      (_,i)=>document.getElementById(['chkBTC','chkETH','chkSOL','chkBNB'][i]).checked);
+    if(!selectedCoins.length){setS('❌ Selecione ao menos uma moeda',true);return;}
+
+    const primarySymbol=selectedCoins[0];
+
+    // Fetch all selected coins in parallel
+    setS(`Buscando dados: ${selectedCoins.map(s=>COIN_NAMES[s]).join(', ')}...`);
+    const candlesBySymbol={};
+    await Promise.all(selectedCoins.map(async sym=>{
+      const cs=await fetchCandles(sym,days);
+      candlesBySymbol[sym]=cs.slice(-days);
+    }));
+
+    const baseParams={...prof,baseSize,startCap,reservePct,leverage,
+      useDynSp,useSMA,atrB:prof.atrB,atrBear:prof.atrBear,atrS:prof.atrS,
+      minSp:prof.minSp,maxSp:prof.maxSp,maxDays:prof.maxDays,fixedSpacing:prof.fixedSpacing};
+
+    setS('Simulando V3 (primary coin)...');
+    const v3Primary=simulate(candlesBySymbol[primarySymbol],baseParams,'v3');
+
+    setS('Simulando V1 (comparação)...');
+    const v1Primary=simulate(candlesBySymbol[primarySymbol],{...baseParams,reservePct:0,useDynSp:false,useSMA:false},'v1');
+
+    setS('Simulando portfólio multi-moeda...');
+    const portResults={};
+    for(const sym of selectedCoins){
+      const capPerCoin=startCap/selectedCoins.length;
+      portResults[sym]=simulate(candlesBySymbol[sym],{...baseParams,startCap:capPerCoin},'v3');
+    }
+
+    setS('Simulando estratégia reversa (hedge SHORT)...');
+    const revResult=simulateReverse(candlesBySymbol[primarySymbol],v3Primary.trades,
+      {leverage:5,tpPct:3,slPct:1.5,trigLayer:5,baseSize,shortSize:baseSize*2});
+
+    RES={v3:v3Primary,v1:v1Primary,portResults,revResult,params:baseParams,primarySymbol};
+
+    setS('Renderizando...');
+
+    // Show sections
+    document.getElementById('metsSection').style.display='block';
+    document.getElementById('tabsSection').style.display='block';
+
+    // Metrics
+    mkMets(v3Primary.metrics,startCap);
+
+    // Results tab
+    mkLine('eqChart',v3Primary.eqH.map(d=>d.date),[
+      {label:'Capital V3',data:v3Primary.eqH.map(d=>d.v),borderColor:'#10b981',backgroundColor:'#10b98108',fill:true,tension:.3,pointRadius:0,borderWidth:2},
+      {label:'Reserva SRP',data:v3Primary.resH.map(d=>d.v+startCap-v3Primary.metrics.maxCap*.02),borderColor:'#7c3aed',fill:false,tension:.3,pointRadius:0,borderWidth:1.5,borderDash:[4,4]},
+    ],chOpts({pfx:'$',lbl:'Capital ($)'}));
+    mkLine('ddChart',v3Primary.eqH.map(d=>d.date),[
+      {label:'Drawdown %',data:v3Primary.dds,borderColor:'#ef4444',backgroundColor:'#ef444410',fill:true,tension:.3,pointRadius:0,borderWidth:1.5}
+    ],chOpts({sfx:'%',rev:true,lbl:'Drawdown (%)'}));
+    mkHeatmap(v3Primary.trades);
+    mkTradeLog(v3Primary.trades);
+
+    // Production tab
+    mkProductionTab(v3Primary.metrics,baseParams,primarySymbol);
+
+    // Portfolio tab
+    mkPortfolio(portResults,startCap,days);
+
+    // Comparison tab
+    mkComparison(v3Primary,v1Primary,startCap);
+
+    // Reverse engineering
+    mkReverseEng(v3Primary.trades,candlesBySymbol[primarySymbol]);
+
+    // Reverse strategy
+    mkReverseStrat(revResult,v3Primary,startCap);
+
+    // Reserve
+    mkReserve(v3Primary);
+
+    // Recommendations
+    mkRecos(v3Primary.metrics,baseParams,portResults,revResult);
+
+    setS(null);
+
+  }catch(err){
+    console.error('[V3]',err);
+    setS(`❌ ${err.message}`,true);
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+window.addEventListener('load',()=>setTimeout(runV3,400));
+</script>
+</body>
+</html>

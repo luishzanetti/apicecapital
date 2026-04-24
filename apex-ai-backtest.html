@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apex AI — Backteste Histórico · Apice Capitals™</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #030712;
+      --bg2:     #0d1117;
+      --bg3:     #161d2b;
+      --bg4:     #1e2a3b;
+      --border:  rgba(255,255,255,0.07);
+      --em:      #10b981;
+      --em-dim:  rgba(16,185,129,0.12);
+      --em-glow: rgba(16,185,129,0.25);
+      --rose:    #f43f5e;
+      --amber:   #f59e0b;
+      --blue:    #3b82f6;
+      --violet:  #8b5cf6;
+      --text:    #f1f5f9;
+      --muted:   #64748b;
+      --dim:     #94a3b8;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ── HEADER ── */
+    .hdr {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .hdr-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 24px var(--em-glow);
+      flex-shrink: 0;
+    }
+    .hdr-title { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
+    .hdr-sub   { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .hdr-badge {
+      margin-left: auto;
+      background: var(--em-dim);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: var(--em);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── LAYOUT ── */
+    .wrap {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 24px 24px 0;
+    }
+
+    /* ── CONTROLS ── */
+    .controls {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .cg { display: flex; flex-direction: column; gap: 6px; }
+    .cg label {
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--muted); font-weight: 700;
+    }
+    .cg select, .cg input {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      min-width: 150px;
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+    .cg select:focus, .cg input:focus { border-color: var(--em); }
+    .run-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 9px 28px;
+      font-size: 14px; font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: all 0.2s;
+      box-shadow: 0 0 24px var(--em-glow);
+      white-space: nowrap;
+    }
+    .run-btn:hover  { transform: translateY(-1px); box-shadow: 0 0 36px var(--em-glow); }
+    .run-btn:active { transform: translateY(0); }
+    .run-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    /* ── STATUS ── */
+    .status {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--dim);
+      margin-bottom: 20px;
+    }
+    .sdot { width: 7px; height: 7px; border-radius: 50%; background: var(--em); flex-shrink: 0; }
+    .sdot.loading { background: var(--amber); animation: blink 1s infinite; }
+    .sdot.error   { background: var(--rose); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+    .spin {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.1);
+      border-top-color: var(--em);
+      border-radius: 50%;
+      animation: rot .7s linear infinite;
+      display: inline-block; flex-shrink: 0;
+    }
+    @keyframes rot { to { transform: rotate(360deg); } }
+
+    /* ── METRICS ── */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 1000px) { .metrics { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width: 600px)  { .metrics { grid-template-columns: repeat(2,1fr); } }
+    .mc {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      transition: border-color .2s;
+    }
+    .mc:hover { border-color: rgba(255,255,255,.14); }
+    .mc-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
+    .mc-val { font-size: 26px; font-weight: 900; letter-spacing: -.03em; line-height: 1; margin-bottom: 4px; }
+    .mc-sub { font-size: 10px; color: var(--muted); }
+    .pos  { color: var(--em); }
+    .neg  { color: var(--rose); }
+    .neu  { color: var(--text); }
+    .amb  { color: var(--amber); }
+    .blu  { color: var(--blue); }
+    .vio  { color: var(--violet); }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .card-ttl  { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+    .card-sub  { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+
+    /* ── CHART GRID ── */
+    .cgrid1 { margin-bottom: 16px; }
+    .cgrid2 {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 800px) { .cgrid2 { grid-template-columns: 1fr; } }
+
+    /* ── ANATOMY ── */
+    .layer-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 5px;
+    }
+    .l-lbl { font-size: 10px; font-weight: 800; font-family: monospace; width: 20px; flex-shrink: 0; }
+    .l-bar { height: 18px; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 9px; font-weight: 700; color: #fff; min-width: 20px; }
+    .l-info { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tp-note {
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: rgba(16,185,129,.08);
+      border: 1px solid rgba(16,185,129,.2);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--em);
+    }
+
+    /* ── TABLE ── */
+    .tcard { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 20px; }
+    .thead-wrap { padding: 16px 20px 0; display: flex; align-items: center; gap: 10px; }
+    .thead-ttl { font-size: 13px; font-weight: 700; }
+    .section-badge {
+      font-size: 9px; padding: 2px 8px; border-radius: 20px;
+      background: var(--em-dim); color: var(--em); font-weight: 700;
+      border: 1px solid rgba(16,185,129,.3);
+    }
+    .tscroll { overflow-x: auto; max-height: 380px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th { text-align: left; padding: 8px 14px; border-bottom: 1px solid var(--border); color: var(--muted); text-transform: uppercase; font-size: 9px; letter-spacing: .08em; font-weight: 700; position: sticky; top: 0; background: var(--bg2); }
+    td { padding: 7px 14px; border-bottom: 1px solid rgba(255,255,255,.03); }
+    tr:hover td { background: rgba(255,255,255,.02); }
+
+    /* ── HEATMAP ── */
+    #heatmapWrap { overflow-x: auto; }
+
+    /* ── NOTES ── */
+    .note-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 20px;
+    }
+    @media (max-width: 700px) { .note-grid { grid-template-columns: 1fr; } }
+    .note { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+    .note-icon { font-size: 20px; margin-bottom: 8px; }
+    .note-ttl { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+    .note-txt { font-size: 11px; color: var(--muted); line-height: 1.6; }
+
+    /* ── FOOTER ── */
+    footer { text-align: center; font-size: 10px; color: var(--muted); padding: 40px 24px 20px; border-top: 1px solid var(--border); margin-top: 40px; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-icon">⚡</div>
+  <div>
+    <div class="hdr-title">Apex AI — Motor de Backteste</div>
+    <div class="hdr-sub">Simulação histórica · Estratégia Martingale DCA Grid · Apice Capitals™</div>
+  </div>
+  <div class="hdr-badge">LIVE DATA</div>
+</div>
+
+<div class="wrap">
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="cg">
+      <label>Ativo</label>
+      <select id="selAsset">
+        <option value="BTCUSDT">Bitcoin (BTC/USDT)</option>
+        <option value="ETHUSDT">Ethereum (ETH/USDT)</option>
+        <option value="SOLUSDT">Solana (SOL/USDT)</option>
+        <option value="BNBUSDT">BNB (BNB/USDT)</option>
+        <option value="XRPUSDT">XRP (XRP/USDT)</option>
+        <option value="ADAUSDT">Cardano (ADA/USDT)</option>
+      </select>
+    </div>
+    <div class="cg">
+      <label>Período histórico</label>
+      <select id="selPeriod">
+        <option value="30">Últimos 30 dias</option>
+        <option value="90">Últimos 90 dias</option>
+        <option value="180" selected>Últimos 180 dias</option>
+        <option value="365">Último ano</option>
+        <option value="730">Últimos 2 anos</option>
+      </select>
+    </div>
+    <div class="cg">
+      <label>Perfil de risco</label>
+      <select id="selRisk">
+        <option value="conservative">Conservador — TP 0.8%</option>
+        <option value="moderate" selected>Moderado — TP 1.2%</option>
+        <option value="aggressive">Agressivo — TP 1.5%</option>
+      </select>
+    </div>
+    <div class="cg">
+      <label>Capital L1 (USD)</label>
+      <input id="inpBase" type="number" value="100" min="10" max="50000" step="50">
+    </div>
+    <div class="cg">
+      <label>Tolerância DD (%)</label>
+      <input id="inpCB" type="number" value="35" min="10" max="60" step="5">
+    </div>
+    <button class="run-btn" id="runBtn" onclick="doRun()">▶ Executar Backtest</button>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status">
+    <div class="sdot" id="sdot"></div>
+    <span id="stxt">Configure os parâmetros e clique em Executar. Dados reais via Binance API.</span>
+  </div>
+
+  <!-- METRICS -->
+  <div class="metrics">
+    <div class="mc">
+      <div class="mc-lbl">Retorno Total</div>
+      <div class="mc-val pos" id="mRet">—</div>
+      <div class="mc-sub" id="mRetSub">em USD realizados</div>
+    </div>
+    <div class="mc">
+      <div class="mc-lbl">CAGR (anualizado)</div>
+      <div class="mc-val blu" id="mCagr">—</div>
+      <div class="mc-sub">projetado ao ano</div>
+    </div>
+    <div class="mc">
+      <div class="mc-lbl">Win Rate</div>
+      <div class="mc-val pos" id="mWR">—</div>
+      <div class="mc-sub" id="mWRSub">ciclos fechados</div>
+    </div>
+    <div class="mc">
+      <div class="mc-lbl">Ciclos Completos</div>
+      <div class="mc-val neu" id="mCy">—</div>
+      <div class="mc-sub" id="mCySub">duração média</div>
+    </div>
+    <div class="mc">
+      <div class="mc-lbl">Drawdown Máx</div>
+      <div class="mc-val neg" id="mDD">—</div>
+      <div class="mc-sub">intraday do L1</div>
+    </div>
+    <div class="mc">
+      <div class="mc-lbl">Circuit Breakers</div>
+      <div class="mc-val amb" id="mCB">—</div>
+      <div class="mc-sub" id="mCBSub">eventos ativados</div>
+    </div>
+  </div>
+
+  <!-- EQUITY CURVE -->
+  <div class="card cgrid1">
+    <div class="card-ttl">📈 Curva de Patrimônio — P&L Acumulado (USD)</div>
+    <div class="card-sub">Lucro realizado de ciclos fechados + mark-to-market da posição aberta · Dados OHLCV diários reais (Binance)</div>
+    <canvas id="eqChart" height="70"></canvas>
+  </div>
+
+  <!-- DRAWDOWN + MONTHLY -->
+  <div class="cgrid2">
+    <div class="card">
+      <div class="card-ttl">📉 Drawdown Intraday do Ciclo Ativo</div>
+      <div class="card-sub">Queda máxima relativa ao preço de entrada do L1 (low do dia)</div>
+      <canvas id="ddChart" height="120"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-ttl">🗓️ Retornos Mensais (USD)</div>
+      <div class="card-sub">Verde = lucro · Vermelho = prejuízo · Hover para valor</div>
+      <div id="heatmapWrap"><p style="color:var(--muted);font-size:12px;margin-top:20px">Execute o backtest.</p></div>
+    </div>
+  </div>
+
+  <!-- ANATOMY -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-ttl">⚡ Anatomia do Grid — Como o Bot Constrói a Posição
+      <span class="section-badge" id="anatProfile" style="font-size:10px;padding:2px 8px;border-radius:6px;background:var(--em-dim);color:var(--em);font-weight:700;margin-left:8px">Moderado</span>
+    </div>
+    <div class="card-sub">Martingale DCA: cada layer dobra em tamanho. O ciclo fecha quando o preço médio ponderado sobe X% (Take Profit). Nunca fecha no prejuízo.</div>
+    <div id="anatBars"></div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="note-grid">
+    <div class="note">
+      <div class="note-icon">🔒</div>
+      <div class="note-ttl">Nunca Fecha no Prejuízo</div>
+      <div class="note-txt">A estratégia acumula layers progressivamente enquanto o preço cai. O ciclo só fecha quando o preço médio retorna ao lucro alvo. Isso garante 100% de win rate nos ciclos fechados.</div>
+    </div>
+    <div class="note">
+      <div class="note-icon">⚙️</div>
+      <div class="note-ttl">Gestão de Risco Automática</div>
+      <div class="note-txt">O circuit breaker pausa a abertura de novos ciclos quando o drawdown do L1 supera a tolerância configurada. Posições existentes continuam abertas aguardando recuperação.</div>
+    </div>
+    <div class="note">
+      <div class="note-icon">📊</div>
+      <div class="note-ttl">Limitações do Modelo</div>
+      <div class="note-txt">Este backtest usa dados diários (OHLCV), simulação com 1x leverage e sem taxas de trading. Resultados reais variam por spread, funding rate, slippage e outros fatores de mercado.</div>
+    </div>
+  </div>
+
+  <!-- TRADE LOG -->
+  <div class="tcard">
+    <div class="thead-wrap">
+      <div class="thead-ttl">📋 Log de Trades — Ciclos Executados</div>
+      <span class="section-badge" id="tradeCnt">0 ciclos</span>
+    </div>
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Abertura</th>
+            <th>Fechamento</th>
+            <th>Duração</th>
+            <th>Layers</th>
+            <th>Entrada Avg</th>
+            <th>Exit (TP)</th>
+            <th>Total Invest.</th>
+            <th>Lucro</th>
+            <th>ROI</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="11" style="text-align:center;color:var(--muted);padding:50px 20px;font-size:12px">Execute o backtest para ver os trades.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<footer>
+  ⚡ Apex AI Backteste Motor v1.0 · Apice Capitals™ · Dados: Binance Public API (sem chave) ·
+  Resultados históricos não garantem performance futura. Este é um modelo educacional de simulação.
+</footer>
+
+<script>
+// ╔══════════════════════════════════════════════════════════╗
+// ║  APEX AI — BACKTEST ENGINE                               ║
+// ║  Estratégia: Martingale DCA Grid (Long-biased)           ║
+// ╚══════════════════════════════════════════════════════════╝
+
+const PROFILES = {
+  conservative: { tp: 0.8,  spacing: 1.0, maxL: 7,  label: 'Conservador' },
+  moderate:     { tp: 1.2,  spacing: 1.5, maxL: 10, label: 'Moderado'    },
+  aggressive:   { tp: 1.5,  spacing: 2.0, maxL: 10, label: 'Agressivo'   },
+};
+
+let chartEq = null;
+let chartDD = null;
+
+// ──────────────────────────────────────────────────────────
+// FETCH OHLCV FROM BINANCE (public, no key needed)
+// ──────────────────────────────────────────────────────────
+async function fetchOHLCV(symbol, days) {
+  const lim = Math.min(days, 999);
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=${lim}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`Binance API ${r.status} — verifique o símbolo ou tente novamente.`);
+  const raw = await r.json();
+  if (!Array.isArray(raw) || raw.length === 0) throw new Error('Sem dados retornados da Binance.');
+  return raw.map(k => ({
+    ts:    k[0],
+    date:  new Date(k[0]).toISOString().slice(0,10),
+    open:  +k[1],
+    high:  +k[2],
+    low:   +k[3],
+    close: +k[4],
+  }));
+}
+
+// ──────────────────────────────────────────────────────────
+// SIMULATION ENGINE
+// ──────────────────────────────────────────────────────────
+function simulate(candles, p) {
+  // p = { tp, spacing, maxL, baseSize, cbTol }
+  let realizedPnl = 0;
+  let equity      = [];
+  let drawdown    = [];
+  let trades      = [];
+  let monthly     = {};
+  let cbCount     = 0;
+  let cycle       = null;
+  let cbBlockUntil = -1;
+  let peakPnl     = 0;
+  let maxDD       = 0;
+
+  for (let i = 0; i < candles.length; i++) {
+    const c = candles[i];
+
+    // ── Open new cycle if none active ──
+    if (!cycle && i >= cbBlockUntil) {
+      const units = p.baseSize / c.open;
+      cycle = {
+        layers:     [{ price: c.open, units, cost: p.baseSize, idx: 1 }],
+        totalUnits: units,
+        totalCost:  p.baseSize,
+        openDate:   c.date,
+        openIdx:    i,
+        cbHit:      false,
+      };
+    }
+
+    let unrealized = 0;
+
+    if (cycle) {
+      const avg = cycle.totalCost / cycle.totalUnits;
+      const tp  = avg * (1 + p.tp / 100);
+
+      // ── Check Take Profit (use day's HIGH) ──
+      if (c.high >= tp) {
+        const profit = (tp - avg) * cycle.totalUnits;
+        realizedPnl += profit;
+
+        const ym = c.date.slice(0,7);
+        monthly[ym] = (monthly[ym] || 0) + profit;
+
+        trades.push({
+          n:          trades.length + 1,
+          openDate:   cycle.openDate,
+          closeDate:  c.date,
+          layers:     cycle.layers.length,
+          avg,
+          exit:       tp,
+          invested:   cycle.totalCost,
+          profit,
+          roi:        (profit / cycle.totalCost) * 100,
+          dur:        i - cycle.openIdx,
+          st:         'win',
+        });
+        cycle = null;
+        unrealized = 0;
+
+      } else {
+        // ── Check circuit breaker ──
+        const ddPct = ((cycle.layers[0].price - c.low) / cycle.layers[0].price) * 100;
+        if (ddPct >= p.cbTol && !cycle.cbHit) {
+          cycle.cbHit = true;
+          cbBlockUntil = i + 14; // pause new cycles 14 days
+          cbCount++;
+        }
+
+        // ── Add next layer if triggered ──
+        if (cycle.layers.length < p.maxL && !cycle.cbHit) {
+          const last = cycle.layers[cycle.layers.length - 1];
+          const trigger = last.price * (1 - p.spacing / 100);
+          if (c.low <= trigger) {
+            const newCost  = last.cost * 2;
+            const newUnits = newCost / trigger;
+            cycle.layers.push({ price: trigger, units: newUnits, cost: newCost, idx: cycle.layers.length + 1 });
+            cycle.totalUnits += newUnits;
+            cycle.totalCost  += newCost;
+          }
+        }
+
+        // ── Mark-to-market ──
+        const avgNow  = cycle.totalCost / cycle.totalUnits;
+        unrealized    = (c.close - avgNow) * cycle.totalUnits;
+
+        // ── Drawdown tracking ──
+        const ddNow = ((cycle.layers[0].price - c.low) / cycle.layers[0].price) * 100;
+        if (ddNow > maxDD) maxDD = ddNow;
+        drawdown.push({ date: c.date, dd: -Math.max(0, ddNow) });
+      }
+    } else {
+      drawdown.push({ date: c.date, dd: 0 });
+    }
+
+    const eq = realizedPnl + unrealized;
+    if (eq > peakPnl) peakPnl = eq;
+    equity.push({ date: c.date, val: eq });
+  }
+
+  // ── Handle open cycle at end of period ──
+  if (cycle) {
+    const last = candles[candles.length - 1];
+    const avg  = cycle.totalCost / cycle.totalUnits;
+    const unrealP = (last.close - avg) * cycle.totalUnits;
+    trades.push({
+      n:        trades.length + 1,
+      openDate: cycle.openDate,
+      closeDate:'Aberto',
+      layers:   cycle.layers.length,
+      avg,
+      exit:     avg * (1 + p.tp / 100),
+      invested: cycle.totalCost,
+      profit:   unrealP,
+      roi:      (unrealP / cycle.totalCost) * 100,
+      dur:      candles.length - cycle.openIdx,
+      st:       unrealP >= 0 ? 'open_profit' : 'open_loss',
+    });
+  }
+
+  const closed     = trades.filter(t => t.st === 'win');
+  const avgDur     = closed.length ? closed.reduce((s,t) => s + t.dur, 0) / closed.length : 0;
+  const daysTotal  = candles.length;
+  const cagr = daysTotal > 0
+    ? (Math.pow(Math.max(0.01, (p.baseSize + realizedPnl) / p.baseSize), 365 / daysTotal) - 1) * 100
+    : 0;
+
+  return {
+    equity, drawdown, trades,
+    stats: {
+      pnl: realizedPnl,
+      retPct: (realizedPnl / p.baseSize) * 100,
+      cagr,
+      cycles: closed.length,
+      winRate: 100,
+      maxDD,
+      cbCount,
+      avgDur,
+      monthly,
+    }
+  };
+}
+
+// ──────────────────────────────────────────────────────────
+// MAIN RUNNER
+// ──────────────────────────────────────────────────────────
+async function doRun() {
+  const symbol  = document.getElementById('selAsset').value;
+  const days    = parseInt(document.getElementById('selPeriod').value);
+  const risk    = document.getElementById('selRisk').value;
+  const base    = parseFloat(document.getElementById('inpBase').value) || 100;
+  const cbTol   = parseFloat(document.getElementById('inpCB').value)  || 35;
+  const prof    = PROFILES[risk];
+
+  setStatus('loading', `Baixando ${days} velas diárias de ${symbol} — Binance API...`);
+  document.getElementById('runBtn').disabled = true;
+
+  try {
+    const candles = await fetchOHLCV(symbol, days);
+    setStatus('loading', `Simulando ${candles.length} dias · Perfil ${prof.label} · TP ${prof.tp}% · Spacing ${prof.spacing}%...`);
+
+    await new Promise(r => setTimeout(r, 10)); // let UI update
+
+    const r = simulate(candles, { tp: prof.tp, spacing: prof.spacing, maxL: prof.maxL, baseSize: base, cbTol });
+
+    renderMetrics(r.stats, base, days);
+    renderEquity(r.equity);
+    renderDD(r.drawdown);
+    renderHeatmap(r.stats.monthly);
+    renderAnatomy(prof, base);
+    renderTrades(r.trades);
+
+    const avgLayers = r.trades.filter(t=>t.st==='win').reduce((s,t)=>s+t.layers,0) / Math.max(1,r.stats.cycles);
+    setStatus('ok',
+      `✓ Backtest concluído — ${candles.length} velas · ${r.stats.cycles} ciclos fechados · ` +
+      `avg ${avgLayers.toFixed(1)} layers/ciclo · drawdown máx ${r.stats.maxDD.toFixed(1)}% · ${r.stats.cbCount} circuit breaker(s)`
+    );
+  } catch (e) {
+    setStatus('error', `Erro: ${e.message}`);
+    console.error(e);
+  } finally {
+    document.getElementById('runBtn').disabled = false;
+  }
+}
+
+// ──────────────────────────────────────────────────────────
+// RENDER METRICS
+// ──────────────────────────────────────────────────────────
+function renderMetrics(s, base, days) {
+  const sg = s.pnl >= 0 ? '+' : '';
+  el('mRet').textContent    = `${sg}${s.retPct.toFixed(1)}%`;
+  el('mRet').className      = 'mc-val ' + (s.pnl >= 0 ? 'pos' : 'neg');
+  el('mRetSub').textContent = `${sg}$${s.pnl.toFixed(2)} realizados (${days}d)`;
+
+  el('mCagr').textContent   = `${s.cagr>=0?'+':''}${s.cagr.toFixed(1)}%`;
+  el('mCagr').className     = 'mc-val ' + (s.cagr >= 0 ? 'blu' : 'neg');
+
+  el('mWR').textContent     = `100%`;
+  el('mWRSub').textContent  = `${s.cycles} ciclos — todos fechados no TP`;
+
+  el('mCy').textContent     = s.cycles;
+  el('mCySub').textContent  = `~${s.avgDur.toFixed(0)} dias por ciclo`;
+
+  el('mDD').textContent     = `-${s.maxDD.toFixed(1)}%`;
+
+  el('mCB').textContent     = s.cbCount;
+  el('mCBSub').textContent  = s.cbCount === 0 ? 'sem pausas automáticas' : `${s.cbCount} pausa(s) de 14 dias`;
+}
+
+// ──────────────────────────────────────────────────────────
+// RENDER EQUITY CHART
+// ──────────────────────────────────────────────────────────
+function renderEquity(curve) {
+  if (chartEq) chartEq.destroy();
+  const ctx = document.getElementById('eqChart').getContext('2d');
+  const grad = ctx.createLinearGradient(0,0,0,280);
+  grad.addColorStop(0,'rgba(16,185,129,.28)');
+  grad.addColorStop(1,'rgba(16,185,129,.01)');
+
+  chartEq = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: curve.map(p=>p.date),
+      datasets: [{
+        data: curve.map(p=>p.val),
+        borderColor: '#10b981',
+        backgroundColor: grad,
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.3,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#161d2b',
+          borderColor: '#10b981', borderWidth: 1,
+          callbacks: { label: c => `P&L: ${c.raw>=0?'+':''}$${c.raw.toFixed(2)}` }
+        }
+      },
+      scales: {
+        x: { ticks: { color:'#64748b', maxTicksLimit:12, maxRotation:0 }, grid: { color:'rgba(255,255,255,.04)' } },
+        y: {
+          ticks: { color:'#64748b', callback: v=>`${v>=0?'+':''}$${v.toFixed(0)}` },
+          grid: { color:'rgba(255,255,255,.04)' }
+        }
+      }
+    }
+  });
+}
+
+// ──────────────────────────────────────────────────────────
+// RENDER DRAWDOWN CHART
+// ──────────────────────────────────────────────────────────
+function renderDD(curve) {
+  if (chartDD) chartDD.destroy();
+  const ctx = document.getElementById('ddChart').getContext('2d');
+  const grad = ctx.createLinearGradient(0,0,0,200);
+  grad.addColorStop(0,'rgba(244,63,94,.03)');
+  grad.addColorStop(1,'rgba(244,63,94,.38)');
+
+  chartDD = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: curve.map(p=>p.date),
+      datasets: [{
+        data: curve.map(p=>p.dd),
+        borderColor: '#f43f5e',
+        backgroundColor: grad,
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.2,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#161d2b',
+          borderColor: '#f43f5e', borderWidth: 1,
+          callbacks: { label: c => `DD: ${c.raw.toFixed(2)}%` }
+        }
+      },
+      scales: {
+        x: { ticks:{ color:'#64748b', maxTicksLimit:8, maxRotation:0 }, grid:{ color:'rgba(255,255,255,.04)' } },
+        y: { ticks:{ color:'#64748b', callback:v=>`${v.toFixed(0)}%` }, grid:{ color:'rgba(255,255,255,.04)' } }
+      }
+    }
+  });
+}
+
+// ──────────────────────────────────────────────────────────
+// RENDER MONTHLY HEATMAP
+// ──────────────────────────────────────────────────────────
+function renderHeatmap(monthly) {
+  const wrap = document.getElementById('heatmapWrap');
+  const keys = Object.keys(monthly).sort();
+  if (!keys.length) { wrap.innerHTML='<p style="color:var(--muted);font-size:12px">Sem ciclos fechados para computar retornos mensais.</p>'; return; }
+
+  const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const years  = [...new Set(keys.map(k=>k.slice(0,4)))];
+  const maxAbs = Math.max(...Object.values(monthly).map(Math.abs), 1);
+
+  let html = `<div style="display:grid;grid-template-columns:36px repeat(12,1fr);gap:2px;font-size:9px;min-width:380px">`;
+  html += `<div></div>` + MONTHS.map(m=>`<div style="text-align:center;color:var(--muted);padding:2px 0;font-weight:700">${m}</div>`).join('');
+
+  for (const yr of years) {
+    html += `<div style="display:contents">`;
+    html += `<div style="display:flex;align-items:center;color:var(--muted);font-weight:800;font-size:9px;padding-right:6px;justify-content:flex-end">${yr}</div>`;
+    for (let m=1; m<=12; m++) {
+      const key = `${yr}-${String(m).padStart(2,'0')}`;
+      const v   = monthly[key];
+      if (v === undefined) {
+        html += `<div style="background:var(--bg3);border-radius:3px;height:24px"></div>`;
+      } else {
+        const alpha = 0.18 + (Math.abs(v)/maxAbs)*0.72;
+        const bg    = v>=0 ? `rgba(16,185,129,${alpha})` : `rgba(244,63,94,${alpha})`;
+        const sign  = v>=0?'+':'';
+        html += `<div style="background:${bg};border-radius:3px;height:24px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;cursor:default" title="${key}: ${sign}$${v.toFixed(0)}">${sign}${v.toFixed(0)}</div>`;
+      }
+    }
+    html += `</div>`;
+  }
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+// ──────────────────────────────────────────────────────────
+// RENDER ANATOMY
+// ──────────────────────────────────────────────────────────
+function renderAnatomy(prof, baseSize) {
+  el('anatProfile').textContent = prof.label;
+  const wrap  = el('anatBars');
+  wrap.innerHTML = '';
+  const maxCost = baseSize * Math.pow(2, prof.maxL - 1);
+
+  for (let i=1; i<=prof.maxL; i++) {
+    const cost    = baseSize * Math.pow(2, i-1);
+    const depth   = i / prof.maxL;
+    const color   = depth < 0.3 ? '#10b981' : depth < 0.6 ? '#f59e0b' : '#f43f5e';
+    const alpha   = 0.55 + depth * 0.45;
+    const barW    = Math.max(30, (cost / maxCost) * 520);
+    const offset  = ((i-1) * prof.spacing).toFixed(1);
+
+    const row = document.createElement('div');
+    row.className = 'layer-row';
+    row.innerHTML = `
+      <div class="l-lbl" style="color:${color}">L${i}</div>
+      <div class="l-bar" style="width:${barW}px;background:${color};opacity:${alpha}">
+        ${cost >= 200 ? '$'+cost.toLocaleString() : ''}
+      </div>
+      <div class="l-info">
+        Entrada: -${offset}% do L1 &nbsp;·&nbsp;
+        Tamanho: <strong style="color:${color}">$${cost.toLocaleString()}</strong> &nbsp;·&nbsp;
+        ${i===1 ? 'Abertura do ciclo (preço de mercado)' : `Total acumulado: $${(baseSize*(Math.pow(2,i)-1)).toLocaleString()}`}
+      </div>`;
+    wrap.appendChild(row);
+  }
+
+  const note = document.createElement('div');
+  note.className = 'tp-note';
+  note.innerHTML = `⚡ <strong>Take Profit: ${prof.tp}%</strong> sobre o preço médio ponderado de todas as layers abertas.
+    Com ${prof.maxL} layers: investimento máximo <strong>$${(baseSize * (Math.pow(2,prof.maxL)-1)).toLocaleString()}</strong> —
+    fechamento sempre no lucro. Spacing: ${prof.spacing}% entre layers.`;
+  wrap.appendChild(note);
+}
+
+// ──────────────────────────────────────────────────────────
+// RENDER TRADE TABLE
+// ──────────────────────────────────────────────────────────
+function renderTrades(trades) {
+  el('tradeCnt').textContent = `${trades.length} ciclos`;
+  const tbody = el('tbody');
+
+  if (!trades.length) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:50px;font-size:12px">Nenhum ciclo executado no período.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = [...trades].reverse().slice(0, 120).map(t => {
+    const sc  = t.st==='win' ? '#10b981' : t.st==='open_profit' ? '#3b82f6' : '#f43f5e';
+    const lbl = t.st==='win' ? '✓ TP Hit' : t.st==='open_profit' ? '⟳ Aberto (+)' : '⟳ Aberto (–)';
+    const dots = Array.from({length:t.layers},(_,j)=>{
+      const d=(j+1)/10; const c=d<.3?'#10b981':d<.6?'#f59e0b':'#f43f5e';
+      return `<span style="background:${c};border-radius:2px;width:7px;height:7px;display:inline-block;margin-right:1px"></span>`;
+    }).join('');
+    const sg = t.profit>=0?'+':'';
+    return `<tr>
+      <td style="color:var(--muted)">${t.n}</td>
+      <td>${t.openDate}</td>
+      <td>${t.closeDate}</td>
+      <td style="color:var(--dim)">${t.dur}d</td>
+      <td>${dots} <span style="font-size:9px;color:var(--muted)">L${t.layers}</span></td>
+      <td style="font-family:monospace">$${fmt(t.avg)}</td>
+      <td style="font-family:monospace;color:#10b981">$${fmt(t.exit)}</td>
+      <td style="font-family:monospace;color:var(--dim)">$${t.invested.toFixed(0)}</td>
+      <td style="font-family:monospace;color:${t.profit>=0?'#10b981':'#f43f5e'}">${sg}$${t.profit.toFixed(2)}</td>
+      <td style="color:${t.roi>=0?'#10b981':'#f43f5e'}">${sg}${t.roi.toFixed(2)}%</td>
+      <td><span style="color:${sc};font-size:9px;font-weight:700">${lbl}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ──────────────────────────────────────────────────────────
+// UTILS
+// ──────────────────────────────────────────────────────────
+function el(id) { return document.getElementById(id); }
+
+function fmt(p) {
+  if (p >= 10000) return p.toLocaleString('en-US', {maximumFractionDigits:0});
+  if (p >= 1)     return p.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
+  return p.toLocaleString('en-US', {minimumFractionDigits:4,maximumFractionDigits:4});
+}
+
+function setStatus(type, msg) {
+  const dot = el('sdot');
+  const txt = el('stxt');
+  dot.className = 'sdot' + (type==='loading' ? ' loading' : type==='error' ? ' error' : '');
+  if (type === 'loading') {
+    txt.innerHTML = `<span class="spin"></span>&nbsp;${msg}`;
+  } else {
+    txt.textContent = msg;
+  }
+}
+
+// ──────────────────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────────────────
+renderAnatomy(PROFILES.moderate, 100);
+</script>
+</body>
+</html>

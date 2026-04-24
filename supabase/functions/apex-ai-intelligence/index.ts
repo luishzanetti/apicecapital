@@ -92,25 +92,40 @@ async function processSymbol(
   const highs = candles.map((c) => c.high);
   const lows = candles.map((c) => c.low);
 
-  // Adapt indicator periods to available data. On 4h CoinGecko candles
-  // (180 points = 30d), EMA50 = ~8d, EMA200 = ~33d — still meaningful.
-  // On Bybit hourly (200 points), EMA50 = ~2d, EMA200 = ~8d.
+  // V3 multi-signal: EMA + SMA + RSI + ATR + ADX + volume
   const ema50 = ema(closes, Math.min(50, Math.floor(closes.length / 3)));
   const ema200 = ema(closes, Math.min(200, Math.floor(closes.length * 0.8)));
+  const sma20 = sma(closes, 20);
+  const sma50 = sma(closes, 50);
+  const sma200 = sma(closes, Math.min(200, closes.length - 5));
   const atr14 = atr(highs, lows, closes, 14);
   const adx14 = adx(highs, lows, closes, 14);
+  const rsi14 = rsi(closes, 14);
+  const volumes = candles.map((c) => c.volume).filter((v) => v > 0);
+  const volRatio = volumes.length >= 20
+    ? volumes[volumes.length - 1] / (volumes.slice(-20).reduce((a, b) => a + b, 0) / 20)
+    : 1;
 
   const currentPrice = closes[closes.length - 1];
   const atrPct = (atr14 / currentPrice) * 100;
 
-  // 3. Detect regimes
-  const trendRegime = detectTrendRegime(ema50, ema200, adx14);
+  // 3. Detect regimes (now with high_volatility as a separate regime)
+  const trendRegime = detectTrendRegime(ema50, ema200, adx14, atrPct);
   const volatilityRegime = detectVolatilityRegime(atrPct);
 
   // 4. Fetch funding rate
   const funding = await fetchFundingRate(symbol).catch(() => null);
 
-  // 5. Upsert regime_state
+  // V3: confidence score for regime detection (0-100)
+  // Higher when ADX is strong + EMAs aligned + RSI not extreme
+  const adxComponent = Math.min(adx14, 50) * 1.5; // up to 75
+  const emaAligned = (trendRegime === 'bull_trending' && ema50 > ema200) ||
+    (trendRegime === 'bear_trending' && ema50 < ema200) ||
+    trendRegime === 'sideways';
+  const regimeScore = Math.min(100, adxComponent + (emaAligned ? 15 : 0) +
+    (rsi14 >= 30 && rsi14 <= 70 ? 10 : 0));
+
+  // 5. Upsert regime_state with full multi-signal payload
   await supabase.from('apex_ai_regime_state').upsert(
     {
       symbol,
@@ -121,6 +136,12 @@ async function processSymbol(
       adx_14: adx14,
       atr_14: atr14,
       atr_pct: atrPct,
+      rsi_14: rsi14,
+      sma_20: sma20,
+      sma_50: sma50,
+      sma_200: sma200,
+      volume_ratio: volRatio,
+      regime_score: regimeScore,
       detected_at: new Date().toISOString(),
     },
     { onConflict: 'symbol' }
@@ -144,6 +165,8 @@ async function processSymbol(
     trend: trendRegime,
     volatility: volatilityRegime,
     atr_pct: Number(atrPct.toFixed(2)),
+    rsi: Number(rsi14.toFixed(1)),
+    regime_score: Number(regimeScore.toFixed(0)),
     funding_rate: funding?.rate,
   };
 }
@@ -158,6 +181,35 @@ function ema(values: number[], period: number): number {
     ema = values[i] * k + ema * (1 - k);
   }
   return ema;
+}
+
+function sma(values: number[], period: number): number {
+  if (values.length < period) return values[values.length - 1] ?? 0;
+  const slice = values.slice(-period);
+  return slice.reduce((a, b) => a + b, 0) / period;
+}
+
+function rsi(closes: number[], period: number): number {
+  if (closes.length < period + 1) return 50;
+  let gainSum = 0;
+  let lossSum = 0;
+  for (let i = 1; i <= period; i++) {
+    const diff = closes[i] - closes[i - 1];
+    if (diff > 0) gainSum += diff;
+    else lossSum += -diff;
+  }
+  let avgGain = gainSum / period;
+  let avgLoss = lossSum / period;
+  for (let i = period + 1; i < closes.length; i++) {
+    const diff = closes[i] - closes[i - 1];
+    const gain = diff > 0 ? diff : 0;
+    const loss = diff < 0 ? -diff : 0;
+    avgGain = (avgGain * (period - 1) + gain) / period;
+    avgLoss = (avgLoss * (period - 1) + loss) / period;
+  }
+  if (avgLoss === 0) return 100;
+  const rs = avgGain / avgLoss;
+  return 100 - 100 / (1 + rs);
 }
 
 function atr(highs: number[], lows: number[], closes: number[], period: number): number {
@@ -233,9 +285,14 @@ function adx(highs: number[], lows: number[], closes: number[], period: number):
 function detectTrendRegime(
   ema50: number,
   ema200: number,
-  adx14: number
-): 'bull_trending' | 'bear_trending' | 'sideways' | 'unknown' {
+  adx14: number,
+  atrPct: number
+): 'bull_trending' | 'bear_trending' | 'sideways' | 'high_volatility' | 'unknown' {
   if (!ema50 || !ema200) return 'unknown';
+
+  // V3: high volatility takes precedence over trend (capital protection mode)
+  if (atrPct >= 4.0) return 'high_volatility';
+
   const trendStrong = adx14 > 25;
   const trendSideways = adx14 < 20;
   const bullish = ema50 > ema200;
@@ -243,7 +300,7 @@ function detectTrendRegime(
   if (trendSideways) return 'sideways';
   if (trendStrong && bullish) return 'bull_trending';
   if (trendStrong && !bullish) return 'bear_trending';
-  return 'sideways'; // weak trend defaults to sideways
+  return 'sideways';
 }
 
 function detectVolatilityRegime(atrPct: number): 'low' | 'medium' | 'high' {

@@ -6,6 +6,9 @@ import type {
   ApexAiSymbolIntelligence,
   ApexAiAggregatedPosition,
   ApexAiStrategyEvent,
+  ApexAiReserveFund,
+  ApexAiReserveEvent,
+  ApexAiRegimeParams,
 } from '@/types/apexAi';
 
 /**
@@ -108,6 +111,63 @@ export function useApexAiStrategyEvents(portfolioId: string | null, limit = 20) 
         .limit(limit);
       if (error) throw error;
       return (data ?? []) as ApexAiStrategyEvent[];
+    },
+  });
+}
+
+// V3 — Reserve fund + events ────────────────────────────────
+
+export function useApexAiReserveFund(portfolioId: string | null) {
+  return useQuery({
+    queryKey: ['apex-ai-reserve-fund', portfolioId],
+    enabled: !!portfolioId,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('apex_ai_reserve_fund')
+        .select('*')
+        .eq('portfolio_id', portfolioId!)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as ApexAiReserveFund | null;
+    },
+  });
+}
+
+export function useApexAiReserveEvents(portfolioId: string | null, limit = 15) {
+  return useQuery({
+    queryKey: ['apex-ai-reserve-events', portfolioId, limit],
+    enabled: !!portfolioId,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('apex_ai_reserve_events')
+        .select('*')
+        .eq('portfolio_id', portfolioId!)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return (data ?? []) as ApexAiReserveEvent[];
+    },
+  });
+}
+
+// V3 — Adaptive regime params (shared, not per-portfolio)
+
+export function useApexAiRegimeParams() {
+  return useQuery({
+    queryKey: ['apex-ai-regime-params'],
+    refetchInterval: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('apex_ai_regime_params')
+        .select('*');
+      if (error) throw error;
+      const map: Record<string, ApexAiRegimeParams> = {};
+      for (const row of data ?? []) {
+        map[(row as { regime: string }).regime] = row as ApexAiRegimeParams;
+      }
+      return map;
     },
   });
 }

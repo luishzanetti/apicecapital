@@ -181,7 +181,7 @@ export const APEX_AI_RECOMMENDED_SYMBOLS = {
 // V2.0 TYPES — multi-layer grid DCA + regime intelligence
 // ═══════════════════════════════════════════════════════════════════
 
-export type ApexAiTrendRegime = 'bull_trending' | 'bear_trending' | 'sideways' | 'unknown';
+export type ApexAiTrendRegime = 'bull_trending' | 'bear_trending' | 'sideways' | 'high_volatility' | 'unknown';
 export type ApexAiVolatilityRegime = 'low' | 'medium' | 'high';
 export type ApexAiStrategyTag = 'grid_dca' | 'trend' | 'funding_arb' | 'mean_reversion';
 
@@ -204,7 +204,58 @@ export interface ApexAiRegimeState {
   adx_14: number | null;
   atr_14: number | null;
   atr_pct: number | null;
+  // V3 multi-signal additions
+  rsi_14: number | null;
+  sma_20: number | null;
+  sma_50: number | null;
+  sma_200: number | null;
+  volume_ratio: number | null;
+  regime_score: number | null;
   detected_at: string;
+}
+
+// V3 — Reserve fund types
+export interface ApexAiReserveFund {
+  portfolio_id: string;
+  user_id: string;
+  balance_usdt: number;
+  lifetime_contributions: number;
+  lifetime_deploys: number;
+  contribution_pct: number;
+  consecutive_positive_days: number;
+  last_consistency_bonus_at: string | null;
+  updated_at: string;
+}
+
+export type ApexAiReserveEventType =
+  | 'contribution'
+  | 'protection_deploy'
+  | 'strategic_close'
+  | 'emergency_layer'
+  | 'consistency_bonus';
+
+export interface ApexAiReserveEvent {
+  id: string;
+  portfolio_id: string;
+  user_id: string;
+  event_type: ApexAiReserveEventType;
+  amount_usdt: number;
+  related_trade_id: string | null;
+  related_position_id: string | null;
+  rationale: string | null;
+  payload_json: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface ApexAiRegimeParams {
+  regime: ApexAiTrendRegime;
+  tp_min_pct: number;
+  tp_max_pct: number;
+  spacing_atr_multiplier: number;
+  max_layers: number;
+  cb_tolerance_pct: number;
+  l1_action: 'open' | 'filter' | 'block' | 'selective';
+  description: string | null;
 }
 
 export interface ApexAiSymbolIntelligence {

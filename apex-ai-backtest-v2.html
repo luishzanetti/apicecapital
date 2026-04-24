@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apex AI Backtest V2 — Apice Capital</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface2: #18181f;
+  --border: #252530;
+  --accent: #7c3aed;
+  --accent2: #06b6d4;
+  --green: #10b981;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --text: #f1f5f9;
+  --muted: #64748b;
+  --card-hover: #1c1c26;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; font-size: 14px; min-height: 100vh; }
+
+/* ── Header ── */
+.header { background: linear-gradient(135deg, #0f0f1a 0%, #1a0a2e 100%); border-bottom: 1px solid var(--border); padding: 20px 28px; display: flex; align-items: center; gap: 16px; }
+.header-logo { width: 40px; height: 40px; background: linear-gradient(135deg, #7c3aed, #06b6d4); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #fff; flex-shrink: 0; }
+.header-text h1 { font-size: 18px; font-weight: 700; background: linear-gradient(90deg, #a78bfa, #67e8f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header-text p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.header-badge { margin-left: auto; background: linear-gradient(135deg, #7c3aed22, #06b6d422); border: 1px solid #7c3aed44; color: #a78bfa; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+
+/* ── Controls ── */
+.controls { padding: 20px 28px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; background: var(--surface); border-bottom: 1px solid var(--border); }
+.ctrl-group { display: flex; flex-direction: column; gap: 5px; min-width: 130px; }
+.ctrl-group label { font-size: 11px; color: var(--muted); font-weight: 500; letter-spacing: 0.5px; }
+.ctrl-group select, .ctrl-group input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 7px 10px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color .2s; }
+.ctrl-group select:focus, .ctrl-group input:focus { border-color: var(--accent); }
+.ctrl-group input[type=range] { padding: 0; height: 32px; accent-color: var(--accent); }
+.run-btn { background: linear-gradient(135deg, #7c3aed, #4f46e5); color: #fff; border: none; padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .2s, transform .1s; white-space: nowrap; }
+.run-btn:hover { opacity: .9; transform: translateY(-1px); }
+.run-btn:active { transform: translateY(0); }
+.run-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+/* ── Status ── */
+.status-bar { padding: 10px 28px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 12px; color: var(--muted); display: none; align-items: center; gap: 8px; }
+.status-bar.loading { display: flex !important; }
+.spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Metrics Grid ── */
+.metrics-section { padding: 20px 28px 0; display: none; }
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; transition: background .2s; cursor: default; }
+.metric-card:hover { background: var(--card-hover); }
+.metric-card .label { font-size: 11px; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
+.metric-card .value { font-size: 22px; font-weight: 700; }
+.metric-card .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.green { color: var(--green); }
+.red { color: var(--red); }
+.amber { color: var(--amber); }
+.purple { color: #a78bfa; }
+.cyan { color: #67e8f9; }
+
+/* ── Tabs ── */
+.tabs-section { padding: 20px 28px; display: none; }
+.tab-nav { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 20px; overflow-x: auto; }
+.tab-btn { background: transparent; border: none; color: var(--muted); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; transition: all .2s; }
+.tab-btn.active { background: var(--accent); color: #fff; }
+.tab-btn:hover:not(.active) { background: var(--surface2); color: var(--text); }
+
+/* ── Charts ── */
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+.chart-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 14px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.chart-wrap { position: relative; height: 240px; }
+.chart-wrap-sm { position: relative; height: 180px; }
+
+/* ── Trade Log ── */
+.table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+thead th { background: var(--surface2); padding: 10px 12px; text-align: left; color: var(--muted); font-weight: 600; font-size: 11px; letter-spacing: 0.5px; white-space: nowrap; border-bottom: 1px solid var(--border); }
+tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+tbody tr:hover { background: var(--surface2); }
+tbody td { padding: 9px 12px; white-space: nowrap; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+.badge-green { background: #10b98122; color: var(--green); }
+.badge-red { background: #ef444422; color: var(--red); }
+.badge-amber { background: #f59e0b22; color: var(--amber); }
+.badge-purple { background: #7c3aed22; color: #a78bfa; }
+
+/* ── Comparison ── */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.compare-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+.compare-card h4 { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.compare-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.compare-row:last-child { border-bottom: none; }
+.compare-label { font-size: 12px; color: var(--muted); }
+.compare-val { font-size: 14px; font-weight: 700; }
+.delta-tag { font-size: 10px; padding: 1px 6px; border-radius: 4px; margin-left: 4px; font-weight: 600; }
+.delta-pos { background: #10b98120; color: var(--green); }
+.delta-neg { background: #ef444420; color: var(--red); }
+
+/* ── Reserve Fund ── */
+.srp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.srp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+.srp-card .srp-icon { font-size: 20px; }
+.srp-card .srp-title { font-size: 12px; font-weight: 600; }
+.srp-card .srp-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+/* ── Recommendations ── */
+.reco-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.reco-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.reco-card .reco-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.reco-card .reco-icon { font-size: 20px; }
+.reco-card .reco-title { font-size: 13px; font-weight: 600; }
+.reco-card .reco-priority { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: auto; }
+.prio-critical { background: #ef444422; color: var(--red); }
+.prio-high { background: #f59e0b22; color: var(--amber); }
+.prio-medium { background: #7c3aed22; color: #a78bfa; }
+.reco-card .reco-body { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.reco-metric { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; color: var(--text); margin: 4px 4px 0 0; }
+
+/* ── Intelligence ── */
+.intel-section { display: flex; flex-direction: column; gap: 16px; }
+.intel-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+.intel-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.intel-card p { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 8px; }
+.intel-flow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.intel-node { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 12px; display: flex; align-items: center; gap: 6px; position: relative; }
+.intel-arrow { color: var(--muted); font-size: 16px; display: flex; align-items: center; }
+.signal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+.signal-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.signal-card .sig-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+.signal-card .sig-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+/* ── Heatmap ── */
+.heatmap-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; }
+.heatmap-cell { aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; transition: transform .15s; cursor: default; }
+.heatmap-cell:hover { transform: scale(1.1); }
+.hm-label { font-size: 9px; color: var(--muted); margin-bottom: 3px; }
+
+/* ── Layer anatomy ── */
+.anatomy-wrap { display: flex; flex-direction: column; gap: 6px; }
+.anatomy-bar { display: flex; align-items: center; gap: 10px; }
+.anatomy-bar-fill { height: 24px; border-radius: 6px; display: flex; align-items: center; padding: 0 8px; font-size: 10px; font-weight: 700; color: #fff; transition: width .5s; }
+.anatomy-label { font-size: 11px; color: var(--muted); white-space: nowrap; min-width: 160px; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .compare-grid { grid-template-columns: 1fr; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .header { padding: 14px 16px; }
+  .controls, .metrics-section, .tabs-section { padding-left: 16px; padding-right: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-logo">A</div>
+  <div class="header-text">
+    <h1>Apex AI Backtest — V2</h1>
+    <p>Martingale DCA Inteligente · ATR Dinâmico · Fundo de Reserva · Smart Reserve Protocol</p>
+  </div>
+  <div class="header-badge">V2 · Produção</div>
+</header>
+
+<!-- CONTROLS -->
+<section class="controls">
+  <div class="ctrl-group">
+    <label>SÍMBOLO</label>
+    <select id="symbolSel">
+      <option value="BTCUSDT">BTC/USDT</option>
+      <option value="ETHUSDT">ETH/USDT</option>
+      <option value="SOLUSDT">SOL/USDT</option>
+      <option value="BNBUSDT">BNB/USDT</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <label>PERÍODO</label>
+    <select id="daysSel">
+      <option value="180">6 meses</option>
+      <option value="365" selected>1 ano</option>
+      <option value="730">2 anos</option>
+      <option value="1000">~3 anos</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <label>PERFIL DE RISCO</label>
+    <select id="profileSel">
+      <option value="conservative">Conservador</option>
+      <option value="moderate" selected>Moderado</option>
+      <option value="aggressive">Agressivo</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <label>CAPITAL INICIAL ($)</label>
+    <input type="number" id="capitalInput" value="10000" min="1000" step="1000">
+  </div>
+  <div class="ctrl-group">
+    <label>TAMANHO BASE ($)</label>
+    <input type="number" id="baseSizeInput" value="200" min="10" step="10">
+  </div>
+  <div class="ctrl-group">
+    <label>RESERVA (% lucro)</label>
+    <input type="number" id="reservePctInput" value="10" min="0" max="30" step="1">
+  </div>
+  <div class="ctrl-group">
+    <label>FILTRO SMA-20</label>
+    <select id="smaFilterSel">
+      <option value="1">Ativado</option>
+      <option value="0">Desativado</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <label>ESPAÇAMENTO ATR</label>
+    <select id="dynamicSpacingSel">
+      <option value="1">Dinâmico</option>
+      <option value="0">Fixo</option>
+    </select>
+  </div>
+  <button class="run-btn" id="runBtn" onclick="runBacktest()">▶ Executar Backtest</button>
+</section>
+
+<!-- STATUS BAR -->
+<div class="status-bar" id="statusBar">
+  <div class="spinner"></div>
+  <span id="statusMsg">Carregando dados da Binance...</span>
+</div>
+
+<!-- METRICS -->
+<section class="metrics-section" id="metricsSection">
+  <div class="metrics-grid" id="metricsGrid"></div>
+</section>
+
+<!-- TABS -->
+<section class="tabs-section" id="tabsSection">
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('results', this)">📊 Resultados</button>
+    <button class="tab-btn" onclick="switchTab('comparison', this)">⚖️ V1 vs V2</button>
+    <button class="tab-btn" onclick="switchTab('reserve', this)">🛡️ Fundo de Reserva</button>
+    <button class="tab-btn" onclick="switchTab('recommendations', this)">💡 Recomendações</button>
+    <button class="tab-btn" onclick="switchTab('intelligence', this)">🧠 IA Adaptativa</button>
+  </nav>
+
+  <!-- TAB: Results -->
+  <div id="tab-results">
+    <div class="chart-card">
+      <h3>📈 Curva de Capital V2 <span style="font-size:11px;color:var(--muted);font-weight:400;margin-left:8px">Patrimônio total (capital + posição aberta + reserva)</span></h3>
+      <div class="chart-wrap"><canvas id="equityChart"></canvas></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div class="chart-card">
+        <h3>📉 Drawdown Máximo</h3>
+        <div class="chart-wrap-sm"><canvas id="drawdownChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>🗓️ Heatmap Mensal</h3>
+        <div id="heatmapWrap"></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>📐 Anatomia das Camadas V2</h3>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:12px">L1=L2=base. A partir de L3 o martingale dobra. Redução de ~50% no capital máximo vs V1.</p>
+      <div class="anatomy-wrap" id="anatomyWrap"></div>
+    </div>
+    <div class="chart-card">
+      <h3>📋 Log de Operações</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Início</th><th>Fim</th><th>Dias</th><th>Camadas</th>
+              <th>Preço Médio</th><th>TP</th><th>Investido</th>
+              <th>Lucro</th><th>ROI</th><th>Reserva</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tradeLogBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Comparison -->
+  <div id="tab-comparison" style="display:none;">
+    <div class="chart-card">
+      <h3>⚖️ Curva de Capital: V1 vs V2</h3>
+      <div class="chart-wrap"><canvas id="comparisonChart"></canvas></div>
+    </div>
+    <div class="compare-grid" id="compareGrid"></div>
+  </div>
+
+  <!-- TAB: Reserve Fund -->
+  <div id="tab-reserve" style="display:none;">
+    <div class="srp-grid">
+      <div class="srp-card">
+        <div class="srp-icon">🏦</div>
+        <div class="srp-title">Acumulação</div>
+        <div class="srp-desc">10% de cada trade lucrativo vai para a reserva. Cresce automaticamente sem intervenção manual.</div>
+      </div>
+      <div class="srp-card" style="border-color:#7c3aed44;">
+        <div class="srp-icon">🛡️</div>
+        <div class="srp-title">Proteção de Liquidação</div>
+        <div class="srp-desc">Se drawdown > 80% da tolerância CB, a reserva injeta capital automaticamente para proteger a posição.</div>
+      </div>
+      <div class="srp-card" style="border-color:#06b6d444;">
+        <div class="srp-icon">⏱️</div>
+        <div class="srp-title">Fechamento Estratégico</div>
+        <div class="srp-desc">Posições abertas > limite de dias recebem suporte parcial da reserva para fechar com menor prejuízo.</div>
+      </div>
+      <div class="srp-card" style="border-color:#10b98144;">
+        <div class="srp-icon">🎯</div>
+        <div class="srp-title">Bônus de Consistência</div>
+        <div class="srp-desc">Após 90 dias positivos consecutivos, 20% da reserva é liberada como bônus de performance.</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>🛡️ Crescimento do Fundo de Reserva</h3>
+      <div class="chart-wrap"><canvas id="reserveChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>📋 Eventos de Reserva</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Data</th><th>Tipo</th><th>Valor</th><th>Descrição</th></tr>
+          </thead>
+          <tbody id="reserveLogBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Recommendations -->
+  <div id="tab-recommendations" style="display:none;">
+    <div id="recoGrid" class="reco-grid"></div>
+  </div>
+
+  <!-- TAB: Intelligence -->
+  <div id="tab-intelligence" style="display:none;">
+    <div class="intel-section">
+      <div class="intel-card">
+        <h3>🧠 Sistema de Inteligência Adaptativa — Arquitetura</h3>
+        <p>Um sistema de IA em tempo real que analisa múltiplos sinais de mercado e ajusta automaticamente os parâmetros do bot DCA. A adaptação acontece a cada fechamento de candle (diário ou horário, configurável).</p>
+        <div class="intel-flow">
+          <div class="intel-node" style="border-color:#7c3aed44;background:#7c3aed11;">🔍 Coleta de Dados</div>
+          <div class="intel-arrow">→</div>
+          <div class="intel-node" style="border-color:#06b6d444;background:#06b6d411;">📊 Análise Multi-Sinal</div>
+          <div class="intel-arrow">→</div>
+          <div class="intel-node" style="border-color:#f59e0b44;background:#f59e0b11;">🎯 Score de Regime</div>
+          <div class="intel-arrow">→</div>
+          <div class="intel-node" style="border-color:#10b98144;background:#10b98111;">⚙️ Ajuste de Parâmetros</div>
+          <div class="intel-arrow">→</div>
+          <div class="intel-node" style="border-color:#ef444444;background:#ef444411;">🚀 Execução + Monitoramento</div>
+        </div>
+      </div>
+
+      <div class="intel-card">
+        <h3>📡 Sinais em Tempo Real</h3>
+        <div class="signal-grid">
+          <div class="signal-card">
+            <div class="sig-name" style="color:#a78bfa;">📈 Tendência (SMA 20/50/200)</div>
+            <div class="sig-desc">Posição do preço em relação às médias móveis determina o viés: Bullish / Neutral / Bearish. Camadas L1 bloqueadas em tendência de baixa.</div>
+          </div>
+          <div class="signal-card">
+            <div class="sig-name" style="color:#67e8f9;">〰️ Volatilidade (ATR 14)</div>
+            <div class="sig-desc">ATR% ajusta o espaçamento entre camadas. Alta volatilidade → espaçamento maior (evitar ativação prematura). Baixa → mais tight.</div>
+          </div>
+          <div class="signal-card">
+            <div class="sig-name" style="color:#10b981;">💪 Força (RSI 14)</div>
+            <div class="sig-desc">RSI > 70: sobrecomprado, reduz TP para realizar lucros rápidos. RSI < 30: sobrevende, aumenta max camadas temporariamente.</div>
+          </div>
+          <div class="signal-card">
+            <div class="sig-name" style="color:#f59e0b;">📊 Volume Profile</div>
+            <div class="sig-desc">Volume acima da média em quedas = venda real (pior cenário). Volume baixo em quedas = liquidez esgotada (recuperação esperada).</div>
+          </div>
+          <div class="signal-card">
+            <div class="sig-name" style="color:#ef4444;">💰 Funding Rate (Perps)</div>
+            <div class="sig-desc">Funding positivo alto: short premium. Ajusta TP target para compensar custo de funding. Funding negativo: bônus para longs.</div>
+          </div>
+          <div class="signal-card">
+            <div class="sig-name" style="color:#ec4899;">🎭 Regime de Mercado</div>
+            <div class="sig-desc">Bull/Bear/Sideways detectado por combinação de sinais. Cada regime tem parâmetros específicos: TP, spacing, max layers, CB tolerance.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="intel-card">
+        <h3>⚙️ Parâmetros Adaptativos por Regime</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Regime</th><th>TP Target</th><th>Espaçamento</th><th>Max Camadas</th><th>CB Tolerância</th><th>Ação L1</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-green">🐂 BULL</span></td>
+                <td class="green">+1.0% a +1.5%</td>
+                <td>ATR × 0.8 (tight)</td>
+                <td>5-7 camadas</td>
+                <td>25%</td>
+                <td class="green">✅ Abrir</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-amber">📊 SIDEWAYS</span></td>
+                <td class="amber">+0.8% a +1.2%</td>
+                <td>ATR × 1.0 (neutro)</td>
+                <td>7-8 camadas</td>
+                <td>30%</td>
+                <td class="amber">⚠️ Filtrar</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-red">🐻 BEAR</span></td>
+                <td class="red">+0.6% a +0.8%</td>
+                <td>ATR × 1.3 (wide)</td>
+                <td>4-5 camadas</td>
+                <td>20%</td>
+                <td class="red">❌ Bloquear</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-purple">⚡ HIGH VOL</span></td>
+                <td class="purple">+1.5% a +2.0%</td>
+                <td>ATR × 1.8 (muito wide)</td>
+                <td>3-4 camadas</td>
+                <td>40%</td>
+                <td class="purple">🎯 Seletivo</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="intel-card">
+        <h3>🛡️ Smart Reserve Protocol (SRP) — Lógica de Deploy</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Gatilho</th><th>Condição</th><th>Ação</th><th>Valor Deploy</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>🚨 Proteção Liquidação</td>
+                <td>Drawdown > 80% CB tolerância</td>
+                <td>Injetar capital na posição para reduzir custo médio</td>
+                <td>5% do capital da posição</td>
+              </tr>
+              <tr>
+                <td>⏱️ Fechamento Estratégico</td>
+                <td>Posição aberta > 45 dias E > 8 camadas</td>
+                <td>Fechar 50% ao mercado, usar reserva para cobrir 50% do loss</td>
+                <td>Até 50% do loss</td>
+              </tr>
+              <tr>
+                <td>🚀 Camada de Emergência</td>
+                <td>Max camadas atingidas + mercado caindo</td>
+                <td>Abrir camada extra com dinheiro da reserva</td>
+                <td>2× base size</td>
+              </tr>
+              <tr>
+                <td>🎯 Bônus Consistência</td>
+                <td>90 dias positivos consecutivos</td>
+                <td>Liberar 20% da reserva para o cliente</td>
+                <td>20% do saldo reserva</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="intel-card">
+        <h3>🔄 Pipeline de Decisão — Pseudocódigo</h3>
+        <pre style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:11px;line-height:1.8;color:#c4b5fd;overflow-x:auto;">
+<span style="color:#67e8f9;">// A cada fechamento de candle:</span>
+signals = {
+  trend:   calcTrend(close, sma20, sma50, sma200),    <span style="color:#64748b;">// bull|bear|sideways</span>
+  atrPct:  calcATR(14) / close * 100,                  <span style="color:#64748b;">// volatilidade %</span>
+  rsi:     calcRSI(14),                                <span style="color:#64748b;">// 0-100</span>
+  volume:  volume / avgVolume20,                       <span style="color:#64748b;">// ratio</span>
+  funding: getFundingRate(),                            <span style="color:#64748b;">// % por 8h</span>
+}
+
+regime = classifyRegime(signals)                       <span style="color:#64748b;">// BULL|BEAR|SIDEWAYS|HIGH_VOL</span>
+
+params = REGIME_PARAMS[regime]                         <span style="color:#64748b;">// TP, spacing, maxL, CBtol</span>
+
+<span style="color:#67e8f9;">// Ajustes adicionais via RSI:</span>
+if (signals.rsi > 70) params.tp *= 0.85               <span style="color:#64748b;">// sobrecomprado → TP menor</span>
+if (signals.rsi < 30) params.maxLayers += 2            <span style="color:#64748b;">// sobrevende → mais camadas</span>
+
+<span style="color:#67e8f9;">// Ajuste de espaçamento:</span>
+spacing = clamp(signals.atrPct * params.atrMult, 0.5, 5.0)
+
+<span style="color:#67e8f9;">// Verificar deploy de reserva:</span>
+if (cycle.drawdown > params.cbTol * 0.8) deployReserve('protection')
+if (cycle.days > 45 && cycle.layers >= maxLayers)  deployReserve('strategic_close')
+
+<span style="color:#67e8f9;">// Decisão de abrir L1:</span>
+canOpenL1 = regime != 'BEAR' && !cbBlocked && signal.trend != 'strong_down'</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+'use strict';
+
+// ── GLOBALS ──
+let charts = {};
+let simResultsV2 = null;
+let simResultsV1 = null;
+
+// ── PROFILES ──
+const PROFILES = {
+  conservative: { tp: 0.8,  maxLayers: 7,  cbTolerance: 25, fixedSpacing: 1.0, atrBull: 0.7, atrBear: 1.2, atrSide: 0.9, minSpacing: 0.4, maxSpacing: 3.0, maxCycleDays: 45  },
+  moderate:     { tp: 1.2,  maxLayers: 10, cbTolerance: 35, fixedSpacing: 1.5, atrBull: 0.8, atrBear: 1.3, atrSide: 1.0, minSpacing: 0.5, maxSpacing: 4.0, maxCycleDays: 60  },
+  aggressive:   { tp: 1.5,  maxLayers: 10, cbTolerance: 45, fixedSpacing: 2.0, atrBull: 0.9, atrBear: 1.5, atrSide: 1.1, minSpacing: 0.6, maxSpacing: 5.0, maxCycleDays: 90  },
+};
+
+// ── UTILITY ──
+const fmt = (n, dec=2) => n.toFixed(dec);
+const fmtCur = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtPct = (n) => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+const fmtDate = (ts) => new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+
+function calcATR14(candles) {
+  const result = [];
+  let ema = 0;
+  for (let i = 0; i < candles.length; i++) {
+    const prev = i > 0 ? candles[i-1].close : candles[i].close;
+    const tr = Math.max(candles[i].high - candles[i].low, Math.abs(candles[i].high - prev), Math.abs(candles[i].low - prev));
+    if (i === 0) { ema = tr; }
+    else if (i < 14) { ema = (ema * i + tr) / (i + 1); }
+    else { const k = 2/15; ema = tr * k + ema * (1 - k); }
+    result.push(ema);
+  }
+  return result;
+}
+
+function calcSMA20(candles) {
+  return candles.map((_, i) => {
+    if (i < 19) return null;
+    return candles.slice(i - 19, i + 1).reduce((s, c) => s + c.close, 0) / 20;
+  });
+}
+
+// ── LAYER SIZES ──
+function layerSizeV2(base, idx) {
+  // L1=L2=base, L3=2×base, L4=4×base, L5=8×base...
+  if (idx <= 2) return base;
+  return base * Math.pow(2, idx - 2);
+}
+function layerSizeV1(base, idx) {
+  // Pure martingale: L1=base, L2=2×, L3=4×...
+  return base * Math.pow(2, idx - 1);
+}
+
+// ── SIMULATION ENGINE ──
+function simulate(candles, params, version) {
+  const { baseSize, tp, maxLayers, cbTolerance, reservePct, fixedSpacing,
+          useDynSpacing, useSMAFilter, maxCycleDays,
+          atrBull, atrBear, atrSide, minSpacing, maxSpacing, startCapital } = params;
+
+  const getSize = version === 'v2' ? layerSizeV2 : layerSizeV1;
+  const atrs = calcATR14(candles);
+  const smas = calcSMA20(candles);
+
+  let capital = startCapital;
+  let reserve = 0;
+  let cbBlockUntil = -1;
+  let cbCount = 0;
+
+  const equityHistory = [];
+  const reserveHistory = [];
+  const reserveEvents = [];
+  const trades = [];
+
+  let cycle = null;
+
+  for (let i = 20; i < candles.length; i++) {
+    const c = candles[i];
+    const atr = atrs[i];
+    const sma = smas[i];
+
+    // Regime
+    let regime = 'sideways';
+    if (sma) {
+      if (c.close > sma * 1.02) regime = 'bull';
+      else if (c.close < sma * 0.98) regime = 'bear';
+    }
+
+    // Dynamic spacing
+    let spacing = fixedSpacing;
+    if (useDynSpacing && atr && c.close > 0) {
+      const atrPct = (atr / c.close) * 100;
+      const mult = regime === 'bull' ? atrBull : regime === 'bear' ? atrBear : atrSide;
+      spacing = Math.max(minSpacing, Math.min(maxSpacing, atrPct * mult));
+    }
+
+    if (!cycle) {
+      // Try open L1
+      if (i <= cbBlockUntil) { /* CB blocked */ }
+      else if (useSMAFilter && sma && c.close < sma * 0.95) { /* SMA filter */ }
+      else {
+        const cost = getSize(baseSize, 1);
+        const units = cost / c.close;
+        cycle = {
+          startDay: i, startDate: c.date,
+          layers: [{ idx: 1, price: c.close, cost, units }],
+          totalCost: cost, totalUnits: units,
+          cbHit: false, spacing,
+        };
+        capital -= cost;
+      }
+    } else {
+      const avgEntry = cycle.totalCost / cycle.totalUnits;
+      const tpPrice = avgEntry * (1 + tp / 100);
+
+      if (c.high >= tpPrice) {
+        // Close at TP
+        const gross = cycle.totalUnits * tpPrice - cycle.totalCost;
+        const resContrib = version === 'v2' ? Math.max(0, gross) * (reservePct / 100) : 0;
+        reserve += resContrib;
+        capital += cycle.totalCost + gross - resContrib;
+        trades.push({
+          n: trades.length + 1,
+          startDate: cycle.startDate, endDate: c.date,
+          days: i - cycle.startDay, layers: cycle.layers.length,
+          avgEntry, tpPrice,
+          invested: cycle.totalCost,
+          profit: gross - resContrib, grossProfit: gross,
+          resContrib, resDeploy: 0,
+          roi: (gross / cycle.totalCost) * 100,
+          status: 'TP',
+        });
+        cycle = null;
+      } else {
+        // Check next layer
+        const last = cycle.layers[cycle.layers.length - 1];
+        const triggerPx = last.price * (1 - spacing / 100);
+
+        if (c.low <= triggerPx && cycle.layers.length < maxLayers) {
+          const nextIdx = cycle.layers.length + 1;
+          const cost = getSize(baseSize, nextIdx);
+          const units = cost / triggerPx;
+          cycle.layers.push({ idx: nextIdx, price: triggerPx, cost, units });
+          cycle.totalCost += cost;
+          cycle.totalUnits += units;
+          capital -= cost;
+        }
+
+        // Max cycle days → strategic close
+        if (maxCycleDays > 0 && (i - cycle.startDay) >= maxCycleDays) {
+          const closePrice = c.close;
+          const gross = cycle.totalUnits * closePrice - cycle.totalCost;
+          let resDeploy = 0;
+          if (version === 'v2' && gross < 0 && reserve > 0) {
+            resDeploy = Math.min(reserve, Math.abs(gross) * 0.5);
+            reserve -= resDeploy;
+            reserveEvents.push({ date: c.date, type: 'strategic_close', amount: resDeploy });
+          }
+          capital += cycle.totalUnits * closePrice + resDeploy;
+          trades.push({
+            n: trades.length + 1,
+            startDate: cycle.startDate, endDate: c.date,
+            days: i - cycle.startDay, layers: cycle.layers.length,
+            avgEntry, tpPrice,
+            invested: cycle.totalCost,
+            profit: gross + resDeploy, grossProfit: gross,
+            resContrib: 0, resDeploy,
+            roi: ((gross + resDeploy) / cycle.totalCost) * 100,
+            status: 'TIME',
+          });
+          cycle = null;
+        } else {
+          // CB check
+          const unrealized = cycle.totalUnits * c.close - cycle.totalCost;
+          const ddPct = unrealized < 0 ? (-unrealized / cycle.totalCost) * 100 : 0;
+          if (ddPct >= cbTolerance && !cycle.cbHit) {
+            cycle.cbHit = true;
+            cbBlockUntil = i + 14;
+            cbCount++;
+            // Reserve protection deploy
+            if (version === 'v2' && reserve > 0) {
+              const deploy = Math.min(reserve, cycle.totalCost * 0.05);
+              if (deploy > 0) {
+                reserve -= deploy;
+                capital += deploy;
+                cycle.totalCost = Math.max(cycle.totalCost - deploy, 1);
+                reserveEvents.push({ date: c.date, type: 'protection', amount: deploy });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Mark-to-market
+    let equity = capital + reserve;
+    if (cycle) equity += cycle.totalUnits * c.close;
+    equityHistory.push({ date: c.date, ts: c.ts, value: equity });
+    reserveHistory.push({ date: c.date, value: reserve });
+  }
+
+  // Open cycle at end
+  if (cycle) {
+    const last = candles[candles.length - 1];
+    const gross = cycle.totalUnits * last.close - cycle.totalCost;
+    trades.push({
+      n: trades.length + 1,
+      startDate: cycle.startDate, endDate: last.date,
+      days: candles.length - 1 - cycle.startDay, layers: cycle.layers.length,
+      avgEntry: cycle.totalCost / cycle.totalUnits,
+      invested: cycle.totalCost,
+      profit: gross, grossProfit: gross,
+      resContrib: 0, resDeploy: 0,
+      roi: (gross / cycle.totalCost) * 100,
+      status: 'OPEN',
+    });
+  }
+
+  // Metrics
+  const closed = trades.filter(t => t.status !== 'OPEN');
+  const wins = closed.filter(t => t.profit > 0);
+  const totalProfit = closed.reduce((s, t) => s + t.profit, 0);
+
+  let peak = equityHistory[0]?.value || startCapital;
+  let maxDD = 0;
+  const ddSeries = [];
+  for (const pt of equityHistory) {
+    if (pt.value > peak) peak = pt.value;
+    const dd = (peak - pt.value) / peak * 100;
+    if (dd > maxDD) maxDD = dd;
+    ddSeries.push(dd);
+  }
+
+  const dailyReturns = [];
+  for (let i = 1; i < equityHistory.length; i++) {
+    dailyReturns.push((equityHistory[i].value - equityHistory[i-1].value) / equityHistory[i-1].value);
+  }
+  const avgRet = dailyReturns.reduce((s, r) => s + r, 0) / (dailyReturns.length || 1);
+  const stdRet = Math.sqrt(dailyReturns.reduce((s, r) => s + Math.pow(r - avgRet, 2), 0) / (dailyReturns.length || 1));
+  const sharpe = stdRet > 0 ? (avgRet / stdRet) * Math.sqrt(252) : 0;
+
+  const totalROI = (totalProfit / startCapital) * 100;
+  const calmar = maxDD > 0 ? totalROI / maxDD : 0;
+
+  const maxReqCapV2 = [1,2,4,8,16,32,64,128,256,512].slice(0, maxLayers).reduce((s,x) => s + x, 0) * baseSize;
+  const maxReqCapV1 = Array.from({length: maxLayers}, (_, i) => Math.pow(2, i)).reduce((s,x) => s + x, 0) * baseSize;
+
+  return {
+    trades, equityHistory, reserveHistory, reserveEvents, ddSeries,
+    metrics: {
+      totalCycles: closed.length,
+      openCycles: trades.filter(t => t.status === 'OPEN').length,
+      winRate: closed.length > 0 ? (wins.length / closed.length) * 100 : 0,
+      totalProfit, totalROI,
+      avgProfit: closed.length > 0 ? totalProfit / closed.length : 0,
+      maxDD, sharpe, calmar,
+      cbTriggers: cbCount,
+      reserveBalance: reserve,
+      reserveEvents: reserveEvents.length,
+      finalEquity: equityHistory[equityHistory.length - 1]?.value || startCapital,
+      maxReqCap: version === 'v2' ? maxReqCapV2 : maxReqCapV1,
+    },
+  };
+}
+
+// ── MONTHLY HEATMAP ──
+function buildHeatmap(trades, startTs, endTs) {
+  const months = {};
+  for (const t of trades) {
+    if (t.status === 'OPEN') continue;
+    const endD = new Date(t.endDate);
+    const key = `${endD.getFullYear()}-${String(endD.getMonth() + 1).padStart(2, '0')}`;
+    if (!months[key]) months[key] = 0;
+    months[key] += t.profit;
+  }
+  const keys = Object.keys(months).sort();
+  let html = '<div class="heatmap-grid">';
+  for (const k of keys) {
+    const val = months[k];
+    const [y, m] = k.split('-');
+    const mNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const label = mNames[parseInt(m) - 1];
+    const intensity = Math.min(Math.abs(val) / 200, 1);
+    const bg = val >= 0
+      ? `rgba(16,185,129,${0.1 + intensity * 0.7})`
+      : `rgba(239,68,68,${0.1 + intensity * 0.7})`;
+    const textColor = val >= 0 ? '#10b981' : '#ef4444';
+    html += `<div class="heatmap-cell" style="background:${bg};color:${textColor};" title="${k}: ${fmtCur(val)}">
+      <span style="font-size:8px;color:#94a3b8">${label}</span>
+      <span>${val >= 0 ? '+' : ''}${Math.round(val)}</span>
+    </div>`;
+  }
+  html += '</div>';
+  document.getElementById('heatmapWrap').innerHTML = html;
+}
+
+// ── ANATOMY BARS ──
+function buildAnatomy(baseSize, maxLayers) {
+  const wrap = document.getElementById('anatomyWrap');
+  let html = '';
+  let runningTotal = 0;
+  const v2Costs = [], v1Costs = [];
+  for (let i = 1; i <= maxLayers; i++) {
+    v2Costs.push(layerSizeV2(baseSize, i));
+    v1Costs.push(layerSizeV1(baseSize, i));
+  }
+  const maxCost = Math.max(...v2Costs);
+  for (let i = 1; i <= Math.min(maxLayers, 8); i++) {
+    const cost = v2Costs[i - 1];
+    runningTotal += cost;
+    const pct = (cost / maxCost) * 80 + 8;
+    const hue = i <= 2 ? '#10b981' : i <= 5 ? '#f59e0b' : '#ef4444';
+    const v1 = v1Costs[i - 1];
+    const saving = v1 - cost;
+    html += `<div class="anatomy-bar">
+      <div class="anatomy-bar-fill" style="width:${pct}%;background:${hue}44;border:1px solid ${hue}66;">
+        <span style="color:${hue};font-size:10px;font-weight:700;">L${i} — ${fmtCur(cost)}</span>
+      </div>
+      <div class="anatomy-label">
+        Total: ${fmtCur(runningTotal)} ${saving > 0 ? `<span style="color:#10b981;font-size:10px">(economiza ${fmtCur(saving)} vs V1)</span>` : '<span style="color:#a78bfa;font-size:10px">= V1 (mesmo)</span>'}
+      </div>
+    </div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+// ── METRICS CARDS ──
+function renderMetrics(m, startCapital) {
+  const grid = document.getElementById('metricsGrid');
+  const cards = [
+    { label: 'LUCRO TOTAL', value: fmtCur(m.totalProfit), sub: fmtPct(m.totalROI), cls: m.totalProfit >= 0 ? 'green' : 'red' },
+    { label: 'WIN RATE', value: fmt(m.winRate, 1) + '%', sub: `${m.totalCycles} ciclos fechados`, cls: m.winRate >= 70 ? 'green' : m.winRate >= 50 ? 'amber' : 'red' },
+    { label: 'LUCRO MÉDIO', value: fmtCur(m.avgProfit), sub: 'por ciclo fechado', cls: m.avgProfit >= 0 ? 'green' : 'red' },
+    { label: 'MAX DRAWDOWN', value: fmt(m.maxDD, 1) + '%', sub: 'sobre pico', cls: m.maxDD < 10 ? 'green' : m.maxDD < 25 ? 'amber' : 'red' },
+    { label: 'SHARPE RATIO', value: fmt(m.sharpe, 2), sub: 'ajustado ao risco', cls: m.sharpe > 1 ? 'green' : m.sharpe > 0 ? 'amber' : 'red' },
+    { label: 'CALMAR RATIO', value: fmt(m.calmar, 2), sub: 'retorno/drawdown', cls: m.calmar > 1 ? 'green' : m.calmar > 0.3 ? 'amber' : 'red' },
+    { label: 'RESERVA', value: fmtCur(m.reserveBalance), sub: `${m.reserveEvents} deploys`, cls: 'purple' },
+    { label: 'CAPITAL FINAL', value: fmtCur(m.finalEquity), sub: `início: ${fmtCur(startCapital)}`, cls: m.finalEquity >= startCapital ? 'green' : 'red' },
+    { label: 'CB TRIGGERS', value: m.cbTriggers, sub: 'pauses de 14 dias', cls: m.cbTriggers === 0 ? 'green' : m.cbTriggers < 3 ? 'amber' : 'red' },
+    { label: 'POSIÇÕES ABERTAS', value: m.openCycles, sub: 'no final do período', cls: 'cyan' },
+  ];
+  grid.innerHTML = cards.map(c => `
+    <div class="metric-card">
+      <div class="label">${c.label}</div>
+      <div class="value ${c.cls}">${c.value}</div>
+      <div class="sub">${c.sub}</div>
+    </div>`).join('');
+}
+
+// ── TRADE LOG ──
+function renderTradeLog(trades) {
+  const body = document.getElementById('tradeLogBody');
+  const max = 100;
+  body.innerHTML = trades.slice(0, max).map(t => {
+    const statusBadge = t.status === 'TP' ? '<span class="badge badge-green">TP ✓</span>'
+      : t.status === 'TIME' ? '<span class="badge badge-amber">TEMPO</span>'
+      : '<span class="badge badge-purple">ABERTO</span>';
+    const profitClass = t.profit >= 0 ? 'green' : 'red';
+    return `<tr>
+      <td>${t.n || '-'}</td>
+      <td>${t.startDate || '-'}</td>
+      <td>${t.endDate || '-'}</td>
+      <td>${t.days}</td>
+      <td>${t.layers}</td>
+      <td>${t.avgEntry ? fmtCur(t.avgEntry) : '-'}</td>
+      <td>${t.tpPrice ? fmtCur(t.tpPrice) : '-'}</td>
+      <td>${fmtCur(t.invested)}</td>
+      <td class="${profitClass}">${fmtCur(t.profit)}</td>
+      <td class="${profitClass}">${fmtPct(t.roi)}</td>
+      <td>${fmtCur(t.resContrib || 0)}</td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:20px;">Nenhuma operação registrada</td></tr>';
+}
+
+// ── RESERVE LOG ──
+function renderReserveLog(events) {
+  const body = document.getElementById('reserveLogBody');
+  const typeMap = {
+    protection: { label: '🛡️ Proteção Liquidação', cls: 'badge-amber' },
+    strategic_close: { label: '⏱️ Fechamento Estratégico', cls: 'badge-purple' },
+    emergency_layer: { label: '🚀 Camada de Emergência', cls: 'badge-red' },
+    consistency_bonus: { label: '🎯 Bônus Consistência', cls: 'badge-green' },
+  };
+  if (!events.length) {
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px;">Nenhum deploy de reserva neste período</td></tr>';
+    return;
+  }
+  body.innerHTML = events.map((e, i) => {
+    const t = typeMap[e.type] || { label: e.type, cls: 'badge-purple' };
+    return `<tr>
+      <td>${e.date}</td>
+      <td><span class="badge ${t.cls}">${t.label}</span></td>
+      <td class="amber">${fmtCur(e.amount)}</td>
+      <td style="color:var(--muted)">Reserva utilizada para proteger/otimizar posição aberta</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── RECOMMENDATIONS ──
+function renderRecommendations(v2, v1, params) {
+  const { metrics: m2 } = v2;
+  const { metrics: m1 } = v1;
+  const recs = [];
+
+  recs.push({
+    icon: '✅', title: 'Martingale Corrigido (L1=L2)',
+    priority: 'critical', pCls: 'prio-critical',
+    body: `V2 usa L1=L2=base, depois dobra a partir de L3. Capital máximo reduzido em ~50% vs V1 (${fmtCur(m2.maxReqCap)} vs ${fmtCur(m1.maxReqCap)}). Mesma eficácia de averaging down com muito menos risco de exposição excessiva.`,
+    tags: [`Capital V2: ${fmtCur(m2.maxReqCap)}`, `Capital V1: ${fmtCur(m1.maxReqCap)}`, 'Economia: ~50%'],
+  });
+
+  recs.push({
+    icon: '〰️', title: 'Espaçamento ATR Dinâmico',
+    priority: 'critical', pCls: 'prio-critical',
+    body: `Espaçamento fixo de ${params.fixedSpacing}% é cego à volatilidade. Com ATR dinâmico, o bot abre camadas quando o mercado REALMENTE se move, evitando ativações por ruído. Bull: ATR×0.8 (tight). Bear: ATR×1.3 (wide).`,
+    tags: ['Menos ativações falsas', 'Adapta ao mercado', 'Preserva capital'],
+  });
+
+  const smaImpact = m1.cbTriggers > 0 ? `${m1.cbTriggers} CBs prevenidos` : 'Filtro ativo';
+  recs.push({
+    icon: '📊', title: 'Filtro de Tendência SMA-20',
+    priority: 'high', pCls: 'prio-high',
+    body: `Nunca abrir L1 quando preço < SMA20 × 0.95 (downtrend confirmado). Evita entrar em tendências de baixa prolongadas. ${m2.cbTriggers < m1.cbTriggers ? `V2 teve ${m1.cbTriggers - m2.cbTriggers} Circuit Breakers a menos que V1.` : 'Filtro reduz exposure em bears.'}`,
+    tags: [smaImpact, 'Protege capital', 'SMA-20 × 0.95'],
+  });
+
+  const reserveGrowth = m2.reserveBalance > 0 ? `Acumulou ${fmtCur(m2.reserveBalance)}` : 'Configure reserva > 0%';
+  recs.push({
+    icon: '🛡️', title: 'Smart Reserve Protocol (SRP)',
+    priority: 'high', pCls: 'prio-high',
+    body: `10% de cada lucro vai para a reserva, bloqueada para emergências. ${reserveGrowth} no período. Deploy automático em: proteção de liquidação (drawdown > 80% CB), fechamento estratégico (> 45 dias + > 8 camadas), camada de emergência.`,
+    tags: [reserveGrowth, `${m2.reserveEvents} deploys`, '10% do lucro'],
+  });
+
+  if (m2.winRate < 85) {
+    recs.push({
+      icon: '🎯', title: 'Take Profit Parcial',
+      priority: 'high', pCls: 'prio-high',
+      body: `Win rate de ${fmt(m2.winRate, 1)}% pode ser melhorado com TP parcial. Fechar 60% ao atingir TP e trailing os 40% restantes captura mais upside em movimentos fortes. Especialmente eficaz no regime Bull.`,
+      tags: [`Win rate atual: ${fmt(m2.winRate, 1)}%`, 'TP parcial 60/40', 'Trailing stop restante'],
+    });
+  }
+
+  if (m2.maxDD > 15) {
+    recs.push({
+      icon: '⏱️', title: 'Limite de Tempo por Ciclo',
+      priority: 'high', pCls: 'prio-high',
+      body: `Capital preso em posições abertas > ${params.maxCycleDays} dias gera custo de oportunidade. Fechamento estratégico com suporte parcial da reserva libera capital para novos ciclos mais rentáveis. Max drawdown atual: ${fmt(m2.maxDD, 1)}%.`,
+      tags: [`Limite: ${params.maxCycleDays} dias`, `DD máximo: ${fmt(m2.maxDD, 1)}%`, 'Libera capital'],
+    });
+  }
+
+  recs.push({
+    icon: '📐', title: 'Anti-Correlação de Ativos',
+    priority: 'medium', pCls: 'prio-medium',
+    body: `Rodar BTC + ETH simultaneamente tem correlação > 0.9. Combine com ativos menos correlacionados (SOL, BNB, alternativas). Diversificação real reduz drawdown de portfólio sem sacrificar retorno esperado.`,
+    tags: ['BTC-ETH: correlação 0.9+', 'Diversificar', 'Reduz drawdown portfólio'],
+  });
+
+  if (m2.sharpe < 1) {
+    recs.push({
+      icon: '📉', title: 'Calibração de Alavancagem',
+      priority: 'medium', pCls: 'prio-medium',
+      body: `Sharpe ratio de ${fmt(m2.sharpe, 2)} indica retorno insuficiente para o risco. Recomenda-se alavancagem máxima de 2-3×. Acima disso, o risco de liquidação em bear markets supera o benefício do capital amplificado.`,
+      tags: [`Sharpe: ${fmt(m2.sharpe, 2)}`, 'Max 2-3× leverage', 'Risco controlado'],
+    });
+  }
+
+  recs.push({
+    icon: '💰', title: 'Funding Rate Awareness',
+    priority: 'medium', pCls: 'prio-medium',
+    body: `Em contratos perpétuos, funding rate positivo > 0.05%/8h = 5.4% ao mês de custo para longs. Ajuste TP para compensar: se funding = 0.03%, adicione 0.03% ao TP mínimo. Funding negativo é bônus — reduza TP para fechar mais rápido.`,
+    tags: ['Funding > 0.05%/8h', 'Ajuste TP dinâmico', 'Perps only'],
+  });
+
+  recs.push({
+    icon: '🔄', title: 'Regime de Mercado Adaptativo',
+    priority: 'medium', pCls: 'prio-medium',
+    body: `Parâmetros estáticos são subótimos em mercados dinâmicos. Bull: TP menor, mais camadas, spacing tight. Bear: TP maior, menos camadas, spacing wide. Sideways: parâmetros neutros. Monitoramento de regime via SMA+RSI+Volume.`,
+    tags: ['3 regimes detectados', 'Parâmetros dinâmicos', 'Monitoramento automático'],
+  });
+
+  recs.push({
+    icon: '🧮', title: 'Position Sizing Baseado em Capital',
+    priority: 'medium', pCls: 'prio-medium',
+    body: `Base size fixo de ${fmtCur(params.baseSize)} ignora crescimento do capital. Use 1-2% do capital total como base size. Com ${fmtCur(m2.finalEquity)} de capital final, base size ideal seria ${fmtCur(m2.finalEquity * 0.015)}. Isso maximiza o compounding.`,
+    tags: ['Base = 1-2% capital', `Ideal: ${fmtCur(m2.finalEquity * 0.015)}`, 'Compounding automático'],
+  });
+
+  document.getElementById('recoGrid').innerHTML = recs.map(r => `
+    <div class="reco-card">
+      <div class="reco-header">
+        <span class="reco-icon">${r.icon}</span>
+        <span class="reco-title">${r.title}</span>
+        <span class="reco-priority ${r.pCls}">${r.priority.toUpperCase()}</span>
+      </div>
+      <div class="reco-body">
+        <p>${r.body}</p>
+        <div style="margin-top:8px">${r.tags.map(t => `<span class="reco-metric">${t}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── COMPARISON TAB ──
+function renderComparison(v2, v1) {
+  const m2 = v2.metrics, m1 = v1.metrics;
+  const rows = [
+    { label: 'Lucro Total', v1: fmtCur(m1.totalProfit), v2: fmtCur(m2.totalProfit), better: m2.totalProfit > m1.totalProfit, diff: fmtCur(m2.totalProfit - m1.totalProfit) },
+    { label: 'ROI Total', v1: fmtPct(m1.totalROI), v2: fmtPct(m2.totalROI), better: m2.totalROI > m1.totalROI, diff: fmtPct(m2.totalROI - m1.totalROI) },
+    { label: 'Win Rate', v1: fmt(m1.winRate, 1) + '%', v2: fmt(m2.winRate, 1) + '%', better: m2.winRate >= m1.winRate, diff: fmtPct(m2.winRate - m1.winRate) },
+    { label: 'Ciclos Fechados', v1: m1.totalCycles, v2: m2.totalCycles, better: null },
+    { label: 'Max Drawdown', v1: fmt(m1.maxDD, 1) + '%', v2: fmt(m2.maxDD, 1) + '%', better: m2.maxDD <= m1.maxDD, diff: fmtPct(m2.maxDD - m1.maxDD) },
+    { label: 'Sharpe Ratio', v1: fmt(m1.sharpe, 2), v2: fmt(m2.sharpe, 2), better: m2.sharpe > m1.sharpe, diff: fmt(m2.sharpe - m1.sharpe, 2) },
+    { label: 'CB Triggers', v1: m1.cbTriggers, v2: m2.cbTriggers, better: m2.cbTriggers <= m1.cbTriggers },
+    { label: 'Capital Máximo', v1: fmtCur(m1.maxReqCap), v2: fmtCur(m2.maxReqCap), better: m2.maxReqCap < m1.maxReqCap, diff: fmtCur(m2.maxReqCap - m1.maxReqCap) },
+    { label: 'Reserva Acumulada', v1: '$0', v2: fmtCur(m2.reserveBalance), better: true },
+    { label: 'Capital Final', v1: fmtCur(m1.finalEquity), v2: fmtCur(m2.finalEquity), better: m2.finalEquity >= m1.finalEquity, diff: fmtCur(m2.finalEquity - m1.finalEquity) },
+  ];
+
+  document.getElementById('compareGrid').innerHTML = `
+    <div class="compare-card" style="border-color:#ef444433;">
+      <h4 style="color:var(--red)">🔴 V1 — Martingale Puro</h4>
+      ${rows.map(r => `<div class="compare-row"><span class="compare-label">${r.label}</span><span class="compare-val" style="color:${r.better === false ? 'var(--green)' : 'var(--red)'};">${r.v1}</span></div>`).join('')}
+    </div>
+    <div class="compare-card" style="border-color:#10b98133;">
+      <h4 style="color:var(--green)">🟢 V2 — Smart Martingale + SRP</h4>
+      ${rows.map(r => `<div class="compare-row">
+        <span class="compare-label">${r.label}</span>
+        <span class="compare-val" style="color:${r.better === true ? 'var(--green)' : r.better === false ? 'var(--red)' : 'var(--text)'};">
+          ${r.v2}
+          ${r.diff && r.better !== null ? `<span class="delta-tag ${r.better ? 'delta-pos' : 'delta-neg'}">${r.diff}</span>` : ''}
+        </span>
+      </div>`).join('')}
+    </div>`;
+}
+
+// ── CHARTS ──
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function renderEquityChart(v2) {
+  destroyChart('equity');
+  const ctx = document.getElementById('equityChart').getContext('2d');
+  const data = v2.equityHistory;
+  charts.equity = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map(d => d.date),
+      datasets: [{
+        label: 'Capital V2',
+        data: data.map(d => d.value),
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16,185,129,0.08)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        borderWidth: 2,
+      }, {
+        label: 'Reserva V2',
+        data: v2.reserveHistory.map(d => d.value),
+        borderColor: '#7c3aed',
+        backgroundColor: 'rgba(124,58,237,0.05)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        borderWidth: 1.5,
+        borderDash: [4, 4],
+      }],
+    },
+    options: chartOpts({ prefix: '$', yLabel: 'Capital ($)' }),
+  });
+}
+
+function renderDrawdownChart(v2) {
+  destroyChart('drawdown');
+  const ctx = document.getElementById('drawdownChart').getContext('2d');
+  charts.drawdown = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: v2.equityHistory.map(d => d.date),
+      datasets: [{
+        label: 'Drawdown %',
+        data: v2.ddSeries,
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239,68,68,0.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        borderWidth: 1.5,
+      }],
+    },
+    options: chartOpts({ suffix: '%', yReverse: true, yLabel: 'Drawdown (%)' }),
+  });
+}
+
+function renderComparisonChart(v2, v1) {
+  destroyChart('comparison');
+  const ctx = document.getElementById('comparisonChart').getContext('2d');
+  charts.comparison = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: v2.equityHistory.map(d => d.date),
+      datasets: [
+        {
+          label: 'V2 — Smart Martingale',
+          data: v2.equityHistory.map(d => d.value),
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16,185,129,0.06)',
+          fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2,
+        },
+        {
+          label: 'V1 — Martingale Puro',
+          data: v1.equityHistory.map(d => d.value),
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239,68,68,0.04)',
+          fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2,
+          borderDash: [6, 3],
+        },
+      ],
+    },
+    options: chartOpts({ prefix: '$', yLabel: 'Capital ($)' }),
+  });
+}
+
+function renderReserveChart(v2) {
+  destroyChart('reserve');
+  const ctx = document.getElementById('reserveChart').getContext('2d');
+  charts.reserve = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: v2.reserveHistory.map(d => d.date),
+      datasets: [{
+        label: 'Fundo de Reserva ($)',
+        data: v2.reserveHistory.map(d => d.value),
+        borderColor: '#a78bfa',
+        backgroundColor: 'rgba(124,58,237,0.12)',
+        fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2,
+      }],
+    },
+    options: chartOpts({ prefix: '$', yLabel: 'Reserva ($)' }),
+  });
+}
+
+function chartOpts({ prefix = '', suffix = '', yReverse = false, yLabel = '' }) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 16 } },
+      tooltip: {
+        backgroundColor: '#1e1e2e', borderColor: '#252535', borderWidth: 1,
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${prefix}${Number(ctx.raw).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${suffix}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        ticks: { color: '#475569', maxTicksLimit: 10, font: { size: 10 } },
+        grid: { color: '#1e1e2e' },
+      },
+      y: {
+        reverse: yReverse,
+        ticks: {
+          color: '#475569', font: { size: 10 },
+          callback: v => `${prefix}${Number(v).toLocaleString('en-US', { maximumFractionDigits: 0 })}${suffix}`,
+        },
+        grid: { color: '#1e1e2e' },
+        title: { display: true, text: yLabel, color: '#475569', font: { size: 10 } },
+      },
+    },
+  };
+}
+
+// ── TABS ──
+function switchTab(tab, btn) {
+  ['results', 'comparison', 'reserve', 'recommendations', 'intelligence'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === tab ? '' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── STATUS ──
+function setStatus(msg, isError = false) {
+  const bar = document.getElementById('statusBar');
+  if (msg) {
+    bar.classList.add('loading');
+    bar.style.display = 'flex';
+    bar.style.background = isError ? '#1a0808' : '';
+    bar.style.borderColor = isError ? '#ef444460' : '';
+    document.getElementById('statusMsg').textContent = msg;
+    document.getElementById('statusMsg').style.color = isError ? '#ef4444' : '';
+  } else {
+    bar.style.display = 'none';
+    bar.classList.remove('loading');
+  }
+}
+
+// ── FETCH CANDLES — com retry e fallback CORS ──
+async function fetchCandles(symbol, days) {
+  const limit = Math.min(days + 30, 1000);
+  const ENDPOINTS = [
+    `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=${limit}`,
+    `https://api1.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=${limit}`,
+    `https://api2.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=${limit}`,
+    `https://corsproxy.io/?url=https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=${limit}`,
+  ];
+
+  let lastErr;
+  for (const url of ENDPOINTS) {
+    try {
+      const resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const raw = await resp.json();
+      if (!Array.isArray(raw) || raw.length === 0) throw new Error('Resposta vazia da API');
+      return raw.map(k => ({
+        ts: k[0],
+        date: fmtDate(k[0]),
+        open: parseFloat(k[1]),
+        high: parseFloat(k[2]),
+        low: parseFloat(k[3]),
+        close: parseFloat(k[4]),
+        volume: parseFloat(k[5]),
+      }));
+    } catch (e) {
+      lastErr = e;
+      // tenta próximo endpoint
+    }
+  }
+  throw new Error(`Todos os endpoints falharam. Último erro: ${lastErr?.message}. Tente abrir o arquivo em um servidor local (python -m http.server) ou verifique sua conexão.`);
+}
+
+// ── MAIN ──
+async function runBacktest() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+
+  try {
+    const symbol = document.getElementById('symbolSel').value;
+    const days = parseInt(document.getElementById('daysSel').value);
+    const profileKey = document.getElementById('profileSel').value;
+    const startCapital = parseFloat(document.getElementById('capitalInput').value) || 10000;
+    const baseSize = parseFloat(document.getElementById('baseSizeInput').value) || 200;
+    const reservePct = parseFloat(document.getElementById('reservePctInput').value) || 10;
+    const useSMAFilter = document.getElementById('smaFilterSel').value === '1';
+    const useDynSpacing = document.getElementById('dynamicSpacingSel').value === '1';
+
+    const prof = PROFILES[profileKey];
+
+    setStatus(`Buscando ${days} dias de ${symbol} na Binance...`);
+    const candles = await fetchCandles(symbol, days);
+    const slice = candles.slice(-days);
+
+    setStatus('Simulando V2 (Martingale Corrigido + ATR + SMA + Reserva)...');
+    const paramsV2 = {
+      ...prof, baseSize, startCapital, reservePct,
+      useDynSpacing, useSMAFilter,
+    };
+    const v2 = simulate(slice, paramsV2, 'v2');
+
+    setStatus('Simulando V1 (Martingale Puro — referência)...');
+    const paramsV1 = {
+      ...prof, baseSize, startCapital, reservePct: 0,
+      useDynSpacing: false, useSMAFilter: false,
+    };
+    const v1 = simulate(slice, paramsV1, 'v1');
+
+    simResultsV2 = v2;
+    simResultsV1 = v1;
+
+    setStatus('Renderizando resultados...');
+
+    // Show sections
+    document.getElementById('metricsSection').style.display = 'block';
+    document.getElementById('tabsSection').style.display = 'block';
+
+    // Metrics
+    renderMetrics(v2.metrics, startCapital);
+
+    // Charts + data
+    renderEquityChart(v2);
+    renderDrawdownChart(v2);
+    buildHeatmap(v2.trades, slice[0]?.ts, slice[slice.length-1]?.ts);
+    buildAnatomy(baseSize, prof.maxLayers);
+    renderTradeLog(v2.trades);
+
+    // Comparison
+    renderComparisonChart(v2, v1);
+    renderComparison(v2, v1);
+
+    // Reserve
+    renderReserveChart(v2);
+    renderReserveLog(v2.reserveEvents);
+
+    // Recommendations
+    renderRecommendations(v2, v1, { ...prof, baseSize, reservePct });
+
+    setStatus(null);
+
+  } catch (err) {
+    console.error('[Backtest V2]', err);
+    setStatus(`❌ ${err.message}`, true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Auto-run on load
+window.addEventListener('load', () => setTimeout(runBacktest, 400));
+</script>
+</body>
+</html>
