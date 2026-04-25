@@ -20,6 +20,8 @@ import {
   Zap,
   Bot,
   AlertCircle,
+  Award,
+  Sparkles,
 } from 'lucide-react';
 import type { ApexAiRiskProfile } from '@/types/apexAi';
 
@@ -301,30 +303,38 @@ export default function ApexAiOnboarding() {
               </div>
 
               <div className="space-y-3">
+                {/* Moderado / Balanced — VALIDATED CONFIG (top of list, highlighted) */}
+                <RiskCard
+                  profile="balanced"
+                  title="Moderado"
+                  description="Configuração oficial validada por backtest. Martingale DCA inteligente com SMA-20, espaçamento ATR dinâmico e Smart Reserve Protocol — a mesma config que rendeu 100% win rate no backtest oficial Apice."
+                  expectedReturn="3-8% ao mês"
+                  maxLeverage={3}
+                  color="text-emerald-400 border-emerald-500/60 bg-emerald-500/10"
+                  onClick={() => handleRiskConfirm('balanced')}
+                  recommended
+                  backtestProjection={{
+                    initial: capitalInput ? parseFloat(capitalInput) : 100,
+                    expectedFinal: (capitalInput ? parseFloat(capitalInput) : 100) * 6.43,
+                    period: '3 anos',
+                    winRate: 100,
+                  }}
+                />
                 <RiskCard
                   profile="conservative"
-                  title={t('apexAi.onboardingStep3Conservative')}
-                  description={t('apexAi.onboardingStep3ConservativeDesc')}
-                  expectedReturn={t('apexAi.onboardingStep3ConservativeReturn')}
-                  maxLeverage={3}
+                  title="Conservador"
+                  description="Para começar com risco mínimo. Menos camadas, TP curto, drawdown reduzido. Ideal para quem está conhecendo a estratégia."
+                  expectedReturn="1-3% ao mês"
+                  maxLeverage={2}
                   color="text-blue-400 border-blue-500/30 bg-blue-500/5"
                   onClick={() => handleRiskConfirm('conservative')}
                 />
                 <RiskCard
-                  profile="balanced"
-                  title={t('apexAi.onboardingStep3Balanced')}
-                  description={t('apexAi.onboardingStep3BalancedDesc')}
-                  expectedReturn={t('apexAi.onboardingStep3BalancedReturn')}
-                  maxLeverage={5}
-                  color="text-emerald-400 border-emerald-500/30 bg-emerald-500/5"
-                  onClick={() => handleRiskConfirm('balanced')}
-                />
-                <RiskCard
                   profile="aggressive"
-                  title={t('apexAi.onboardingStep3Aggressive')}
-                  description={t('apexAi.onboardingStep3AggressiveDesc')}
-                  expectedReturn={t('apexAi.onboardingStep3AggressiveReturn')}
-                  maxLeverage={8}
+                  title="Agressivo"
+                  description="Maximiza retorno aceitando drawdown maior. Mais camadas, TP estendido, mais alavancagem. Recomendado apenas para usuários experientes."
+                  expectedReturn="8-20% ao mês"
+                  maxLeverage={5}
                   color="text-orange-400 border-orange-500/30 bg-orange-500/5"
                   onClick={() => handleRiskConfirm('aggressive')}
                 />
@@ -356,6 +366,8 @@ function RiskCard({
   maxLeverage,
   color,
   onClick,
+  recommended = false,
+  backtestProjection,
 }: {
   profile: ApexAiRiskProfile;
   title: string;
@@ -364,6 +376,13 @@ function RiskCard({
   maxLeverage: number;
   color: string;
   onClick: () => void;
+  recommended?: boolean;
+  backtestProjection?: {
+    initial: number;
+    expectedFinal: number;
+    period: string;
+    winRate: number;
+  };
 }) {
   const { t } = useTranslation();
   const leverageLabel = t('apexAi.onboardingStep3MaxLeverage').replace(
@@ -374,13 +393,53 @@ function RiskCard({
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left rounded-xl border-2 p-5 transition-all hover:scale-[1.02] ${color}`}
+      className={`relative w-full text-left rounded-xl border-2 p-5 transition-all hover:scale-[1.02] ${color} ${
+        recommended ? 'shadow-lg shadow-emerald-500/20' : ''
+      }`}
     >
+      {recommended && (
+        <div className="absolute -top-2.5 left-4 flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full shadow">
+          <Sparkles className="w-3 h-3" />
+          Recomendado · Validado
+        </div>
+      )}
+
       <div className="flex items-start justify-between gap-3 mb-2">
-        <h3 className="font-bold text-lg">{title}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold text-lg">{title}</h3>
+          {recommended && <Award className="w-4 h-4 text-emerald-400" />}
+        </div>
         <span className="text-sm font-semibold">{expectedReturn}</span>
       </div>
-      <p className="text-sm text-muted-foreground mb-3">{description}</p>
+      <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{description}</p>
+
+      {backtestProjection && (
+        <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 mb-3">
+          <p className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold mb-1">
+            📊 Backtest oficial Apice ({backtestProjection.period})
+          </p>
+          <div className="flex items-center justify-between gap-2 text-xs">
+            <span className="text-muted-foreground">
+              Win rate <span className="font-bold text-emerald-400">{backtestProjection.winRate}%</span>
+              {' · '}
+              Capital projetado:
+            </span>
+            <span className="font-bold">
+              <span className="text-muted-foreground">
+                ${backtestProjection.initial.toLocaleString()}
+              </span>
+              {' → '}
+              <span className="text-emerald-400">
+                ${backtestProjection.expectedFinal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </span>
+            </span>
+          </div>
+          <p className="text-[9px] text-muted-foreground mt-1">
+            BTC/USDT, 250 ciclos, 0 CB triggers · referência histórica
+          </p>
+        </div>
+      )}
+
       <div className="flex items-center gap-3 text-xs">
         <span className="text-muted-foreground">{leverageLabel}</span>
         <span className="text-muted-foreground">·</span>
