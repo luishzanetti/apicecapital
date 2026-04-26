@@ -45,7 +45,6 @@ const AiTradeDashboard = lazy(() => import("./pages/AiTradeDashboard"));
 const AiTradeSetup = lazy(() => import("./pages/AiTradeSetup"));
 const ApexAiLanding = lazy(() => import("./pages/ApexAiLanding"));
 const ApexAiOnboarding = lazy(() => import("./pages/ApexAiOnboarding"));
-const ApexAiSetup = lazy(() => import("./pages/ApexAiSetup"));
 const ApexAiDashboard = lazy(() => import("./pages/ApexAiDashboard"));
 const ApexAiPortfolios = lazy(() => import("./pages/ApexAiPortfolios"));
 const ApexAiStatements = lazy(() => import("./pages/ApexAiStatements"));
@@ -143,7 +142,6 @@ function AppContent() {
         {/* Apex AI — Trading 24/7 com IA, fee 10% profit */}
         <Route path="/apex-ai" element={<ApexAiErrorBoundary><ApexAiLanding /></ApexAiErrorBoundary>} />
         <Route path="/apex-ai/onboarding" element={<ApexAiErrorBoundary><ApexAiOnboarding /></ApexAiErrorBoundary>} />
-        <Route path="/apex-ai/setup" element={<ApexAiErrorBoundary><ApexAiSetup /></ApexAiErrorBoundary>} />
         <Route path="/apex-ai/dashboard" element={<ApexAiErrorBoundary><ApexAiDashboard /></ApexAiErrorBoundary>} />
         <Route path="/apex-ai/portfolios" element={<ApexAiErrorBoundary><ApexAiPortfolios /></ApexAiErrorBoundary>} />
         <Route path="/apex-ai/statements" element={<ApexAiErrorBoundary><ApexAiStatements /></ApexAiErrorBoundary>} />
