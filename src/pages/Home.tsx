@@ -193,15 +193,7 @@ export default function Home() {
 
       {/* Content wrapper */}
       <div className="relative z-10">
-        {/* ── Demo Mode Banner ───────────────────────────────────────────── */}
-        {!isSupabaseConfigured && (
-          <div className="mx-4 md:mx-6 lg:mx-8 xl:mx-10 mt-2 lg:mt-0 rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3 flex items-center gap-3">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-            <p className="text-xs text-amber-300">
-              Running in demo mode — connect Supabase for real data.
-            </p>
-          </div>
-        )}
+        {/* (Demo banner removed — production-only build) */}
 
         {/* ── Insufficient Funds Alert (critical / blocked) ─────────────── */}
         <div className="px-4 md:px-6 lg:px-8 xl:px-10 pt-2 lg:pt-0 empty:hidden">

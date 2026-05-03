@@ -244,6 +244,14 @@ export interface CurrentBalances {
   funding: number;
   contract: number;
   total: number;
+  /**
+   * USDC available across wallet types (UNIFIED + FUND). Populated by
+   * `balance-monitor` Edge Function. Used by the War Chest widget to show
+   * the real opportunistic capital pool (separate from USDT used by DCA).
+   * Falls back to 0 when the breakdown isn't available yet.
+   */
+  usdcAvailable?: number;
+  usdtAvailable?: number;
 }
 
 export interface FundAlertContext {

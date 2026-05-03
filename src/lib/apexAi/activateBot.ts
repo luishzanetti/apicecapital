@@ -127,7 +127,15 @@ export async function activateApexAiPortfolio(
     };
   }
 
-  // Step 3: Try real bot-tick (opens Bybit orders)
+  // Step 3: Bootstrap via Edge Function in SIMULATE mode.
+  //
+  // Why forced simulate (2026-04-30): the active Bybit account is rejecting
+  // every futures order with code 10024 ("regulatory restrictions") —
+  // including BTCUSDT on testnet. Until the exchange-side blocker is
+  // resolved (sub-account in permitted jurisdiction, KYC, or migrate to
+  // another exchange), we cannot place real orders. Strategy still runs
+  // against real BTC market data + validated config — the user gets honest
+  // PnL feedback without false LIVE attempts cluttering logs.
   try {
     const { data, error: fnError } = await supabase.functions.invoke(
       'apex-ai-bot-tick',
@@ -135,28 +143,28 @@ export async function activateApexAiPortfolio(
         body: {
           portfolio_id: portfolio.id,
           bootstrap: true,
+          mode: 'simulate',
         },
       }
     );
 
     if (!fnError && data?.success) {
       const actionsOpened = data?.data?.actions?.length ?? 0;
-      const edgeMode = data?.data?.mode as 'live' | 'simulate' | undefined;
       if (actionsOpened > 0) {
         return {
-          status: edgeMode === 'live' ? 'activated_live' : 'activated',
+          status: 'activated_simulated',
           positions_opened: actionsOpened,
-          mode: edgeMode,
+          mode: 'simulate',
+          message: 'Bot activated in SIM mode (running validated strategy against real BTC market). Real orders blocked by exchange — see Apex AI dashboard for details.',
         };
       }
-      // Edge function responded but opened zero orders → fall through to simulation
     } else {
       throw fnError ?? new Error(data?.error ?? 'edge_function_failed');
     }
   } catch (err) {
     if (import.meta.env.DEV) {
       console.warn(
-        '[apex-ai activate] Edge Function unreachable or returned no actions, simulating positions',
+        '[apex-ai activate] Edge Function unreachable, simulating positions locally',
         err
       );
     }

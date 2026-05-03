@@ -840,7 +840,7 @@ export const pt = {
         cardFeature3: "Zero-custódia — seu dinheiro fica na Bybit",
         cardFeature4: "Circuit breaker + kill switch inclusos",
         cardFeature5: "Paga só quando tem lucro",
-        cardProjection: "Meta: 3-8% ao mês (perfil equilibrado)",
+        cardProjection: "Backtest validado 3 anos: 100% win rate, +543%, max DD 40.7%",
 
         landingBadge: "Nova estratégia Ápice",
         landingHeroTitle: "Cresça sua crypto",
@@ -873,7 +873,7 @@ export const pt = {
         landingFeature3Title: "Segurança em primeiro lugar",
         landingFeature3Desc: "Circuit breaker pausa automaticamente se o drawdown de 24h atingir 20%. Kill switch disponível sempre.",
         landingFeature4Title: "Setup instantâneo com IA",
-        landingFeature4Desc: "Escolha seu perfil de risco. Nossa IA propõe símbolos, alavancagem e alocação em 60 segundos.",
+        landingFeature4Desc: "Uma única configuração, validada por 3 anos de backtest. Aloque capital e ative — em menos de 60 segundos.",
         landingFeature5Title: "Você lucra, nós lucramos",
         landingFeature5Desc: "Sem assinatura, sem taxa de setup. 10% sobre o lucro líquido — zero de custo quando os trades não estão ganhando.",
         landingFeature6Title: "Transparência total",
@@ -884,7 +884,7 @@ export const pt = {
         landingStep1Title: "Conecte a Bybit",
         landingStep1Desc: "Uma API key, permissão apenas de trading. Criptografia AES-256.",
         landingStep2Title: "Quick Setup IA",
-        landingStep2Desc: "Escolha seu capital e perfil de risco. A IA gera sua configuração.",
+        landingStep2Desc: "Aloque seu capital. A estratégia BTC validada é aplicada automaticamente.",
         landingStep3Title: "Ative e acompanhe",
         landingStep3Desc: "Bot roda 24/7. Você acompanha pelo dashboard. Kill switch sempre a um clique.",
 

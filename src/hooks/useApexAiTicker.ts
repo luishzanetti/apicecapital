@@ -128,6 +128,30 @@ async function tickOnce(
   const simPositions = openPositions.filter((p) =>
     (p.exchange_position_id ?? '').startsWith('sim-')
   );
+  const livePositions = openPositions.filter(
+    (p) => !(p.exchange_position_id ?? '').startsWith('sim-')
+  );
+
+  // 1.5. LIVE positions are server-authoritative. The browser cannot place
+  // / close real Bybit orders — only the `apex-ai-bot-tick` Edge Function
+  // can. So when a live portfolio exists, kick the server tick once per
+  // browser cycle. This is critical when pg_cron is misconfigured or the
+  // cron lapses: the user opening the app forces forward progress.
+  if (livePositions.length > 0) {
+    try {
+      await supabase.functions.invoke('apex-ai-bot-tick', {
+        body: { portfolio_id: portfolio.id },
+      });
+      // Refresh UI after the server moved state
+      queryClient.invalidateQueries({ queryKey: ['apex-ai-positions', portfolio.id] });
+      queryClient.invalidateQueries({ queryKey: ['apex-ai-portfolio', portfolio.id] });
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.warn('[apex-ai ticker] live tick invoke failed', err);
+      }
+    }
+  }
+
   if (simPositions.length === 0) return;
 
   // 2. Fetch current prices for all distinct symbols

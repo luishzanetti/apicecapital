@@ -65,7 +65,7 @@ function normalizeAlert(raw: RefreshResponse['data'] extends { alerts: infer A }
 }
 
 export const createBalanceSlice: SliceCreator<BalanceSlice> = (set, get) => ({
-  currentBalances: { spot: 0, unified: 0, funding: 0, contract: 0, total: 0 },
+  currentBalances: { spot: 0, unified: 0, funding: 0, contract: 0, total: 0, usdcAvailable: 0, usdtAvailable: 0 },
   alerts: [],
   lastSnapshot: null,
   isRefreshing: false,
@@ -96,6 +96,8 @@ export const createBalanceSlice: SliceCreator<BalanceSlice> = (set, get) => ({
         funding: payload.balances?.funding ?? 0,
         contract: payload.balances?.contract ?? 0,
         total: payload.balances?.total ?? 0,
+        usdcAvailable: payload.balances?.usdcAvailable ?? 0,
+        usdtAvailable: payload.balances?.usdtAvailable ?? 0,
       };
       // Defensive: if the edge function under-reported total (older deploy),
       // recompute locally so the UI never shows a partial grand total.

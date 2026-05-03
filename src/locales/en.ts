@@ -841,7 +841,7 @@ export const en = {
         cardFeature3: "Zero-custody — your funds stay on Bybit",
         cardFeature4: "Circuit breaker + kill switch included",
         cardFeature5: "Pay only on profit",
-        cardProjection: "Target: 3-8% monthly (balanced profile)",
+        cardProjection: "Validated 3-year backtest: 100% win rate, +543% return, max DD 40.7%",
 
         // ── Landing page ──
         landingBadge: "New Apice strategy",
@@ -876,7 +876,7 @@ export const en = {
         landingFeature3Title: "Risk-aware by design",
         landingFeature3Desc: "Circuit breaker pauses automatically if 24h drawdown hits 20%. Kill switch available anytime.",
         landingFeature4Title: "Instant AI setup",
-        landingFeature4Desc: "Pick your risk profile. Our AI proposes symbols, leverage and allocation in 60 seconds.",
+        landingFeature4Desc: "One configuration, validated by 3 years of backtest. Allocate capital and activate — under 60 seconds.",
         landingFeature5Title: "You profit, we profit",
         landingFeature5Desc: "No subscription, no setup fee. 10% on net profit only — zero cost when trades aren't winning.",
         landingFeature6Title: "Full transparency",
@@ -887,7 +887,7 @@ export const en = {
         landingStep1Title: "Connect Bybit",
         landingStep1Desc: "One API key, trading-only permissions. AES-256 encrypted.",
         landingStep2Title: "AI Quick Setup",
-        landingStep2Desc: "Choose your capital and risk profile. AI generates your configuration.",
+        landingStep2Desc: "Allocate your capital. The validated BTC strategy is applied automatically.",
         landingStep3Title: "Activate & monitor",
         landingStep3Desc: "Bot runs 24/7. You watch from the dashboard. Kill switch always one tap away.",
 
@@ -911,7 +911,7 @@ export const en = {
         landingCompareTransparencyOthers: "Delayed reporting",
 
         landingFinalCtaTitle: "Ready when you are",
-        landingFinalCtaDesc: "Connect your Bybit, pick your profile, let the AI work.",
+        landingFinalCtaDesc: "Connect your Bybit, allocate capital, let the validated AI strategy work.",
         landingFinalCtaTrust1: "No setup fee",
         landingFinalCtaTrust2: "Cancel anytime",
         landingFinalCtaTrust3: "Zero-custody guaranteed",
@@ -963,8 +963,8 @@ export const en = {
         setupLoadingDesc: "The AI is calibrating the best configuration for you.",
         setupErrorTitle: "Couldn't generate proposal",
         setupErrorRetry: "Try again",
-        setupHeroTitle: "Your configuration is ready",
-        setupHeroDesc: "Review before activating. Parameters can be adjusted manually if you want.",
+        setupHeroTitle: "Validated configuration",
+        setupHeroDesc: "BTC/USDT, 3× leverage, 5-layer Smart Martingale DCA, SMA-20 filter, 10% reserve fund. Same strategy that returned 100% win rate in our 3-year backtest.",
         setupNameLabel: "Portfolio name",
         setupAiAnalysis: "AI analysis",
         setupStatCapital: "Allocated capital",

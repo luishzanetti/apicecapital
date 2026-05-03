@@ -20,6 +20,7 @@ import {
 import { useApexAiStrategyEvents, useApexAiLayerConfig } from '@/hooks/useApexAiV2Data';
 import { useApexAiPositions } from '@/hooks/useApexAiData';
 import { Shield, ShieldAlert } from 'lucide-react';
+import { ApexAiHealthBar } from './ApexAiHealthBar';
 import type {
   ApexAiRegimeState,
   ApexAiSymbolIntelligence,
@@ -88,6 +89,10 @@ export function ApexAiCommandCenter({
 
   return (
     <div className="space-y-4">
+      {/* Health diagnostic — surfaces "is the engine actually running?" so
+          the user never wonders why an active bot looks frozen. */}
+      <ApexAiHealthBar portfolio={portfolio} />
+
       {/* ═══════════════════════════════════════════════════════════ */}
       {/* 1. Hero — AI terminal                                         */}
       {/* ═══════════════════════════════════════════════════════════ */}

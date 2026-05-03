@@ -1,18 +1,31 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePortfolioAnalytics } from '@/hooks/usePortfolioAnalytics';
 import { useAppStore } from '@/store/appStore';
-import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import {
   ArrowLeft, TrendingUp, TrendingDown, DollarSign, Activity,
-  Wallet, PieChart as PieIcon, BarChart3, Calendar, Clock,
+  Wallet, PieChart as PieIcon, BarChart3, Clock,
   ArrowUpRight, ArrowDownRight, Zap, Target, ChevronRight,
-  Layers, LineChart, ArrowRight, Info,
+  LineChart, ArrowRight, Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { AnalyticsHero } from '@/components/analytics/AnalyticsHero';
+import { PortfolioEvolutionChart } from '@/components/analytics/PortfolioEvolutionChart';
+import { TopMoversCard } from '@/components/analytics/TopMoversCard';
+import { DCAExecutionHeatmap } from '@/components/analytics/DCAExecutionHeatmap';
+import { ExecutionVolumeChart } from '@/components/analytics/ExecutionVolumeChart';
+import { AssetROITable } from '@/components/analytics/AssetROITable';
+import { InsightsCard } from '@/components/analytics/InsightsCard';
+import { DCAProjectionChart } from '@/components/analytics/DCAProjectionChart';
+import { PerformanceMetricsCard } from '@/components/analytics/PerformanceMetricsCard';
+import { SuccessRateByAssetCard } from '@/components/analytics/SuccessRateByAssetCard';
+import { DCAByAssetCard } from '@/components/analytics/DCAByAssetCard';
+import { useDCAExecution, type DCAExecution } from '@/hooks/useDCAExecution';
+import { usePortfolioSnapshotCapture } from '@/hooks/usePortfolioHistory';
 
 type TabId = 'overview' | 'operations' | 'investments' | 'performance';
 
@@ -50,11 +63,33 @@ export default function Analytics() {
   const dcaPlans = useAppStore((s) => s.dcaPlans);
   const notifications = useAppStore((s) => s.notifications);
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [executions, setExecutions] = useState<DCAExecution[]>([]);
+  const { fetchHistory } = useDCAExecution();
 
   const totalDeposited = useMemo(
     () => dcaPlans.reduce((sum, p) => sum + p.totalInvested, 0),
     [dcaPlans]
   );
+
+  // Capture daily snapshot of portfolio state when connected
+  const snapshots = usePortfolioSnapshotCapture({
+    enabled: analytics.isConnected,
+    totalValue: analytics.grandTotal,
+    invested: totalDeposited + analytics.totalDCAInvested,
+    pnl: analytics.totalUnrealizedPnL,
+    pnlPercent: analytics.pnlPercent,
+  });
+
+  // Fetch DCA execution history once on mount
+  useEffect(() => {
+    let cancelled = false;
+    fetchHistory(undefined, 200).then((data) => {
+      if (!cancelled && data) setExecutions(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchHistory]);
 
   const dcaNotifications = useMemo(
     () => notifications.filter((n) => n.category === 'dca'),
@@ -109,19 +144,31 @@ export default function Analytics() {
 
   return (
     <div className="min-h-screen bg-background pb-28">
-      {/* Header */}
-      <div
-        className="px-6 pt-8 pb-5"
-        style={{ background: 'linear-gradient(180deg, rgba(99,102,241,0.08) 0%, transparent 100%)' }}
-      >
+      {/* Header — sticky to keep tabs visible while scrolling */}
+      <div className="sticky top-0 z-30 px-5 pt-6 pb-4 safe-top border-b border-border/40 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center">
-            <ArrowLeft className="w-4 h-4" />
+          <button
+            onClick={() => navigate(-1)}
+            className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center transition-colors hover:bg-secondary/80"
+          >
+            <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <h1 className="text-lg font-bold">Analytics</h1>
-            <p className="text-[11px] text-muted-foreground">History, operations & performance</p>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold">Analytics</h1>
+            <p className="text-xs text-muted-foreground">Portfolio, performance & operations</p>
           </div>
+          {analytics.refresh && (
+            <button
+              onClick={() => analytics.refresh()}
+              disabled={analytics.isRefreshing || analytics.isLoading}
+              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center transition-colors hover:bg-secondary/80 disabled:opacity-50"
+              title="Refresh data"
+            >
+              <Activity
+                className={cn('w-4 h-4', (analytics.isRefreshing || analytics.isLoading) && 'animate-pulse')}
+              />
+            </button>
+          )}
         </div>
 
         {/* Tabs */}
@@ -173,121 +220,100 @@ export default function Analytics() {
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
             <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5">
-              {/* Empty state when no exchange and no deposits */}
-              {!analytics.isConnected && totalDeposited === 0 && dcaPlans.length === 0 && (
-                <div className="space-y-5 p-4 md:p-6">
-                  {/* Connect Banner */}
-                  <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-purple-500/10 border border-primary/20 p-6 text-center">
-                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                      <BarChart3 className="w-7 h-7 text-primary/60" />
-                    </div>
-                    <h3 className="text-base font-bold mb-1">Unlock Your Analytics</h3>
-                    <p className="text-xs text-muted-foreground max-w-sm mx-auto mb-4">
-                      Connect your Bybit account and create a DCA plan to see real portfolio performance, P&L tracking, and investment analytics.
-                    </p>
-                    <div className="flex items-center justify-center gap-3">
-                      <Button size="sm" onClick={() => navigate('/settings')} className="gap-2">
-                        Connect Bybit
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => navigate('/dca-planner')} className="gap-2">
-                        Create DCA Plan
-                      </Button>
-                    </div>
-                  </div>
+              {/* 1. Hero — Total Portfolio + P&L + KPIs */}
+              <AnalyticsHero
+                analytics={analytics}
+                totalDeposited={totalDeposited}
+                dcaPlansCount={dcaPlans.length}
+                onConnect={() => navigate('/settings')}
+              />
 
-                  {/* What you'll see (preview) */}
-                  <div className="space-y-3">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">What you'll see</p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 opacity-50">
-                      <div className="rounded-xl bg-secondary/30 p-3 space-y-1">
-                        <p className="text-xs text-muted-foreground">Total Value</p>
-                        <p className="text-lg font-bold text-muted-foreground">$••,•••</p>
-                      </div>
-                      <div className="rounded-xl bg-secondary/30 p-3 space-y-1">
-                        <p className="text-xs text-muted-foreground">Monthly Return</p>
-                        <p className="text-lg font-bold text-emerald-400/50">+•.••%</p>
-                      </div>
-                      <div className="rounded-xl bg-secondary/30 p-3 space-y-1">
-                        <p className="text-xs text-muted-foreground">DCA Invested</p>
-                        <p className="text-lg font-bold text-muted-foreground">$•,•••</p>
-                      </div>
-                      <div className="rounded-xl bg-secondary/30 p-3 space-y-1">
-                        <p className="text-xs text-muted-foreground">Win Rate</p>
-                        <p className="text-lg font-bold text-muted-foreground">••%</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              {/* 1.5. Portfolio evolution chart (when connected) */}
+              {analytics.isConnected && (
+                <PortfolioEvolutionChart snapshots={snapshots} isConnected={analytics.isConnected} />
               )}
 
-              {/* Key Metrics */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <StatCard
-                  icon={Wallet}
-                  label="Total Balance"
-                  value={analytics.isConnected ? fmt(analytics.grandTotal) : '—'}
-                  sub={analytics.isConnected ? `${analytics.spotCount} assets` : 'Connect exchange'}
-                  color="bg-primary/10 text-primary"
-                />
-                <StatCard
-                  icon={DollarSign}
-                  label="Total Invested"
-                  value={fmt(totalDeposited + analytics.totalDCAInvested)}
-                  sub={`${dcaPlans.length} plans`}
-                  color="bg-green-500/10 text-green-400"
-                />
-                <StatCard
-                  icon={TrendingUp}
-                  label="Unrealized P&L"
-                  value={analytics.isConnected ? `${analytics.pnlPercent >= 0 ? '+' : ''}${analytics.pnlPercent.toFixed(2)}%` : '—'}
-                  sub={analytics.isConnected ? fmt(analytics.totalUnrealizedPnL) : undefined}
-                  color={analytics.pnlPercent >= 0 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}
-                />
-                <StatCard
-                  icon={Zap}
-                  label="DCA Active"
-                  value={`${analytics.activeDCAPlans}`}
-                  sub={`${fmt(analytics.totalDCACommittedMonthly)}/mo`}
-                  color="bg-purple-500/10 text-purple-400"
-                />
-              </div>
+              {/* 1.6. Top movers — winners + losers */}
+              {analytics.isConnected && analytics.spotHoldings.length > 0 && (
+                <TopMoversCard holdings={analytics.spotHoldings} isConnected={analytics.isConnected} />
+              )}
 
-              {/* Asset Allocation */}
+              {/* 1.7. Onboarding hint when totally empty */}
+              {!analytics.isConnected && totalDeposited === 0 && dcaPlans.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="rounded-2xl glass-card p-5"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <BarChart3 className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <h3 className="text-sm font-semibold">Unlock your analytics</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+                    Connect your Bybit account and create a DCA plan to see live performance, P&L tracking, and asset breakdowns.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <Button variant="premium" size="sm" onClick={() => navigate('/settings')} className="gap-1.5">
+                      <Zap className="h-3.5 w-3.5" />
+                      Connect
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/dca-planner')} className="gap-1.5">
+                      <DollarSign className="h-3.5 w-3.5" />
+                      DCA Plan
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* 2. Asset Allocation — pie chart prominent */}
               {pieData.length > 0 && (
                 <Card>
-                  <CardContent className="pt-4 pb-4">
+                  <CardContent className="pt-5 pb-5">
                     <SectionHeader title="Asset Allocation" icon={PieIcon} />
-                    <div className="flex items-center gap-4">
-                      <div className="w-32 h-32 shrink-0">
+                    <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-5 items-center">
+                      <div className="w-44 h-44 mx-auto md:mx-0 shrink-0 relative">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
                               data={pieData}
                               cx="50%"
                               cy="50%"
-                              innerRadius={30}
-                              outerRadius={55}
+                              innerRadius={50}
+                              outerRadius={80}
                               dataKey="value"
                               strokeWidth={2}
                               stroke="hsl(var(--card))"
+                              paddingAngle={2}
                             >
-                              {pieData.map((entry, i) => (
+                              {pieData.map((entry) => (
                                 <Cell key={entry.name} fill={entry.color} />
                               ))}
                             </Pie>
                           </PieChart>
                         </ResponsiveContainer>
+                        {/* Center label */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                            {pieData.length} assets
+                          </span>
+                          <span className="text-sm font-bold tabular-nums">
+                            {fmt(pieData.reduce((s, p) => s + p.value, 0))}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex-1 space-y-1.5">
+                      <div className="space-y-2">
                         {pieData.map((item) => (
-                          <div key={item.name} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                          <div key={item.name} className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2.5 min-w-0">
                               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                              <span className="text-xs font-semibold">{item.name}</span>
+                              <span className="text-xs font-semibold truncate">{item.name}</span>
                             </div>
-                            <div className="text-right">
-                              <span className="text-xs font-medium">{item.pct.toFixed(1)}%</span>
-                              <span className="text-[11px] text-muted-foreground ml-1.5">{fmt(item.value)}</span>
+                            <div className="text-right shrink-0">
+                              <span className="text-xs font-bold tabular-nums">{item.pct.toFixed(1)}%</span>
+                              <span className="text-[11px] text-muted-foreground ml-1.5 tabular-nums">{fmt(item.value)}</span>
                             </div>
                           </div>
                         ))}
@@ -297,40 +323,61 @@ export default function Analytics() {
                 </Card>
               )}
 
-              {/* Category Breakdown */}
+              {/* 3. Portfolio Breakdown — by category */}
               {categoryBreakdown.length > 0 && (
                 <Card>
-                  <CardContent className="pt-4 pb-4">
+                  <CardContent className="pt-5 pb-5">
                     <SectionHeader title="Portfolio Breakdown" icon={BarChart3} />
-                    <div className="space-y-3">
-                      {categoryBreakdown.map((cat) => (
-                        <div key={cat.name}>
-                          <div className="flex items-center justify-between mb-1">
+                    <div className="space-y-3.5">
+                      {categoryBreakdown.map((cat, i) => (
+                        <motion.div
+                          key={cat.name}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
                             <span className="text-xs font-semibold">{cat.name}</span>
-                            <span className="text-xs text-muted-foreground">{fmt(cat.value)} · {cat.pct.toFixed(1)}%</span>
+                            <span className="text-xs text-muted-foreground tabular-nums">
+                              {fmt(cat.value)} · <span className="font-semibold text-foreground/80">{cat.pct.toFixed(1)}%</span>
+                            </span>
                           </div>
-                          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                          <div className="h-2 bg-secondary/60 rounded-full overflow-hidden">
                             <motion.div
                               className="h-full rounded-full"
                               style={{ backgroundColor: cat.color }}
                               initial={{ width: 0 }}
                               animate={{ width: `${Math.min(cat.pct, 100)}%` }}
-                              transition={{ duration: 0.6, delay: 0.1 }}
+                              transition={{ duration: 0.6, delay: 0.1 + i * 0.05 }}
                             />
                           </div>
-                        </div>
+                        </motion.div>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
+              )}
+
+              {/* 4. Insights — auto-derived */}
+              {(executions.length > 0 || analytics.isConnected) && (
+                <InsightsCard analytics={analytics} executions={executions} snapshots={snapshots} />
               )}
             </motion.div>
           )}
 
           {activeTab === 'operations' && (
             <motion.div key="operations" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-5">
+              {/* 1. Monthly volume bar chart */}
+              <ExecutionVolumeChart executions={executions} />
+
+              {/* 2. Calendar heatmap of execution activity */}
+              <DCAExecutionHeatmap executions={executions} />
+
+              {/* 3. Success rate by asset */}
+              {executions.length > 0 && <SuccessRateByAssetCard executions={executions} />}
+
               {/* Empty state for operations */}
-              {dcaNotifications.length === 0 && dcaPlans.filter(p => p.isActive).length === 0 && (
+              {dcaNotifications.length === 0 && dcaPlans.filter(p => p.isActive).length === 0 && executions.length === 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -359,42 +406,112 @@ export default function Analytics() {
                   <SectionHeader title="DCA Executions" icon={Zap} />
                   <div className="grid grid-cols-3 gap-3 mb-4">
                     <div className="text-center p-3 rounded-xl bg-green-500/5 border border-green-500/10">
-                      <p className="text-lg font-bold text-green-400">{successfulDCAs}</p>
+                      <p className="text-lg font-bold text-green-400 tabular-nums">
+                        {executions.filter((e) => e.status === 'success').length || successfulDCAs}
+                      </p>
                       <p className="text-[11px] text-muted-foreground">Successful</p>
                     </div>
                     <div className="text-center p-3 rounded-xl bg-red-500/5 border border-red-500/10">
-                      <p className="text-lg font-bold text-red-400">{failedDCAs}</p>
+                      <p className="text-lg font-bold text-red-400 tabular-nums">
+                        {executions.filter((e) => e.status === 'failed').length || failedDCAs}
+                      </p>
                       <p className="text-[11px] text-muted-foreground">Failed</p>
                     </div>
                     <div className="text-center p-3 rounded-xl bg-primary/5 border border-primary/10">
-                      <p className="text-lg font-bold text-primary">{analytics.activeDCAPlans}</p>
+                      <p className="text-lg font-bold text-primary tabular-nums">{analytics.activeDCAPlans}</p>
                       <p className="text-[11px] text-muted-foreground">Active Plans</p>
                     </div>
                   </div>
 
-                  {/* Recent DCA notifications */}
+                  {/* Recent executions (real data preferred, falls back to notifications) */}
                   <div className="space-y-2">
-                    {dcaNotifications.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-6">No DCA operations recorded yet</p>
+                    {executions.length > 0 ? (
+                      executions.slice(0, 10).map((exec) => {
+                        const success = exec.status === 'success';
+                        const failed = exec.status === 'failed';
+                        return (
+                          <div
+                            key={exec.id}
+                            className={cn(
+                              'flex items-center gap-3 p-3 rounded-xl border',
+                              success
+                                ? 'bg-green-500/5 border-green-500/10'
+                                : failed
+                                  ? 'bg-red-500/5 border-red-500/10'
+                                  : 'bg-amber-500/5 border-amber-500/10',
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
+                                success
+                                  ? 'bg-green-500/10'
+                                  : failed
+                                    ? 'bg-red-500/10'
+                                    : 'bg-amber-500/10',
+                              )}
+                            >
+                              {success ? (
+                                <ArrowUpRight className="w-4 h-4 text-green-400" />
+                              ) : failed ? (
+                                <ArrowDownRight className="w-4 h-4 text-red-400" />
+                              ) : (
+                                <Activity className="w-4 h-4 text-amber-400" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold truncate">
+                                {exec.asset_symbol} · {fmt(exec.amount_usdt ?? 0)}
+                              </p>
+                              <p className="text-[11px] text-muted-foreground truncate tabular-nums">
+                                {exec.quantity ? `${Number(exec.quantity).toFixed(6)} units` : '—'}
+                                {exec.price ? ` @ $${Number(exec.price).toFixed(2)}` : ''}
+                                {failed && exec.error_message ? ` · ${exec.error_message}` : ''}
+                              </p>
+                            </div>
+                            <span className="text-[11px] text-muted-foreground/60 shrink-0">
+                              {new Date(exec.executed_at).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                            </span>
+                          </div>
+                        );
+                      })
+                    ) : dcaNotifications.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-6">
+                        No DCA operations recorded yet
+                      </p>
                     ) : (
                       dcaNotifications.slice(0, 10).map((n) => (
                         <div
                           key={n.id}
                           className={cn(
                             'flex items-center gap-3 p-3 rounded-xl border',
-                            n.type === 'success' ? 'bg-green-500/5 border-green-500/10' :
-                            n.type === 'warning' ? 'bg-amber-500/5 border-amber-500/10' :
-                            'bg-red-500/5 border-red-500/10'
+                            n.type === 'success'
+                              ? 'bg-green-500/5 border-green-500/10'
+                              : n.type === 'warning'
+                                ? 'bg-amber-500/5 border-amber-500/10'
+                                : 'bg-red-500/5 border-red-500/10',
                           )}
                         >
-                          <div className={cn(
-                            'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
-                            n.type === 'success' ? 'bg-green-500/10' :
-                            n.type === 'warning' ? 'bg-amber-500/10' : 'bg-red-500/10'
-                          )}>
-                            {n.type === 'success' ? <ArrowUpRight className="w-4 h-4 text-green-400" /> :
-                             n.type === 'warning' ? <Activity className="w-4 h-4 text-amber-400" /> :
-                             <ArrowDownRight className="w-4 h-4 text-red-400" />}
+                          <div
+                            className={cn(
+                              'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
+                              n.type === 'success'
+                                ? 'bg-green-500/10'
+                                : n.type === 'warning'
+                                  ? 'bg-amber-500/10'
+                                  : 'bg-red-500/10',
+                            )}
+                          >
+                            {n.type === 'success' ? (
+                              <ArrowUpRight className="w-4 h-4 text-green-400" />
+                            ) : n.type === 'warning' ? (
+                              <Activity className="w-4 h-4 text-amber-400" />
+                            ) : (
+                              <ArrowDownRight className="w-4 h-4 text-red-400" />
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-semibold truncate">{n.title}</p>
@@ -505,7 +622,35 @@ export default function Analytics() {
                   sub={`${analytics.activeDCAPlans} active plans`}
                   color="bg-primary/10 text-primary"
                 />
+                <StatCard
+                  icon={Target}
+                  label="Avg per Buy"
+                  value={
+                    executions.filter((e) => e.status === 'success').length > 0
+                      ? fmt(
+                          executions
+                            .filter((e) => e.status === 'success')
+                            .reduce((s, e) => s + (e.amount_usdt ?? 0), 0) /
+                            executions.filter((e) => e.status === 'success').length,
+                        )
+                      : '—'
+                  }
+                  sub={`${executions.filter((e) => e.status === 'success').length} buys executed`}
+                  color="bg-amber-500/10 text-amber-400"
+                />
               </div>
+
+              {/* DCA Projection — what 12 months looks like at current cadence */}
+              <DCAProjectionChart
+                plans={dcaPlans}
+                alreadyInvested={totalDeposited + analytics.totalDCAInvested}
+              />
+
+              {/* DCA Distribution — VWAP per asset */}
+              {executions.length > 0 && <DCAByAssetCard executions={executions} />}
+
+              {/* Insights — auto-derived from executions + analytics */}
+              <InsightsCard analytics={analytics} executions={executions} snapshots={snapshots} />
             </motion.div>
           )}
 
@@ -528,39 +673,22 @@ export default function Analytics() {
                 />
               </div>
 
-              {/* Holdings Performance */}
+              {/* Performance metrics — quant signals from snapshots */}
+              {analytics.isConnected && (
+                <PerformanceMetricsCard analytics={analytics} snapshots={snapshots} />
+              )}
+
+              {/* Holdings ROI table — sortable */}
               {analytics.isConnected && analytics.spotHoldings.length > 0 && (
-                <Card>
-                  <CardContent className="pt-4 pb-4">
-                    <SectionHeader title="Holdings" icon={PieIcon} />
-                    <div className="space-y-2">
-                      {analytics.spotHoldings
-                        .sort((a, b) => b.usdValue - a.usdValue)
-                        .map((holding) => (
-                          <div key={holding.coin} className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 border border-border/20">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                                <span className="text-xs font-bold text-primary">{holding.coin.slice(0, 2)}</span>
-                              </div>
-                              <div>
-                                <p className="text-xs font-bold">{holding.coin}</p>
-                                <p className="text-[11px] text-muted-foreground">
-                                  {holding.balance.toLocaleString(undefined, { maximumFractionDigits: 6 })}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xs font-bold">{fmt(holding.usdValue)}</p>
-                              <p className="text-[11px] text-muted-foreground">
-                                {analytics.grandTotal > 0 ? ((holding.usdValue / analytics.grandTotal) * 100).toFixed(1) : '0'}%
-                              </p>
-                            </div>
-                          </div>
-                        ))
-                      }
-                    </div>
-                  </CardContent>
-                </Card>
+                <AssetROITable
+                  holdings={analytics.spotHoldings}
+                  totalValue={analytics.grandTotal}
+                />
+              )}
+
+              {/* Top movers row */}
+              {analytics.isConnected && analytics.spotHoldings.length > 0 && (
+                <TopMoversCard holdings={analytics.spotHoldings} isConnected={analytics.isConnected} />
               )}
 
               {/* Funding Account */}

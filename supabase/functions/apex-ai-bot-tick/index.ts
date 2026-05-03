@@ -352,6 +352,32 @@ Deno.serve(async (req) => {
     }
     await Promise.allSettled(updates);
 
+    // ═════════════════════════════════════════════════════════════════
+    // ★ Apex AI v3.2 — SMART HEDGE CYCLING (individual TP/SL fallback) ★
+    // ═════════════════════════════════════════════════════════════════
+    //
+    // Why this exists: the v2.0 Martingale loop only closes when
+    // `aggregatePnl > 0` AND blended TP hit. In a perfect hedge with no
+    // ATR data (intelligence loop never ran), aggregate stays at exactly
+    // 0 forever and no layer is ever added — bot freezes.
+    //
+    // This block restores the v1.0 behavior as a *fallback*: when an
+    // individual leg of a hedge pair hits its own TP or SL, we close
+    // BOTH legs of the pair (one wins, one loses) and re-open a fresh
+    // hedge at the current price. Result: short cycles, frequent profit
+    // crystallization, and predictable behavior even without regime data.
+    //
+    // Runs ONLY for SIM positions (LIVE positions are reconciled against
+    // Bybit which has its own TP/SL handling on the order itself).
+    const hedgeCycleActions = await runSmartHedgeCycling({
+      supabase,
+      portfolio,
+      positions,
+      prices,
+      isLiveMode: mode === 'live',
+    });
+    actions.push(...hedgeCycleActions);
+
     // ─── 7. Martingale group logic ──────────────────
     // Group positions by (symbol, side, parent_position_group).
     const groups = groupPositionsByMartingaleKey(positions);
@@ -630,7 +656,7 @@ Deno.serve(async (req) => {
       elapsed_ms: elapsedMs,
       positions_touched: positions.length,
       updates_count: updates.length,
-      closed_count: toClose.length,
+      actions_count: actions.length,
       prices_fetched: Object.keys(prices).length,
       price_errors: priceErrors.slice(0, 3),
     });
@@ -918,7 +944,12 @@ async function bootstrapLiveHedgePositions(
   for (const s of symbols) {
     const price = prices[s.symbol];
     if (!price) {
-      console.warn('[apex-ai-bot-tick] skip bootstrap, no price', s.symbol);
+      // Visible in apex_ai_bot_logs so price-fetch failures stop being a
+      // silent dead-end during LIVE bootstrap.
+      await logEvent(supabase, portfolio.id, 'error', 'live_bootstrap_no_price', {
+        symbol: s.symbol,
+        all_sources_failed: true,
+      });
       continue;
     }
 
@@ -927,13 +958,20 @@ async function bootstrapLiveHedgePositions(
     const perSide = allocated / 2;
     const qty = roundQty((perSide * leverage) / price, s.symbol);
 
-    if (qty <= 0) continue;
+    if (qty <= 0) {
+      await logEvent(supabase, portfolio.id, 'warning', 'live_bootstrap_qty_zero', {
+        symbol: s.symbol, price, perSide, leverage,
+      });
+      continue;
+    }
 
     // Set leverage (idempotent)
     try {
       await setLeverage(creds.apiKey, creds.apiSecret, creds.testnet, s.symbol, leverage);
     } catch (err) {
-      console.warn('[apex-ai-bot-tick] setLeverage failed', s.symbol, err);
+      await logEvent(supabase, portfolio.id, 'warning', 'live_set_leverage_failed', {
+        symbol: s.symbol, leverage, error: (err as Error).message,
+      });
     }
 
     // LONG leg
@@ -1187,31 +1225,99 @@ async function fetchBybitTickers(
 }
 
 async function fetchOneTicker(symbol: string): Promise<number> {
-  // Cascade: Bybit → Binance → CoinGecko. Datacenter IPs (Supabase/AWS)
-  // often get 403 from Bybit/Binance; CoinGecko allows datacenter traffic
-  // and covers all major pairs. Accuracy is ~spot price (close to perp for
-  // major symbols). First successful source wins.
+  // Cascade through 6 sources. Supabase Edge Function IPs are routinely
+  // blocked by CloudFront (Bybit, Binance), so the order is permissive-first
+  // among datacenter-friendly providers.
+  //
+  // Order: Coinbase → CoinGecko → Bybit → Binance → OKX → Kraken
+  //
+  // Coinbase is the most permissive datacenter-wise; CoinGecko is the
+  // canonical free public price source. The remaining four are belt-and-
+  // suspenders. The first one that returns price > 0 wins.
   const errors: string[] = [];
 
-  try {
-    return await fetchBybitTickerWithHeaders(symbol);
-  } catch (err) {
-    errors.push(`bybit: ${err instanceof Error ? err.message : err}`);
-  }
+  const sources: Array<{ name: string; fn: () => Promise<number> }> = [
+    { name: 'coinbase',  fn: () => fetchCoinbaseTicker(symbol) },
+    { name: 'coingecko', fn: () => fetchCoingeckoTicker(symbol) },
+    { name: 'bybit',     fn: () => fetchBybitTickerWithHeaders(symbol) },
+    { name: 'binance',   fn: () => fetchBinanceTicker(symbol) },
+    { name: 'okx',       fn: () => fetchOkxTicker(symbol) },
+    { name: 'kraken',    fn: () => fetchKrakenTicker(symbol) },
+  ];
 
-  try {
-    return await fetchBinanceTicker(symbol);
-  } catch (err) {
-    errors.push(`binance: ${err instanceof Error ? err.message : err}`);
-  }
-
-  try {
-    return await fetchCoingeckoTicker(symbol);
-  } catch (err) {
-    errors.push(`coingecko: ${err instanceof Error ? err.message : err}`);
+  for (const src of sources) {
+    try {
+      const v = await src.fn();
+      if (v > 0) return v;
+      errors.push(`${src.name}: zero price`);
+    } catch (err) {
+      errors.push(`${src.name}: ${err instanceof Error ? err.message : err}`);
+    }
   }
 
   throw new Error(errors.join(' | '));
+}
+
+/** Coinbase Pro public spot — typically datacenter-friendly. */
+async function fetchCoinbaseTicker(symbol: string): Promise<number> {
+  const base = symbol.replace(/USDT$/, '');
+  if (!base || base === symbol) throw new Error(`unmapped symbol: ${symbol}`);
+  // Use Coinbase exchange API spot — supports BTC-USD, ETH-USD, SOL-USD, etc.
+  const url = `https://api.coinbase.com/v2/prices/${base}-USD/spot`;
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  const price = Number(json?.data?.amount);
+  if (!(price > 0)) throw new Error(`invalid price`);
+  return price;
+}
+
+/** OKX swap ticker — permissive global. */
+async function fetchOkxTicker(symbol: string): Promise<number> {
+  // OKX uses BTC-USDT-SWAP for perps
+  const base = symbol.replace(/USDT$/, '');
+  if (!base || base === symbol) throw new Error(`unmapped symbol: ${symbol}`);
+  const url = `https://www.okx.com/api/v5/market/ticker?instId=${base}-USDT-SWAP`;
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (json.code !== '0') throw new Error(`OKX ${json.code}: ${json.msg}`);
+  const price = Number(json?.data?.[0]?.last);
+  if (!(price > 0)) throw new Error(`invalid price`);
+  return price;
+}
+
+/** Kraken public ticker — uses XBT for BTC. */
+async function fetchKrakenTicker(symbol: string): Promise<number> {
+  const map: Record<string, string> = {
+    BTCUSDT: 'XBTUSDT',
+    ETHUSDT: 'ETHUSDT',
+    SOLUSDT: 'SOLUSDT',
+    XRPUSDT: 'XRPUSDT',
+    LINKUSDT: 'LINKUSDT',
+    AVAXUSDT: 'AVAXUSDT',
+    DOGEUSDT: 'XDGUSDT',
+    ARBUSDT: 'ARBUSDT',
+  };
+  const pair = map[symbol];
+  if (!pair) throw new Error(`unmapped symbol: ${symbol}`);
+  const url = `https://api.kraken.com/0/public/Ticker?pair=${pair}`;
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  const errs = json?.error;
+  if (Array.isArray(errs) && errs.length > 0) throw new Error(`Kraken: ${errs.join(',')}`);
+  const result = json?.result;
+  const firstKey = result ? Object.keys(result)[0] : null;
+  const price = firstKey ? Number(result[firstKey]?.c?.[0]) : NaN;
+  if (!(price > 0)) throw new Error(`invalid price`);
+  return price;
 }
 
 async function fetchBybitTickerWithHeaders(symbol: string): Promise<number> {
@@ -1496,6 +1602,416 @@ async function reopenHedgeLeg(
     exchange_position_id: `sim-${crypto.randomUUID()}`,
     opened_at: new Date().toISOString(),
   });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Apex AI v3.2 — Smart Hedge Cycling
+// ═══════════════════════════════════════════════════════════════════
+
+interface SmartHedgeCyclingArgs {
+  supabase: ReturnType<typeof createClient>;
+  portfolio: {
+    id: string;
+    user_id: string;
+    capital_usdt: number | string;
+    status: string;
+  };
+  positions: ApexAiPosition[];
+  prices: Record<string, number>;
+  isLiveMode: boolean;
+}
+
+interface HedgeAction {
+  type: string;
+  symbol: string;
+  side?: string;
+  trigger?: string;
+  pnl_long?: number;
+  pnl_short?: number;
+  net_pnl?: number;
+  cycle?: 'closed' | 'reopened';
+}
+
+/**
+ * Smart Hedge Cycling — Apice "Never Close at Loss" engine.
+ *
+ * CEO directive 2026-04-29: the strategy is to NEVER take a loss. When
+ * one leg of a hedge moves against entry, the bot ADDS a Martingale
+ * layer to that side instead of stopping it out. Only when the AGGREGATE
+ * pnl turns positive (after layering and a market reversal) does the
+ * group close — at a small but reliable profit.
+ *
+ * Triggers per group (long+short for each symbol):
+ *   - close_group_in_profit:
+ *       aggregate_pnl > 0 AND any leg hit its take_profit_price
+ *       → close ALL layers + create trades + reopen fresh hedge
+ *   - add_martingale_layer:
+ *       drawdown of the losing side ≥ next_threshold
+ *       AND total layers < max_layers
+ *       AND has_capital_for_next_layer
+ *       → open another layer on the losing side, sized 1.5× last
+ *
+ * Stop-loss prices on positions are IGNORED. Per validated config, the
+ * portfolio-level drawdown_tolerance_pct (30% default) is the only kill
+ * switch — handled elsewhere in the tick (catastrophic pre-check).
+ */
+async function runSmartHedgeCycling(
+  args: SmartHedgeCyclingArgs
+): Promise<HedgeAction[]> {
+  const { supabase, portfolio, positions, prices, isLiveMode } = args;
+  const actions: HedgeAction[] = [];
+
+  // Only act on SIM positions; LIVE legs are reconciled from Bybit.
+  const simPositions = positions.filter(
+    (p) => (p.exchange_position_id ?? '').startsWith('sim-') && p.status === 'open'
+  );
+  if (simPositions.length === 0) return actions;
+
+  // Layer config — fallback to validated defaults if missing
+  const { data: layerCfg } = await supabase
+    .from('apex_ai_layer_config')
+    .select('max_layers, layer_spacing_atr, take_profit_pct, layer_size_multiplier')
+    .eq('portfolio_id', portfolio.id)
+    .maybeSingle();
+  const MAX_LAYERS = Number(layerCfg?.max_layers ?? 8);
+  const TP_PCT = Number(layerCfg?.take_profit_pct ?? 1.2);
+  const LAYER_SIZE_MULT = Number(layerCfg?.layer_size_multiplier ?? 1.5);
+  // Without ATR data we use a fixed % spacing that scales per layer.
+  // 1.5% per layer is conservative; matches validated config sideways regime.
+  const FIXED_LAYER_SPACING_PCT = 1.5;
+
+  // Group all sim positions by (symbol, side) — collects layers
+  const groups = new Map<string, ApexAiPosition[]>();
+  for (const pos of simPositions) {
+    const k = `${pos.symbol}|${pos.side}`;
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k)!.push(pos);
+  }
+
+  // Pair groups by symbol so we can compute net hedge state
+  const symbols = new Set<string>(simPositions.map((p) => p.symbol));
+
+  for (const symbol of symbols) {
+    const currentPrice = prices[symbol];
+    if (!currentPrice) continue;
+
+    const longLayers = (groups.get(`${symbol}|long`) ?? []).sort(
+      (a, b) => new Date(a.opened_at).getTime() - new Date(b.opened_at).getTime()
+    );
+    const shortLayers = (groups.get(`${symbol}|short`) ?? []).sort(
+      (a, b) => new Date(a.opened_at).getTime() - new Date(b.opened_at).getTime()
+    );
+
+    if (longLayers.length === 0 && shortLayers.length === 0) continue;
+
+    const pnlLong = longLayers.reduce(
+      (s, l) => s + (currentPrice - Number(l.entry_price)) * Number(l.size),
+      0
+    );
+    const pnlShort = shortLayers.reduce(
+      (s, l) => s + (Number(l.entry_price) - currentPrice) * Number(l.size),
+      0
+    );
+    const aggregatePnl = pnlLong + pnlShort;
+
+    // Blended-average exits per side
+    const blendedLong = blendedAvg(longLayers);
+    const blendedShort = blendedAvg(shortLayers);
+
+    // ────────────────────────────────────────────────────────────────
+    // 1. CLOSE GROUP IN PROFIT
+    //    Trigger: aggregate > 0 AND any leg crossed TP threshold from
+    //    its blended average. Close ALL legs of both sides + reopen.
+    // ────────────────────────────────────────────────────────────────
+    const longTpHit =
+      longLayers.length > 0 &&
+      blendedLong != null &&
+      currentPrice >= blendedLong * (1 + TP_PCT / 100);
+    const shortTpHit =
+      shortLayers.length > 0 &&
+      blendedShort != null &&
+      currentPrice <= blendedShort * (1 - TP_PCT / 100);
+
+    if (aggregatePnl > 0 && (longTpHit || shortTpHit)) {
+      const trigger = 'take_profit';
+      const triggerSide: 'long' | 'short' = longTpHit ? 'long' : 'short';
+
+      const closeResults: Array<{ side: string; pnl: number }> = [];
+      const legsToClose = [...longLayers, ...shortLayers];
+
+      for (const leg of legsToClose) {
+        const entry = Number(leg.entry_price);
+        const size = Number(leg.size);
+        const pnl =
+          leg.side === 'long'
+            ? (currentPrice - entry) * size
+            : (entry - currentPrice) * size;
+        const feeExchange = Math.abs(pnl) * 0.0006;
+        const gasFee = pnl > 0 ? pnl * 0.10 : 0;
+        const now = new Date().toISOString();
+
+        const { error: updErr } = await supabase
+          .from('apex_ai_positions')
+          .update({
+            status: 'closed',
+            closed_at: now,
+            current_price: currentPrice,
+            unrealized_pnl: 0,
+            realized_pnl: pnl,
+          })
+          .eq('id', leg.id)
+          .eq('status', 'open');
+
+        if (updErr) {
+          console.error('[smart-hedge] close failed', leg.id, updErr);
+          continue;
+        }
+
+        await supabase.from('apex_ai_trades').insert({
+          portfolio_id: portfolio.id,
+          position_id: leg.id,
+          user_id: portfolio.user_id,
+          symbol: leg.symbol,
+          side: leg.side,
+          entry_price: entry,
+          exit_price: currentPrice,
+          size,
+          leverage: leg.leverage,
+          pnl,
+          fee_exchange: feeExchange,
+          gas_fee: gasFee,
+          closed_at: now,
+        });
+
+        closeResults.push({ side: leg.side, pnl });
+      }
+
+      if (closeResults.length === 0) continue;
+      const closedLongPnl = closeResults
+        .filter((r) => r.side === 'long')
+        .reduce((s, r) => s + r.pnl, 0);
+      const closedShortPnl = closeResults
+        .filter((r) => r.side === 'short')
+        .reduce((s, r) => s + r.pnl, 0);
+      const netPnl = aggregatePnl;
+
+      // Apply portfolio aggregate stats atomically
+      await supabase.rpc('apex_ai_apply_cycle_pnl', {
+        p_portfolio_id: portfolio.id,
+        p_pnl_delta: netPnl,
+      }).catch(async () => {
+        const { data: cur } = await supabase
+          .from('apex_ai_portfolios')
+          .select('total_pnl, win_count, loss_count')
+          .eq('id', portfolio.id)
+          .single();
+        if (!cur) return;
+        await supabase
+          .from('apex_ai_portfolios')
+          .update({
+            total_pnl: Number(cur.total_pnl ?? 0) + netPnl,
+            win_count: Number(cur.win_count ?? 0) + (netPnl > 0 ? 1 : 0),
+            loss_count: Number(cur.loss_count ?? 0) + (netPnl < 0 ? 1 : 0),
+          })
+          .eq('id', portfolio.id);
+      });
+
+      await logEvent(supabase, portfolio.id, 'info', 'hedge_cycle_completed', {
+        symbol,
+        trigger,
+        trigger_side: triggerSide,
+        pnl_long: closedLongPnl,
+        pnl_short: closedShortPnl,
+        net_pnl: netPnl,
+        exit_price: currentPrice,
+        legs_closed: closeResults.length,
+      });
+
+      actions.push({
+        type: 'hedge_cycle_completed',
+        symbol,
+        trigger,
+        side: triggerSide,
+        pnl_long: closedLongPnl,
+        pnl_short: closedShortPnl,
+        net_pnl: netPnl,
+        cycle: 'closed',
+      });
+
+      // Re-open fresh hedge (without SL — never close at loss)
+      if (portfolio.status !== 'active' || isLiveMode) continue;
+
+      const template = longLayers[0] ?? shortLayers[0];
+      if (!template) continue;
+      const leverage = template.leverage;
+      const baseSize = Number(template.size);
+      const now = new Date().toISOString();
+
+      const newRows = [
+        {
+          portfolio_id: portfolio.id,
+          user_id: portfolio.user_id,
+          symbol,
+          side: 'long' as const,
+          entry_price: currentPrice,
+          current_price: currentPrice,
+          size: baseSize,
+          leverage,
+          unrealized_pnl: 0,
+          realized_pnl: 0,
+          stop_loss_price: null, // never close at loss
+          take_profit_price: currentPrice * (1 + TP_PCT / 100),
+          status: 'open' as const,
+          exchange_position_id: `sim-${crypto.randomUUID()}`,
+          opened_at: now,
+        },
+        {
+          portfolio_id: portfolio.id,
+          user_id: portfolio.user_id,
+          symbol,
+          side: 'short' as const,
+          entry_price: currentPrice,
+          current_price: currentPrice,
+          size: baseSize,
+          leverage,
+          unrealized_pnl: 0,
+          realized_pnl: 0,
+          stop_loss_price: null, // never close at loss
+          take_profit_price: currentPrice * (1 - TP_PCT / 100),
+          status: 'open' as const,
+          exchange_position_id: `sim-${crypto.randomUUID()}`,
+          opened_at: now,
+        },
+      ];
+
+      const { error: insErr } = await supabase.from('apex_ai_positions').insert(newRows);
+      if (insErr) {
+        await logEvent(supabase, portfolio.id, 'error', 'hedge_reopen_failed', {
+          symbol,
+          error: insErr.message,
+        });
+      } else {
+        actions.push({ type: 'hedge_reopened', symbol, cycle: 'reopened' });
+      }
+
+      continue; // group closed + reopened, move to next symbol
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // 2. ADD MARTINGALE LAYER on the losing side (never-close-at-loss)
+    //    Trigger: drawdown of losing side ≥ next_threshold.
+    //    next_threshold = FIXED_LAYER_SPACING_PCT × layer_count.
+    //    E.g. with 1 layer at 1.5%, second layer waits for 1.5% drop;
+    //    with 2 layers, third waits for 3.0%; etc.
+    // ────────────────────────────────────────────────────────────────
+    const longCount = longLayers.length;
+    const shortCount = shortLayers.length;
+
+    // Long is in drawdown if price < blendedLong
+    if (longCount > 0 && longCount < MAX_LAYERS && blendedLong != null && currentPrice < blendedLong) {
+      const drawdownPct = ((blendedLong - currentPrice) / blendedLong) * 100;
+      const threshold = FIXED_LAYER_SPACING_PCT * longCount;
+      if (drawdownPct >= threshold) {
+        const lastLayer = longLayers[longLayers.length - 1];
+        const newSize = Number(lastLayer.size) * LAYER_SIZE_MULT;
+        const now = new Date().toISOString();
+        const { error: addErr } = await supabase.from('apex_ai_positions').insert({
+          portfolio_id: portfolio.id,
+          user_id: portfolio.user_id,
+          symbol,
+          side: 'long',
+          entry_price: currentPrice,
+          current_price: currentPrice,
+          size: newSize,
+          leverage: lastLayer.leverage,
+          unrealized_pnl: 0,
+          realized_pnl: 0,
+          stop_loss_price: null,
+          take_profit_price: null, // managed at group level via blendedAvg
+          status: 'open',
+          exchange_position_id: `sim-${crypto.randomUUID()}`,
+          opened_at: now,
+        });
+        if (!addErr) {
+          await logEvent(supabase, portfolio.id, 'info', 'martingale_layer_added', {
+            symbol,
+            side: 'long',
+            layer_count: longCount + 1,
+            drawdown_pct: drawdownPct,
+            threshold_pct: threshold,
+            entry_price: currentPrice,
+            size: newSize,
+          });
+          actions.push({
+            type: 'martingale_layer_added',
+            symbol,
+            side: 'long',
+            cycle: 'reopened',
+          });
+        }
+      }
+    }
+
+    // Short is in drawdown if price > blendedShort
+    if (shortCount > 0 && shortCount < MAX_LAYERS && blendedShort != null && currentPrice > blendedShort) {
+      const drawdownPct = ((currentPrice - blendedShort) / blendedShort) * 100;
+      const threshold = FIXED_LAYER_SPACING_PCT * shortCount;
+      if (drawdownPct >= threshold) {
+        const lastLayer = shortLayers[shortLayers.length - 1];
+        const newSize = Number(lastLayer.size) * LAYER_SIZE_MULT;
+        const now = new Date().toISOString();
+        const { error: addErr } = await supabase.from('apex_ai_positions').insert({
+          portfolio_id: portfolio.id,
+          user_id: portfolio.user_id,
+          symbol,
+          side: 'short',
+          entry_price: currentPrice,
+          current_price: currentPrice,
+          size: newSize,
+          leverage: lastLayer.leverage,
+          unrealized_pnl: 0,
+          realized_pnl: 0,
+          stop_loss_price: null,
+          take_profit_price: null,
+          status: 'open',
+          exchange_position_id: `sim-${crypto.randomUUID()}`,
+          opened_at: now,
+        });
+        if (!addErr) {
+          await logEvent(supabase, portfolio.id, 'info', 'martingale_layer_added', {
+            symbol,
+            side: 'short',
+            layer_count: shortCount + 1,
+            drawdown_pct: drawdownPct,
+            threshold_pct: threshold,
+            entry_price: currentPrice,
+            size: newSize,
+          });
+          actions.push({
+            type: 'martingale_layer_added',
+            symbol,
+            side: 'short',
+            cycle: 'reopened',
+          });
+        }
+      }
+    }
+  }
+
+  return actions;
+}
+
+function blendedAvg(layers: ApexAiPosition[]): number | null {
+  if (layers.length === 0) return null;
+  let totalSize = 0;
+  let weightedEntry = 0;
+  for (const l of layers) {
+    const size = Number(l.size);
+    const entry = Number(l.entry_price);
+    totalSize += size;
+    weightedEntry += entry * size;
+  }
+  return totalSize > 0 ? weightedEntry / totalSize : null;
 }
 
 async function logEvent(

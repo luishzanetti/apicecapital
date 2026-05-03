@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAppStore } from '@/store/appStore';
+import { useTranslation } from '@/hooks/useTranslation';
 import { useExchangeBalance } from '@/hooks/useExchangeBalance';
 import { useAuth } from '@/components/AuthProvider';
 import { toast } from '@/components/ui/use-toast';
@@ -45,6 +46,7 @@ const VALIDATED_CONFIG = {
 
 export default function ApexAiOnboarding() {
   const nav = useNavigate();
+  const { t } = useTranslation();
   const { session } = useAuth();
   const wizard = useAppStore((s) => s.apexAiWizard);
   const setApexAiActivePortfolio = useAppStore((s) => s.setApexAiActivePortfolio);
@@ -68,16 +70,19 @@ export default function ApexAiOnboarding() {
     const capital = parseFloat(capitalInput);
     if (!isFinite(capital) || capital < 100) {
       toast({
-        title: 'Capital mínimo $100',
-        description: 'Apex AI precisa de pelo menos 100 USDT alocados.',
+        title: t('apexAi.onboardingStep2MinError'),
+        description: t('apexAi.onboardingStep2CapitalHint').replace(
+          '{{balance}}',
+          `$${bybitBalance.toLocaleString('en-US', { maximumFractionDigits: 2 })}`,
+        ),
         variant: 'destructive',
       });
       return;
     }
     if (!session?.user?.id) {
       toast({
-        title: 'Sessão expirada',
-        description: 'Faça login novamente para continuar.',
+        title: 'Session expired',
+        description: 'Please sign in again to continue.',
         variant: 'destructive',
       });
       return;
@@ -137,15 +142,18 @@ export default function ApexAiOnboarding() {
       resetWizard();
 
       toast({
-        title: 'Apex AI ativado',
-        description: `BTC/USDT · 3x · Moderado validado · $${capital.toLocaleString()} alocados`,
+        title: t('apexAi.setupToastCreatedTitle'),
+        description: `BTC/USDT · 3× · Validated config · $${capital.toLocaleString()} allocated`,
       });
 
       nav('/apex-ai/dashboard');
     } catch (err) {
       toast({
-        title: 'Falha ao ativar Apex AI',
-        description: err instanceof Error ? err.message : 'Erro desconhecido. Tente novamente.',
+        title: t('apexAi.setupToastErrorTitle'),
+        description:
+          err instanceof Error
+            ? err.message
+            : t('apexAi.setupToastErrorDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -161,7 +169,7 @@ export default function ApexAiOnboarding() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center mx-auto shadow-lg">
             <Loader2 className="w-6 h-6 text-white animate-spin" />
           </div>
-          <p className="text-sm text-muted-foreground">Verificando conexão Bybit…</p>
+          <p className="text-sm text-muted-foreground">{t('apexAi.dashboardLoading')}</p>
         </div>
       </div>
     );
@@ -173,7 +181,7 @@ export default function ApexAiOnboarding() {
       <div className="min-h-screen bg-background px-4 md:px-6 lg:px-8 py-5 safe-top">
         <Button variant="ghost" size="sm" onClick={() => nav('/apex-ai')}>
           <ArrowLeft className="w-4 h-4 mr-1" />
-          Voltar
+          {t('common.back')}
         </Button>
 
         <div className="max-w-md mx-auto pt-10 text-center space-y-6">
@@ -182,10 +190,9 @@ export default function ApexAiOnboarding() {
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold">Conecte sua Bybit</h1>
+            <h1 className="text-2xl font-bold">{t('apexAi.onboardingStep1TitleAlt')}</h1>
             <p className="text-sm text-muted-foreground">
-              Apex AI precisa de acesso de leitura e trade na sua conta Bybit para operar
-              automaticamente. Suas credenciais ficam criptografadas e o saque permanece bloqueado.
+              {t('apexAi.onboardingStep1NotConnectedDesc')}
             </p>
           </div>
 
@@ -194,7 +201,7 @@ export default function ApexAiOnboarding() {
             onClick={() => nav('/settings?tab=exchange')}
             className="w-full bg-gradient-to-r from-orange-500 to-amber-600"
           >
-            Conectar Bybit
+            {t('apexAi.onboardingStep1NotConnectedCta')}
           </Button>
 
           <PermissionsInfo />
@@ -210,9 +217,9 @@ export default function ApexAiOnboarding() {
       <div className="flex items-center justify-between mb-6">
         <Button variant="ghost" size="sm" onClick={goBack}>
           <ArrowLeft className="w-4 h-4 mr-1" />
-          Voltar
+          {t('common.back')}
         </Button>
-        <div className="text-xs text-muted-foreground">Configuração validada</div>
+        <div className="text-xs text-muted-foreground">{t('apexAi.setupLabel')}</div>
       </div>
 
       {/* Bybit status — always visible (pre-confirmed) */}
@@ -223,10 +230,12 @@ export default function ApexAiOnboarding() {
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold">Bybit conectada</p>
+              <p className="text-xs font-semibold">{t('apexAi.onboardingStep1ConnectedTitle')}</p>
               <p className="text-xs text-muted-foreground">
-                Saldo disponível: $
-                {bybitBalance.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                {t('apexAi.onboardingStep1ConnectedDesc').replace(
+                  '{{balance}}',
+                  `$${bybitBalance.toLocaleString('en-US', { maximumFractionDigits: 2 })}`,
+                )}
               </p>
             </div>
           </CardContent>
@@ -246,9 +255,10 @@ export default function ApexAiOnboarding() {
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center mx-auto shadow-lg">
               <Wallet className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold">Quanto deseja alocar?</h1>
+            <h1 className="text-2xl font-bold">{t('apexAi.onboardingStep2Title')}</h1>
             <p className="text-sm text-muted-foreground">
-              Apex AI vai operar com a configuração validada do backtest oficial.
+              Apex AI runs the validated backtest configuration. No setup choices, no symbol
+              picking — just allocate capital and activate.
             </p>
           </div>
 
@@ -256,7 +266,7 @@ export default function ApexAiOnboarding() {
           <Card className="border-border/50">
             <CardContent className="p-5 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="capital">Capital alocado (USDT)</Label>
+                <Label htmlFor="capital">{t('apexAi.onboardingStep2CapitalLabel')}</Label>
                 <Input
                   id="capital"
                   type="number"
@@ -269,8 +279,10 @@ export default function ApexAiOnboarding() {
                   className="text-lg h-12"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Mínimo $100 · Saldo Bybit disponível: $
-                  {bybitBalance.toLocaleString()}
+                  {t('apexAi.onboardingStep2CapitalHint').replace(
+                    '{{balance}}',
+                    `$${bybitBalance.toLocaleString('en-US', { maximumFractionDigits: 2 })}`,
+                  )}
                 </p>
               </div>
 
@@ -293,7 +305,7 @@ export default function ApexAiOnboarding() {
           <Card className="border-emerald-500/40 bg-emerald-500/5 relative overflow-hidden">
             <div className="absolute -top-2.5 left-4 flex items-center gap-1 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full shadow z-10">
               <Sparkles className="w-3 h-3" />
-              Configuração Validada
+              Validated config
             </div>
             <CardContent className="p-5 pt-7 space-y-4">
               <div className="flex items-start gap-3">
@@ -301,14 +313,14 @@ export default function ApexAiOnboarding() {
                   <Award className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base">Modo Moderado</h3>
+                  <h3 className="font-bold text-base">BTC/USDT · Smart Martingale DCA</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                    Martingale DCA inteligente · SMA-20 · ATR dinâmico · Smart
-                    Reserve Protocol. A configuração que rendeu{' '}
+                    Martingale DCA · SMA-20 filter · dynamic ATR spacing · Smart Reserve Protocol.
+                    The exact strategy that returned{' '}
                     <span className="font-semibold text-emerald-400">
-                      100% win rate em 250 ciclos
+                      100% win rate over 250 cycles
                     </span>{' '}
-                    no backtest oficial.
+                    in the official 3-year BTC backtest.
                   </p>
                 </div>
               </div>
@@ -316,12 +328,10 @@ export default function ApexAiOnboarding() {
               {capitalInput && parseFloat(capitalInput) >= 100 && (
                 <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2.5">
                   <p className="text-[10px] uppercase tracking-wider text-emerald-400 font-bold mb-1">
-                    📊 Backtest oficial Apice (3 anos · BTC/USDT)
+                    Apice official backtest · 3 years · BTC/USDT
                   </p>
                   <div className="flex items-center justify-between gap-2 text-xs">
-                    <span className="text-muted-foreground">
-                      Capital projetado:
-                    </span>
+                    <span className="text-muted-foreground">3-year projection:</span>
                     <span className="font-bold">
                       <span className="text-muted-foreground">
                         ${parseFloat(capitalInput).toLocaleString()}
@@ -329,45 +339,44 @@ export default function ApexAiOnboarding() {
                       {' → '}
                       <span className="text-emerald-400">
                         $
-                        {(parseFloat(capitalInput) * 6.43).toLocaleString(
-                          undefined,
-                          { maximumFractionDigits: 0 }
-                        )}
+                        {(parseFloat(capitalInput) * 6.43).toLocaleString(undefined, {
+                          maximumFractionDigits: 0,
+                        })}
                       </span>
                     </span>
                   </div>
                   <p className="text-[9px] text-muted-foreground mt-1">
-                    Win rate 100% · 0 CB triggers · Sharpe 1.19 · referência
-                    histórica
+                    100% win rate · 0 CB triggers · Sharpe 1.19 · max DD 40.7% · historical
+                    reference, live market may diverge
                   </p>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="rounded-md bg-muted/30 px-2.5 py-1.5">
-                  <span className="text-muted-foreground">Alavancagem:</span>{' '}
-                  <span className="font-semibold">3x</span>
+                  <span className="text-muted-foreground">Leverage:</span>{' '}
+                  <span className="font-semibold">3×</span>
                 </div>
                 <div className="rounded-md bg-muted/30 px-2.5 py-1.5">
-                  <span className="text-muted-foreground">Camadas:</span>{' '}
-                  <span className="font-semibold">5 max</span>
+                  <span className="text-muted-foreground">Layers:</span>{' '}
+                  <span className="font-semibold">up to 5</span>
                 </div>
                 <div className="rounded-md bg-muted/30 px-2.5 py-1.5">
-                  <span className="text-muted-foreground">TP:</span>{' '}
+                  <span className="text-muted-foreground">Take profit:</span>{' '}
                   <span className="font-semibold">1.2% blended</span>
                 </div>
                 <div className="rounded-md bg-muted/30 px-2.5 py-1.5">
-                  <span className="text-muted-foreground">Reserve:</span>{' '}
-                  <span className="font-semibold">10% lucro</span>
+                  <span className="text-muted-foreground">Reserve fund:</span>{' '}
+                  <span className="font-semibold">10% of profit</span>
                 </div>
               </div>
 
               <div className="flex items-start gap-2 rounded-md bg-blue-500/5 border border-blue-500/20 p-2.5">
                 <Bot className="w-3.5 h-3.5 text-blue-400 flex-shrink-0 mt-0.5" />
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Bot nunca fecha em prejuízo · 10% de cada ciclo lucrativo
-                  alimenta o Reserve Fund automaticamente · Filtro SMA-20
-                  bloqueia abertura em downtrends fortes.
+                  Bot never closes at a loss · 10% of every winning cycle automatically funds the
+                  Smart Reserve Protocol · SMA-20 filter blocks new entries during strong
+                  downtrends.
                 </p>
               </div>
             </CardContent>
@@ -384,19 +393,19 @@ export default function ApexAiOnboarding() {
             {isCreating ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Ativando Apex AI…
+                {t('apexAi.setupCreating')}
               </>
             ) : (
               <>
                 <Rocket className="w-4 h-4 mr-2" />
-                Ativar Apex AI
+                {t('apexAi.landingCtaActivate')}
               </>
             )}
           </Button>
 
           <p className="text-[10px] text-center text-muted-foreground leading-relaxed">
-            Portfolio inicia pausado · ativação manual no dashboard · circuit breaker
-            automático em 24h drawdown &gt; 20% · kill switch sempre disponível
+            {t('apexAi.setupSafetyItem3')} · {t('apexAi.setupSafetyItem1')} ·{' '}
+            {t('apexAi.setupSafetyItem2')}
           </p>
         </motion.div>
       </div>
@@ -407,22 +416,25 @@ export default function ApexAiOnboarding() {
 // ─── Subcomponents ──────────────────────────────────────────
 
 function PermissionsInfo() {
+  const { t } = useTranslation();
   return (
     <Card className="border-border/50 text-left">
       <CardContent className="p-4 space-y-3">
-        <p className="text-sm font-semibold">Permissões necessárias</p>
+        <p className="text-sm font-semibold">{t('apexAi.onboardingStep1PermissionsTitle')}</p>
         <ul className="space-y-2 text-xs">
           <li className="flex items-center gap-2">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Leitura — saldo, posições e ordens</span>
+            <span>{t('apexAi.onboardingStep1PermissionsRead')}</span>
           </li>
           <li className="flex items-center gap-2">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Trade — abrir e fechar posições no mercado de futuros</span>
+            <span>{t('apexAi.onboardingStep1PermissionsTrade')}</span>
           </li>
           <li className="flex items-center gap-2">
             <Shield className="w-3.5 h-3.5 text-red-400" />
-            <span className="text-red-400">Saque permanece bloqueado (segurança)</span>
+            <span className="text-red-400">
+              {t('apexAi.onboardingStep1PermissionsWithdraw')}
+            </span>
           </li>
         </ul>
       </CardContent>

@@ -19,11 +19,11 @@ import { DCAAmountSlider } from '@/components/dca/DCAAmountSlider';
 import { DCAAssetSelector } from '@/components/dca/DCAAssetSelector';
 import { DCARecommendationCard } from '@/components/dca/DCARecommendationCard';
 import { DCAPlanCard } from '@/components/dca/DCAPlanCard';
-import { DCASummaryBar } from '@/components/dca/DCASummaryBar';
 import { DCAPerformanceChart } from '@/components/dca/DCAPerformanceChart';
 import { DCAExecutionTimeline } from '@/components/dca/DCAExecutionTimeline';
 import { DcaRecommendationsWidget } from '@/components/dca/DcaRecommendationsWidget';
 import { DipBuyPlansWidget } from '@/components/dca/DipBuyPlansWidget';
+import { DCAHeroDashboard } from '@/components/dca/DCAHeroDashboard';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import {
   ArrowLeft,
@@ -48,7 +48,6 @@ import {
 import { useDCAExecution } from '@/hooks/useDCAExecution';
 import { isSupabaseConfigured } from '@/integrations/supabase/client';
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Recommended DCA plans per investor type
 const RECOMMENDED_PLANS: Record<InvestorType, {
@@ -411,112 +410,103 @@ export default function DCAPlanner() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-4 md:px-6 lg:px-8 py-5 space-y-5"
+        className="px-4 md:px-6 lg:px-8 py-5 space-y-6"
       >
-        {/* AI-recommended infinite plans (Primary + Diversifier) */}
-        <ErrorBoundary fallback={null}>
-          <DcaRecommendationsWidget
-            onCustomize={() => openWizard()}
-          />
+        {/* 1. Hero Dashboard — KPI summary at top with empty-state CTA */}
+        <ErrorBoundary fallback={
+          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">
+            Dashboard unavailable
+          </div>
+        }>
+          <DCAHeroDashboard onCreatePlan={openWizard} />
         </ErrorBoundary>
 
-        {/* Dip-Buy plans — opportunistic 7d / 21d bursts */}
-        <ErrorBoundary fallback={null}>
-          <DipBuyPlansWidget />
-        </ErrorBoundary>
-
-        {/* Empty state */}
         {dcaPlans.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="rounded-2xl glass-card p-6 text-center"
-          >
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
-              <TrendingUp className="w-8 h-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-bold mb-1.5">Automate your contributions</h3>
-            <p className="text-sm text-muted-foreground mb-4 max-w-[280px] mx-auto leading-relaxed">
-              DCA means investing a fixed amount at regular intervals, reducing emotion and timing risk in your decisions.
-            </p>
-            <div className="flex flex-col gap-3 mb-5">
-              {[
-                { icon: ShieldCheck, text: 'Reduce volatility risk over time' },
-                { icon: Clock, text: 'Set it once and stay consistent' },
-                { icon: TrendingUp, text: 'Historically outperforms impulse-based decisions' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 text-left">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <item.icon className="w-4 h-4 text-primary" />
-                  </div>
-                  <span className="text-xs text-muted-foreground">{item.text}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Inline recommended plan for empty state */}
-            {investorType && (
-              <div className="mb-4 p-4 rounded-xl bg-white/[0.05] text-left">
-                <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
-                  Recommended for {investorType}
-                </p>
-                <div className="flex items-baseline gap-1.5 mb-2">
-                  <span className="text-2xl font-bold text-primary">
-                    ${RECOMMENDED_PLANS[investorType].amount}
-                  </span>
-                  <span className="text-sm text-muted-foreground">/week</span>
-                </div>
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {RECOMMENDED_PLANS[investorType].assets.map((a) => (
-                    <Badge key={a.symbol} variant="secondary" className="text-[11px]">
-                      {a.symbol} {a.allocation}%
-                    </Badge>
-                  ))}
-                </div>
-                <Button
-                  variant="premium"
-                  className="w-full"
-                  onClick={handleActivateRecommendedPlan}
-                >
-                  <Sparkles className="w-4 h-4 mr-1.5" />
-                  Activate recommended plan
-                </Button>
-              </div>
-            )}
-
-            <button
-              onClick={openWizard}
-              className="w-full py-3 rounded-xl text-sm font-semibold text-white apice-gradient-primary transition-all hover:opacity-90 active:scale-[0.98]"
+          <>
+            {/* Empty path: educational primer + ready-made strategies */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="rounded-2xl glass-card p-5"
             >
-              Create my first DCA plan
-            </button>
-          </motion.div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-lg bg-[hsl(var(--apice-emerald))]/10 flex items-center justify-center">
+                  <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--apice-emerald))]" />
+                </div>
+                <h3 className="text-sm font-semibold">Why DCA works</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                {[
+                  { icon: ShieldCheck, text: 'Reduces volatility risk by spreading entries over time' },
+                  { icon: Clock, text: 'Set it once — stay consistent without watching markets' },
+                  { icon: TrendingUp, text: '4-year DCA into BTC has been profitable 100% of the time' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/[0.03]">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <item.icon className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    <span className="text-[11.5px] text-muted-foreground leading-snug">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+
+              {investorType && (
+                <div className="mt-4 p-3.5 rounded-xl bg-gradient-to-br from-[hsl(var(--apice-emerald))]/[0.06] to-transparent border border-[hsl(var(--apice-emerald))]/15">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 font-semibold">
+                    Quick start · matched to {investorType}
+                  </p>
+                  <div className="flex items-baseline gap-1.5 mb-2">
+                    <span className="text-2xl font-bold text-[hsl(var(--apice-emerald))] tabular-nums">
+                      ${RECOMMENDED_PLANS[investorType].amount}
+                    </span>
+                    <span className="text-xs text-muted-foreground">/week</span>
+                    <div className="ml-auto flex flex-wrap gap-1 justify-end">
+                      {RECOMMENDED_PLANS[investorType].assets.map((a) => (
+                        <Badge key={a.symbol} variant="secondary" className="text-[10px]">
+                          {a.symbol} {a.allocation}%
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <Button
+                    variant="premium"
+                    className="w-full mt-1"
+                    onClick={handleActivateRecommendedPlan}
+                  >
+                    <Sparkles className="w-4 h-4 mr-1.5" />
+                    Activate recommended plan
+                  </Button>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Discovery — Apice strategy templates */}
+            <div className="space-y-4">
+              <SectionHeader icon={Sparkles} label="Apice Strategies" />
+              <ErrorBoundary fallback={null}>
+                <DcaRecommendationsWidget onCustomize={() => openWizard()} />
+              </ErrorBoundary>
+              <ErrorBoundary fallback={null}>
+                <DipBuyPlansWidget />
+              </ErrorBoundary>
+            </div>
+          </>
         ) : (
           <>
-            {/* Summary stats */}
-            <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">DCA summary unavailable</div>}>
-              <DCASummaryBar />
-            </ErrorBoundary>
-
-            {/* Performance + Timeline — side by side on xl */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              <div>
-                <SectionHeader icon={TrendingUp} label="Performance" />
-                <ErrorBoundary fallback={<div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">Performance chart unavailable</div>}>
+            {/* 2. Performance — full width, hero metric chart */}
+            <div>
+              <SectionHeader icon={TrendingUp} label="Performance" />
+              <ErrorBoundary fallback={
+                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">
+                  Performance chart unavailable
+                </div>
+              }>
                 <DCAPerformanceChart />
               </ErrorBoundary>
-              </div>
-              <div>
-                <SectionHeader icon={History} label="Recent Executions" />
-                <DCAExecutionTimeline />
-              </div>
             </div>
 
-            {/* AI Recommendation */}
-            <DCARecommendationCard onApply={handleApplyRecommendation} />
-
-            {/* Active Plans */}
+            {/* 3. Your Active Plans */}
             <div>
               <SectionHeader icon={LayoutGrid} label={`Your Plans (${dcaPlans.length})`} />
               <AnimatePresence mode="popLayout">
@@ -526,6 +516,29 @@ export default function DCAPlanner() {
                   ))}
                 </div>
               </AnimatePresence>
+            </div>
+
+            {/* 4. AI Advisor — personalized recommendation */}
+            <div>
+              <SectionHeader icon={Sparkles} label="AI Advisor" />
+              <DCARecommendationCard onApply={handleApplyRecommendation} />
+            </div>
+
+            {/* 5. Discovery — Apice methodology strategies */}
+            <div className="space-y-4">
+              <SectionHeader icon={Sparkles} label="Strategies" />
+              <ErrorBoundary fallback={null}>
+                <DcaRecommendationsWidget onCustomize={() => openWizard()} />
+              </ErrorBoundary>
+              <ErrorBoundary fallback={null}>
+                <DipBuyPlansWidget />
+              </ErrorBoundary>
+            </div>
+
+            {/* 6. Recent Executions — timeline at bottom */}
+            <div>
+              <SectionHeader icon={History} label="Recent Executions" />
+              <DCAExecutionTimeline />
             </div>
           </>
         )}

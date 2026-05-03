@@ -182,10 +182,14 @@ export function WarChestWidget() {
   const apply = useAppStore((s) => s.applyWarChestRecommendation);
   const dismiss = useAppStore((s) => s.dismissWarChestRecommendation);
 
-  // Funding-account proxy for USDC pool. When the dedicated USDC field
-  // ships in CurrentBalances we swap this out — interface stays stable.
-  const fundingBalance = useAppStore((s) => s.currentBalances?.funding ?? 0);
-  const usdcAvailable = useMemo(() => Math.max(0, Math.floor(fundingBalance)), [fundingBalance]);
+  // Real USDC availability from balance-monitor edge function. Falls back
+  // to FUND total when the breakdown isn't populated yet (older deploy).
+  const usdcAvailableRaw = useAppStore((s) => s.currentBalances?.usdcAvailable ?? 0);
+  const fundingFallback = useAppStore((s) => s.currentBalances?.funding ?? 0);
+  const usdcAvailable = useMemo(
+    () => Math.max(0, Math.floor(usdcAvailableRaw > 0 ? usdcAvailableRaw : fundingFallback)),
+    [usdcAvailableRaw, fundingFallback],
+  );
 
   const [showHistory, setShowHistory] = useState(false);
 

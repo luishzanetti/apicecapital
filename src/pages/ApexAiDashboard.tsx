@@ -29,7 +29,6 @@ import {
   useApexAiPortfolioStats,
   useApexAiDailyPnL,
 } from '@/hooks/useApexAiData';
-import { seedApexAiDemoData, wipeApexAiDemoData } from '@/lib/apexAi/seedDemo';
 import {
   activateApexAiPortfolio,
   closeAllApexAiPositions,
@@ -40,6 +39,11 @@ import { ApexAiCommandCenter } from '@/components/apex-ai/ApexAiCommandCenter';
 import { ApexAiBurnInMonitor } from '@/components/apex-ai/ApexAiBurnInMonitor';
 import { ApexAiFundingWidget } from '@/components/apex-ai/ApexAiFundingWidget';
 import { ApexAiReserveFundWidget } from '@/components/apex-ai/ApexAiReserveFundWidget';
+import { ApexAiValidatedConfigCard } from '@/components/apex-ai/ApexAiValidatedConfigCard';
+import { ApexAiExchangeStatusBanner } from '@/components/apex-ai/ApexAiExchangeStatusBanner';
+import { ApexAiHedgeBoard } from '@/components/apex-ai/ApexAiHedgeBoard';
+import { ApexAiLiveCyclesFeed } from '@/components/apex-ai/ApexAiLiveCyclesFeed';
+import { ApexAiPerformanceCard } from '@/components/apex-ai/ApexAiPerformanceCard';
 import { useApexAiTicker } from '@/hooks/useApexAiTicker';
 import {
   useApexAiRegime,
@@ -190,53 +194,6 @@ function DashboardContent({
 
   const [confirmKill, setConfirmKill] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [seedLoading, setSeedLoading] = useState<'seed' | 'wipe' | null>(null);
-
-  const isDev = import.meta.env.DEV;
-
-  async function handleSeedDemo() {
-    if (!portfolio || !session?.user?.id) return;
-    setSeedLoading('seed');
-    try {
-      const result = await seedApexAiDemoData(portfolio, session.user.id);
-      if (result.error) {
-        toast({
-          title: 'Seed failed',
-          description: result.error,
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Demo data loaded',
-          description: `${result.positions_inserted} positions + ${result.trades_inserted} trades`,
-        });
-        queryClient.invalidateQueries({ queryKey: ['apex-ai-positions'] });
-        queryClient.invalidateQueries({ queryKey: ['apex-ai-trades'] });
-        queryClient.invalidateQueries({ queryKey: ['apex-ai-portfolio'] });
-        queryClient.invalidateQueries({ queryKey: ['apex-ai-daily-pnl'] });
-        queryClient.invalidateQueries({ queryKey: ['apex-ai-credits'] });
-      }
-    } finally {
-      setSeedLoading(null);
-    }
-  }
-
-  async function handleWipeDemo() {
-    if (!portfolio) return;
-    setSeedLoading('wipe');
-    try {
-      const result = await wipeApexAiDemoData(portfolio.id);
-      if (result.success) {
-        toast({ title: 'Demo data wiped' });
-        queryClient.invalidateQueries({ queryKey: ['apex-ai-positions'] });
-        queryClient.invalidateQueries({ queryKey: ['apex-ai-trades'] });
-        queryClient.invalidateQueries({ queryKey: ['apex-ai-portfolio'] });
-        queryClient.invalidateQueries({ queryKey: ['apex-ai-daily-pnl'] });
-      }
-    } finally {
-      setSeedLoading(null);
-    }
-  }
 
   async function toggleBotStatus(targetStatus: ApexAiPortfolioStatus) {
     if (!portfolio || !session?.user?.id) return;
@@ -487,7 +444,30 @@ function DashboardContent({
         />
       </div>
 
-      {/* V2.1 — Command Center: AI analyzing markets in real time */}
+      {/* ═══════════════════════════════════════════════════════════════
+           V3.2 — Apex AI canonical layout
+           Order driven by what the user needs to see in priority:
+             1. Validated config (credibility) — backtest stats
+             2. Command Center (AI thinking now)
+             3. Hedge Board (positions live with PnL)
+             4. Performance (aggregated stats)
+             5. Strategy Decisions (live cycles feed)
+             6. Reserve fund (capital management)
+             7. Insights (Advisor recommendations)
+             8. Burn-in (system health)
+         ══════════════════════════════════════════════════════════════ */}
+
+      {/* 0. Exchange status banner — surfaces real-money blockers loud + clear */}
+      <div className="mb-5">
+        <ApexAiExchangeStatusBanner portfolioId={portfolio.id} />
+      </div>
+
+      {/* 1. Validated Strategy Card — proves what the bot is doing */}
+      <div className="mb-5">
+        <ApexAiValidatedConfigCard />
+      </div>
+
+      {/* 2. Command Center — AI analyzing market in real time */}
       {activeSymbolList.length > 0 && (
         <div className="mb-5">
           <ApexAiCommandCenter
@@ -499,27 +479,42 @@ function DashboardContent({
         </div>
       )}
 
-      {/* V3 — Smart Reserve Protocol */}
+      {/* 3. Hedge Board — what's open right now with live PnL + cycle proximity */}
+      <div className="mb-5">
+        <ApexAiHedgeBoard portfolioId={portfolio.id} />
+      </div>
+
+      {/* 4. Performance — total PnL, win rate, best/worst, last 24h */}
+      <div className="mb-5">
+        <ApexAiPerformanceCard portfolioId={portfolio.id} />
+      </div>
+
+      {/* 5. Strategy Decisions — live feed of cycles + significant events */}
+      <div className="mb-5">
+        <ApexAiLiveCyclesFeed portfolioId={portfolio.id} />
+      </div>
+
+      {/* 6. Smart Reserve Protocol — 10% of profits banked */}
       <div className="mb-5">
         <ApexAiReserveFundWidget portfolioId={portfolio.id} />
       </div>
 
-      {/* V2.5 — Burn-in system health monitor */}
+      {/* 7. AI Advisor — contextual insights + alerts */}
+      <div className="mb-5">
+        <ApexAiInsightsCard portfolioId={portfolio.id} />
+      </div>
+
+      {/* 8. Burn-in monitor — system health for transparency */}
       <div className="mb-5">
         <ApexAiBurnInMonitor portfolioId={portfolio.id} />
       </div>
 
-      {/* V2.5 — Funding intelligence (yield opportunities) */}
+      {/* Funding intelligence — yield opportunities (kept available, lower priority) */}
       {activeSymbolList.length > 0 && (
         <div className="mb-5">
           <ApexAiFundingWidget intelligenceMap={intelligenceMap} />
         </div>
       )}
-
-      {/* Apex AI Advisor — health score + recommendations + alerts */}
-      <div className="mb-5">
-        <ApexAiInsightsCard portfolioId={portfolio.id} />
-      </div>
 
       {/* P&L Chart */}
       <Card className="mb-5 border-border/50">
@@ -621,46 +616,6 @@ function DashboardContent({
           </div>
         </CardContent>
       </Card>
-
-      {/* DEV-only: Demo data seeder */}
-      {isDev && (
-        <Card className="mb-5 border-dashed border-violet-500/30 bg-violet-500/5">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-              <p className="text-xs font-semibold text-violet-400">
-                Dev tools — demo data
-              </p>
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              Populate dashboard with realistic mock trades to preview how it
-              looks with real activity. Only visible in development.
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-violet-500/30 text-violet-400 hover:bg-violet-500/10"
-                disabled={seedLoading !== null}
-                onClick={handleSeedDemo}
-              >
-                <Sparkles className="w-3.5 h-3.5 mr-1" />
-                {seedLoading === 'seed' ? 'Seeding…' : 'Populate demo'}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-red-500/30 text-red-400 hover:bg-red-500/10"
-                disabled={seedLoading !== null}
-                onClick={handleWipeDemo}
-              >
-                <Trash2 className="w-3.5 h-3.5 mr-1" />
-                {seedLoading === 'wipe' ? 'Wiping…' : 'Wipe demo'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Open Positions */}
       <div className="mb-5">

@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,9 +53,19 @@ export default function ApexAiLanding() {
 
   const hasBybit = balanceStatus === 'connected';
   const isBalanceLoading = balanceStatus === 'loading';
+  const portfoliosLoading = portfolios === undefined;
   const hasPortfolios = Boolean(portfolios && portfolios.length > 0);
   const activePortfolios = portfolios?.filter((p) => p.status === 'active') ?? [];
   const hasActive = activePortfolios.length > 0;
+
+  // Skip landing entirely for returning users — landing exists only to
+  // onboard newcomers. The moment a user has any portfolio (active OR
+  // paused), the landing becomes friction. Send them straight to the
+  // dashboard. Onboarding is reachable from there if they want to add a
+  // second portfolio.
+  if (!portfoliosLoading && hasPortfolios) {
+    return <Navigate to="/apex-ai/dashboard" replace />;
+  }
 
   const userState: UserState = useMemo(() => {
     // While balance is loading, optimistically assume user is connected if

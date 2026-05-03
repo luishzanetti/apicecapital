@@ -43,6 +43,10 @@ interface Balances {
   spot: number;
   contract: number;
   total: number;
+  /** Aggregated coin availability across UNIFIED + FUND wallets, in coin
+   *  units (NOT USD). Used by the War Chest widget for USDC visibility. */
+  usdcAvailable: number;
+  usdtAvailable: number;
 }
 
 interface DcaPlanRow {
@@ -199,6 +203,10 @@ async function fetchUserBalances(
   apiSecret: string,
   testnet: boolean,
 ): Promise<Balances> {
+  // Coin breakdown accumulator across UNIFIED + FUND wallets
+  let usdcAvailable = 0;
+  let usdtAvailable = 0;
+
   // UNIFIED account (primary trading capital — used by DCA + ALTIS)
   // Prefer totalEquity so locked-in positions count toward "total balance".
   let unifiedTotal = 0;
@@ -211,6 +219,13 @@ async function fetchUserBalances(
       unifiedTotal = toNumber(account.totalEquity)
         || toNumber(account.totalWalletBalance)
         || toNumber(account.totalAvailableBalance);
+      // Pull USDC + USDT availability from coin breakdown (in coin units)
+      for (const c of account.coin ?? []) {
+        const upper = (c.coin ?? '').toUpperCase();
+        const bal = toNumber(c.walletBalance) || toNumber(c.equity);
+        if (upper === 'USDC') usdcAvailable += bal;
+        else if (upper === 'USDT') usdtAvailable += bal;
+      }
     }
   } catch (err) {
     log('warn', 'unified_balance_failed', { message: err instanceof Error ? err.message : 'unknown' });
@@ -265,6 +280,10 @@ async function fetchUserBalances(
           // Prefer transferBalance (what is actually movable) over walletBalance.
           const balance = toNumber(c.transferBalance) || toNumber(c.walletBalance);
           if (balance <= 0) return 0;
+          // Add to coin-level breakdown
+          const upper = (c.coin ?? '').toUpperCase();
+          if (upper === 'USDC') usdcAvailable += balance;
+          else if (upper === 'USDT') usdtAvailable += balance;
           const price = await getCoinUsdPrice(apiKey, apiSecret, testnet, c.coin);
           return balance * price;
         }),
@@ -282,6 +301,8 @@ async function fetchUserBalances(
     spot: spotTotal,
     contract: contractTotal,
     total,
+    usdcAvailable,
+    usdtAvailable,
   };
 }
 
